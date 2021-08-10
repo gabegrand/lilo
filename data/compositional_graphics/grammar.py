@@ -1,0 +1,33 @@
+"""
+compositional_graphics: grammar.py | Author : Catherine Wong.
+
+Utility functions for loading Python DSLs for the compositional graphics domain. This grammar was originally designed and used in the LAPS-ICML 2021 paper and can be found in the dreamcoder/logo domain.
+"""
+from collections import OrderedDict
+
+from src.experiment_iterator import ModelLoaderRegistries, GRAMMAR
+from src.models.model_loaders import GrammarLoader
+
+from dreamcoder.grammar import Grammar
+import dreamcoder.domains.logo.logoPrimitives as logoPrimitives
+
+GrammarRegistry = ModelLoaderRegistries[GRAMMAR]
+
+
+@GrammarRegistry.register
+class LogoGrammarLoader(GrammarLoader):
+    """Loads the LOGO grammar.
+    Original source: dreamcoder/domains/logo/logoPrimitives.
+    Semantics are only implemented in OCaml.
+    """
+
+    name = "logo"
+
+    def load_model(self):
+        logo_primitives = list(
+            OrderedDict((x, True) for x in logoPrimitives.primitives).keys()
+        )
+        grammar = Grammar.uniform(
+            logo_primitives, continuationType=logoPrimitives.turtle
+        )
+        return grammar
