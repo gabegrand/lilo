@@ -7,8 +7,8 @@ from collections import OrderedDict
 
 from src.experiment_iterator import ModelLoaderRegistries, GRAMMAR
 from src.models.model_loaders import GrammarLoader
+from src.models.laps_grammar import LAPSGrammar
 
-from dreamcoder.grammar import Grammar
 import dreamcoder.domains.logo.logoPrimitives as logoPrimitives
 
 GrammarRegistry = ModelLoaderRegistries[GRAMMAR]
@@ -21,13 +21,13 @@ class LogoGrammarLoader(GrammarLoader):
     Semantics are only implemented in OCaml.
     """
 
-    name = "logo"
+    name = "LOGO"  # Special handler for OCaml enumeration.
 
     def load_model(self):
         logo_primitives = list(
             OrderedDict((x, True) for x in logoPrimitives.primitives).keys()
         )
-        grammar = Grammar.uniform(
+        grammar = LAPSGrammar.uniform(
             logo_primitives, continuationType=logoPrimitives.turtle
         )
         return grammar

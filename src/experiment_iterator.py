@@ -61,9 +61,12 @@ MODEL_INITIALIZER_FN = "model_initializer_fn"
 PARAMS = "params"
 
 TIMESTAMP = "timestamp"
+OCAML_SPECIAL_HANDLER = "ocaml_special_handler"
 
 
 class ExperimentState:
+    ALL = "all"
+
     def __init__(self, config):
         self.tasks, self.task_frontiers = self.init_tasks_from_config(config)
         self.task_language, self.task_vocab = self.init_task_language_from_config(
@@ -74,7 +77,7 @@ class ExperimentState:
         self.models = {}
         self.init_models_from_config(config)
 
-        self.metadata = init_metadata_from_config(config)
+        self.metadata = self.init_metadata_from_config(config)
 
     def init_tasks_from_config(self, config):
         task_loader = TaskLoaderRegistry[config[METADATA][TASKS_LOADER]]
@@ -114,8 +117,9 @@ class ExperimentState:
             self.models[model_type] = model
 
     def init_metadata_from_config(self, config):
-        self.metadata = config[METADATA]
-        self.metadata[TIMESTAMP] = utils.escaped_timestamp()
+        metadata = config[METADATA]
+        metadata[TIMESTAMP] = utils.escaped_timestamp()
+        return metadata
 
     def checkpoint_frontiers(self):
         pass
@@ -125,3 +129,42 @@ class ExperimentState:
 
     def checkpoint_models(self):
         pass
+
+    def get_tasks_for_ids(self, task_split, task_ids, include_samples=True):
+        """Returns array of tasks for list of task_ids. If task_ids is ALL, returns all tasks in task_split and does NOT return samples."""
+
+        if task_ids == self.ALL:
+            return self.tasks[task_split]
+
+        tasks = [t for t in self.tasks[task_split] if t.name in task_ids]
+        if include_samples:
+            tasks += [t for t in self.sample_tasks if t.name in task_ids]
+        return tasks
+
+    def get_frontiers_for_ids(self, task_split, task_ids, include_samples=False):
+        """Returns array of frontiers for list of task_ids. If task_ids is ALL, returns frontiers for all tasks in task_split and does NOT return samples."""
+        return [
+            self.task_frontiers[task_split][task]
+            for task in self.get_tasks_for_ids(task_split, task_ids, include_samples)
+        ]
+
+    def update_frontiers(
+        self, new_frontiers, maximum_frontier, task_split, is_sample
+    ):
+        """Updates frontiers with new_frontiers. If is_sample, updates sample frontiers."""
+
+        for new_frontier in new_frontiers:
+            if is_sample:
+                if new_frontier.task in self.sample_frontiers:
+                    self.sample_frontiers[new_frontier.task] = (
+                        self.sample_frontiers[new_frontier.task]
+                        .combine(new_frontier)
+                        .topK(maximum_frontier)
+                    )
+            else:
+                if new_frontier.task in self.task_frontiers[task_split]:
+                    self.task_frontiers[task_split][new_frontier.task] = (
+                        self.task_frontiers[task_split][new_frontier.task]
+                        .combine(new_frontier)
+                        .topK(maximum_frontier)
+                    )

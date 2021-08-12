@@ -17,6 +17,7 @@ from src.experiment_iterator import (
 )
 
 DEFAULT_DATA_DIRECTORY = "data/compositional_graphics"
+OCAML_SPECIAL_HANDLER_LOGO = "LOGO"  # Special string flag for OCaml handling.
 
 
 @TaskLoaderRegistry.register
@@ -40,6 +41,8 @@ class CompositionalGraphics200Loader(TaskDataLoader):
                 with open(task_file, "rb") as f:
                     t = dill.load(f)
                     t.nearest_name = None
+                    # Add the task serializer.
+                    t.ocaml_serializer = None
                     tasks[split].append(t)
         return tasks
 

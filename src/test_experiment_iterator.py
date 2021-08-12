@@ -16,6 +16,7 @@ TEST_GRAPHICS_CONFIG = {
         TASKS_LOADER: CompositionalGraphics200Loader.name,
         TASK_LANGUAGE_LOADER: CompositionalGraphics200HumanLanguageLoader.name,
         INIT_FRONTIERS_FROM_CHECKPOINT: False,
+        OCAML_SPECIAL_HANDLER: OCAML_SPECIAL_HANDLER_LOGO,
     },
     MODEL_INITIALIZERS: [
         {
@@ -54,3 +55,25 @@ def test_init_models_from_config():
 
     assert GRAMMAR in test_experiment_state.models
     assert type(test_experiment_state.models[GRAMMAR]) == Grammar
+
+
+def test_get_tasks_for_ids():
+    test_config = TEST_GRAPHICS_CONFIG
+    test_experiment_state = ExperimentState(test_config)
+
+    test_task_ids = ["a small triangle", "a medium triangle"]
+
+    test_tasks = test_experiment_state.get_tasks_for_ids(
+        task_split=TRAIN, task_ids=test_task_ids
+    )
+
+    assert len(test_tasks) == len(test_task_ids)
+    for t in test_tasks:
+        assert t.name in test_task_ids
+
+    # Check ALL
+    for split in (TRAIN, TEST):
+        all_tasks = test_experiment_state.get_tasks_for_ids(
+            task_split=split, task_ids=ExperimentState.ALL
+        )
+        assert len(all_tasks) == len(test_experiment_state.tasks[split])
