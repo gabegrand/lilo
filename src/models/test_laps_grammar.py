@@ -2,6 +2,8 @@
 test_laps_grammar.py | Author : Catherine Wong
 """
 from src.experiment_iterator import *
+from src.task_loaders import *
+from src.models.model_loaders import GRAMMAR
 from src.test_experiment_iterator import TEST_GRAPHICS_CONFIG
 
 
@@ -43,7 +45,8 @@ def test_laps_grammar_generative_sample_frontiers_for_tasks():
 
     TEST_ENUMERATION_TIMEOUT = 10
     test_grammar.generative_sample_frontiers_for_tasks(
-        test_experiment_state, enumeration_timeout=TEST_ENUMERATION_TIMEOUT
+        experiment_state=test_experiment_state,
+        enumeration_timeout=TEST_ENUMERATION_TIMEOUT,
     )
 
     assert len(test_experiment_state.sample_frontiers) > 0
@@ -62,7 +65,7 @@ def test_laps_grammar_optimize_grammar_frontiers_for_frontiers():
 
     test_batch_ids = ["a small triangle", "a medium triangle"]
     test_grammar.infer_programs_for_tasks(
-        test_experiment_state,
+        experiment_state=test_experiment_state,
         task_split=TRAIN,
         task_batch_ids=test_batch_ids,
         enumeration_timeout=TEST_ENUMERATION_TIMEOUT,
@@ -71,8 +74,7 @@ def test_laps_grammar_optimize_grammar_frontiers_for_frontiers():
     pre_compression_grammar_type = type(test_experiment_state.models[GRAMMAR])
 
     test_grammar.optimize_grammar_frontiers_for_frontiers(
-        test_experiment_state,
-        iteration=0,
+        experiment_state=test_experiment_state,
         task_split=TRAIN,
         task_batch_ids=ExperimentState.ALL,
     )

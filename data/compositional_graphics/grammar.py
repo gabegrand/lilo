@@ -5,8 +5,7 @@ Utility functions for loading Python DSLs for the compositional graphics domain.
 """
 from collections import OrderedDict
 
-from src.experiment_iterator import ModelLoaderRegistries, GRAMMAR
-from src.models.model_loaders import GrammarLoader
+from src.models.model_loaders import ModelLoaderRegistries, GRAMMAR, GrammarLoader
 from src.models.laps_grammar import LAPSGrammar
 
 import dreamcoder.domains.logo.logoPrimitives as logoPrimitives

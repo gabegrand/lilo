@@ -3,6 +3,10 @@ model_loaders.py | Author : Catherine Wong
 
 Utility functions for loading and initializing many basic models.
 """
+from class_registry import ClassRegistry
+
+GRAMMAR = "grammar"
+ModelLoaderRegistries = {GRAMMAR: ClassRegistry("name", unique=True)}
 
 
 class GrammarLoader:

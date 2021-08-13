@@ -10,6 +10,8 @@ from dreamcoder.enumeration import multicoreEnumeration
 from dreamcoder.dreaming import backgroundHelmholtzEnumeration
 from dreamcoder.compression import induceGrammar
 
+import src.task_loaders as task_loaders
+import src.models.model_loaders as model_loaders
 import src.experiment_iterator as experiment_iterator
 
 
@@ -81,7 +83,9 @@ class LAPSGrammar(Grammar):
     def generative_sample_frontiers_for_tasks(
         self,
         experiment_state,
-        enumeration_timeout,
+        task_split=None,
+        task_batch_ids=None,
+        enumeration_timeout=None,
         evaluation_timeout=DEFAULT_EVALUATION_TIMEOUT,
         max_samples=DEFAULT_MAX_SAMPLES,
         sampler=DEFAULT_SAMPLER,
@@ -95,7 +99,7 @@ class LAPSGrammar(Grammar):
 
         # Samples typed programs bsaed on the distribution of training tasks,
         tasks_to_attempt = experiment_state.get_tasks_for_ids(
-            task_split=experiment_iterator.TRAIN,
+            task_split=task_loaders.TRAIN,
             task_ids=experiment_iterator.ExperimentState.ALL,
             include_samples=False,
         )
@@ -127,7 +131,6 @@ class LAPSGrammar(Grammar):
     def optimize_grammar_frontiers_for_frontiers(
         self,
         experiment_state,
-        iteration,
         task_split,
         task_batch_ids,
         top_k=DEFAULT_TOP_K,
@@ -158,7 +161,7 @@ class LAPSGrammar(Grammar):
             topk_use_only_likelihood=False,
             backend=compressor_type,
             CPUs=cpus,
-            iteration=iteration,
+            iteration=experiment_state.curr_iteration,
             language_alignments=None,
             executable=os.path.join(compressor_directory, compressor),
             lc_score=0.0,
@@ -167,7 +170,7 @@ class LAPSGrammar(Grammar):
         # Cast back to LAPSGrammar
         optimized_grammar = LAPSGrammar.fromGrammar(optimized_grammar)
 
-        experiment_state.models[experiment_iterator.GRAMMAR] = optimized_grammar
+        experiment_state.models[model_loaders.GRAMMAR] = optimized_grammar
         for optimized_frontier in optimized_frontiers:
             experiment_state.task_frontiers[task_split][
                 optimized_frontier.task

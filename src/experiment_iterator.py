@@ -3,53 +3,18 @@ experiment_iterator.py | Author : Catherine Wong.
 Utility classes for initializing and running iterated experiments from configs.
 """
 import os, json
-from class_registry import ClassRegistry
 
 from dreamcoder.frontier import Frontier
 
 import src.utils as utils
+import src.models.model_loaders as model_loaders
+import src.task_loaders as task_loaders
 
-# Registries for dataset and models
-TaskLoaderRegistry = ClassRegistry("name", unique=True)
-TaskLanguageLoaderRegistry = ClassRegistry("name", unique=True)
-
-GRAMMAR = "grammar"
-ModelLoaderRegistries = {GRAMMAR: ClassRegistry("name", unique=True)}
-
-# Task and dataset constants
-TASKS, LANGUAGE, VOCAB = "tasks", "language", "vocab"
-TRAIN, TEST = "train", "test"
-HUMAN, SYNTHETIC = "human", "synthetic"
-
-
-class TaskDataLoader:
-    """Abstract class for Task and language dataset loaders."""
-
-    def load_tasks(self):
-        """:ret: {SPLIT : [array of tasks]}"""
-        raise NotImplementedError
-
-    def load_task_language(self):
-        """:ret: {
-        language: {split: task_name : [array of language]};
-        vocab: {split: [array of tokens]}
-        """
-        raise NotImplementedError
-
-    def load_task_language_for_directory(self, dataset_path, splits):
-        language, vocab = {}, {}
-        for split in splits:
-            language_file = os.path.join(dataset_path, split, f"{LANGUAGE}.json")
-            vocab_file = os.path.join(dataset_path, split, f"{VOCAB}.json")
-            with open(language_file) as f:
-                language[split] = json.load(f)
-            with open(vocab_file) as f:
-                vocab[split] = json.load(f)
-        return language, vocab
-
-
-# Experiment config constants
+# Experiment state config constants
 METADATA = "metadata"
+EXPORT_DIRECTORY = "export_directory"
+LOG_DIRECTORY = "log_directory"
+
 TASKS_LOADER = "tasks_loader"
 TASK_LANGUAGE_LOADER = "task_language_loader"
 INIT_FRONTIERS_FROM_CHECKPOINT = "init_frontiers_from_checkpoint"
@@ -62,10 +27,13 @@ PARAMS = "params"
 
 TIMESTAMP = "timestamp"
 OCAML_SPECIAL_HANDLER = "ocaml_special_handler"
+RANDOM_SEED = "random_seed"
 
 
 class ExperimentState:
     ALL = "all"
+    SAMPLES = "samples"
+    FRONTIERS = "frontiers"
 
     def __init__(self, config):
         self.tasks, self.task_frontiers = self.init_tasks_from_config(config)
@@ -77,10 +45,11 @@ class ExperimentState:
         self.models = {}
         self.init_models_from_config(config)
 
+        self.curr_iteration = None
         self.metadata = self.init_metadata_from_config(config)
 
     def init_tasks_from_config(self, config):
-        task_loader = TaskLoaderRegistry[config[METADATA][TASKS_LOADER]]
+        task_loader = task_loaders.TaskLoaderRegistry[config[METADATA][TASKS_LOADER]]
         tasks = task_loader.load_tasks()
 
         # TODO: allow initialization from frontiers.
@@ -95,7 +64,7 @@ class ExperimentState:
         return tasks, task_frontiers
 
     def init_task_language_from_config(self, config):
-        language_loader = TaskLanguageLoaderRegistry[
+        language_loader = task_loaders.TaskLanguageLoaderRegistry[
             config[METADATA][TASK_LANGUAGE_LOADER]
         ]
 
@@ -104,7 +73,7 @@ class ExperimentState:
     def init_models_from_config(self, config):
         for model_initializer_block in config[MODEL_INITIALIZERS]:
             model_type = model_initializer_block[MODEL_TYPE]
-            model_loader_registry = ModelLoaderRegistries[model_type]
+            model_loader_registry = model_loaders.ModelLoaderRegistries[model_type]
             model_loader = model_loader_registry[
                 model_initializer_block[MODEL_LOADER]
             ]
@@ -127,7 +96,10 @@ class ExperimentState:
     def checkpoint_samples(self):
         pass
 
-    def checkpoint_models(self):
+    def checkpoint_state(self, state_to_checkpoint):
+        pass
+
+    def checkpoint_models(self, models_to_checkpoint):
         pass
 
     def get_tasks_for_ids(self, task_split, task_ids, include_samples=True):
@@ -168,3 +140,98 @@ class ExperimentState:
                         .combine(new_frontier)
                         .topK(maximum_frontier)
                     )
+
+
+# Experiment iterator config constants
+EXPERIMENT_ITERATOR = "experiment_iterator"
+MAX_ITERATIONS = "max_iterations"
+TASK_BATCHER = "task_batcher"
+LOOP_BLOCKS = "loop_blocks"
+EXPERIMENT_BLOCK_TYPE = "experiment_block_type"
+EXPERIMENT_BLOCK_TYPE_MODEL_FN = "model_fn"  # Run a function from a model
+EXPERIMENT_BLOCK_TYPE_CHECKPOINT = "checkpoint"  # Checkpoint the model state
+STATE_TO_CHECKPOINT = "state_to_checkpoint"
+MODELS_TO_CHECKPOINT = "models_to_checkpoint"
+
+
+class ExperimentIterator:
+    def __init__(self, config, experiment_state):
+        self.config = config
+
+        (
+            self.curr_iteration,
+            self.max_iterations,
+            self.task_batcher,
+            self.loop_pointer,
+            self.loop_blocks,
+        ) = self.init_iterator_from_config(config, experiment_state)
+
+    def init_iterator_from_config(config, experiment_state):
+        curr_iteration = 0  # TODO: implement resume.
+        max_iterations = config[EXPERIMENT_ITERATOR][MAX_ITERATIONS]
+
+        task_batcher = task_loaders.TaskBatcherRegistry[
+            config[EXPERIMENT_ITERATOR][TASK_BATCHER]
+        ](experiment_state, curr_iteration, max_iterations)
+
+        loop_pointer = 0
+        loop_blocks = config[EXPERIMENT_ITERATOR][LOOP_BLOCKS]
+
+        return (
+            curr_iteration,
+            max_iterations,
+            task_batcher,
+            loop_pointer,
+            loop_blocks,
+        )
+
+    def is_finished(self):
+        return self.curr_iteration < self.max_iterations
+
+    def next(self, experiment_state):
+        """Increment the iterator. Currently supports the following types of experiment blocks:
+        model_fn: run a model function on a batch of tasks.
+        checkpoint: checkpoint state or models.
+        """
+        curr_loop_block = self._loop_blocks[self._loop_pointer]
+        if curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_MODEL_FN:
+            self.execute_model_fn(experiment_state, curr_loop_block)
+        elif (
+            curr_loop_block[EXPERIMENT_BLOCK_TYPE]
+            == EXPERIMENT_BLOCK_TYPE_CHECKPOINT
+        ):
+            self.checkpoint(experiment_state, curr_loop_block)
+
+        self._loop_pointer += 1
+
+    def execute_model_fn(self, experiment_state, curr_loop_block):
+        """Executes a model function on a batch of tasks. Model functions should be of the form:
+
+        model_fn(experiment_state, task_split, task_batch_ids, **params...)
+        """
+        # Get a batch of tasks
+        task_split, task_batch_size = (
+            curr_loop_block[TASK_SPLIT],
+            curr_loop_block[TASK_BATCH_SIZE],
+        )
+        task_batch_ids = self.task_batcher.get_task_batch_ids(
+            experiment_state, curr_iteration, task_split, task_batch_size
+        )
+
+        # Run model function on the batch of tasks
+        model_type, model_fn_name = (
+            curr_loop_block[MODEL_TYPE],
+            curr_loop_block[EXPERIMENT_BLOCK_TYPE_MODEL_FN],
+        )
+        model_fn = getattr(experiment_state.models[model_type], model_fn_name)
+
+        model_fn(
+            experiment_state=experiment_state,
+            task_split=task_split,
+            task_batch_ids=task_batch_ids,
+            **curr_loop_block[PARAMS],
+        )
+
+    def checkpoint(self, experiment_state, curr_loop_block):
+        experiment_state.checkpoint_state(curr_loop_block[STATE_TO_CHECKPOINT])
+        experiment_state.checkpoint_models(curr_loop_block[MODELS_TO_CHECKPOOINT])

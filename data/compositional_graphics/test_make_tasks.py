@@ -2,12 +2,7 @@
 compositional_graphics: test_make_tasks.py | Author : Catherine Wong.
 """
 
-from src.experiment_iterator import (
-    TaskLoaderRegistry,
-    TaskLanguageLoaderRegistry,
-    TRAIN,
-    TEST,
-)
+from src.task_loaders import *
 from dreamcoder.domains.logo.logoPrimitives import turtle
 from dreamcoder.type import arrow
 

@@ -2,7 +2,8 @@
 compositional_graphics: test_grammar.py | Author : Catherine Wong.
 """
 
-from src.experiment_iterator import ModelLoaderRegistries, GRAMMAR
+from src.models.model_loaders import ModelLoaderRegistries, GRAMMAR, GrammarLoader
+
 
 GrammarRegistry = ModelLoaderRegistries[GRAMMAR]
 
@@ -13,4 +14,7 @@ def test_logo_grammar_load_model():
     grammar_loader = GrammarRegistry[to_test.LogoGrammarLoader.name]
     grammar = grammar_loader.load_model()
     for primitive in grammar.primitives:
-        assert grammar_loader.name in str(primitive) or str(primitive).isnumeric()
+        assert (
+            grammar_loader.name.lower() in str(primitive).lower()
+            or str(primitive).isnumeric()
+        )
