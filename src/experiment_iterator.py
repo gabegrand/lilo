@@ -14,6 +14,7 @@ import src.task_loaders as task_loaders
 METADATA = "metadata"
 EXPORT_DIRECTORY = "export_directory"
 LOG_DIRECTORY = "log_directory"
+RESUME_CHECKPOINT_DIRECTORY = "resume_checkpoint_directory"
 
 TASKS_LOADER = "tasks_loader"
 TASK_LANGUAGE_LOADER = "task_language_loader"
@@ -74,9 +75,7 @@ class ExperimentState:
         for model_initializer_block in config[MODEL_INITIALIZERS]:
             model_type = model_initializer_block[MODEL_TYPE]
             model_loader_registry = model_loaders.ModelLoaderRegistries[model_type]
-            model_loader = model_loader_registry[
-                model_initializer_block[MODEL_LOADER]
-            ]
+            model_loader = model_loader_registry[model_initializer_block[MODEL_LOADER]]
 
             model_loader_fn = getattr(
                 model_loader, model_initializer_block[MODEL_INITIALIZER_FN]
@@ -120,9 +119,7 @@ class ExperimentState:
             for task in self.get_tasks_for_ids(task_split, task_ids, include_samples)
         ]
 
-    def update_frontiers(
-        self, new_frontiers, maximum_frontier, task_split, is_sample
-    ):
+    def update_frontiers(self, new_frontiers, maximum_frontier, task_split, is_sample):
         """Updates frontiers with new_frontiers. If is_sample, updates sample frontiers."""
 
         for new_frontier in new_frontiers:
@@ -166,13 +163,16 @@ class ExperimentIterator:
             self.loop_blocks,
         ) = self.init_iterator_from_config(config, experiment_state)
 
-    def init_iterator_from_config(config, experiment_state):
+    def init_iterator_from_config(self, config, experiment_state):
         curr_iteration = 0  # TODO: implement resume.
         max_iterations = config[EXPERIMENT_ITERATOR][MAX_ITERATIONS]
 
-        task_batcher = task_loaders.TaskBatcherRegistry[
-            config[EXPERIMENT_ITERATOR][TASK_BATCHER]
-        ](experiment_state, curr_iteration, max_iterations)
+        task_batcher = task_loaders.TaskBatcherRegistry.get(
+            config[EXPERIMENT_ITERATOR][TASK_BATCHER],
+            experiment_state=experiment_state,
+            curr_iteration=curr_iteration,
+            max_iterations=max_iterations,
+        )
 
         loop_pointer = 0
         loop_blocks = config[EXPERIMENT_ITERATOR][LOOP_BLOCKS]
@@ -186,23 +186,24 @@ class ExperimentIterator:
         )
 
     def is_finished(self):
-        return self.curr_iteration < self.max_iterations
+        return self.curr_iteration >= self.max_iterations
 
     def next(self, experiment_state):
         """Increment the iterator. Currently supports the following types of experiment blocks:
         model_fn: run a model function on a batch of tasks.
         checkpoint: checkpoint state or models.
         """
-        curr_loop_block = self._loop_blocks[self._loop_pointer]
+        curr_loop_block = self.loop_blocks[self.loop_pointer]
         if curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_MODEL_FN:
             self.execute_model_fn(experiment_state, curr_loop_block)
-        elif (
-            curr_loop_block[EXPERIMENT_BLOCK_TYPE]
-            == EXPERIMENT_BLOCK_TYPE_CHECKPOINT
-        ):
+        elif curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_CHECKPOINT:
             self.checkpoint(experiment_state, curr_loop_block)
 
-        self._loop_pointer += 1
+        self.loop_pointer += 1
+
+        if self.loop_pointer >= len(self.loop_blocks):
+            self.loop_pointer = self.loop_pointer % len(self.loop_blocks)
+            self.curr_iteration += 1
 
     def execute_model_fn(self, experiment_state, curr_loop_block):
         """Executes a model function on a batch of tasks. Model functions should be of the form:
@@ -211,11 +212,11 @@ class ExperimentIterator:
         """
         # Get a batch of tasks
         task_split, task_batch_size = (
-            curr_loop_block[TASK_SPLIT],
-            curr_loop_block[TASK_BATCH_SIZE],
+            curr_loop_block[task_loaders.TASK_SPLIT],
+            curr_loop_block[task_loaders.TASK_BATCH_SIZE],
         )
         task_batch_ids = self.task_batcher.get_task_batch_ids(
-            experiment_state, curr_iteration, task_split, task_batch_size
+            experiment_state, self.curr_iteration, task_split, task_batch_size
         )
 
         # Run model function on the batch of tasks

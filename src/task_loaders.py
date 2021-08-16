@@ -49,9 +49,41 @@ class TaskBatcher:
     """Abstract class for task batchers."""
 
     def __init__(self, experiment_state, curr_iteration, max_iterations):
-        raise NotImplementedError
+        self.random_seed = None
+        self.task_id_orderings = {}
+        self.batch_pointers = {}
 
     def get_task_batch_ids(
         self, experiment_state, curr_iteration, task_split, batch_size
     ):
         raise NotImplementedError
+
+
+@TaskBatcherRegistry.register
+class OrderedTaskBatcher(TaskBatcher):
+    """OrderedTaskBatcher: gets batch_size ids with wraparound. No shuffle."""
+
+    name = "ordered_task_batcher"
+
+    def __init__(self, experiment_state, curr_iteration, max_iterations):
+        self.task_id_orderings = {
+            split: [t.name for t in experiment_state.tasks[split]]
+            for split in experiment_state.tasks
+        }
+        self.batch_pointers = {split: 0 for split in experiment_state.tasks}
+
+    def get_task_batch_ids(
+        self, experiment_state, curr_iteration, task_split, batch_size
+    ):
+        all_tasks_for_split = self.task_id_orderings[task_split]
+        start = self.batch_pointers[task_split] % len(all_tasks_for_split)
+
+        end = start + batch_size
+
+        task_batch = (all_tasks_for_split + all_tasks_for_split.copy())[
+            start:end
+        ]  # Wraparound nicely.
+
+        self.batch_pointers[task_split] += batch_size
+
+        return task_batch

@@ -1,0 +1,38 @@
+{
+  "metadata" : {
+    "human_readable": "DreamCoder baseline. Domain: compositional graphics 200. Human language.",
+    "export_directory" : "experiments/compositional_graphics/outputs",
+    "log_directory" : "experiments/compositional_graphics/logs",
+    "tasks_loader" : "compositional_graphics_200",
+    "task_language_loader" : "compositional_graphics_200_human",
+    "resume_checkpoint_directory" : null,
+    "init_frontiers_from_checkpoint" : false,
+    
+    "ocaml_special_handler" : "LOGO",
+    "random_seed": 0
+  },
+  "model_initializers" : [
+    {
+      "model_type" : "grammar",
+      "model_loader" : "LOGO",
+      "model_initializer_fn" : "load_model",
+      "params" : {}
+    }
+  ],
+  "experiment_iterator" : {
+    "max_iterations" : 1,
+    "task_batcher" : "ordered_task_batcher",
+    "loop_blocks" : [
+      { 
+        "experiment_block_type" : "model_fn",
+        "model_type" : "grammar",
+        "model_fn" : "infer_programs_for_tasks",
+        "task_split" : "train",
+        "task_batch_size" : 40,
+        "params" : {
+          "enumeration_timeout" : 10
+        }
+      }
+    ]
+  }
+}
