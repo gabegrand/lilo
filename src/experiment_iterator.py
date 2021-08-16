@@ -12,6 +12,7 @@ import src.task_loaders as task_loaders
 
 # Experiment state config constants
 METADATA = "metadata"
+EXPERIMENT_ID = "experiment_id"
 EXPORT_DIRECTORY = "export_directory"
 LOG_DIRECTORY = "log_directory"
 RESUME_CHECKPOINT_DIRECTORY = "resume_checkpoint_directory"
@@ -27,11 +28,13 @@ MODEL_INITIALIZER_FN = "model_initializer_fn"
 PARAMS = "params"
 
 TIMESTAMP = "timestamp"
+TIMESTAMPED_EXPERIMENT_ID = "timestamped_experiment_id"
 OCAML_SPECIAL_HANDLER = "ocaml_special_handler"
 RANDOM_SEED = "random_seed"
 
 
 class ExperimentState:
+
     ALL = "all"
     SAMPLES = "samples"
     FRONTIERS = "frontiers"
@@ -48,6 +51,7 @@ class ExperimentState:
 
         self.curr_iteration = None
         self.metadata = self.init_metadata_from_config(config)
+        self.init_log_and_export_from_config()
 
     def init_tasks_from_config(self, config):
         task_loader = task_loaders.TaskLoaderRegistry[config[METADATA][TASKS_LOADER]]
@@ -87,7 +91,35 @@ class ExperimentState:
     def init_metadata_from_config(self, config):
         metadata = config[METADATA]
         metadata[TIMESTAMP] = utils.escaped_timestamp()
+        metadata[
+            TIMESTAMPED_EXPERIMENT_ID
+        ] = f"{metadata[EXPERIMENT_ID]}_{metadata[TIMESTAMP]}"
         return metadata
+
+    def init_log_and_export_from_config(self):
+        """Initializes time-stamped checkpoint directory and log file if log and export directory are provided."""
+
+        log_directory = self.metadata[LOG_DIRECTORY]
+        export_directory = self.metadata[EXPORT_DIRECTORY]
+
+        if log_directory is not None:
+            utils.mkdir_if_necessary(self.metadata[LOG_DIRECTORY])
+            # Set log directory to the timestamped output file
+            self.metadata[LOG_DIRECTORY] = os.path.join(
+                self.metadata[LOG_DIRECTORY],
+                self.metadata[TIMESTAMPED_EXPERIMENT_ID],
+            )
+            self.init_logger()
+
+        if export_directory is not None:
+            self.metadata[EXPORT_DIRECTORY] = os.path.join(
+                self.metadata[EXPORT_DIRECTORY],
+                self.metadata[TIMESTAMPED_EXPERIMENT_ID],
+            )
+            utils.mkdir_if_necessary(self.metadata[EXPORT_DIRECTORY])
+
+    def init_logger(self):
+        pass
 
     def checkpoint_frontiers(self):
         pass
