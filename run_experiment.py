@@ -11,7 +11,7 @@ By default, it exports:
 Usage: 
     python run_experiment.py 
         --config_dir experiments/configs
-        --config_file dreamcoder_compositional_graphics_200.json
+        --config_file dreamcoder_compositional_graphics_200_human.json
 """
 import os, json, argparse
 
