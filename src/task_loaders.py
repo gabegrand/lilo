@@ -18,6 +18,8 @@ TASKS, LANGUAGE, VOCAB = "tasks", "language", "vocab"
 
 TASK_SPLIT, TASK_BATCH_SIZE = "task_split", "task_batch_size"
 
+ALL = "all"
+
 
 class TaskDataLoader:
     """Abstract class for Task and language dataset loaders."""
@@ -76,6 +78,10 @@ class OrderedTaskBatcher(TaskBatcher):
         self, experiment_state, curr_iteration, task_split, batch_size
     ):
         all_tasks_for_split = self.task_id_orderings[task_split]
+
+        if batch_size == ALL:
+            return all_tasks_for_split
+
         start = self.batch_pointers[task_split] % len(all_tasks_for_split)
 
         end = start + batch_size

@@ -24,9 +24,7 @@ class LAPSGrammar(Grammar):
     DEFAULT_SAMPLER = "helmholtz"
     DEFAULT_BINARY_DIRECTORY = os.path.join(DEFAULT_ENUMERATION_SOLVER, "bin")
     DEFAULT_EVALUATION_TIMEOUT = 1  # Timeout for evaluating a program on a task
-    DEFAULT_MAX_MEM_PER_ENUMERATION_THREAD = (
-        1000000000  # Max memory usage per thread
-    )
+    DEFAULT_MAX_MEM_PER_ENUMERATION_THREAD = 1000000000  # Max memory usage per thread
     DEFAULT_MAX_SAMPLES = 5000
 
     # Compression hyperparameters
@@ -121,9 +119,7 @@ class LAPSGrammar(Grammar):
         )()
 
         for sampled_frontier in sampled_frontiers:
-            experiment_state.sample_frontiers[
-                sampled_frontier.task
-            ] = sampled_frontier
+            experiment_state.sample_frontiers[sampled_frontier.task] = sampled_frontier
             experiment_state.sample_tasks[
                 sampled_frontier.task.name
             ] = sampled_frontier.task

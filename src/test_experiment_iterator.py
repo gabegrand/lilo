@@ -12,11 +12,22 @@ from src.models.laps_grammar import LAPSGrammar
 
 from data.compositional_graphics.make_tasks import *
 from data.compositional_graphics.grammar import *
+from data.compositional_graphics.encoder import *
 
 from dreamcoder.frontier import Frontier
 
+example_encoder_config_block = {
+    MODEL_TYPE: EXAMPLES_ENCODER,
+    MODEL_LOADER: LogoFeatureCNNExamplesEncoder.name,
+    MODEL_INITIALIZER_FN: "load_model_initializer",
+    PARAMS: {"cuda": False},
+}
+
 TEST_GRAPHICS_CONFIG = {
     METADATA: {
+        EXPERIMENT_ID: "dreamcoder_compositional_graphics_200_human",
+        LOG_DIRECTORY: "experiments/outputs/compositional_graphics",
+        EXPORT_DIRECTORY: "experiments/logs/compositional_graphics",
         TASKS_LOADER: CompositionalGraphics200Loader.name,
         TASK_LANGUAGE_LOADER: CompositionalGraphics200HumanLanguageLoader.name,
         INIT_FRONTIERS_FROM_CHECKPOINT: False,
@@ -29,7 +40,8 @@ TEST_GRAPHICS_CONFIG = {
             MODEL_LOADER: LogoGrammarLoader.name,
             MODEL_INITIALIZER_FN: "load_model",
             PARAMS: {},
-        }
+        },
+        example_encoder_config_block,
     ],
     EXPERIMENT_ITERATOR: {
         MAX_ITERATIONS: 1,
@@ -55,9 +67,7 @@ def test_init_tasks_from_config():
     for split in [TRAIN, TEST]:
         assert len(test_experiment_state.tasks[split]) > 0
         for task in test_experiment_state.tasks[split]:
-            assert (
-                type(test_experiment_state.task_frontiers[split][task]) == Frontier
-            )
+            assert type(test_experiment_state.task_frontiers[split][task]) == Frontier
 
 
 def test_init_task_language_from_config():

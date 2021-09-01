@@ -21,9 +21,16 @@
     }
   ],
   "experiment_iterator" : {
-    "max_iterations" : 1,
+    "max_iterations" : 2,
     "task_batcher" : "ordered_task_batcher",
     "loop_blocks" : [
+      { 
+        "experiment_block_type" : "state_fn",
+        "state_fn" : "log_metadata",
+        "params" : {
+          "verbosity" : 3
+        }
+      },
       { 
         "experiment_block_type" : "model_fn",
         "model_type" : "grammar",
@@ -31,9 +38,26 @@
         "task_split" : "train",
         "task_batch_size" : 40,
         "params" : {
-          "enumeration_timeout" : 10
+          "enumeration_timeout" : 2
+        }
+      },
+      { 
+        "experiment_block_type" : "state_fn",
+        "state_fn" : "log_frontiers",
+        "params" : {
+          "verbosity" : 3
+        }
+      },
+      { 
+        "experiment_block_type" : "model_fn",
+        "model_type" : "grammar",
+        "model_fn" : "optimize_grammar_frontiers_for_frontiers",
+        "task_split" : "train",
+        "task_batch_size" : "all",
+        "params" : {
         }
       }
+      
     ]
   }
 }

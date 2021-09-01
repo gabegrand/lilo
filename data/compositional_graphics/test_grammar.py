@@ -2,7 +2,7 @@
 compositional_graphics: test_grammar.py | Author : Catherine Wong.
 """
 
-from src.models.model_loaders import ModelLoaderRegistries, GRAMMAR, GrammarLoader
+from src.models.model_loaders import ModelLoaderRegistries, GRAMMAR, ModelLoader
 
 
 GrammarRegistry = ModelLoaderRegistries[GRAMMAR]

@@ -33,6 +33,9 @@ OCAML_SPECIAL_HANDLER = "ocaml_special_handler"
 RANDOM_SEED = "random_seed"
 
 
+LOG_DEBUG, LOG_WARNING, LOG_INFO = 3, 2, 1
+
+
 class ExperimentState:
 
     ALL = "all"
@@ -121,6 +124,28 @@ class ExperimentState:
     def init_logger(self):
         pass
 
+    def log_metadata(self, verbosity=LOG_DEBUG):
+        if verbosity >= LOG_DEBUG:
+            keys_to_log = {k for k in self.metadata}
+        elif verbosity < LOG_DEBUG and verbosity >= LOG_WARNING:
+            keys_to_log = {}
+
+        print(f"============LOGGING METADATA============")
+        print(f"\tcurr_iteration: {self.curr_iteration}")
+        for attr in keys_to_log:
+            if attr in self.metadata:
+                print(f"\t{attr}: {self.metadata[attr]}")
+        print(f"====================================")
+
+    def log_frontiers(self, verbosity=LOG_DEBUG):
+        print(f"============LOGGING FRONTIERS============")
+        for task_split in self.task_frontiers:
+            num_solved = len(self.get_non_empty_frontiers_for_split(task_split))
+            print(
+                f"\t total_solved_tasks_{task_split} @ iteration {self.curr_iteration}: {num_solved} / {len(self.task_frontiers[task_split])}"
+            )
+        print(f"====================================")
+
     def checkpoint_frontiers(self):
         pass
 
@@ -132,6 +157,14 @@ class ExperimentState:
 
     def checkpoint_models(self, models_to_checkpoint):
         pass
+
+    def get_non_empty_frontiers_for_split(self, task_split):
+        """Returns the non empty frontiers within a split."""
+        return [
+            self.task_frontiers[task_split][task]
+            for task in self.task_frontiers[task_split]
+            if not self.task_frontiers[task_split][task].empty
+        ]
 
     def get_tasks_for_ids(self, task_split, task_ids, include_samples=True):
         """Returns array of tasks for list of task_ids. If task_ids is ALL, returns all tasks in task_split and does NOT return samples."""
@@ -179,6 +212,7 @@ LOOP_BLOCKS = "loop_blocks"
 EXPERIMENT_BLOCK_TYPE = "experiment_block_type"
 EXPERIMENT_BLOCK_TYPE_MODEL_FN = "model_fn"  # Run a function from a model
 EXPERIMENT_BLOCK_TYPE_CHECKPOINT = "checkpoint"  # Checkpoint the model state
+EXPERIMENT_BLOCK_TYPE_STATE_FN = "state_fn"
 STATE_TO_CHECKPOINT = "state_to_checkpoint"
 MODELS_TO_CHECKPOINT = "models_to_checkpoint"
 
@@ -198,6 +232,8 @@ class ExperimentIterator:
     def init_iterator_from_config(self, config, experiment_state):
         curr_iteration = 0  # TODO: implement resume.
         max_iterations = config[EXPERIMENT_ITERATOR][MAX_ITERATIONS]
+
+        experiment_state.curr_iteration = curr_iteration
 
         task_batcher = task_loaders.TaskBatcherRegistry.get(
             config[EXPERIMENT_ITERATOR][TASK_BATCHER],
@@ -228,6 +264,8 @@ class ExperimentIterator:
         curr_loop_block = self.loop_blocks[self.loop_pointer]
         if curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_MODEL_FN:
             self.execute_model_fn(experiment_state, curr_loop_block)
+        elif curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_STATE_FN:
+            self.execute_state_fn(experiment_state, curr_loop_block)
         elif curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_CHECKPOINT:
             self.checkpoint(experiment_state, curr_loop_block)
 
@@ -236,6 +274,29 @@ class ExperimentIterator:
         if self.loop_pointer >= len(self.loop_blocks):
             self.loop_pointer = self.loop_pointer % len(self.loop_blocks)
             self.curr_iteration += 1
+            experiment_state.curr_iteration = self.curr_iteration
+
+    def execute_state_fn(self, experiment_state, curr_loop_block):
+        """Executes a function on the experiment state."""
+        state_fn_name = curr_loop_block[EXPERIMENT_BLOCK_TYPE_STATE_FN]
+        state_fn = getattr(experiment_state, state_fn_name)
+
+        state_fn(
+            **curr_loop_block[PARAMS],
+        )
+
+    def log_model_fn(self, experiment_state, curr_loop_block, task_batch_ids):
+        print(f"============LOGGING MODEL_FN============")
+
+        keys_to_log = {k for k in curr_loop_block}
+        for attr in keys_to_log:
+            if attr in curr_loop_block:
+                print(f"\t{attr}: {curr_loop_block[attr]}")
+
+        print(
+            f"task_ids: {len(task_batch_ids)} tasks: {task_batch_ids[0]} -- {task_batch_ids[-1]}"
+        )
+        print(f"====================================")
 
     def execute_model_fn(self, experiment_state, curr_loop_block):
         """Executes a model function on a batch of tasks. Model functions should be of the form:
@@ -250,6 +311,9 @@ class ExperimentIterator:
         task_batch_ids = self.task_batcher.get_task_batch_ids(
             experiment_state, self.curr_iteration, task_split, task_batch_size
         )
+
+        # Log the model function.
+        self.log_model_fn(experiment_state, curr_loop_block, task_batch_ids)
 
         # Run model function on the batch of tasks
         model_type, model_fn_name = (

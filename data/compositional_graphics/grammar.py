@@ -5,7 +5,7 @@ Utility functions for loading Python DSLs for the compositional graphics domain.
 """
 from collections import OrderedDict
 
-from src.models.model_loaders import ModelLoaderRegistries, GRAMMAR, GrammarLoader
+from src.models.model_loaders import ModelLoaderRegistries, GRAMMAR, ModelLoader
 from src.models.laps_grammar import LAPSGrammar
 
 import dreamcoder.domains.logo.logoPrimitives as logoPrimitives
@@ -14,7 +14,7 @@ GrammarRegistry = ModelLoaderRegistries[GRAMMAR]
 
 
 @GrammarRegistry.register
-class LogoGrammarLoader(GrammarLoader):
+class LogoGrammarLoader(ModelLoader):
     """Loads the LOGO grammar.
     Original source: dreamcoder/domains/logo/logoPrimitives.
     Semantics are only implemented in OCaml.
