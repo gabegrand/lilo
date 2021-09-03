@@ -18,6 +18,18 @@
       "model_loader" : "LOGO",
       "model_initializer_fn" : "load_model",
       "params" : {}
+    },
+    {
+      "model_type" : "examples_encoder",
+      "model_loader" : "LOGO",
+      "model_initializer_fn" : "load_model_initializer",
+      "params" : {}
+    },
+    {
+      "model_type" : "amortized_synthesis",
+      "model_loader" : "dreamcoder_recognition",
+      "model_initializer_fn" : "load_model",
+      "params" : {}
     }
   ],
   "experiment_iterator" : {
@@ -31,6 +43,7 @@
           "verbosity" : 3
         }
       },
+      
       { 
         "experiment_block_type" : "model_fn",
         "model_type" : "grammar",
@@ -38,7 +51,7 @@
         "task_split" : "train",
         "task_batch_size" : 40,
         "params" : {
-          "enumeration_timeout" : 2
+          "enumeration_timeout" : 10
         }
       },
       { 
@@ -48,6 +61,35 @@
           "verbosity" : 3
         }
       },
+      
+      { 
+        "experiment_block_type" : "model_fn",
+        "model_type" : "amortized_synthesis",
+        "model_fn" : "optimize_model_for_frontiers",
+        "task_split" : "train",
+        "task_batch_size" : "all",
+        "params" : {
+            "recognition_train_steps" : 100
+        }
+      },
+      { 
+        "experiment_block_type" : "state_fn",
+        "state_fn" : "log_frontiers",
+        "params" : {
+          "verbosity" : 3
+        }
+      },
+      { 
+        "experiment_block_type" : "model_fn",
+        "model_type" : "amortized_synthesis",
+        "model_fn" : "infer_programs_for_tasks",
+        "task_split" : "train",
+        "task_batch_size" :40,
+        "params" : {
+            "enumeration_timeout" : 10
+        }
+      },
+      
       { 
         "experiment_block_type" : "model_fn",
         "model_type" : "grammar",

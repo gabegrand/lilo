@@ -18,7 +18,12 @@ import os, json, argparse
 from src.experiment_iterator import ExperimentState, ExperimentIterator
 
 from data.compositional_graphics.make_tasks import *
+
+# All of the model loaders we import.
 from data.compositional_graphics.grammar import *
+from data.compositional_graphics.encoder import *
+
+from src.models.laps_dreamcoder_recognition import *
 
 DEFAULT_CONFIG_DIR = "experiments/configs"
 
