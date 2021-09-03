@@ -8,19 +8,32 @@ from src.models.model_loaders import *
 from src.task_loaders import *
 
 from src.models.laps_grammar import LAPSGrammar
-
+from src.models.laps_dreamcoder_recognition import *
 
 from data.compositional_graphics.make_tasks import *
 from data.compositional_graphics.grammar import *
 from data.compositional_graphics.encoder import *
 
+
 from dreamcoder.frontier import Frontier
 
+grammar_config_block = {
+    MODEL_TYPE: GRAMMAR,
+    MODEL_LOADER: LogoGrammarLoader.name,
+    MODEL_INITIALIZER_FN: "load_model",
+    PARAMS: {},
+}
 example_encoder_config_block = {
     MODEL_TYPE: EXAMPLES_ENCODER,
     MODEL_LOADER: LogoFeatureCNNExamplesEncoder.name,
     MODEL_INITIALIZER_FN: "load_model_initializer",
     PARAMS: {"cuda": False},
+}
+amortized_synthesis_config_block = {
+    MODEL_TYPE: AMORTIZED_SYNTHESIS,
+    MODEL_LOADER: LAPSDreamCoderRecognitionLoader.name,
+    MODEL_INITIALIZER_FN: "load_model",
+    PARAMS: {},
 }
 
 TEST_GRAPHICS_CONFIG = {
@@ -35,13 +48,9 @@ TEST_GRAPHICS_CONFIG = {
         RANDOM_SEED: 0,
     },
     MODEL_INITIALIZERS: [
-        {
-            MODEL_TYPE: GRAMMAR,
-            MODEL_LOADER: LogoGrammarLoader.name,
-            MODEL_INITIALIZER_FN: "load_model",
-            PARAMS: {},
-        },
+        grammar_config_block,
         example_encoder_config_block,
+        amortized_synthesis_config_block,
     ],
     EXPERIMENT_ITERATOR: {
         MAX_ITERATIONS: 1,

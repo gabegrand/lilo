@@ -166,22 +166,39 @@ class ExperimentState:
             if not self.task_frontiers[task_split][task].empty
         ]
 
-    def get_tasks_for_ids(self, task_split, task_ids, include_samples=True):
+    def get_tasks_for_ids(
+        self,
+        task_split,
+        task_ids,
+        include_samples=False,
+        include_ground_truth_tasks=True,
+    ):
         """Returns array of tasks for list of task_ids. If task_ids is ALL, returns all tasks in task_split and does NOT return samples."""
+        tasks = []
+        if include_ground_truth_tasks:
+            if task_ids == self.ALL:
+                return self.tasks[task_split]
 
-        if task_ids == self.ALL:
-            return self.tasks[task_split]
-
-        tasks = [t for t in self.tasks[task_split] if t.name in task_ids]
+            tasks = [t for t in self.tasks[task_split] if t.name in task_ids]
         if include_samples:
+            if task_ids == self.ALL:
+                return self.sample_tasks
             tasks += [t for t in self.sample_tasks if t.name in task_ids]
         return tasks
 
-    def get_frontiers_for_ids(self, task_split, task_ids, include_samples=False):
-        """Returns array of frontiers for list of task_ids. If task_ids is ALL, returns frontiers for all tasks in task_split and does NOT return samples."""
+    def get_frontiers_for_ids(
+        self,
+        task_split,
+        task_ids,
+        include_samples=False,
+        include_ground_truth_tasks=True,
+    ):
+        """Returns array of frontiers for list of task_ids. Indicate whether to include samples or regular frontiers."""
         return [
             self.task_frontiers[task_split][task]
-            for task in self.get_tasks_for_ids(task_split, task_ids, include_samples)
+            for task in self.get_tasks_for_ids(
+                task_split, task_ids, include_samples, include_ground_truth_tasks
+            )
         ]
 
     def update_frontiers(self, new_frontiers, maximum_frontier, task_split, is_sample):
