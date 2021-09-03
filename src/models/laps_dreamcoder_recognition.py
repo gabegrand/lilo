@@ -28,20 +28,58 @@ class LAPSDreamCoderRecognitionLoader(model_loaders.ModelLoader):
 class LAPSDreamCoderRecognition:
     """LAPSDreamCoderRecognition: containiner wrapper for a DreamCoder recognition model. The neural weights are fully reset and retrained when optimize_model_for_frontiers is called."""
 
+    DEFAULT_MAXIMUM_FRONTIER = 5  # Maximum top-programs to keep in frontier
+    DEFAULT_CPUS = 12  # Parallel CPUs
+    DEFAULT_ENUMERATION_SOLVER = "ocaml"  # OCaml, PyPy, or Python enumeration
+    DEFAULT_SAMPLER = "helmholtz"
+    DEFAULT_BINARY_DIRECTORY = os.path.join(DEFAULT_ENUMERATION_SOLVER, "bin")
+    DEFAULT_EVALUATION_TIMEOUT = 1  # Timeout for evaluating a program on a task
+    DEFAULT_MAX_MEM_PER_ENUMERATION_THREAD = 1000000000  # Max memory usage per thread
+
     # Contain the neural recognition model. This is re-trained each time optimize_model_for_frontiers is called.
     def __init__(self):
         self._neural_recognition_model = None
 
-    def infer_programs_for_tasks(self):
-        """Searches from a new recognition model. Requires a trained recognition model from optimize_model_for_frontiers. Updates the experiment_state.models[AMORTIZED_SYNTHESIS] to contain the trained model."""
-        pass
+    def infer_programs_for_tasks(
+        self,
+        experiment_state,
+        task_split,
+        task_batch_ids,
+        enumeration_timeout,
+        maximum_frontier=DEFAULT_MAXIMUM_FRONTIER,
+        cpus=DEFAULT_CPUS,
+        solver=DEFAULT_ENUMERATION_SOLVER,
+        evaluation_timeout=DEFAULT_EVALUATION_TIMEOUT,
+        max_mem_per_enumeration_thread=DEFAULT_MAX_MEM_PER_ENUMERATION_THREAD,
+        solver_directory=DEFAULT_BINARY_DIRECTORY,
+    ):
+        """
+        Infers programs for tasks via top-down enumerative search from the grammar.
+        Updates Frontiers in experiment_state with discovered programs.
 
-    def maybe_initialize_example_encoder(self, task_encoder_types, experiment_state):
-        if model_loaders.EXAMPLES_ENCODER not in task_encoder_types:
-            return None
-        # Initialize from tasks.
-        model_initializer_fn = experiment_state.models[model_loaders.EXAMPLES_ENCODER]
-        return model_initializer_fn(experiment_state)
+        Wrapper function around recognition.enumerateFrontiers from dreamcoder.recognition.
+        """
+        tasks_to_attempt = experiment_state.get_tasks_for_ids(
+            task_split=task_split, task_ids=task_batch_ids, include_samples=False
+        )
+        new_frontiers, _ = self._neural_recognition_model.enumerateFrontiers(
+            tasks=tasks_to_attempt,
+            maximumFrontier=maximum_frontier,
+            enumerationTimeout=enumeration_timeout,
+            CPUs=cpus,
+            solver=solver,
+            evaluationTimeout=evaluation_timeout,
+            max_mem_per_enumeration_thread=max_mem_per_enumeration_thread,
+            solver_directory=solver_directory,
+            testing=task_split == TEST,
+        )
+
+        experiment_state.update_frontiers(
+            new_frontiers=new_frontiers,
+            maximum_frontier=maximum_frontier,
+            task_split=task_split,
+            is_sample=False,
+        )
 
     def optimize_model_for_frontiers(
         self,
@@ -79,7 +117,7 @@ class LAPSDreamCoderRecognition:
             )
             return
         # Initialize I/O example encoders.
-        example_encoder = self.maybe_initialize_example_encoder(
+        example_encoder = self._maybe_initialize_example_encoder(
             task_encoder_types, experiment_state
         )
         # Initialize the neural recognition model.
@@ -127,3 +165,10 @@ class LAPSDreamCoderRecognition:
             vectorized=True,
             epochs=recognition_train_epochs,
         )
+
+    def _maybe_initialize_example_encoder(self, task_encoder_types, experiment_state):
+        if model_loaders.EXAMPLES_ENCODER not in task_encoder_types:
+            return None
+        # Initialize from tasks.
+        model_initializer_fn = experiment_state.models[model_loaders.EXAMPLES_ENCODER]
+        return model_initializer_fn(experiment_state)
