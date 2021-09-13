@@ -24,10 +24,16 @@ import src.models.model_loaders as model_loaders
 ExamplesEncoderRegistry = model_loaders.ModelLoaderRegistries[
     model_loaders.EXAMPLES_ENCODER
 ]
+LanguageEncoderRegistry = model_loaders.ModelLoaderRegistries[
+    model_loaders.LANGUAGE_ENCODER
+]
 
 # Input encoders.
-class SequenceLanguageEncoder(nn.Module):
+@LanguageEncoderRegistry.register
+class SequenceLanguageEncoder(nn.Module, model_loaders.ModelLoader):
     """Language encoder for sequences of language tokens. Supports GRU, BIGRU, and ATT_GRU. Reference implementation: https://github.com/mila-iqia/babyai/blob/master/babyai/model.py"""
+
+    name = "sequence_language_encoder"  # String key for config and encoder registry.
 
     GRU, BIGRU, ATT_GRU = "gru", "bigru", "att_gru"
     DEFAULT_ENCODER_DIM = 128
@@ -35,13 +41,18 @@ class SequenceLanguageEncoder(nn.Module):
     START, END, UNK, PAD = "<START>", "<END>", "<UNK>", "<PAD>"
     WORD_TOKENIZE = "word_tokenize"
 
+    @staticmethod
+    def load_model(experiment_state, **kwargs):
+        return SequenceLanguageEncoder(experiment_state=experiment_state, **kwargs)
+
     def __init__(
         self,
-        experiment_state,
+        experiment_state=None,
         encoder_type=ATT_GRU,
         encoder_dim=DEFAULT_ENCODER_DIM,
         attention_dim=DEFAULT_ATTENTION_DIM,
         tokenizer_fn=WORD_TOKENIZE,
+        cuda=False,  # TODO: implement CUDA support.
     ):
         super().__init__()
 
@@ -83,6 +94,8 @@ class SequenceLanguageEncoder(nn.Module):
 
     def _init_input_token_to_idx_from_experiment_state(self, experiment_state):
         """Initialize the token_to_idx from the experiment state. This default dictionary also returns the UNK token for any unfound tokens"""
+        if experiment_state == None:
+            return {}
         train_vocab = sorted(list(experiment_state.task_vocab[TRAIN]))
         train_vocab = [self.PAD, self.UNK, self.START, self.END] + train_vocab
 
@@ -213,8 +226,11 @@ class Flatten(nn.Module):
         return x.view(x.size(0), -1)
 
 
-class SingleImageExampleEncoder(nn.Module):
+@ExamplesEncoderRegistry.register
+class SingleImageExampleEncoder(nn.Module, model_loaders.ModelLoader):
     """Image encoder for tasks specified by a single image example.  Reference implementation: LOGO Feature CNN from DreamCoder."""
+
+    name = "single_image_example_encoder"  # String key for config and encoder registry.
 
     ENCODER_INPUT_DIM = 128  # Expects 128 x 128 image pixels
     ENCODER_HIDDEN_DIM = 64
@@ -222,14 +238,19 @@ class SingleImageExampleEncoder(nn.Module):
     ENCODER_KERNEL_SIZE = 3
     PIXEL_NORMALIZATION_CONSTANT = 256.0
 
+    @staticmethod
+    def load_model(experiment_state, **kwargs):
+        return SingleImageExampleEncoder(experiment_state=experiment_state, **kwargs)
+
     def __init__(
         self,
-        experiment_state,
+        experiment_state=None,
         encoder_input_dim=ENCODER_INPUT_DIM,
         encoder_input_channels=ENCODER_INPUT_CHANNELS,
         encoder_kernel_size=ENCODER_KERNEL_SIZE,
         encoder_hidden_dim=ENCODER_HIDDEN_DIM,
         endpool=True,
+        cuda=False,  # TODO: implement CUDA support.
     ):
         super().__init__()
         self.encoder_input_dim = encoder_input_dim
@@ -284,7 +305,63 @@ class SingleImageExampleEncoder(nn.Module):
 
 
 # SyntaxRobustfill model.
-class SyntaxRobustfill(nn.Module):
-    """Syntax-aware Robustfill model."""
+class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
+    """Syntax-aware Robustfill model. Reference implementation: https://github.com/insperatum/pinn/blob/master/syntax_robustfill.py"""
 
-    pass
+    name = "syntax_robustfill"
+
+    DECODER_HIDDEN_SIZE = 512
+
+    def __init__(
+        self,
+        experiment_state,
+        task_encoder_types=[model_loaders.LANGUAGE_ENCODER],
+        decoder_hidden_size=DECODER_HIDDEN_SIZE,
+        reset_random_parameters=True,  # Reset to random initialization
+    ):
+        super().__init__()
+
+        self.task_encoder_types = task_encoder_types
+        self.encoder = None
+        self.decoder_hidden_size = decoder_hidden_size
+
+        self._initialize_encoders(experiment_state, task_encoder_types)
+
+    # Helper attribute getters.
+    def _use_language(self):
+        return model_loaders.LANGUAGE_ENCODER in task_encoder_types
+
+    def _use_examples(self):
+        return model_loaders.EXAMPLES_ENCODER in task_encoder_types
+
+    # Initialization for the model architecture.
+    def _initialize_encoders(self, experiment_state, task_encoder_types):
+        """Reinitializes the encoders in the experiment_state. Mutates experiment_state.models to all of the task encoders in task_encoder_types."""
+        experiment_state.init_models_from_config(
+            config=experiment_state.config,
+            encoders_to_initialize=[
+                t
+                for t in task_encoder_types
+                if t != model_loaders.JOINT_LANGUAGE_EXAMPLES_ENCODER
+            ],
+        )
+
+        # Set the encoder if we haven't already.
+        if model_loaders.LANGUAGE_ENCODER in task_encoder_types:
+            self.encoder = experiment_state.models[model_loaders.LANGUAGE_ENCODER]
+
+        if model_loaders.EXAMPLES_ENCODER in task_encoder_types:
+            self.encoder = experiment_state.models[model_loaders.EXAMPLES_ENCODER]
+
+        # Initialize the joint encoder to determine how to combine the embeddings.
+        if model_loaders.JOINT_LANGUAGE_EXAMPLES_ENCODER in task_encoder_types:
+            # TODO: implement
+            assert False
+
+    def _initialize_decoder(self):
+        # Get the number of tokens in the target vocabulary.
+        pass
+
+    def _inputs_to_tensors(self, task_ids, experiment_state):
+        # Forward pass encoding of the inputs.
+        pass

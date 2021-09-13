@@ -43,6 +43,7 @@ class ExperimentState:
     FRONTIERS = "frontiers"
 
     def __init__(self, config):
+        self.config = config
         self.tasks, self.task_frontiers = self.init_tasks_from_config(config)
         self.task_language, self.task_vocab = self.init_task_language_from_config(
             config
@@ -78,9 +79,15 @@ class ExperimentState:
 
         return language_loader.load_task_language()
 
-    def init_models_from_config(self, config):
+    def init_models_from_config(self, config, encoders_to_initialize=None):
         for model_initializer_block in config[MODEL_INITIALIZERS]:
             model_type = model_initializer_block[MODEL_TYPE]
+            if (
+                encoders_to_initialize is not None
+                and model_type not in encoders_to_initialize
+            ):
+                continue
+
             model_loader_registry = model_loaders.ModelLoaderRegistries[model_type]
             model_loader = model_loader_registry[model_initializer_block[MODEL_LOADER]]
 
@@ -88,7 +95,9 @@ class ExperimentState:
                 model_loader, model_initializer_block[MODEL_INITIALIZER_FN]
             )
 
-            model = model_loader_fn(**model_initializer_block[PARAMS])
+            model = model_loader_fn(
+                experiment_state=self, **model_initializer_block[PARAMS]
+            )
             self.models[model_type] = model
 
     def init_metadata_from_config(self, config):

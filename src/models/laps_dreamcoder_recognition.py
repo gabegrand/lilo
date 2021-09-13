@@ -21,7 +21,7 @@ ACTIVATION_TANH, ACTIVATION_RELU = "tanh", "relu"
 class LAPSDreamCoderRecognitionLoader(model_loaders.ModelLoader):
     name = "dreamcoder_recognition"
 
-    def load_model(self):
+    def load_model(self, experiment_state):
         return LAPSDreamCoderRecognition()
 
 

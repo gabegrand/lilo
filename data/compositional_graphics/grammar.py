@@ -22,7 +22,7 @@ class LogoGrammarLoader(ModelLoader):
 
     name = "LOGO"  # Special handler for OCaml enumeration.
 
-    def load_model(self):
+    def load_model(self, experiment_state):
         logo_primitives = list(
             OrderedDict((x, True) for x in logoPrimitives.primitives).keys()
         )

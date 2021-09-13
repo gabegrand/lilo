@@ -2,12 +2,33 @@
 test_syntax_robustfill.py | Author : Catherine Wong
 """
 import torch
-
+from src.experiment_iterator import *
+from src.test_experiment_iterator import *
 from src.task_loaders import *
 from src.models.model_loaders import *
 from src.test_experiment_iterator import TEST_GRAPHICS_CONFIG, ExperimentState
 import src.models.syntax_robustfill as syntax_robustfill
 
+single_image_example_encoder_config_block = {
+    MODEL_TYPE: EXAMPLES_ENCODER,
+    MODEL_LOADER: syntax_robustfill.SingleImageExampleEncoder.name,
+    MODEL_INITIALIZER_FN: "load_model",
+    PARAMS: {"cuda": False},
+}
+language_encoder_config_block = {
+    MODEL_TYPE: LANGUAGE_ENCODER,
+    MODEL_LOADER: syntax_robustfill.SequenceLanguageEncoder.name,
+    MODEL_INITIALIZER_FN: "load_model",
+    PARAMS: {"encoder_type": syntax_robustfill.SequenceLanguageEncoder.ATT_GRU},
+}
+
+TEST_SEQUENCE_CONFIG = TEST_GRAPHICS_CONFIG
+TEST_SEQUENCE_CONFIG[MODEL_INITIALIZERS] = [
+    grammar_config_block,
+    single_image_example_encoder_config_block,
+    language_encoder_config_block
+    # TODO: amortized synthesis config block.
+]
 # Image Example encoder tests.
 def _get_default_image_encoder():
     test_config = TEST_GRAPHICS_CONFIG
@@ -29,14 +50,6 @@ def test_single_image_encoder_forward():
     SingleImageExampleEncoder = syntax_robustfill.SingleImageExampleEncoder
     test_model = SingleImageExampleEncoder(experiment_state=test_experiment_state)
     encoder_embeddings = test_model(test_images)
-    import pdb
-
-    pdb.set_trace()
-    #
-    # assert list(encoder_embeddings.size()) == [
-    #     len(test_images),
-    #     SequenceLanguageEncoder.DEFAULT_ENCODER_DIM,
-    # ]
 
 
 # Sequence Language Encoder tests.
@@ -184,3 +197,22 @@ def test_sequence_language_encoder_forward():
             len(test_strings),
             SequenceLanguageEncoder.DEFAULT_ENCODER_DIM,
         ]
+
+
+# SyntaxRobustfill model tests.
+def test_syntax_robustfill_initialize_encoders():
+    SyntaxRobustfill = syntax_robustfill.SyntaxRobustfill
+
+    test_config = TEST_SEQUENCE_CONFIG
+    test_experiment_state = ExperimentState(test_config)
+
+    task_encoders_and_types = [
+        ([LANGUAGE_ENCODER], syntax_robustfill.SequenceLanguageEncoder),
+        ([EXAMPLES_ENCODER], syntax_robustfill.SingleImageExampleEncoder),
+    ]
+    for task_encoder_types, task_encoder_class in task_encoders_and_types:
+        test_model = SyntaxRobustfill(
+            experiment_state=test_experiment_state,
+            task_encoder_types=task_encoder_types,
+        )
+        assert type(test_model.encoder) == task_encoder_class
