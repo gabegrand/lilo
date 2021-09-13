@@ -8,6 +8,37 @@ from src.models.model_loaders import *
 from src.test_experiment_iterator import TEST_GRAPHICS_CONFIG, ExperimentState
 import src.models.syntax_robustfill as syntax_robustfill
 
+# Image Example encoder tests.
+def _get_default_image_encoder():
+    test_config = TEST_GRAPHICS_CONFIG
+    test_experiment_state = ExperimentState(test_config)
+    test_model = syntax_robustfill.SingleImageExampleEncoder(
+        experiment_state=test_experiment_state
+    )
+    return test_experiment_state, test_model
+
+
+def test_single_image_encoder_forward():
+    test_experiment_state, test_model = _get_default_image_encoder()
+
+    test_task_ids = ["a small triangle", "a medium triangle"]
+    test_tasks = test_experiment_state.get_tasks_for_ids(
+        task_split=TRAIN, task_ids=test_task_ids
+    )
+    test_images = [t.highresolution for t in test_tasks]
+    SingleImageExampleEncoder = syntax_robustfill.SingleImageExampleEncoder
+    test_model = SingleImageExampleEncoder(experiment_state=test_experiment_state)
+    encoder_embeddings = test_model(test_images)
+    import pdb
+
+    pdb.set_trace()
+    #
+    # assert list(encoder_embeddings.size()) == [
+    #     len(test_images),
+    #     SequenceLanguageEncoder.DEFAULT_ENCODER_DIM,
+    # ]
+
+
 # Sequence Language Encoder tests.
 def _get_default_sequence_encoder(
     encoder_type=syntax_robustfill.SequenceLanguageEncoder.ATT_GRU,

@@ -203,3 +203,88 @@ class SequenceLanguageEncoder(nn.Module):
             attention = F.softmax(pre_softmax, dim=1)
             rnn_embeddings = (rnn_embeddings * attention[:, :, None]).sum(1)
         return rnn_embeddings
+
+
+class Flatten(nn.Module):
+    def __init__(self):
+        super(Flatten, self).__init__()
+
+    def forward(self, x):
+        return x.view(x.size(0), -1)
+
+
+class SingleImageExampleEncoder(nn.Module):
+    """Image encoder for tasks specified by a single image example.  Reference implementation: LOGO Feature CNN from DreamCoder."""
+
+    ENCODER_INPUT_DIM = 128  # Expects 128 x 128 image pixels
+    ENCODER_HIDDEN_DIM = 64
+    ENCODER_INPUT_CHANNELS = 1
+    ENCODER_KERNEL_SIZE = 3
+    PIXEL_NORMALIZATION_CONSTANT = 256.0
+
+    def __init__(
+        self,
+        experiment_state,
+        encoder_input_dim=ENCODER_INPUT_DIM,
+        encoder_input_channels=ENCODER_INPUT_CHANNELS,
+        encoder_kernel_size=ENCODER_KERNEL_SIZE,
+        encoder_hidden_dim=ENCODER_HIDDEN_DIM,
+        endpool=True,
+    ):
+        super().__init__()
+        self.encoder_input_dim = encoder_input_dim
+        self.encoder_hidden_dim = encoder_hidden_dim
+        self.encoder_input_channels = encoder_input_channels
+        self.encoder_kernel_size = encoder_kernel_size
+        # Multi-layer CNN: reference: https://github.com/mila-iqia/babyai/blob/master/babyai/model.py
+
+        def conv_block(in_channels, out_channels):
+            return nn.Sequential(
+                nn.Conv2d(
+                    in_channels, out_channels, self.encoder_kernel_size, padding=1
+                ),
+                nn.ReLU(),
+                nn.MaxPool2d(2),
+            )
+
+        self.image_conv = nn.Sequential(
+            conv_block(self.encoder_input_channels, self.encoder_hidden_dim),
+            conv_block(self.encoder_hidden_dim, self.encoder_hidden_dim),
+            conv_block(self.encoder_hidden_dim, self.encoder_hidden_dim),
+            conv_block(self.encoder_hidden_dim, self.encoder_hidden_dim),
+            conv_block(self.encoder_hidden_dim, self.encoder_hidden_dim),
+            conv_block(self.encoder_hidden_dim, self.encoder_hidden_dim),
+            Flatten(),
+        )
+
+    def _batch_reshape_and_add_channels_to_tensor(
+        self, images, height=128, width=128, n_channels=1
+    ):
+        """
+        inputs: [nbatch flattened single channel images]
+        output: [nbatch * C_in, H, W] images.
+        """
+        images = torch.tensor(images, dtype=torch.float)
+        images = torch.reshape(images, (-1, n_channels, height, width))
+        # # images = torch.transpose(torch.transpose(images, 1, 3), 2, 3)
+        return images
+
+    def forward(self, inputs):
+        """inputs: [n_batch images].
+        output: [n_batch * (ENCODER_INPUT_DIM * 2)] encoding.
+        """
+        if len(inputs[0]) == self.encoder_input_dim * self.encoder_input_dim:
+            image_tensor = self._batch_reshape_and_add_channels_to_tensor(inputs)
+        else:
+            image_tensor = torch.tensor(inputs)
+        # Normalize by pixels
+        image_tensor /= self.PIXEL_NORMALIZATION_CONSTANT
+        examples_embedding = self.image_conv(image_tensor)
+        return examples_embedding
+
+
+# SyntaxRobustfill model.
+class SyntaxRobustfill(nn.Module):
+    """Syntax-aware Robustfill model."""
+
+    pass
