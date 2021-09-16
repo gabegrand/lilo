@@ -39,6 +39,12 @@ compression:
 	jbuilder build compression.exe && \
 	cp _build/default/compression.exe ../bin/compression
 
+compression_rescoring_api:
+		cd solvers && jbuilder clean && \
+		rm -f bin/compression_rescoring_api && \
+		jbuilder build compression_rescoring_api.exe && \
+		cp _build/default/compression_rescoring_api.exe ../bin/compression_rescoring_api
+
 lcTestClean:
 	cd solvers && jbuilder clean
 	rm -f bin/lcTest

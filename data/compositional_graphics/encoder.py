@@ -26,18 +26,16 @@ class LogoFeatureCNNExamplesEncoder(ModelLoader):
 
     name = "LOGO"
 
-    def load_model_initializer(self, **kwargs):
-        def experiment_state_initializer(experiment_state):
-            all_train_tasks = experiment_state.get_tasks_for_ids(
+    def load_model_initializer(self, experiment_state, **kwargs):
+        def experiment_state_initializer(exp_state):
+            all_train_tasks = exp_state.get_tasks_for_ids(
                 task_split=TRAIN, task_ids=ALL
             )
-            all_test_tasks = experiment_state.get_tasks_for_ids(
-                task_split=TEST, task_ids=ALL
-            )
+            all_test_tasks = exp_state.get_tasks_for_ids(task_split=TEST, task_ids=ALL)
 
             # Make the local directory.
             local_dreams_directory = os.path.join(
-                experiment_state.metadata[EXPORT_DIRECTORY], LOGO_DREAMS_TMP_DIRECTORY
+                exp_state.metadata[EXPORT_DIRECTORY], LOGO_DREAMS_TMP_DIRECTORY
             )
 
             return LogoFeatureCNN(

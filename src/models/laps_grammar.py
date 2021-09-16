@@ -3,12 +3,13 @@ laps_grammmar.py | Author : Catherine Wong
 
 Utility wrapper function around the DreamCoder Grammar. Elevates common functions to be class functions in order to support calling with an ExperimentState.
 """
-import os
+import os, json
 
 from dreamcoder.grammar import Grammar
 from dreamcoder.enumeration import multicoreEnumeration
 from dreamcoder.dreaming import backgroundHelmholtzEnumeration
 from dreamcoder.compression import induceGrammar
+from dreamcoder.utilities import get_root_dir
 
 import src.task_loaders as task_loaders
 import src.models.model_loaders as model_loaders
@@ -171,6 +172,75 @@ class LAPSGrammar(Grammar):
             experiment_state.task_frontiers[task_split][
                 optimized_frontier.task
             ] = optimized_frontier
+
+    ## Utility functions for compressing over subsets of the programs and the grammar.
+    def _send_receive_compressor_api_call(
+        self,
+        compressor_type,
+        compressor,
+        compressor_directory,
+        api_fn,
+        grammar,
+        frontiers,
+        **kwargs,
+    ):
+        API_FN, REQUIRED_ARGS, KWARGS = "api_fn", "required_args", "kwargs"
+        GRAMMAR, FRONTIERS = "grammar", "frontiers"
+
+        """Calls the OCaml compression binary using a provided API function. Function names and signatures are defined in compression_rescoring_api.ml
+        Returns: deserialized JSON response."""
+        if compressor_type != self.DEFAULT_COMPRESSOR_TYPE:
+            # Legacy Dreamcoder library supports Python enumeration
+            raise NotImplementedError
+        # Construct the JSON message.
+        json_serialized_binary_message = {
+            API_FN: api_fn,  # String name of the API function.
+            REQUIRED_ARGS: {
+                GRAMMAR: grammar.json(),
+                FRONTIERS: [],
+            },  # TODO: add frontiers
+            KWARGS: {},  # TODO: add kwargs
+        }
+        json_serialized_binary_message = json.dumps(json_serialized_binary_message)
+
+        # Get the binary relative path.
+        try:
+            ocaml_binary_path = os.path.join(
+                get_root_dir(), compressor_directory, compressor
+            )
+            process = subprocess.Popen(
+                compressor_file, stdin=subprocess.PIPE, stdout=subprocess.PIPE
+            )
+            response, error = process.communicate(
+                bytes(json_serialized_binary_message, encoding="utf-8")
+            )
+            response = json.loads(response.decode("utf-8"))
+        except:
+            raise exc
+        return response, error
+
+    def _get_compression_grammar_candidates_for_frontiers(
+        self,
+        experiment_state,
+        task_split,
+        task_batch_ids,
+        top_k_beam_candidates,  # How many candidates to return for each greedy step of rewriting the library.
+        top_k=DEFAULT_TOP_K,
+        pseudocounts=DEFAULT_PSEUDOCOUNTS,
+        arity=DEFAULT_ARITY,
+        aic=DEFAULT_AIC,
+        structure_penalty=DEFAULT_STRUCTURE_PENALTY,
+        compressor_type=DEFAULT_COMPRESSOR_TYPE,  #
+        compressor=DEFAULT_COMPRESSOR,
+        compressor_directory=DEFAULT_BINARY_DIRECTORY,
+        cpus=DEFAULT_CPUS,
+        max_compression=DEFAULT_MAX_COMPRESSION,
+    ):
+        """Compresses grammar with respect to frontiers in task_batch_ids (or ALL) and returns the candidates after compression."""
+        api_function_name = "get_compression_grammar_candidates_for_frontiers"
+        frontiers_to_optimize = experiment_state.get_frontiers_for_ids(
+            task_split=task_split, task_ids=task_batch_ids, include_samples=False
+        )
 
     ## Elevate static methods to create correct class.
     @staticmethod
