@@ -22,7 +22,15 @@ language_encoder_config_block = {
     PARAMS: {"encoder_type": syntax_robustfill.SequenceLanguageEncoder.ATT_GRU},
 }
 
+
 TEST_SEQUENCE_CONFIG = TEST_GRAPHICS_CONFIG
+
+# Disable logging.
+(
+    TEST_SEQUENCE_CONFIG[METADATA][LOG_DIRECTORY],
+    TEST_SEQUENCE_CONFIG[METADATA][EXPORT_DIRECTORY],
+) = (None, None)
+
 TEST_SEQUENCE_CONFIG[MODEL_INITIALIZERS] = [
     grammar_config_block,
     single_image_example_encoder_config_block,
