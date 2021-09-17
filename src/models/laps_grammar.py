@@ -3,8 +3,9 @@ laps_grammmar.py | Author : Catherine Wong
 
 Utility wrapper function around the DreamCoder Grammar. Elevates common functions to be class functions in order to support calling with an ExperimentState.
 """
+import subprocess
+from dreamcoder.frontier import Frontier
 import os, json
-
 from dreamcoder.grammar import Grammar
 from dreamcoder.enumeration import multicoreEnumeration
 from dreamcoder.dreaming import backgroundHelmholtzEnumeration
@@ -36,7 +37,13 @@ class LAPSGrammar(Grammar):
     DEFAULT_STRUCTURE_PENALTY = 1.5
     DEFAULT_COMPRESSOR_TYPE = "ocaml"
     DEFAULT_COMPRESSOR = "compression"
+    DEFAULT_API_COMPRESSOR = "compression_rescoring_api"
     DEFAULT_MAX_COMPRESSION = 1000
+
+    # API keys for the OCaml compressor API.
+    API_FN, REQUIRED_ARGS, KWARGS = "api_fn", "required_args", "kwargs"
+    GRAMMAR, FRONTIERS = "grammar", "frontiers"
+    TEST_API_FN = "test_send_receive_response"  # Test ping function to make sure the binary is avaiable.
 
     def infer_programs_for_tasks(
         self,
@@ -176,48 +183,58 @@ class LAPSGrammar(Grammar):
     ## Utility functions for compressing over subsets of the programs and the grammar.
     def _send_receive_compressor_api_call(
         self,
-        compressor_type,
-        compressor,
-        compressor_directory,
         api_fn,
-        grammar,
-        frontiers,
-        **kwargs,
+        grammar=None,
+        frontiers={},
+        kwargs={},
+        compressor_type=DEFAULT_COMPRESSOR_TYPE,
+        compressor=DEFAULT_API_COMPRESSOR,
+        compressor_directory=DEFAULT_BINARY_DIRECTORY,
     ):
-        API_FN, REQUIRED_ARGS, KWARGS = "api_fn", "required_args", "kwargs"
-        GRAMMAR, FRONTIERS = "grammar", "frontiers"
+        """Calls the OCaml compression binary using a provided API function. Function names and signatures are defined in compression_rescoring_api.ml.
+        Expects:
+            api_fn: string name of API function to call.
+            grammar: Grammar object. If None, uses self/
+            frontiers: {split : Frontiers object}
+            kwargs: additional pre-serialized objects dictionary.
 
-        """Calls the OCaml compression binary using a provided API function. Function names and signatures are defined in compression_rescoring_api.ml
         Returns: deserialized JSON response."""
         if compressor_type != self.DEFAULT_COMPRESSOR_TYPE:
             # Legacy Dreamcoder library supports Python enumeration
             raise NotImplementedError
         # Construct the JSON message.
+
+        grammar = grammar if grammar is not None else self
         json_serialized_binary_message = {
-            API_FN: api_fn,  # String name of the API function.
-            REQUIRED_ARGS: {
-                GRAMMAR: grammar.json(),
-                FRONTIERS: [],
-            },  # TODO: add frontiers
-            KWARGS: {},  # TODO: add kwargs
+            self.API_FN: str(api_fn),  # String name of the API function.
+            self.REQUIRED_ARGS: {
+                self.GRAMMAR: grammar.json(),
+                self.FRONTIERS: {
+                    split: [f.json() for f in split_frontiers if not f.empty]
+                    for split in frontiers
+                },
+            },
+            self.KWARGS: kwargs,
         }
+
         json_serialized_binary_message = json.dumps(json_serialized_binary_message)
 
-        # Get the binary relative path.
+        ocaml_binary_path = os.path.join(
+            get_root_dir(), compressor_directory, compressor
+        )
         try:
-            ocaml_binary_path = os.path.join(
-                get_root_dir(), compressor_directory, compressor
-            )
             process = subprocess.Popen(
-                compressor_file, stdin=subprocess.PIPE, stdout=subprocess.PIPE
+                ocaml_binary_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE
             )
-            response, error = process.communicate(
+            json_response, json_error = process.communicate(
                 bytes(json_serialized_binary_message, encoding="utf-8")
             )
-            response = json.loads(response.decode("utf-8"))
-        except:
-            raise exc
-        return response, error
+            json_response = json.loads(json_response.decode("utf-8"))
+        except Exception as e:
+            print("Error in _send_receive_compressor_api_call: {e}")
+
+        json_serialized_binary_message = json.loads(json_serialized_binary_message)
+        return json_response, json_error, json_serialized_binary_message
 
     def _get_compression_grammar_candidates_for_frontiers(
         self,

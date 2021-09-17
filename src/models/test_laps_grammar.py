@@ -79,6 +79,23 @@ def test_laps_grammar_optimize_grammar_frontiers_for_frontiers():
         task_batch_ids=ExperimentState.ALL,
     )
 
+    assert type(test_experiment_state.models[GRAMMAR]) == pre_compression_grammar_type
+
+
+def test_laps_grammar_send_receive_compressor_api_call():
+    test_config = TEST_GRAPHICS_CONFIG
+    test_experiment_state = ExperimentState(test_config)
+
+    test_grammar = test_experiment_state.models[GRAMMAR]
+
+    (
+        json_response,
+        json_error,
+        json_serialized_binary_message,
+    ) = test_grammar._send_receive_compressor_api_call(
+        api_fn=test_grammar.TEST_API_FN, grammar=None, frontiers={}, kwargs={}
+    )
+
     assert (
-        type(test_experiment_state.models[GRAMMAR]) == pre_compression_grammar_type
+        json_serialized_binary_message[test_grammar.API_FN] == test_grammar.TEST_API_FN
     )
