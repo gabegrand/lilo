@@ -27,6 +27,10 @@ ExamplesEncoderRegistry = model_loaders.ModelLoaderRegistries[
 LanguageEncoderRegistry = model_loaders.ModelLoaderRegistries[
     model_loaders.LANGUAGE_ENCODER
 ]
+AmortizedSynthesisModelRegistry = model_loaders.ModelLoaderRegistries[
+    model_loaders.AMORTIZED_SYNTHESIS
+]
+
 
 # Input encoders.
 @LanguageEncoderRegistry.register
@@ -305,6 +309,7 @@ class SingleImageExampleEncoder(nn.Module, model_loaders.ModelLoader):
 
 
 # SyntaxRobustfill model.
+@AmortizedSynthesisModelRegistry.register
 class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
     """Syntax-aware Robustfill model. Reference implementation: https://github.com/insperatum/pinn/blob/master/syntax_robustfill.py"""
 
@@ -312,9 +317,13 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
 
     DECODER_HIDDEN_SIZE = 512
 
+    @staticmethod
+    def load_model(experiment_state, **kwargs):
+        return SyntaxRobustfill(experiment_state=experiment_state, **kwargs)
+
     def __init__(
         self,
-        experiment_state,
+        experiment_state=None,
         task_encoder_types=[model_loaders.LANGUAGE_ENCODER],
         decoder_hidden_size=DECODER_HIDDEN_SIZE,
         reset_random_parameters=True,  # Reset to random initialization
@@ -337,6 +346,9 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
     # Initialization for the model architecture.
     def _initialize_encoders(self, experiment_state, task_encoder_types):
         """Reinitializes the encoders in the experiment_state. Mutates experiment_state.models to all of the task encoders in task_encoder_types."""
+        if experiment_state is None:
+            return
+
         experiment_state.init_models_from_config(
             config=experiment_state.config,
             encoders_to_initialize=[

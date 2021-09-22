@@ -38,13 +38,6 @@ register_api_fn "test_send_receive_response" (fun grammar ->
     serialized_response
 );;
 
-(* let test_send_receive_response grammar frontiers kwargs = 
-  (** test_send_receive_response: tester function that simply responds with the provided grammar. *)
-  let _ = Printf.eprintf("[ocaml] test_send_receive_response\n") in 
-  let serialized_response = `Assoc([
-      "grammar", serialize_grammar grammar]) in 
-  serialized_response
-register_api_fn "test_send_receive_response" test_send_receive_response;; *)
 
 
 (** Main binary functionality: receives JSON messages from the calling binary and returns JSON messages out. **)

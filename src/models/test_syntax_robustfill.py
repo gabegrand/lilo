@@ -21,6 +21,12 @@ language_encoder_config_block = {
     MODEL_INITIALIZER_FN: "load_model",
     PARAMS: {"encoder_type": syntax_robustfill.SequenceLanguageEncoder.ATT_GRU},
 }
+syntax_robustfill_config_block = {
+    MODEL_TYPE: AMORTIZED_SYNTHESIS,
+    MODEL_LOADER: syntax_robustfill.SyntaxRobustfill.name,
+    MODEL_INITIALIZER_FN: "load_model",
+    PARAMS: {"task_encoder_types": ["language_encoder"]},
+}
 
 
 TEST_SEQUENCE_CONFIG = TEST_GRAPHICS_CONFIG
@@ -34,8 +40,8 @@ TEST_SEQUENCE_CONFIG = TEST_GRAPHICS_CONFIG
 TEST_SEQUENCE_CONFIG[MODEL_INITIALIZERS] = [
     grammar_config_block,
     single_image_example_encoder_config_block,
-    language_encoder_config_block
-    # TODO: amortized synthesis config block.
+    language_encoder_config_block,
+    syntax_robustfill_config_block,
 ]
 # Image Example encoder tests.
 def _get_default_image_encoder():
@@ -208,6 +214,16 @@ def test_sequence_language_encoder_forward():
 
 
 # SyntaxRobustfill model tests.
+def test_syntax_robustfill_load_model():
+    test_config = TEST_SEQUENCE_CONFIG
+    test_experiment_state = ExperimentState(test_config)
+
+    assert (
+        type(test_experiment_state.models[AMORTIZED_SYNTHESIS])
+        == syntax_robustfill.SyntaxRobustfill
+    )
+
+
 def test_syntax_robustfill_initialize_encoders():
     SyntaxRobustfill = syntax_robustfill.SyntaxRobustfill
 
