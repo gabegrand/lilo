@@ -29,7 +29,7 @@
             "model_loader": "syntax_robustfill",
             "model_initializer_fn": "load_model",
             "params": {
-                "task_encoder_type": [
+                "task_encoder_types": [
                     "language_encoder"
                 ]
             }

@@ -210,6 +210,27 @@ class ExperimentState:
             )
         ]
 
+    def get_frontiers_for_ids_in_splits(
+        self,
+        task_splits,
+        task_ids_in_splits,
+        include_samples=False,
+        include_ground_truth_tasks=True,
+    ):
+        """Returns {split: [array of frontiers]} for [split in task_splits] and task_ids_in_splits = {split : [task_ids or ALL]}. Indicate whether to include samples or regular frontiers."""
+        return {
+            task_split: [
+                self.task_frontiers[task_split][task]
+                for task in self.get_tasks_for_ids(
+                    task_split,
+                    task_ids_in_splits[task_split],
+                    include_samples,
+                    include_ground_truth_tasks,
+                )
+            ]
+            for task_split in task_splits
+        }
+
     def update_frontiers(self, new_frontiers, maximum_frontier, task_split, is_sample):
         """Updates frontiers with new_frontiers. If is_sample, updates sample frontiers."""
 
@@ -228,6 +249,13 @@ class ExperimentState:
                         .combine(new_frontier)
                         .topK(maximum_frontier)
                     )
+
+    def initialize_ground_truth_task_frontiers(self, task_split):
+        """Updates frontiers to ground truth programs. Expects the ground truth programs to be under task.supervision"""
+        for task in self.task_frontiers[task_split]:
+            self.task_frontiers[task_split][task] = self.task_frontiers[task_split][
+                task
+            ].replaceWithSupervised(g=self.models[model_loaders.GRAMMAR])
 
 
 # Experiment iterator config constants

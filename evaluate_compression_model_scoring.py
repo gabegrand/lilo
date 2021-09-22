@@ -11,7 +11,10 @@ python evaluate_compression_model_scoring.py
 """
 import os, json, argparse
 
-from src.experiment_iterator import ExperimentState, ExperimentIterator
+from src.experiment_iterator import ExperimentState
+from src.task_loaders import TRAIN, TEST, ALL
+from src.models.model_loaders import *
+
 from data.compositional_graphics.make_tasks import *
 
 # All of the model loaders we import.
@@ -19,6 +22,7 @@ from data.compositional_graphics.grammar import *
 from data.compositional_graphics.encoder import *
 
 from src.models.laps_dreamcoder_recognition import *
+from src.models.syntax_robustfill import *
 
 DEFAULT_CONFIG_DIR = "experiments/configs"
 
@@ -33,6 +37,71 @@ parser.add_argument(
     required=True,
     help="File name of the config within the config directory.",
 )
+parser.add_argument("-k", nargs="+", help="Substring keywords of tests to run.")
+
+TEST_FUNCTIONS_REGISTRY = {}
+
+
+def register_test(test_fn):
+    TEST_FUNCTIONS_REGISTRY[test_fn.__name__] = test_fn
+
+
+def get_test_fns(args):
+    test_fns = []
+    if not args.k:
+        test_fns = TEST_FUNCTIONS_REGISTRY.values()
+        return test_fns
+    for keyword in args.k:
+        for test_fn_name, test_fn in TEST_FUNCTIONS_REGISTRY.items():
+            if keyword in test_fn_name:
+                test_fns.append(test_fn)
+    return test_fns
+
+
+def make_program_log_prior_buckets_iterator(
+    experiment_state,
+    task_split,
+    num_buckets,
+):
+    """Iterator over num_buckets buckets of tasks with ground truth programs by log_prior under the grammar (as a corollary for description length)."""
+
+    def best_log_prior(task):
+        frontier = experiment_state.task_frontiers[task_split][task]
+        return min([e.logPrior for e in frontier.entries])
+
+    sorted_log_prior = sorted(
+        experiment_state.task_frontiers[task_split],
+        key=lambda task: best_log_prior(task),
+        reverse=True,
+    )
+
+    batch_size = int(len(sorted_log_prior) / num_buckets)
+    for bucket_idx in range(num_buckets + 1):
+        end = (bucket_idx + 1) * batch_size
+        yield sorted_log_prior[:end]
+
+
+@register_test
+def test_discrimination_original_final_libraries_full(experiment_state):
+    """Tests whether the model scoring function can discriminate at all between the initial DSL and the final DSL over all of the training and test programs."""
+    experiment_state.initialize_ground_truth_task_frontiers(task_split=TRAIN)
+    experiment_state.initialize_ground_truth_task_frontiers(task_split=TEST)
+
+    initial_grammar = experiment_state.models[GRAMMAR]
+    for train_task_subset in make_program_log_prior_buckets_iterator(
+        experiment_state, task_split=TRAIN, num_buckets=10
+    ):
+        print(
+            f"Train task subset: {len(train_task_subset)} tasks: up to {train_task_subset[-1].name}"
+        )
+        # Get the compression candidates and rewrite the test set.
+        initial_grammar._get_compressed_grammmar_and_rewritten_frontiers(
+            experiment_state=experiment_state,
+            task_splits=[TRAIN, TEST],
+            task_ids_in_splits={TRAIN: [t.name for t in train_task_subset], TEST: ALL},
+            max_candidates_per_compression_step=200,
+            max_compression_steps=5,
+        )
 
 
 def load_config_from_file(args):
@@ -44,3 +113,15 @@ def load_config_from_file(args):
 def main(args):
     config = load_config_from_file(args)
     experiment_state = ExperimentState(config)
+
+    test_fns = get_test_fns(args)
+
+    print(f"Now running {len(test_fns)} tests...")
+    for idx, test_fn in enumerate(test_fns):
+        print(f"Running {idx} / {len(test_fns)}: {test_fn.__name__}")
+        test_fn(experiment_state)
+
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    main(args)

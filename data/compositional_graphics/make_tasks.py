@@ -33,6 +33,8 @@ class CompositionalGraphics200Loader(TaskDataLoader):
                     t.nearest_name = None
                     # Add the task serializer.
                     t.ocaml_serializer = None
+                    # Add supervision.
+                    t.supervisedSolution = t.groundTruthProgram
                     tasks[split].append(t)
         return tasks
 
@@ -46,9 +48,7 @@ class CompositionalGraphics200HumanLanguageLoader(TaskDataLoader):
         dataset_path = os.path.join(
             DEFAULT_DATA_DIRECTORY, LANGUAGE, task_dataset, HUMAN
         )
-        return self.load_task_language_for_directory(
-            dataset_path, splits=[TRAIN, TEST]
-        )
+        return self.load_task_language_for_directory(dataset_path, splits=[TRAIN, TEST])
 
 
 @TaskLanguageLoaderRegistry.register
@@ -60,6 +60,4 @@ class CompositionalGraphics200SyntheticLanguageLoader(TaskDataLoader):
         dataset_path = os.path.join(
             DEFAULT_DATA_DIRECTORY, LANGUAGE, task_dataset, HUMAN
         )
-        return self.load_task_language_for_directory(
-            dataset_path, splits=[TRAIN, TEST]
-        )
+        return self.load_task_language_for_directory(dataset_path, splits=[TRAIN, TEST])

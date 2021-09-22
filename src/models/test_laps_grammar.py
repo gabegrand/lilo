@@ -88,14 +88,35 @@ def test_laps_grammar_send_receive_compressor_api_call():
 
     test_grammar = test_experiment_state.models[GRAMMAR]
 
+    test_frontiers = test_experiment_state.get_frontiers_for_ids_in_splits(
+        task_splits=[task_loaders.TRAIN, task_loaders.TEST],
+        task_ids_in_splits={
+            task_loaders.TRAIN: ["a small triangle", "a medium triangle"],
+            task_loaders.TEST: [],
+        },
+    )
+
     (
         json_response,
         json_error,
         json_serialized_binary_message,
     ) = test_grammar._send_receive_compressor_api_call(
-        api_fn=test_grammar.TEST_API_FN, grammar=None, frontiers={}, kwargs={}
+        api_fn=test_grammar.TEST_API_FN,
+        grammar=None,
+        frontiers=test_frontiers,
+        kwargs={"test_int_kwarg": 1},
     )
 
     assert (
         json_serialized_binary_message[test_grammar.API_FN] == test_grammar.TEST_API_FN
     )
+    deserialized_grammar = json_response[test_grammar.REQUIRED_ARGS][GRAMMAR][0]
+    assert len(deserialized_grammar) == len(test_grammar)
+
+    for split in [TRAIN, TEST]:
+        assert (
+            len(
+                json_response[test_grammar.REQUIRED_ARGS][test_grammar.FRONTIERS][split]
+            )
+            == 0
+        )

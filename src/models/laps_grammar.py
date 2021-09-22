@@ -7,6 +7,7 @@ import subprocess
 from dreamcoder.frontier import Frontier
 import os, json
 from dreamcoder.grammar import Grammar
+from dreamcoder.program import Program
 from dreamcoder.enumeration import multicoreEnumeration
 from dreamcoder.dreaming import backgroundHelmholtzEnumeration
 from dreamcoder.compression import induceGrammar
@@ -44,6 +45,14 @@ class LAPSGrammar(Grammar):
     API_FN, REQUIRED_ARGS, KWARGS = "api_fn", "required_args", "kwargs"
     GRAMMAR, FRONTIERS = "grammar", "frontiers"
     TEST_API_FN = "test_send_receive_response"  # Test ping function to make sure the binary is avaiable.
+
+    # Standard hyperparameters for the compressor.
+    MAX_CANDIDATES_PER_COMPRESSION_STEP = "max_candidates_per_compression_step"
+    MAX_COMPRESSION_STEPS = "max_compression_steps"
+    ARITY = "arity"
+    PSEUDOCOUNTS = "pseudocounts"
+    AIC = "aic"
+    CPUS = "cpus"
 
     def infer_programs_for_tasks(
         self,
@@ -210,7 +219,7 @@ class LAPSGrammar(Grammar):
             self.REQUIRED_ARGS: {
                 self.GRAMMAR: grammar.json(),
                 self.FRONTIERS: {
-                    split: [f.json() for f in split_frontiers if not f.empty]
+                    split: [f.json() for f in frontiers[split] if not f.empty]
                     for split in frontiers
                 },
             },
@@ -233,31 +242,83 @@ class LAPSGrammar(Grammar):
         except Exception as e:
             print("Error in _send_receive_compressor_api_call: {e}")
 
-        json_serialized_binary_message = json.loads(json_serialized_binary_message)
-        return json_response, json_error, json_serialized_binary_message
+        # Deserialize the response.
+        json_deserialized_response = json_response
 
-    def _get_compression_grammar_candidates_for_frontiers(
+        json_deserialized_response[self.REQUIRED_ARGS][self.GRAMMAR] = [
+            self._deserialize_json_grammar(serialized_grammar)
+            for serialized_grammar in json_response[self.REQUIRED_ARGS][self.GRAMMAR]
+        ]
+        # TODO: deserialize the frontiers
+
+        json_serialized_binary_message = json.loads(json_serialized_binary_message)
+        return json_deserialized_response, json_error, json_serialized_binary_message
+
+    def _deserialize_json_grammar(self, json_grammar):
+        return LAPSGrammar(
+            json_grammar["logVariable"],
+            [
+                (l, p.infer(), p)
+                for production in json_grammar["productions"]
+                for l in [production["logProbability"]]
+                for p in [Program.parse(production["expression"])]
+            ],
+            continuationType=self.continuationType,
+        )
+
+    def _get_compressed_grammmar_and_rewritten_frontiers(
         self,
         experiment_state,
-        task_split,
-        task_batch_ids,
-        top_k_beam_candidates,  # How many candidates to return for each greedy step of rewriting the library.
-        top_k=DEFAULT_TOP_K,
+        task_splits,
+        task_ids_in_splits,
+        max_candidates_per_compression_step,
+        max_compression_steps,
         pseudocounts=DEFAULT_PSEUDOCOUNTS,
         arity=DEFAULT_ARITY,
         aic=DEFAULT_AIC,
         structure_penalty=DEFAULT_STRUCTURE_PENALTY,
-        compressor_type=DEFAULT_COMPRESSOR_TYPE,  #
-        compressor=DEFAULT_COMPRESSOR,
+        compressor_type=DEFAULT_COMPRESSOR_TYPE,
+        compressor=DEFAULT_API_COMPRESSOR,
         compressor_directory=DEFAULT_BINARY_DIRECTORY,
         cpus=DEFAULT_CPUS,
-        max_compression=DEFAULT_MAX_COMPRESSION,
     ):
-        """Compresses grammar with respect to frontiers in task_batch_ids (or ALL) and returns the candidates after compression."""
-        api_function_name = "get_compression_grammar_candidates_for_frontiers"
-        frontiers_to_optimize = experiment_state.get_frontiers_for_ids(
-            task_split=task_split, task_ids=task_batch_ids, include_samples=False
+        """
+        Runs compression up to max_compression_steps, evaluating max_candidates_per_compression_step under the compression score, and greedily adding the top candidate each time.
+        Always assumes it should only optimize with respect to the TRAIN frontiers.
+        :ret:
+            grammar: Grammar object containing the final DSL with up to max_compression_steps new library inventions.
+            frontiers: {split : [frontiers] with frontiers rewritten under the final grammar.}
+
+        """
+        api_fn = "get_compressed_grammmar_and_rewritten_frontiers"
+        frontiers = experiment_state.get_frontiers_for_ids_in_splits(
+            task_splits=task_splits,
+            task_ids_in_splits=task_ids_in_splits,
+            include_samples=False,
         )
+
+        # Build the standard KWARGS.
+        kwargs = {
+            self.MAX_CANDIDATES_PER_COMPRESSION_STEP: max_candidates_per_compression_step,
+            self.MAX_COMPRESSION_STEPS: max_compression_steps,
+            self.ARITY: arity,
+            self.PSEUDOCOUNTS: pseudocounts,
+            self.AIC: aic,
+            self.CPUS: cpus,
+        }
+
+        api_response = self._send_receive_compressor_api_call(
+            api_fn="get_compressed_grammmar_and_rewritten_frontiers",
+            grammar=self,
+            frontiers=frontiers,
+            kwargs=kwargs,
+            compressor_type=compressor_type,
+            compressor=compressor,
+            compressor_directory=compressor_directory,
+        )
+        # final_grammar = api_response[self.GRAMMAR][0]
+        # rewritten_frontiers = api_response[self.FRONTIERS][0]
+        # return final_grammar, rewritten_frontiers
 
     ## Elevate static methods to create correct class.
     @staticmethod
