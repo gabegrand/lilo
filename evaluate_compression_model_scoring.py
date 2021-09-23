@@ -95,13 +95,39 @@ def test_discrimination_original_final_libraries_full(experiment_state):
             f"Train task subset: {len(train_task_subset)} tasks: up to {train_task_subset[-1].name}"
         )
         # Get the compression candidates and rewrite the test set.
-        initial_grammar._get_compressed_grammmar_and_rewritten_frontiers(
+        (
+            compressed_grammar,
+            rewritten_train_frontiers,
+            rewritten_test_frontiers,
+        ) = initial_grammar._get_compressed_grammmar_and_rewritten_frontiers(
             experiment_state=experiment_state,
             task_splits=[TRAIN, TEST],
             task_ids_in_splits={TRAIN: [t.name for t in train_task_subset], TEST: ALL},
             max_candidates_per_compression_step=200,
             max_compression_steps=5,
         )
+
+        # First, how well would we have done under the initial grammar with these training tasks?
+        # Train the model with respect to the train task subset.
+        model = experiment_state.models[AMORTIZED_SYNTHESIS]
+        model.optimize_model_for_frontiers(
+            experiment_state,
+            task_split=TRAIN,
+            task_batch_ids=[t.name for t in train_task_subset],
+            # TODO: @gg - add any other hyperparameters you need here.
+        )
+
+        # Evaluate it with respect to the test tasks.
+        test_frontier_log_likelihoods = (
+            model.score_frontier_avg_conditional_log_likelihoods(
+                experiment_state, task_split=TEST, task_batch_ids=ALL
+            )
+        )
+
+        # As comparison, how well can we do under the compressed grammar with these training tasks?
+        # TODO (catwong): retrain with respect to the training tasks.
+
+        # TODO (catwong): report the results.
 
 
 def load_config_from_file(args):

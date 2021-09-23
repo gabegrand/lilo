@@ -370,10 +370,62 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
             # TODO: implement
             assert False
 
-    def _initialize_decoder(self):
-        # Get the number of tokens in the target vocabulary.
+    def _initialize_decoder(self, experiment_state):
+        # Initialize decoder. This requrires the vocabulary of the grammar in experiment_state.models[model_loader.GRAMMAR].tokens
         pass
 
-    def _inputs_to_tensors(self, task_ids, experiment_state):
-        # Forward pass encoding of the inputs.
+    def _encode_tasks(self, task_split, task_ids, experiment_state):
+        # Forward pass encoding of the inputs. This should encode the inputs according to the language, images, or both using the self.encoder
+
+        # TODO(gg): implement this to encode the tasks according to the task language, which is extracted below.
+        if self._use_language:
+            language_for_ids = experiment_state.get_language_for_ids(
+                task_split, task_ids
+            )  # Gets an array of language descriptions for EACH task in task_ids.
+
+    def optimize_model_for_frontiers(
+        self,
+        experiment_state,
+        task_split=TRAIN,
+        task_batch_ids=ALL,
+        recognition_train_steps=5000,  # Gradient steps to train model.
+        recognition_train_epochs=None,  # Alternatively, how many epochs to train
+        # TODO(gg): Add any other hyperparameters: batch_size, learning rate, etc.
+    ):
+        """Train the model with respect to the tasks in task_batch_ids. The model is trained to regress from a task encoding according to task_encoder_types (either text, images, or a joint encoding of both) to predict corresponding programs for each task.
+
+        :params:
+            experiment_state: ExperimentState object.
+            task_split: which split to train tasks on.
+            task_batch_ids: list of IDs of tasks to train on or ALL to train on all possible solved tasks in the split.
+            other params: hyperparameters of the model.
+
+        On completion, model parameters should be updated to the trained model.
+        """
+        print("Unimplemented -- optimize_model_for_frontiers")
+        # Frontiers to supervise on.
+        all_train_frontiers = experiment_state.get_frontiers_for_ids(
+            task_split=task_split, task_ids=task_batch_ids
+        )
+
+        # TODO(gg): implement this as a standard training loop for the seq2seq model. This should:
+
+        # Compute a batched forward pass through the encoder (which encodes task language) -> decoder to predictions over linearized programs.
+
+        # Evaluate the loss (cross-entropy is fine) wrt. the ground truth programs in all_train_frontiers. Note that there can be muliple ground truth programs per task, and multiple sentences per task. But you could just supervise on the full cross productof (input: sentence, predict: program) for each task.
         pass
+
+    def score_frontier_avg_conditional_log_likelihoods(
+        self, experiment_state, task_split=TRAIN, task_batch_ids=ALL
+    ):
+        """
+        Evaluates score(frontier for task_id) = mean [log_likelihood(program) for program in frontier] where
+
+        log_likelihood = log p(program | task, model_parameters) where program is a proposed program solving the task, task is the encoding of the task under the model (eg. language, images, or a joint encoding) and model_parameters are wrt. a trained model.
+
+        :ret: {
+            task_id : score(frontier for task_id)
+        }
+        """
+        print("Unimplemented -- score_frontier_avg_conditional_log_likelihoods")
+        # TODO(gg): implement this function for scoring the programs in the frontiers for a set of tasks.

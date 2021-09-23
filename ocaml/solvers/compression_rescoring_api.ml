@@ -54,10 +54,13 @@ register_api_fn "test_send_receive_response" (fun grammar train_frontiers test_f
     let serialized_response = `Assoc([
       required_args_string, `Assoc([
         grammar_string, `List([serialize_grammar grammar]);
-        frontiers_string, `Assoc([
+        frontiers_string, `List([`Assoc(
+          [
           train_string, `List(train_frontiers |> List.map ~f:serialize_frontier);
           test_string, `List(test_frontiers |> List.map ~f:serialize_frontier);
-        ])
+        ]
+        
+        )])
       ])
     ]) in 
     serialized_response
@@ -67,7 +70,7 @@ register_api_fn "test_send_receive_response" (fun grammar train_frontiers test_f
   Reference: compression implementation in compression.ml
   Returns JSON response containing: 
     grammar : [single fully compressed grammar]
-    frontiers: [split: split frontiers rewritten wrt the fully compressed grammar]
+    frontiers: [split: split frontiers rewritten wrt the fully compressed grammar] 
 *)
 register_api_fn "get_compressed_grammmar_and_rewritten_frontiers" (fun grammar train_frontiers test_frontiers kwargs ->
   let () = (Printf.eprintf "[ocaml] get_compressed_grammmar_and_rewritten_frontiers \n") in 
@@ -80,10 +83,10 @@ register_api_fn "get_compressed_grammmar_and_rewritten_frontiers" (fun grammar t
   let serialized_response = `Assoc([
     required_args_string, `Assoc([
       grammar_string, `List([serialize_grammar compressed_grammar]);
-      frontiers_string, `Assoc([
+      frontiers_string, `List([`Assoc([
         train_string, `List(rewritten_train_frontiers |> List.map ~f:serialize_frontier);
         test_string, `List(rewritten_test_frontiers |> List.map ~f:serialize_frontier);
-      ])
+      ])])
     ])
   ]) in 
   serialized_response

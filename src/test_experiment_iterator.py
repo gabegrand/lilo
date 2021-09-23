@@ -116,3 +116,25 @@ def test_get_tasks_for_ids():
             task_split=split, task_ids=ExperimentState.ALL
         )
         assert len(all_tasks) == len(test_experiment_state.tasks[split])
+
+
+def test_get_language_for_ids():
+    test_config = TEST_GRAPHICS_CONFIG
+    test_experiment_state = ExperimentState(test_config)
+
+    test_task_ids = ["a small triangle", "a medium triangle"]
+
+    test_language = test_experiment_state.get_language_for_ids(
+        task_split=TRAIN, task_ids=test_task_ids
+    )
+
+    assert len(test_task_ids) == len(test_language)
+    for task_language in test_language:
+        assert len(task_language) > 1
+
+    # Check ALL
+    for split in (TRAIN, TEST):
+        all_language = test_experiment_state.get_language_for_ids(
+            task_split=split, task_ids=ExperimentState.ALL
+        )
+        assert len(all_language) == len(test_experiment_state.tasks[split])

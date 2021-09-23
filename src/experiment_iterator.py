@@ -175,6 +175,21 @@ class ExperimentState:
             if not self.task_frontiers[task_split][task].empty
         ]
 
+    def get_language_for_ids(
+        self,
+        task_split,
+        task_ids,
+        include_samples=False,
+        include_ground_truth_tasks=True,
+    ):
+        """Returns array of language for list of task_ids. If task_ids is ALL, returns all tasks in task_split and does NOT return samples."""
+        return [
+            self.task_language[task_split][task.name]
+            for task in self.get_tasks_for_ids(
+                task_split, task_ids, include_samples, include_ground_truth_tasks
+            )
+        ]
+
     def get_tasks_for_ids(
         self,
         task_split,
