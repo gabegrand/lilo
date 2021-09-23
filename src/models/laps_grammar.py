@@ -53,6 +53,7 @@ class LAPSGrammar(Grammar):
     PSEUDOCOUNTS = "pseudocounts"
     AIC = "aic"
     CPUS = "cpus"
+    STRUCTURE_PENALTY = "structure_penalty"
 
     def infer_programs_for_tasks(
         self,
@@ -189,7 +190,7 @@ class LAPSGrammar(Grammar):
                 optimized_frontier.task
             ] = optimized_frontier
 
-    ## Utility functions for compressing over subsets of the programs and the grammar.
+    ## Utility functions for compressing over subsets of the programs and the grammar. This uses a different OCaml binary than the original compressor; it interfaces with compression_rescoring_api.
     def _send_receive_compressor_api_call(
         self,
         api_fn,
@@ -200,7 +201,7 @@ class LAPSGrammar(Grammar):
         compressor=DEFAULT_API_COMPRESSOR,
         compressor_directory=DEFAULT_BINARY_DIRECTORY,
     ):
-        """Calls the OCaml compression binary using a provided API function. Function names and signatures are defined in compression_rescoring_api.ml.
+        """Caller for invoking an API function implemented in the the OCaml compression_rescoring_api binary. Function names and signatures are defined in compression_rescoring_api.ml.
         Expects:
             api_fn: string name of API function to call.
             grammar: Grammar object. If None, uses self/
@@ -218,14 +219,10 @@ class LAPSGrammar(Grammar):
             self.API_FN: str(api_fn),  # String name of the API function.
             self.REQUIRED_ARGS: {
                 self.GRAMMAR: grammar.json(),
-                self.FRONTIERS: {
-                    split: [f.json() for f in frontiers[split] if not f.empty]
-                    for split in frontiers
-                },
+                self.FRONTIERS: {split: [] for split in frontiers},
             },
             self.KWARGS: kwargs,
         }
-
         json_serialized_binary_message = json.dumps(json_serialized_binary_message)
 
         ocaml_binary_path = os.path.join(
@@ -283,8 +280,11 @@ class LAPSGrammar(Grammar):
         cpus=DEFAULT_CPUS,
     ):
         """
+        API Function: get_compressed_grammmar_and_rewritten_frontiers.
+        Call the compressor to rewrite the grammar and the frontiers.
+
         Runs compression up to max_compression_steps, evaluating max_candidates_per_compression_step under the compression score, and greedily adding the top candidate each time.
-        Always assumes it should only optimize with respect to the TRAIN frontiers.
+        Always assumes it should only optimize with respect to the TRAIN frontiers, but rewrites train/test frontiers under the compressed grammar.
         :ret:
             grammar: Grammar object containing the final DSL with up to max_compression_steps new library inventions.
             frontiers: {split : [frontiers] with frontiers rewritten under the final grammar.}
@@ -305,10 +305,11 @@ class LAPSGrammar(Grammar):
             self.PSEUDOCOUNTS: pseudocounts,
             self.AIC: aic,
             self.CPUS: cpus,
+            self.STRUCTURE_PENALTY: structure_penalty,
         }
 
         api_response = self._send_receive_compressor_api_call(
-            api_fn="get_compressed_grammmar_and_rewritten_frontiers",
+            api_fn=api_fn,
             grammar=self,
             frontiers=frontiers,
             kwargs=kwargs,
