@@ -32,33 +32,17 @@ open Task
 open Grammar
 open Versions
 
+open Compression_rescoring_api_utils
+
 (** Constant strings for the JSON messages*)
-let api_fn_constant = "api_fn";;
-let required_args_constant = "required_args";;
+let api_fn_string = "api_fn";;
+let required_args_string = "required_args";;
 
-let grammar_constant = "grammar";;
-let frontiers_constant = "frontiers";;
-let train_constant = "train";;
-let test_constant = "test" ;;
+let grammar_string = "grammar";;
+let frontiers_string = "frontiers";;
+let train_string = "train";;
+let test_string = "test" ;;
 
-(** Standard hyperparameters for the compressor. **)
-let kwargs_constant = "kwargs";;
-let max_candidates_per_compression_step_constant = "max_candidates_per_compression_step";;
-let max_compression_steps_constant = "max_compression_steps";;
-let arity_constant = "arity";; 
-let pseudocounts_constant = "pseudocounts";;
-let aic_constant = "aic";;
-let cpus_constant = "cpus";;
-let structure_penalty_constant = "structure_penalty";;
-
-(** Default values for hyperparmaeters for the compressor. **)
-let default_max_candidates_per_compression_step = 200;;
-let default_max_compression_steps = 1000;;
-let default_arity = 3;;
-let default_pseudocounts = 30.0;;
-let default_structure_penalty = 1.5;;
-let default_aic = 1.0;;
-let default_cpus = 1;;
 
 (** API Function handlers. All API functions are registered in the api_fn_handlers table. *)
 let api_fn_handlers = Hashtbl.Poly.create();;
@@ -68,64 +52,20 @@ let register_api_fn api_fn_name api_fn_handler = Hashtbl.set api_fn_handlers api
 register_api_fn "test_send_receive_response" (fun grammar train_frontiers test_frontiers kwargs ->
     let () = (Printf.eprintf "[ocaml] test_send_receive_response\n") in 
     let serialized_response = `Assoc([
-      required_args_constant, `Assoc([
-        grammar_constant, `List([serialize_grammar grammar]);
-        frontiers_constant, `Assoc([
-          train_constant, `List(train_frontiers |> List.map ~f:serialize_frontier);
-          test_constant, `List(test_frontiers |> List.map ~f:serialize_frontier);
+      required_args_string, `Assoc([
+        grammar_string, `List([serialize_grammar grammar]);
+        frontiers_string, `Assoc([
+          train_string, `List(train_frontiers |> List.map ~f:serialize_frontier);
+          test_string, `List(test_frontiers |> List.map ~f:serialize_frontier);
         ])
       ])
     ]) in 
     serialized_response
 );;
 
-(** TODO: make a common file and import everything **)
-let deserialize_compressor_kwargs json_kwargs = 
-  (** Utility function to deserialize common kwargs hyperparameters for the compression algorithm, or return defaults for each hyperparameter if not provided. **)
-  let open Yojson.Basic.Util in
-  let open Yojson.Basic in
-
-  let max_candidates_per_compression_step = try
-    json_kwargs |> member max_candidates_per_compression_step_constant |> to_int
-  with _ -> default_max_candidates_per_compression_step in
-
-  let max_compression_steps = try
-    json_kwargs |> member max_compression_steps_constant |> to_int
-  with _ -> default_max_candidates_per_compression_step in
-
-  let arity = try
-    json_kwargs |> member arity_constant |> to_int
-  with _ -> default_arity in
-
-  let pseudocounts = try
-    json_kwargs |> member pseudocounts_constant |> to_float
-  with _ -> default_pseudocounts in
-
-  let structure_penalty = try
-    json_kwargs |> member structure_penalty_constant |> to_float
-  with _ -> default_structure_penalty in
-
-  let aic = try
-    json_kwargs |> member aic_constant |> to_float
-  with _ -> default_aic in
-
-  let cpus =  try
-    json_kwargs |> member cpus_constant |> to_int
-  with _ -> default_cpus in
-
-  (** Log the KWARGS *)
-  let () = (Printf.eprintf "[ocaml] kwarg: \t max_candidates_per_compression_step %d \n" (max_candidates_per_compression_step)) in
-  let () = (Printf.eprintf "[ocaml] kwarg: \t max_compression_steps %d \n" (max_compression_steps)) in
-  let () = (Printf.eprintf "[ocaml] kwarg: \t arity %d \n" (arity)) in
-  let () = (Printf.eprintf "[ocaml] kwarg: \t pseudocounts %f \n" (pseudocounts)) in
-  let () = (Printf.eprintf "[ocaml] kwarg: \t structure_penalty %f \n" (structure_penalty)) in
-  let () = (Printf.eprintf "[ocaml] kwarg: \t aic %f \n" (aic)) in
-  let () = (Printf.eprintf "[ocaml] kwarg: \t cpus %d \n" (cpus)) in
-  json_kwargs;;
-
 (** get_compressed_grammmar_and_rewritten_frontiers: compresses the grammar with respect to the train frontiers. 
   Reference: compression implementation in compression.ml
-  Returns: 
+  Returns JSON response containing: 
     grammar : [single fully compressed grammar]
     frontiers: [split: split frontiers rewritten wrt the fully compressed grammar]
 *)
@@ -133,14 +73,16 @@ register_api_fn "get_compressed_grammmar_and_rewritten_frontiers" (fun grammar t
   let () = (Printf.eprintf "[ocaml] get_compressed_grammmar_and_rewritten_frontiers \n") in 
   let () = (Printf.eprintf "[ocaml] Compressing grammar and rewriting from %d train_frontiers and %d test_frontiers \n" (List.length train_frontiers) (List.length test_frontiers)) in 
 
-  let json_kwargs = deserialize_compressor_kwargs kwargs in
+  let max_candidates_per_compression_step, max_compression_steps, arity, pseudocounts, structure_penalty, aic, cpus, language_alignments_weight, language_alignments = deserialize_compressor_kwargs kwargs in
+
+  let compressed_grammar, rewritten_train_frontiers, rewritten_test_frontiers = compress_grammar_and_rewrite_frontiers_loop ~grammar ~train_frontiers ~test_frontiers ~language_alignments ~max_candidates_per_compression_step ~max_compression_steps ~arity ~pseudocounts ~structure_penalty ~aic ~cpus  ~language_alignments_weight in 
 
   let serialized_response = `Assoc([
-    required_args_constant, `Assoc([
-      grammar_constant, `List([serialize_grammar grammar]);
-      frontiers_constant, `Assoc([
-        train_constant, `List(train_frontiers |> List.map ~f:serialize_frontier);
-        test_constant, `List(test_frontiers |> List.map ~f:serialize_frontier);
+    required_args_string, `Assoc([
+      grammar_string, `List([serialize_grammar compressed_grammar]);
+      frontiers_string, `Assoc([
+        train_string, `List(rewritten_train_frontiers |> List.map ~f:serialize_frontier);
+        test_string, `List(rewritten_test_frontiers |> List.map ~f:serialize_frontier);
       ])
     ])
   ]) in 
@@ -163,15 +105,15 @@ let deserialize_api_call_json_message j =
   let open Yojson.Basic.Util in
   let open Yojson.Basic in
   (** TODO: why does this come out in quotes?! *)
-  let api_fn_name = j |> member api_fn_constant |> to_string |> string_replace "\"" "" in 
-  let required_args = j |> member required_args_constant in
-    let grammar = required_args |> member grammar_constant |> deserialize_grammar |> strip_grammar in
+  let api_fn_name = j |> member api_fn_string |> to_string |> string_replace "\"" "" in 
+  let required_args = j |> member required_args_string in
+    let grammar = required_args |> member grammar_string |> deserialize_grammar |> strip_grammar in
 
-    let frontiers = required_args |> member frontiers_constant in
-    let train_frontiers = frontiers |> member train_constant |> to_list |> List.map ~f:deserialize_frontier in
-    let test_frontiers = frontiers |> member test_constant |> to_list |> List.map ~f:deserialize_frontier in
+    let frontiers = required_args |> member frontiers_string in
+    let train_frontiers = frontiers |> member train_string |> to_list |> List.map ~f:deserialize_frontier in
+    let test_frontiers = frontiers |> member test_string |> to_list |> List.map ~f:deserialize_frontier in
   
-  let kwargs = j |> member kwargs_constant in 
+  let kwargs = j |> member kwargs_string in 
 
   let () = (Printf.eprintf "[ocaml] deserialize_api_call_json_message: api_fn %s\n" api_fn_name) in 
   api_fn_name, grammar, train_frontiers, test_frontiers, kwargs

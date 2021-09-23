@@ -219,7 +219,10 @@ class LAPSGrammar(Grammar):
             self.API_FN: str(api_fn),  # String name of the API function.
             self.REQUIRED_ARGS: {
                 self.GRAMMAR: grammar.json(),
-                self.FRONTIERS: {split: [] for split in frontiers},
+                self.FRONTIERS: {
+                    split: [f.json() for f in frontiers[split] if not f.empty]
+                    for split in frontiers
+                },
             },
             self.KWARGS: kwargs,
         }
