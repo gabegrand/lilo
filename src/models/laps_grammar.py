@@ -4,9 +4,9 @@ laps_grammmar.py | Author : Catherine Wong
 Utility wrapper function around the DreamCoder Grammar. Elevates common functions to be class functions in order to support calling with an ExperimentState.
 """
 import subprocess
-from dreamcoder.frontier import Frontier
 import os, json
 from dreamcoder.grammar import Grammar
+from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.program import Program
 from dreamcoder.enumeration import multicoreEnumeration
 from dreamcoder.dreaming import backgroundHelmholtzEnumeration
@@ -205,25 +205,39 @@ class LAPSGrammar(Grammar):
         Expects:
             api_fn: string name of API function to call.
             grammar: Grammar object. If None, uses self/
-            frontiers: {split : Frontiers object}
+            frontiers: {split : [array of Frontiers objects]}
             kwargs: additional pre-serialized objects dictionary.
 
-        Returns: deserialized JSON response."""
+        Returns: deserialized JSON response containing:
+        {
+            api_fn: API function that was called.
+            required_args:
+                {
+                    grammar: [array of response Grammar objects.]
+                    frontiers: [array of {
+                        split: [array of response Frontier objects.]
+                    }]
+                }
+            kwargs: any other response arguments.
+        }
+        """
         if compressor_type != self.DEFAULT_COMPRESSOR_TYPE:
             # Legacy Dreamcoder library supports Python enumeration
             raise NotImplementedError
         # Construct the JSON message.
 
         grammar = grammar if grammar is not None else self
-        frontiers_to_compress = {
-            split: [f.json() for f in frontiers[split] if not f.empty]
-            for split in frontiers
+        non_empty_frontiers = {
+            split: [f for f in frontiers[split] if not f.empty] for split in frontiers
         }
         json_serialized_binary_message = {
             self.API_FN: str(api_fn),  # String name of the API function.
             self.REQUIRED_ARGS: {
                 self.GRAMMAR: grammar.json(),
-                self.FRONTIERS: frontiers_to_compress,
+                self.FRONTIERS: {
+                    split: [f.json() for f in non_empty_frontiers[split]]
+                    for split in non_empty_frontiers
+                },
             },
             self.KWARGS: kwargs,
         }
@@ -243,23 +257,24 @@ class LAPSGrammar(Grammar):
         except Exception as e:
             print("Error in _send_receive_compressor_api_call: {e}")
 
-        # Deserialize the response.
         json_deserialized_response = json_response
-
         json_deserialized_response[self.REQUIRED_ARGS][self.GRAMMAR] = [
             self._deserialize_json_grammar(serialized_grammar)
             for serialized_grammar in json_response[self.REQUIRED_ARGS][self.GRAMMAR]
         ]
 
-        # new_grammar = json_deserialized_response[self.REQUIRED_ARGS][self.GRAMMAR]
-        # json_deserialized_response[self.REQUIRED_ARGS][self.FRONTIERS] = [
-        #     self._deserialize_json_frontiers(
-        #         new_grammar, frontiers_to_compress, json_frontiers
-        #     )
-        #     for json_frontiers in json_deserialized_response[self.REQUIRED_ARGS][
-        #         self.FRONTIERS
-        #     ]
-        # ]
+        new_grammars = json_deserialized_response[self.REQUIRED_ARGS][self.GRAMMAR]
+        # Deserialize the frontiers with respect to their corresponding grammar.
+        json_deserialized_response[self.REQUIRED_ARGS][self.FRONTIERS] = [
+            self._deserialize_json_frontiers(
+                new_grammars[grammar_idx],
+                non_empty_frontiers=non_empty_frontiers,
+                json_frontiers=json_frontiers,
+            )
+            for grammar_idx, json_frontiers in enumerate(
+                json_deserialized_response[self.REQUIRED_ARGS][self.FRONTIERS]
+            )
+        ]
 
         json_serialized_binary_message = json.loads(json_serialized_binary_message)
         return json_deserialized_response, json_error, json_serialized_binary_message
@@ -276,14 +291,13 @@ class LAPSGrammar(Grammar):
             continuationType=self.continuationType,
         )
 
-    def _deserialize_json_frontiers(self, grammar, original_frontiers, json_frontiers):
+    def _deserialize_json_frontiers(self, grammar, non_empty_frontiers, json_frontiers):
         """Deserializes frontiers with respect to a grammar to evaluate likelihoods.
-        original_frontiers : {split : array of original Frontiers objects.}
-        json_frontiers: {split: array of serialized json_frontier objects sent from the OCaml binary.}
+        non_empty_frontiers : non-empty frontiers, ordered as they were sent to the compressor {split : array of original Frontiers objects.}
+        json_frontiers: {split: array of serialized json_frontier objects sent from the OCaml binary.} should be ordered exactly as non_empty_frontiers
 
         :ret: {split: array of Frontiers with entries scored with respect to the grammar.}
         """
-
         # Wrap this in a try catch in the case of an error
         def maybe_entry(program, json_entry, grammar, request):
             try:
@@ -292,18 +306,20 @@ class LAPSGrammar(Grammar):
                     logLikelihood=json_entry["logLikelihood"],
                     logPrior=grammar.logLikelihood(request, program),
                 )
-            except:
+            except Exception as e:
                 print(f"Error adding frontier entry: {str(program)}")
+                print(e)
                 return None
 
         deserialized_frontiers = {}
-        for split in original_frontiers:
+        for split in non_empty_frontiers:
             deserialized_frontiers[split] = []
             for original_frontier, serialized_frontier in zip(
-                original_frontiers[split], json_frontiers[split]
+                non_empty_frontiers[split], json_frontiers[split]
             ):
+
                 entries = [
-                    maybe_entry(p, e, g, original_frontier.task.request)
+                    maybe_entry(p, e, grammar, original_frontier.task.request)
                     for e in serialized_frontier["programs"]
                     for p in [Program.parse(e["program"])]
                 ]
@@ -337,7 +353,7 @@ class LAPSGrammar(Grammar):
         Always assumes it should only optimize with respect to the TRAIN frontiers, but rewrites train/test frontiers under the compressed grammar.
         :ret:
             grammar: Grammar object containing the final DSL with up to max_compression_steps new library inventions.
-            frontiers: {split : [frontiers] with frontiers rewritten under the final grammar.}
+            rewritten_train_test_frontiers: {split : [frontiers] with frontiers rewritten under the final grammar.} Note that this only returns non-empty frontiers for the tasks.
 
         """
         api_fn = "get_compressed_grammmar_and_rewritten_frontiers"
@@ -358,7 +374,7 @@ class LAPSGrammar(Grammar):
             self.STRUCTURE_PENALTY: structure_penalty,
         }
 
-        api_response = self._send_receive_compressor_api_call(
+        json_deserialized_response, _, _ = self._send_receive_compressor_api_call(
             api_fn=api_fn,
             grammar=self,
             frontiers=frontiers,
@@ -367,11 +383,13 @@ class LAPSGrammar(Grammar):
             compressor=compressor,
             compressor_directory=compressor_directory,
         )
-        # final_grammar = api_response[self.GRAMMAR][0]
-        # rewritten_frontiers = api_response[self.FRONTIERS][0]
-        # return final_grammar, rewritten_frontiers
 
-        return None, None, None
+        final_grammar = json_deserialized_response[self.REQUIRED_ARGS][self.GRAMMAR][0]
+
+        rewritten_train_test_frontiers = json_deserialized_response[self.REQUIRED_ARGS][
+            self.FRONTIERS
+        ][0]
+        return final_grammar, rewritten_train_test_frontiers
 
     ## Elevate static methods to create correct class.
     @staticmethod

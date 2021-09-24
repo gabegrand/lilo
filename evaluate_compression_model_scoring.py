@@ -97,12 +97,14 @@ def test_discrimination_original_final_libraries_full(experiment_state):
         # Get the compression candidates and rewrite the test set.
         (
             compressed_grammar,
-            rewritten_train_frontiers,
-            rewritten_test_frontiers,
+            rewritten_train_test_frontiers,
         ) = initial_grammar._get_compressed_grammmar_and_rewritten_frontiers(
             experiment_state=experiment_state,
             task_splits=[TRAIN, TEST],
-            task_ids_in_splits={TRAIN: [t.name for t in train_task_subset], TEST: ALL},
+            task_ids_in_splits={
+                TRAIN: [t.name for t in train_task_subset],
+                TEST: ALL,
+            },
             max_candidates_per_compression_step=200,
             max_compression_steps=5,
         )
