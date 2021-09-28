@@ -132,6 +132,7 @@ class SequenceLanguageEncoder(nn.Module, model_loaders.ModelLoader):
         return tokenized_strings
 
     def _input_strings_to_padded_token_tensor(self, inputs):
+        """ TODO(gg): Replace with torch.nn.utils.rnn.pad_sequence"""
         """inputs: [n_batch input strings].
         :ret: [n_batch * max_token_len] tensor padded with 0s; lengths.
         """
@@ -341,9 +342,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         super().__init__()
 
         self.tokenizer_fn, self.tokenizer_cache = self._init_tokenizer(tokenizer_fn)
-        self.token_to_idx = self._init_token_to_idx_from_experiment_state(
-            experiment_state
-        )
+        self.token_to_idx = experiment_state.models[model_loaders.GRAMMAR].vocab
 
     def _init_tokenizer(self, tokenizer_fn):
         tokenizer_cache = dict()
@@ -354,12 +353,43 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         else:
             assert False
 
-    def _init_token_to_idx_from_experiment_state(self, experiment_state):
-        pass
+    def _batch_tokenize_strings(self, inputs):
+        """inputs: [n_batch input strings].
+        outputs: [n_batch [START + tokens + END] token arrays]."""
+        tokenized_strings = []
+        for input_string in inputs:
+            if input_string in self.tokenizer_cache:
+                tokenized_strings.append(self.tokenizer_cache[input_string])
+            else:
+                tokenized_string = (
+                    [self.START] + self.tokenizer_fn(input_string) + [self.END]
+                )
+                self.tokenizer_cache[input_string] = tokenized_string
+                tokenized_strings.append(tokenized_string)
+        return tokenized_strings
+
+    def _input_strings_to_padded_token_tensor(self, inputs):
+        """ TODO(gg): Replace with torch.nn.utils.rnn.pad_sequence"""
+        """inputs: [n_batch input strings].
+        :ret: [n_batch * max_token_len] tensor padded with 0s; lengths.
+        """
+        input_token_arrays = self._batch_tokenize_strings(inputs)
+        max_len = max([len(s) for s in input_token_arrays])
+        input_token_indices, lengths = [], []
+        for input_token_array in input_token_arrays:
+            token_length = len(input_token_array)
+            lengths.append(token_length)
+            input_token_index_array = [
+                self.input_token_to_idx[t] for t in input_token_array
+            ] + [self.input_token_to_idx[self.PAD]] * (max_len - token_length)
+            input_token_indices.append(input_token_index_array)
+        input_token_indices, lengths = torch.tensor(input_token_indices), torch.tensor(
+            lengths
+        )
+        return input_token_indices, lengths
 
     def forward(self, inputs):
-        pass
-
+        raise NotImplementedError()
 
 
 # SyntaxRobustfill model.
@@ -434,10 +464,10 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
 
         # TODO(gg): implement this to encode the tasks according to the task language, which is extracted below.
         if self._use_language:
-            # [[task_0_tokens_0, task_0_tokens_1, ...], [task_1_tokens_0, task_1_tokens_1, ...], ...]
+            # Nested list: [[task_0_tokens_0, task_0_tokens_1, ...], [task_1_tokens_0, task_1_tokens_1, ...], ...]
             language_for_ids = experiment_state.get_language_for_ids(task_split, task_ids)
 
-            # [task_0_tokens_0, task_0_tokens_1, ..., task_1_tokens_0, task_1_tokens_1, ...]
+            # Flattened list: [task_0_tokens_0, task_0_tokens_1, ..., task_1_tokens_0, task_1_tokens_1, ...]
             language_flattened = [token_string for task_language_list in language_for_ids for token_string in task_language_list]
             
             padded_tokens, token_lengths = self.encoder._input_strings_to_padded_token_tensor(language_flattened)
@@ -472,29 +502,6 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         On completion, model parameters should be updated to the trained model.
         """
 
-        # train_vocab = sorted(list(experiment_state.task_vocab[TRAIN]))
-        # print(train_vocab)
-        # quit()
-
-        # TARGET TOKENS
-        train_frontiers = experiment_state.get_frontiers_for_ids(
-            task_split=task_split, task_ids=task_batch_ids
-        )
-        target_tokens = [e.tokens for f in train_frontiers for e in f.entries]
-
-        # ENCODE INPUTS
-        encoder_hidden = self._encode_tasks(task_split, task_batch_ids, experiment_state)
-
-        print(encoder_hidden.shape)
-
-
-        # encoder = experiment_state.models[model_loaders.LANGUAGE_ENCODER]
-
-
-
-
-        quit()
-
         # TODO(gg): implement this as a standard training loop for the seq2seq 
         # model. This should:
 
@@ -507,11 +514,22 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         # could just supervise on the full cross productof (input: sentence, 
         # predict: program) for each task.
 
-        # Get the number of primitives
-        
+        # TARGET TOKENS
+        train_frontiers = experiment_state.get_frontiers_for_ids(
+            task_split=task_split, task_ids=task_batch_ids
+        )
+        target_tokens = [e.tokens for f in train_frontiers for e in f.entries]
 
-        print("Unimplemented -- optimize_model_for_frontiers")
-        pass
+        # ENCODE INPUTS
+        # TODO(gg): Does this need to be iterated?
+        encoder_hidden = self._encode_tasks(task_split, task_batch_ids, experiment_state)
+
+        print(experiment_state.models[model_loaders.GRAMMAR].vocab)
+
+
+        raise NotImplementedError()
+
+
 
     def score_frontier_avg_conditional_log_likelihoods(
         self, experiment_state, task_split=TRAIN, task_batch_ids=ALL
