@@ -54,6 +54,7 @@ class LAPSGrammar(Grammar):
     AIC = "aic"
     CPUS = "cpus"
     STRUCTURE_PENALTY = "structure_penalty"
+    TOP_K = "top_k"  # Compress with respect to the top K frontiers.
 
     def infer_programs_for_tasks(
         self,
@@ -336,6 +337,7 @@ class LAPSGrammar(Grammar):
         task_ids_in_splits,
         max_candidates_per_compression_step,
         max_compression_steps,
+        top_k=DEFAULT_TOP_K,
         pseudocounts=DEFAULT_PSEUDOCOUNTS,
         arity=DEFAULT_ARITY,
         aic=DEFAULT_AIC,
@@ -351,6 +353,8 @@ class LAPSGrammar(Grammar):
 
         Runs compression up to max_compression_steps, evaluating max_candidates_per_compression_step under the compression score, and greedily adding the top candidate each time.
         Always assumes it should only optimize with respect to the TRAIN frontiers, but rewrites train/test frontiers under the compressed grammar.
+
+        Updates the experiment_state.models[GRAMMAR] and experiment_state frontiers rewritten with respect to the grammar.
         :ret:
             grammar: Grammar object containing the final DSL with up to max_compression_steps new library inventions.
             rewritten_train_test_frontiers: {split : [frontiers] with frontiers rewritten under the final grammar.} Note that this only returns non-empty frontiers for the tasks.
@@ -372,6 +376,7 @@ class LAPSGrammar(Grammar):
             self.AIC: aic,
             self.CPUS: cpus,
             self.STRUCTURE_PENALTY: structure_penalty,
+            self.TOP_K: top_k,
         }
 
         json_deserialized_response, _, _ = self._send_receive_compressor_api_call(
@@ -384,12 +389,25 @@ class LAPSGrammar(Grammar):
             compressor_directory=compressor_directory,
         )
 
-        final_grammar = json_deserialized_response[self.REQUIRED_ARGS][self.GRAMMAR][0]
+        optimized_grammar = json_deserialized_response[self.REQUIRED_ARGS][
+            self.GRAMMAR
+        ][0]
 
         rewritten_train_test_frontiers = json_deserialized_response[self.REQUIRED_ARGS][
             self.FRONTIERS
         ][0]
-        return final_grammar, rewritten_train_test_frontiers
+
+        # Cast back to LAPSGrammar
+        optimized_grammar = LAPSGrammar.fromGrammar(optimized_grammar)
+
+        experiment_state.models[model_loaders.GRAMMAR] = optimized_grammar
+        for task_split in rewritten_train_test_frontiers:
+            for rewritten_frontier in rewritten_train_test_frontiers[task_split]:
+                experiment_state.task_frontiers[task_split][
+                    rewritten_frontier.task
+                ] = rewritten_frontier
+
+        return optimized_grammar, rewritten_train_test_frontiers
 
     ## Elevate static methods to create correct class.
     @staticmethod

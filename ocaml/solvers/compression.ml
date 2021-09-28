@@ -485,6 +485,7 @@ let compression_worker connection ~inline ~arity ~bs ~topK g frontiers =
                  programs=programs'})))
   in
 
+  (** TODO: CATWONG: This is where we can incorporate other frontiers. *)
   let final_rewrite invention =
     (* As our last act, free as much memory as we can *)
     deallocate_versions v; Gc.compact();

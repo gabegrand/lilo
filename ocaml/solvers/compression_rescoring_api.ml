@@ -76,9 +76,9 @@ register_api_fn "get_compressed_grammmar_and_rewritten_frontiers" (fun grammar t
   let () = (Printf.eprintf "[ocaml] get_compressed_grammmar_and_rewritten_frontiers \n") in 
   let () = (Printf.eprintf "[ocaml] Compressing grammar and rewriting from %d train_frontiers and %d test_frontiers \n" (List.length train_frontiers) (List.length test_frontiers)) in 
 
-  let max_candidates_per_compression_step, max_compression_steps, arity, pseudocounts, structure_penalty, aic, cpus, language_alignments_weight, language_alignments = deserialize_compressor_kwargs kwargs in
+  let max_candidates_per_compression_step, max_compression_steps, top_k, arity, pseudocounts, structure_penalty, aic, cpus, language_alignments_weight, language_alignments = deserialize_compressor_kwargs kwargs in
 
-  let compressed_grammar, rewritten_train_frontiers, rewritten_test_frontiers = compress_grammar_and_rewrite_frontiers_loop ~grammar ~train_frontiers ~test_frontiers ~language_alignments ~max_candidates_per_compression_step ~max_compression_steps ~arity ~pseudocounts ~structure_penalty ~aic ~cpus  ~language_alignments_weight in 
+  let compressed_grammar, rewritten_train_frontiers, rewritten_test_frontiers = compress_grammar_and_rewrite_frontiers_loop ~grammar ~train_frontiers ~test_frontiers ~language_alignments ~max_candidates_per_compression_step ~max_compression_steps ~top_k ~arity ~pseudocounts ~structure_penalty ~aic ~cpus  ~language_alignments_weight in 
 
   let serialized_response = `Assoc([
     required_args_string, `Assoc([
