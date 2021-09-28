@@ -9,12 +9,14 @@ GRAMMAR = "grammar"
 LANGUAGE_ENCODER = "language_encoder"
 EXAMPLES_ENCODER = "examples_encoder"
 JOINT_LANGUAGE_EXAMPLES_ENCODER = "joint_language_examples_encoder"
+PROGRAM_DECODER = "program_decoder"
 AMORTIZED_SYNTHESIS = "amortized_synthesis"
 ModelLoaderRegistries = {
     GRAMMAR: ClassRegistry("name", unique=True),
     EXAMPLES_ENCODER: ClassRegistry("name", unique=True),
     LANGUAGE_ENCODER: ClassRegistry("name", unique=True),
     JOINT_LANGUAGE_EXAMPLES_ENCODER: ClassRegistry("name", unique=True),
+    PROGRAM_DECODER: ClassRegistry("name", unique=True),
     AMORTIZED_SYNTHESIS: ClassRegistry("name", unique=True),
 }
 

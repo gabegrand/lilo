@@ -27,6 +27,11 @@ ExamplesEncoderRegistry = model_loaders.ModelLoaderRegistries[
 LanguageEncoderRegistry = model_loaders.ModelLoaderRegistries[
     model_loaders.LANGUAGE_ENCODER
 ]
+
+ProgramDecoderRegistry = model_loaders.ModelLoaderRegistries[
+    model_loaders.PROGRAM_DECODER
+]
+
 AmortizedSynthesisModelRegistry = model_loaders.ModelLoaderRegistries[
     model_loaders.AMORTIZED_SYNTHESIS
 ]
@@ -308,6 +313,55 @@ class SingleImageExampleEncoder(nn.Module, model_loaders.ModelLoader):
         return examples_embedding
 
 
+ProgramDecoderRegistry.register
+class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
+    """TODO(gg): Refactor with SequenceLanguageEncoder to inherit shared superclass."""
+
+    name = "sequence_program_decoder"
+
+    ATT_GRU = "att_gru"
+    DEFAULT_DECODER_DIM = 128
+    DEFAULT_ATTENTION_DIM = 128
+    START, END, UNK, PAD = "<START>", "<END>", "<UNK>", "<PAD>"
+    WORD_TOKENIZE = "word_tokenize"
+
+    @staticmethod
+    def load_model(experiment_state, **kwargs):
+        return SequenceLanguageEncoder(experiment_state=experiment_state, **kwargs)
+
+    def __init__(
+        self,
+        experiment_state=None,
+        decoder_type=ATT_GRU,
+        decoder_dim=DEFAULT_DECODER_DIM,
+        attention_dim=DEFAULT_ATTENTION_DIM,
+        tokenizer_fn=WORD_TOKENIZE,
+        cuda=False,  # TODO: implement CUDA support.
+    ):
+        super().__init__()
+
+        self.tokenizer_fn, self.tokenizer_cache = self._init_tokenizer(tokenizer_fn)
+        self.token_to_idx = self._init_token_to_idx_from_experiment_state(
+            experiment_state
+        )
+
+    def _init_tokenizer(self, tokenizer_fn):
+        tokenizer_cache = dict()
+        if tokenizer_fn == self.WORD_TOKENIZE:
+            from nltk.tokenize import word_tokenize
+
+            return word_tokenize, tokenizer_cache
+        else:
+            assert False
+
+    def _init_token_to_idx_from_experiment_state(self, experiment_state):
+        pass
+
+    def forward(self, inputs):
+        pass
+
+
+
 # SyntaxRobustfill model.
 @AmortizedSynthesisModelRegistry.register
 class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
@@ -368,20 +422,31 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         # Initialize the joint encoder to determine how to combine the embeddings.
         if model_loaders.JOINT_LANGUAGE_EXAMPLES_ENCODER in task_encoder_types:
             # TODO: implement
-            assert False
+            raise NotImplementedError()
 
     def _initialize_decoder(self, experiment_state):
         # Initialize decoder. This requrires the vocabulary of the grammar in experiment_state.models[model_loader.GRAMMAR].tokens
-        pass
+        vocab_size = len(experiment_state.models[model_loaders.GRAMMAR].vocab)
+        raise NotImplementedError()
 
     def _encode_tasks(self, task_split, task_ids, experiment_state):
         # Forward pass encoding of the inputs. This should encode the inputs according to the language, images, or both using the self.encoder
 
         # TODO(gg): implement this to encode the tasks according to the task language, which is extracted below.
         if self._use_language:
-            language_for_ids = experiment_state.get_language_for_ids(
-                task_split, task_ids
-            )  # Gets an array of language descriptions for EACH task in task_ids.
+            # [[task_0_tokens_0, task_0_tokens_1, ...], [task_1_tokens_0, task_1_tokens_1, ...], ...]
+            language_for_ids = experiment_state.get_language_for_ids(task_split, task_ids)
+
+            # [task_0_tokens_0, task_0_tokens_1, ..., task_1_tokens_0, task_1_tokens_1, ...]
+            language_flattened = [token_string for task_language_list in language_for_ids for token_string in task_language_list]
+            
+            padded_tokens, token_lengths = self.encoder._input_strings_to_padded_token_tensor(language_flattened)
+            encoder_hidden = self.encoder._padded_token_tensor_to_rnn_embeddings(padded_tokens, token_lengths)
+
+            return encoder_hidden
+
+        # TODO(gg): Implement for images and joint cases
+        raise NotImplementedError()
 
     def optimize_model_for_frontiers(
         self,
@@ -392,36 +457,73 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         recognition_train_epochs=None,  # Alternatively, how many epochs to train
         # TODO(gg): Add any other hyperparameters: batch_size, learning rate, etc.
     ):
-        """Train the model with respect to the tasks in task_batch_ids. The model is trained to regress from a task encoding according to task_encoder_types (either text, images, or a joint encoding of both) to predict corresponding programs for each task.
+        """Train the model with respect to the tasks in task_batch_ids. 
+        The model is trained to regress from a task encoding according to 
+        task_encoder_types (either text, images, or a joint encoding of both) to 
+        predict corresponding programs for each task.
 
         :params:
             experiment_state: ExperimentState object.
             task_split: which split to train tasks on.
-            task_batch_ids: list of IDs of tasks to train on or ALL to train on all possible solved tasks in the split.
+            task_batch_ids: list of IDs of tasks to train on or ALL to train on 
+                all possible solved tasks in the split.
             other params: hyperparameters of the model.
 
         On completion, model parameters should be updated to the trained model.
         """
-        print("Unimplemented -- optimize_model_for_frontiers")
-        # Frontiers to supervise on.
-        all_train_frontiers = experiment_state.get_frontiers_for_ids(
+
+        # train_vocab = sorted(list(experiment_state.task_vocab[TRAIN]))
+        # print(train_vocab)
+        # quit()
+
+        # TARGET TOKENS
+        train_frontiers = experiment_state.get_frontiers_for_ids(
             task_split=task_split, task_ids=task_batch_ids
         )
+        target_tokens = [e.tokens for f in train_frontiers for e in f.entries]
 
-        # TODO(gg): implement this as a standard training loop for the seq2seq model. This should:
+        # ENCODE INPUTS
+        encoder_hidden = self._encode_tasks(task_split, task_batch_ids, experiment_state)
 
-        # Compute a batched forward pass through the encoder (which encodes task language) -> decoder to predictions over linearized programs.
+        print(encoder_hidden.shape)
 
-        # Evaluate the loss (cross-entropy is fine) wrt. the ground truth programs in all_train_frontiers. Note that there can be muliple ground truth programs per task, and multiple sentences per task. But you could just supervise on the full cross productof (input: sentence, predict: program) for each task.
+
+        # encoder = experiment_state.models[model_loaders.LANGUAGE_ENCODER]
+
+
+
+
+        quit()
+
+        # TODO(gg): implement this as a standard training loop for the seq2seq 
+        # model. This should:
+
+        # Compute a batched forward pass through the encoder (which encodes task 
+        # language) -> decoder to predictions over linearized programs.
+
+        # Evaluate the loss (cross-entropy is fine) wrt. the ground truth 
+        # programs in train_frontiers. Note that there can be muliple ground 
+        # truth programs per task, and multiple sentences per task. But you 
+        # could just supervise on the full cross productof (input: sentence, 
+        # predict: program) for each task.
+
+        # Get the number of primitives
+        
+
+        print("Unimplemented -- optimize_model_for_frontiers")
         pass
 
     def score_frontier_avg_conditional_log_likelihoods(
         self, experiment_state, task_split=TRAIN, task_batch_ids=ALL
     ):
         """
-        Evaluates score(frontier for task_id) = mean [log_likelihood(program) for program in frontier] where
+        Evaluates score(frontier for task_id) = mean [log_likelihood(program) 
+        for program in frontier] where
 
-        log_likelihood = log p(program | task, model_parameters) where program is a proposed program solving the task, task is the encoding of the task under the model (eg. language, images, or a joint encoding) and model_parameters are wrt. a trained model.
+        log_likelihood = log p(program | task, model_parameters) where program 
+        is a proposed program solving the task, task is the encoding of the task
+        under the model (eg. language, images, or a joint encoding) and 
+        model_parameters are wrt. a trained model.
 
         :ret: {
             task_id : score(frontier for task_id)
@@ -429,3 +531,5 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         """
         print("Unimplemented -- score_frontier_avg_conditional_log_likelihoods")
         # TODO(gg): implement this function for scoring the programs in the frontiers for a set of tasks.
+
+
