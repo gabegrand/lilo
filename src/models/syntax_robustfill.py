@@ -314,7 +314,7 @@ class SingleImageExampleEncoder(nn.Module, model_loaders.ModelLoader):
         return examples_embedding
 
 
-ProgramDecoderRegistry.register
+@ProgramDecoderRegistry.register
 class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
     """TODO(gg): Refactor with SequenceLanguageEncoder to inherit shared superclass."""
 
@@ -328,7 +328,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
-        return SequenceLanguageEncoder(experiment_state=experiment_state, **kwargs)
+        return SequenceProgramDecoder(experiment_state=experiment_state, **kwargs)
 
     def __init__(
         self,
@@ -342,7 +342,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         super().__init__()
 
         self.tokenizer_fn, self.tokenizer_cache = self._init_tokenizer(tokenizer_fn)
-        self.token_to_idx = experiment_state.models[model_loaders.GRAMMAR].vocab
+        self.token_to_idx = self._init_token_to_idx_from_experiment_state(experiment_state)
 
     def _init_tokenizer(self, tokenizer_fn):
         tokenizer_cache = dict()
@@ -352,6 +352,21 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
             return word_tokenize, tokenizer_cache
         else:
             assert False
+
+    def _init_token_to_idx_from_experiment_state(self, experiment_state):
+        """Initialize the token_to_idx from the experiment state. This default dictionary also returns the UNK token for any unfound tokens"""
+        if experiment_state == None:
+            return {}
+        train_vocab = sorted(list(experiment_state.models[model_loaders.GRAMMAR].vocab))
+        train_vocab = [self.PAD, self.UNK, self.START, self.END] + train_vocab
+
+        token_to_idx = defaultdict(
+            lambda: 1
+        )  # Default index 1 -> UNK; 0 is padding
+        for token_idx, token in enumerate(train_vocab):
+            token_to_idx[token] = token_idx
+
+        return token_to_idx
 
     def _batch_tokenize_strings(self, inputs):
         """inputs: [n_batch input strings].
@@ -380,8 +395,8 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
             token_length = len(input_token_array)
             lengths.append(token_length)
             input_token_index_array = [
-                self.input_token_to_idx[t] for t in input_token_array
-            ] + [self.input_token_to_idx[self.PAD]] * (max_len - token_length)
+                self.token_to_idx[t] for t in input_token_array
+            ] + [self.token_to_idx[self.PAD]] * (max_len - token_length)
             input_token_indices.append(input_token_index_array)
         input_token_indices, lengths = torch.tensor(input_token_indices), torch.tensor(
             lengths

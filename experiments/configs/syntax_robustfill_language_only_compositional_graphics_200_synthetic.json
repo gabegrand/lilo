@@ -25,6 +25,12 @@
             "params": {}
         },
         {
+            "model_type": "program_decoder",
+            "model_loader": "sequence_program_decoder",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
             "model_type": "amortized_synthesis",
             "model_loader": "syntax_robustfill",
             "model_initializer_fn": "load_model",
