@@ -9,7 +9,6 @@ https://github.com/mila-iqia/babyai/tree/master/babyai
 
 This also implements several common front-end encoders designed for user with the sequence decoder: a SequenceLanguageEncoder, ImageExampleEncoder, and JointLanguageImageEncoder.
 """
-import nltk
 from collections import defaultdict
 
 import torch
@@ -17,9 +16,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-from src.task_loaders import *
 import src.models.model_loaders as model_loaders
-
+from src.task_loaders import *
 
 ExamplesEncoderRegistry = model_loaders.ModelLoaderRegistries[
     model_loaders.EXAMPLES_ENCODER
@@ -342,7 +340,9 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         super().__init__()
 
         self.tokenizer_fn, self.tokenizer_cache = self._init_tokenizer(tokenizer_fn)
-        self.token_to_idx = self._init_token_to_idx_from_experiment_state(experiment_state)
+        self.token_to_idx = self._init_token_to_idx_from_experiment_state(
+            experiment_state
+        )
 
     def _init_tokenizer(self, tokenizer_fn):
         tokenizer_cache = dict()
@@ -360,9 +360,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         train_vocab = sorted(list(experiment_state.models[model_loaders.GRAMMAR].vocab))
         train_vocab = [self.PAD, self.UNK, self.START, self.END] + train_vocab
 
-        token_to_idx = defaultdict(
-            lambda: 1
-        )  # Default index 1 -> UNK; 0 is padding
+        token_to_idx = defaultdict(lambda: 1)  # Default index 1 -> UNK; 0 is padding
         for token_idx, token in enumerate(train_vocab):
             token_to_idx[token] = token_idx
 
@@ -471,7 +469,7 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
 
     def _initialize_decoder(self, experiment_state):
         # Initialize decoder. This requrires the vocabulary of the grammar in experiment_state.models[model_loader.GRAMMAR].tokens
-        vocab_size = len(experiment_state.models[model_loaders.GRAMMAR].vocab)
+        len(experiment_state.models[model_loaders.GRAMMAR].vocab)
         raise NotImplementedError()
 
     def _encode_tasks(self, task_split, task_ids, experiment_state):
@@ -480,13 +478,24 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         # TODO(gg): implement this to encode the tasks according to the task language, which is extracted below.
         if self._use_language:
             # Nested list: [[task_0_tokens_0, task_0_tokens_1, ...], [task_1_tokens_0, task_1_tokens_1, ...], ...]
-            language_for_ids = experiment_state.get_language_for_ids(task_split, task_ids)
+            language_for_ids = experiment_state.get_language_for_ids(
+                task_split, task_ids
+            )
 
             # Flattened list: [task_0_tokens_0, task_0_tokens_1, ..., task_1_tokens_0, task_1_tokens_1, ...]
-            language_flattened = [token_string for task_language_list in language_for_ids for token_string in task_language_list]
-            
-            padded_tokens, token_lengths = self.encoder._input_strings_to_padded_token_tensor(language_flattened)
-            encoder_hidden = self.encoder._padded_token_tensor_to_rnn_embeddings(padded_tokens, token_lengths)
+            language_flattened = [
+                token_string
+                for task_language_list in language_for_ids
+                for token_string in task_language_list
+            ]
+
+            (
+                padded_tokens,
+                token_lengths,
+            ) = self.encoder._input_strings_to_padded_token_tensor(language_flattened)
+            encoder_hidden = self.encoder._padded_token_tensor_to_rnn_embeddings(
+                padded_tokens, token_lengths
+            )
 
             return encoder_hidden
 
@@ -502,60 +511,57 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         recognition_train_epochs=None,  # Alternatively, how many epochs to train
         # TODO(gg): Add any other hyperparameters: batch_size, learning rate, etc.
     ):
-        """Train the model with respect to the tasks in task_batch_ids. 
-        The model is trained to regress from a task encoding according to 
-        task_encoder_types (either text, images, or a joint encoding of both) to 
+        """Train the model with respect to the tasks in task_batch_ids.
+        The model is trained to regress from a task encoding according to
+        task_encoder_types (either text, images, or a joint encoding of both) to
         predict corresponding programs for each task.
 
         :params:
             experiment_state: ExperimentState object.
             task_split: which split to train tasks on.
-            task_batch_ids: list of IDs of tasks to train on or ALL to train on 
+            task_batch_ids: list of IDs of tasks to train on or ALL to train on
                 all possible solved tasks in the split.
             other params: hyperparameters of the model.
 
         On completion, model parameters should be updated to the trained model.
         """
 
-        # TODO(gg): implement this as a standard training loop for the seq2seq 
+        # TODO(gg): implement this as a standard training loop for the seq2seq
         # model. This should:
 
-        # Compute a batched forward pass through the encoder (which encodes task 
+        # Compute a batched forward pass through the encoder (which encodes task
         # language) -> decoder to predictions over linearized programs.
 
-        # Evaluate the loss (cross-entropy is fine) wrt. the ground truth 
-        # programs in train_frontiers. Note that there can be muliple ground 
-        # truth programs per task, and multiple sentences per task. But you 
-        # could just supervise on the full cross productof (input: sentence, 
+        # Evaluate the loss (cross-entropy is fine) wrt. the ground truth
+        # programs in train_frontiers. Note that there can be muliple ground
+        # truth programs per task, and multiple sentences per task. But you
+        # could just supervise on the full cross productof (input: sentence,
         # predict: program) for each task.
 
         # TARGET TOKENS
         train_frontiers = experiment_state.get_frontiers_for_ids(
             task_split=task_split, task_ids=task_batch_ids
         )
-        target_tokens = [e.tokens for f in train_frontiers for e in f.entries]
+        [e.tokens for f in train_frontiers for e in f.entries]
 
         # ENCODE INPUTS
         # TODO(gg): Does this need to be iterated?
-        encoder_hidden = self._encode_tasks(task_split, task_batch_ids, experiment_state)
+        self._encode_tasks(task_split, task_batch_ids, experiment_state)
 
         print(experiment_state.models[model_loaders.GRAMMAR].vocab)
 
-
         raise NotImplementedError()
-
-
 
     def score_frontier_avg_conditional_log_likelihoods(
         self, experiment_state, task_split=TRAIN, task_batch_ids=ALL
     ):
         """
-        Evaluates score(frontier for task_id) = mean [log_likelihood(program) 
+        Evaluates score(frontier for task_id) = mean [log_likelihood(program)
         for program in frontier] where
 
-        log_likelihood = log p(program | task, model_parameters) where program 
+        log_likelihood = log p(program | task, model_parameters) where program
         is a proposed program solving the task, task is the encoding of the task
-        under the model (eg. language, images, or a joint encoding) and 
+        under the model (eg. language, images, or a joint encoding) and
         model_parameters are wrt. a trained model.
 
         :ret: {
@@ -564,5 +570,3 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         """
         print("Unimplemented -- score_frontier_avg_conditional_log_likelihoods")
         # TODO(gg): implement this function for scoring the programs in the frontiers for a set of tasks.
-
-
