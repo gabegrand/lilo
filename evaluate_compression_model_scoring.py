@@ -18,6 +18,10 @@ python evaluate_compression_model_scoring.py
 import time
 import os, json, argparse
 import numpy as np
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 
 from collections import defaultdict
 
@@ -26,14 +30,16 @@ from src.task_loaders import TRAIN, TEST, ALL
 from src.models.model_loaders import *
 from src.utils import *
 
-from data.compositional_graphics.make_tasks import *
+from data.compositional_graphics.encoder import *
 
 # All of the model loaders we import.
 from data.compositional_graphics.grammar import *
-from data.compositional_graphics.encoder import *
-
+from data.compositional_graphics.make_tasks import *
+from src.experiment_iterator import ExperimentState
 from src.models.laps_dreamcoder_recognition import *
+from src.models.model_loaders import *
 from src.models.syntax_robustfill import *
+from src.task_loaders import ALL, TEST, TRAIN
 
 DEFAULT_CONFIG_DIR = "experiments/configs"
 DEFAULT_OUTPUT_DIR = "experiments/outputs/evaluate_compression_model"
@@ -536,14 +542,22 @@ def get_compressor_candidates_and_model_reranking(
         print(
             f"Training model to evaluate candidate grammar {candidate_idx}/{len(grammars_scores_frontiers)}"
         )
-        candidate_grammar, candidate_frontiers, candidate_score = (
-            candidate_grammar_score_frontier["grammar"],
-            candidate_grammar_score_frontier["frontiers"],
-            candidate_grammar_score_frontier["compression_scores"],
-        )
-        candidate_experiment_state = get_experiment_state_grammar_frontiers(
-            config, grammar=candidate_grammar, frontiers=candidate_frontiers
-        )
+        # Make the comparison experiment_state by compressing the frontiers.
+        compressed_experiment_state = get_initial_ground_truth_experiment_state(config)
+        # Get the compression candidates and rewrite the test set.
+        # compressed_experiment_state.models[
+        #     GRAMMAR
+        # ]._get_compressed_grammmar_and_rewritten_frontiers(
+        #     experiment_state=compressed_experiment_state,
+        #     task_splits=[TRAIN, TEST],
+        #     task_ids_in_splits={
+        #         TRAIN: [t.name for t in train_task_subset],
+        #         TEST: ALL,
+        #     },
+        #     max_candidates_per_compression_step=max_candidates_per_compression_step,
+        #     max_compression_steps=max_compression_steps,
+        #     arity=arity,
+        # )
 
         model = candidate_experiment_state.models[AMORTIZED_SYNTHESIS]
         model_test_likelihoods = None

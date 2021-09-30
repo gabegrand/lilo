@@ -314,15 +314,20 @@ class SingleImageExampleEncoder(nn.Module, model_loaders.ModelLoader):
 
 @ProgramDecoderRegistry.register
 class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
-    """TODO(gg): Refactor with SequenceLanguageEncoder to inherit shared superclass."""
+    """TODO(gg): Refactor with SequenceLanguageEncoder to inherit shared superclass.
+
+    Adapted from https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html
+
+    """
 
     name = "sequence_program_decoder"
 
     ATT_GRU = "att_gru"
     DEFAULT_DECODER_DIM = 128
     DEFAULT_ATTENTION_DIM = 128
+    DEFAULT_DROPOUT_P = 0
+    MAX_SEQUENCE_LENGTH = 128  # TODO(gg): Verify that this value makes sense
     START, END, UNK, PAD = "<START>", "<END>", "<UNK>", "<PAD>"
-    WORD_TOKENIZE = "word_tokenize"
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
@@ -334,24 +339,28 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         decoder_type=ATT_GRU,
         decoder_dim=DEFAULT_DECODER_DIM,
         attention_dim=DEFAULT_ATTENTION_DIM,
-        tokenizer_fn=WORD_TOKENIZE,
+        dropout_p=DEFAULT_DROPOUT_P,
+        max_sequence_length=MAX_SEQUENCE_LENGTH,
         cuda=False,  # TODO: implement CUDA support.
     ):
         super().__init__()
 
-        self.tokenizer_fn, self.tokenizer_cache = self._init_tokenizer(tokenizer_fn)
         self.token_to_idx = self._init_token_to_idx_from_experiment_state(
             experiment_state
         )
 
-    def _init_tokenizer(self, tokenizer_fn):
-        tokenizer_cache = dict()
-        if tokenizer_fn == self.WORD_TOKENIZE:
-            from nltk.tokenize import word_tokenize
+        self.hidden_size = decoder_dim
+        # NOTE(gg): On first init, experiment_state = None so len(self.token_to_idx) = 0
+        self.output_size = len(self.token_to_idx)
+        self.dropout_p = dropout_p
+        self.max_length = max_sequence_length
 
-            return word_tokenize, tokenizer_cache
-        else:
-            assert False
+        self.embedding = nn.Embedding(self.output_size, self.hidden_size)
+        self.attn = nn.Linear(self.hidden_size * 2, self.max_length)
+        self.attn_combine = nn.Linear(self.hidden_size * 2, self.hidden_size)
+        self.dropout = nn.Dropout(self.dropout_p)
+        self.gru = nn.GRU(self.hidden_size, self.hidden_size)
+        self.out = nn.Linear(self.hidden_size, self.output_size)
 
     def _init_token_to_idx_from_experiment_state(self, experiment_state):
         """Initialize the token_to_idx from the experiment state. This default dictionary also returns the UNK token for any unfound tokens"""
@@ -367,23 +376,17 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         return token_to_idx
 
     def _batch_tokenize_strings(self, inputs):
-        """inputs: [n_batch input strings].
-        outputs: [n_batch [START + tokens + END] token arrays]."""
-        tokenized_strings = []
-        for input_string in inputs:
-            if input_string in self.tokenizer_cache:
-                tokenized_strings.append(self.tokenizer_cache[input_string])
-            else:
-                tokenized_string = (
-                    [self.START] + self.tokenizer_fn(input_string) + [self.END]
-                )
-                self.tokenizer_cache[input_string] = tokenized_string
-                tokenized_strings.append(tokenized_string)
-        return tokenized_strings
+        """Unlike in the encoder, inputs are already tokenized.
+
+        inputs: [n_batch [tokens] arrays].
+        outputs: [n_batch [START + tokens + END] token arrays].
+
+        """
+        return [[self.START] + token_list + [self.END] for token_list in inputs]
 
     def _input_strings_to_padded_token_tensor(self, inputs):
         """ TODO(gg): Replace with torch.nn.utils.rnn.pad_sequence"""
-        """inputs: [n_batch input strings].
+        """inputs: [n_batch [tokens] arrays].
         :ret: [n_batch * max_token_len] tensor padded with 0s; lengths.
         """
         input_token_arrays = self._batch_tokenize_strings(inputs)
@@ -401,8 +404,25 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         )
         return input_token_indices, lengths
 
-    def forward(self, inputs):
-        raise NotImplementedError()
+    def forward(self, input, hidden, encoder_outputs):
+        embedded = self.embedding(input).view(1, 1, -1)
+        embedded = self.dropout(embedded)
+
+        attn_weights = F.softmax(
+            self.attn(torch.cat((embedded[0], hidden[0]), 1)), dim=1
+        )
+        attn_applied = torch.bmm(
+            attn_weights.unsqueeze(0), encoder_outputs.unsqueeze(0)
+        )
+
+        output = torch.cat((embedded[0], attn_applied[0]), 1)
+        output = self.attn_combine(output).unsqueeze(0)
+
+        output = F.relu(output)
+        output, hidden = self.gru(output, hidden)
+
+        output = F.log_softmax(self.out(output[0]), dim=1)
+        return output, hidden, attn_weights
 
 
 # SyntaxRobustfill model.
@@ -448,7 +468,7 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
 
         experiment_state.init_models_from_config(
             config=experiment_state.config,
-            encoders_to_initialize=[
+            models_to_initialize=[
                 t
                 for t in task_encoder_types
                 if t != model_loaders.JOINT_LANGUAGE_EXAMPLES_ENCODER
@@ -468,9 +488,17 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
             raise NotImplementedError()
 
     def _initialize_decoder(self, experiment_state):
-        # Initialize decoder. This requrires the vocabulary of the grammar in experiment_state.models[model_loader.GRAMMAR].tokens
-        len(experiment_state.models[model_loaders.GRAMMAR].vocab)
-        raise NotImplementedError()
+        # Initialize decoder.
+
+        if experiment_state is None:
+            return
+
+        experiment_state.init_models_from_config(
+            config=experiment_state.config,
+            models_to_initialize=[model_loaders.PROGRAM_DECODER],
+        )
+
+        self.decoder = experiment_state.models[model_loaders.PROGRAM_DECODER]
 
     def _encode_tasks(self, task_split, task_ids, experiment_state):
         # Forward pass encoding of the inputs. This should encode the inputs according to the language, images, or both using the self.encoder
@@ -538,17 +566,21 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         # could just supervise on the full cross productof (input: sentence,
         # predict: program) for each task.
 
-        # TARGET TOKENS
         train_frontiers = experiment_state.get_frontiers_for_ids(
             task_split=task_split, task_ids=task_batch_ids
         )
-        [e.tokens for f in train_frontiers for e in f.entries]
+
+        # Ground truth program tokens for supervision
+        target_tokens = [e.tokens for f in train_frontiers for e in f.entries]
+        decoder_model = experiment_state.models[model_loaders.PROGRAM_DECODER]
+        (
+            target_ids,
+            target_lengths,
+        ) = decoder_model._input_strings_to_padded_token_tensor(target_tokens)
 
         # ENCODE INPUTS
-        # TODO(gg): Does this need to be iterated?
+        # TODO(gg): Iterate
         self._encode_tasks(task_split, task_batch_ids, experiment_state)
-
-        print(experiment_state.models[model_loaders.GRAMMAR].vocab)
 
         raise NotImplementedError()
 
