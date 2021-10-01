@@ -35,205 +35,6 @@ AmortizedSynthesisModelRegistry = model_loaders.ModelLoaderRegistries[
 ]
 
 
-# Input encoders.
-@LanguageEncoderRegistry.register
-class SequenceLanguageEncoder(nn.Module, model_loaders.ModelLoader):
-    """Language encoder for sequences of language tokens. Supports GRU, BIGRU, and ATT_GRU. Reference implementation: https://github.com/mila-iqia/babyai/blob/master/babyai/model.py"""
-
-    name = "sequence_language_encoder"  # String key for config and encoder registry.
-
-    GRU, BIGRU, ATT_GRU = "gru", "bigru", "att_gru"
-    DEFAULT_ENCODER_DIM = 128
-    DEFAULT_ATTENTION_DIM = 128
-    START, END, UNK, PAD = "<START>", "<END>", "<UNK>", "<PAD>"
-    WORD_TOKENIZE = "word_tokenize"
-
-    @staticmethod
-    def load_model(experiment_state, **kwargs):
-        return SequenceLanguageEncoder(experiment_state=experiment_state, **kwargs)
-
-    def __init__(
-        self,
-        experiment_state=None,
-        encoder_type=ATT_GRU,
-        encoder_dim=DEFAULT_ENCODER_DIM,
-        attention_dim=DEFAULT_ATTENTION_DIM,
-        tokenizer_fn=WORD_TOKENIZE,
-        cuda=False,  # TODO: implement CUDA support.
-    ):
-        super().__init__()
-
-        self.tokenizer_fn, self.tokenizer_cache = self._init_tokenizer(tokenizer_fn)
-
-        self.input_token_to_idx = self._init_input_token_to_idx_from_experiment_state(
-            experiment_state
-        )
-        self.encoder_dim = encoder_dim
-        self.input_embedding = nn.Embedding(
-            len(self.input_token_to_idx), self.encoder_dim
-        )
-        self.attention_dim = 2 * attention_dim  # Bidirectional
-
-        self.encoder_type = encoder_type
-        if self.encoder_type in [self.GRU, self.BIGRU, self.ATT_GRU]:
-            gru_dim = self.encoder_dim
-        if self.encoder_type in [self.BIGRU, self.ATT_GRU]:
-            gru_dim //= 2
-        self.encoder_rnn = nn.GRU(
-            self.encoder_dim,
-            gru_dim,
-            batch_first=True,
-            bidirectional=(self.encoder_type in [self.BIGRU, self.ATT_GRU]),
-        )
-        self.final_encoder_dim = self.encoder_dim
-
-        if self.encoder_type == self.ATT_GRU:
-            self.att2key = nn.Linear(self.attention_dim, self.final_encoder_dim)
-
-    def _init_tokenizer(self, tokenizer_fn):
-        tokenizer_cache = dict()
-        if tokenizer_fn == self.WORD_TOKENIZE:
-            from nltk.tokenize import word_tokenize
-
-            return word_tokenize, tokenizer_cache
-        else:
-            assert False
-
-    def _init_input_token_to_idx_from_experiment_state(self, experiment_state):
-        """Initialize the token_to_idx from the experiment state. This default dictionary also returns the UNK token for any unfound tokens"""
-        if experiment_state == None:
-            return {}
-        train_vocab = sorted(list(experiment_state.task_vocab[TRAIN]))
-        train_vocab = [self.PAD, self.UNK, self.START, self.END] + train_vocab
-
-        input_token_to_idx = defaultdict(
-            lambda: 1
-        )  # Default index 1 -> UNK; 0 is padding
-        for token_idx, token in enumerate(train_vocab):
-            input_token_to_idx[token] = token_idx
-
-        return input_token_to_idx
-
-    def _batch_tokenize_strings(self, inputs):
-        """inputs: [n_batch input strings].
-        outputs: [n_batch [START + tokens + END] token arrays]."""
-        tokenized_strings = []
-        for input_string in inputs:
-            if input_string in self.tokenizer_cache:
-                tokenized_strings.append(self.tokenizer_cache[input_string])
-            else:
-                tokenized_string = (
-                    [self.START] + self.tokenizer_fn(input_string) + [self.END]
-                )
-                self.tokenizer_cache[input_string] = tokenized_string
-                tokenized_strings.append(tokenized_string)
-        return tokenized_strings
-
-    def _input_strings_to_padded_token_tensor(self, inputs):
-        """ TODO(gg): Replace with torch.nn.utils.rnn.pad_sequence"""
-        """inputs: [n_batch input strings].
-        :ret: [n_batch * max_token_len] tensor padded with 0s; lengths.
-        """
-        input_token_arrays = self._batch_tokenize_strings(inputs)
-        max_len = max([len(s) for s in input_token_arrays])
-        input_token_indices, lengths = [], []
-        for input_token_array in input_token_arrays:
-            token_length = len(input_token_array)
-            lengths.append(token_length)
-            input_token_index_array = [
-                self.input_token_to_idx[t] for t in input_token_array
-            ] + [self.input_token_to_idx[self.PAD]] * (max_len - token_length)
-            input_token_indices.append(input_token_index_array)
-        input_token_indices, lengths = torch.tensor(input_token_indices), torch.tensor(
-            lengths
-        )
-        return input_token_indices, lengths
-
-    def _padded_token_tensor_to_rnn_embeddings(self, padded_tokens, lengths):
-        """padded_tokens, lengths = [n_batch * max_len] tensor of token indices; lengths = [n_batch array of lengths of unpadded sequences]
-        :ret:
-            ATTGRU: n_batch x L x embedding_dim
-            GRU, BIGRU: n_batch x embedding_dim tensor of embeddings run through the forward GRU
-        """
-        if self.encoder_type == self.GRU:
-            out, _ = self.encoder_rnn(self.input_embedding(padded_tokens))
-            hidden = out[range(len(lengths)), lengths - 1, :]
-            return hidden
-
-        elif self.encoder_type in [self.BIGRU, self.ATT_GRU]:
-            masks = (padded_tokens != 0).float()
-
-            if lengths.shape[0] > 1:
-                seq_lengths, perm_idx = lengths.sort(0, descending=True)
-                iperm_idx = torch.LongTensor(perm_idx.shape).fill_(0)
-                if padded_tokens.is_cuda:
-                    iperm_idx = iperm_idx.cuda()
-                for i, v in enumerate(perm_idx):
-                    iperm_idx[v.data] = i
-
-                inputs = self.input_embedding(padded_tokens)
-                inputs = inputs[perm_idx]
-
-                inputs = pack_padded_sequence(
-                    inputs, seq_lengths.data.cpu().numpy(), batch_first=True
-                )
-
-                outputs, final_states = self.encoder_rnn(inputs)
-            else:
-                padded_tokens = padded_tokens[:, 0 : lengths[0]]
-                outputs, final_states = self.encoder_rnn(self.input_embedding(instr))
-                iperm_idx = None
-            final_states = final_states.transpose(0, 1).contiguous()
-            final_states = final_states.view(final_states.shape[0], -1)
-            if iperm_idx is not None:
-                outputs, _ = pad_packed_sequence(outputs, batch_first=True)
-                outputs = outputs[iperm_idx]
-                final_states = final_states[iperm_idx]
-
-            return outputs if self.encoder_type == self.ATT_GRU else final_states
-
-    def forward(self, inputs, attention_memory=None):
-        """inputs: [n_batch input strings].
-        attention_memory: hidden state from recurrent encoder to drive attention.
-        outputs: [n_batch x embedding_dim] tensor.
-        """
-        padded_tokens, token_lengths = self._input_strings_to_padded_token_tensor(
-            inputs
-        )
-        rnn_embeddings = self._padded_token_tensor_to_rnn_embeddings(
-            padded_tokens, token_lengths
-        )
-
-        if self.encoder_type == self.ATT_GRU:
-            # outputs: B x L x D
-            # memory: B x M
-            mask = (padded_tokens != 0).float()
-            # From BabyAI comments (obs.instr = batch of language)
-            # The mask tensor has the same length as the padded tokens, and thus can be both shorter and longer than instr_embedding.
-            # It can be longer if instr_embedding is computed
-            # for a subbatch of obs.instr.
-            # It can be shorter if obs.instr is a subbatch of
-            # the batch that instr_embeddings was computed for.
-            # Here, we make sure that mask and instr_embeddings
-            # have equal length along dimension 1.
-            mask = mask[:, : rnn_embeddings.shape[1]]
-            rnn_embeddings = rnn_embeddings[:, : mask.shape[1]]
-
-            keys = self.att2key(attention_memory)
-            pre_softmax = (keys[:, None, :] * rnn_embeddings).sum(2) + 1000 * mask
-            attention = F.softmax(pre_softmax, dim=1)
-            rnn_embeddings = (rnn_embeddings * attention[:, :, None]).sum(1)
-        return rnn_embeddings
-
-
-class Flatten(nn.Module):
-    def __init__(self):
-        super(Flatten, self).__init__()
-
-    def forward(self, x):
-        return x.view(x.size(0), -1)
-
-
 @ExamplesEncoderRegistry.register
 class SingleImageExampleEncoder(nn.Module, model_loaders.ModelLoader):
     """Image encoder for tasks specified by a single image example.  Reference implementation: LOGO Feature CNN from DreamCoder."""
@@ -310,6 +111,136 @@ class SingleImageExampleEncoder(nn.Module, model_loaders.ModelLoader):
         image_tensor /= self.PIXEL_NORMALIZATION_CONSTANT
         examples_embedding = self.image_conv(image_tensor)
         return examples_embedding
+
+
+@LanguageEncoderRegistry.register
+class SequenceLanguageEncoder(nn.Module, model_loaders.ModelLoader):
+    """Language encoder for sequences of language tokens."""
+
+    name = "sequence_language_encoder"  # String key for config and encoder registry.
+
+    DEFAULT_EMBEDDING_DIM = 128
+    DEFAULT_ENCODER_DIM = 128
+    START, END, UNK, PAD = "<START>", "<END>", "<UNK>", "<PAD>"
+    WORD_TOKENIZE = "word_tokenize"
+
+    @staticmethod
+    def load_model(experiment_state, **kwargs):
+        return SequenceLanguageEncoder(experiment_state=experiment_state, **kwargs)
+
+    def __init__(
+        self,
+        experiment_state=None,
+        bidirectional=True,
+        embedding_dim=DEFAULT_EMBEDDING_DIM,
+        encoder_dim=DEFAULT_ENCODER_DIM,
+        tokenizer_fn=WORD_TOKENIZE,
+        cuda=False,  # TODO: implement CUDA support.
+    ):
+        super().__init__()
+
+        if experiment_state is None:
+            """
+            TODO(gg): See if this breaks anything. If experiment_state is None,
+                we really shouldn't try to init this model in the first place.
+            """
+            return
+
+        self.tokenizer_fn, self.tokenizer_cache = self._init_tokenizer(tokenizer_fn)
+        self.token_to_idx = self._init_token_to_idx_from_experiment_state(
+            experiment_state
+        )
+
+        self.embedding_dim = embedding_dim
+        self.embedding = nn.Embedding(len(self.token_to_idx), self.embedding_dim)
+
+        self.bidirectional = bidirectional
+        self.num_directions = 2 if self.bidirectional else 1
+        assert encoder_dim % self.num_directions == 0
+        self.encoder_dim = encoder_dim // self.num_directions
+        self.gru = nn.GRU(
+            input_size=self.embedding_dim,
+            hidden_size=self.encoder_dim,
+            batch_first=True,
+            bidirectional=self.bidirectional,
+        )
+
+    def _init_tokenizer(self, tokenizer_fn):
+        tokenizer_cache = dict()
+        if tokenizer_fn == self.WORD_TOKENIZE:
+            from nltk.tokenize import word_tokenize
+
+            return word_tokenize, tokenizer_cache
+        else:
+            raise NotImplementedError(
+                "WORD_TOKENIZE is the only supported tokenizer_fn."
+            )
+
+    def _init_token_to_idx_from_experiment_state(self, experiment_state):
+        """Initialize the token_to_idx from the experiment state. This default dictionary also returns the UNK token for any unfound tokens"""
+        if experiment_state == None:
+            return {}
+        train_vocab = sorted(list(experiment_state.task_vocab[TRAIN]))
+        train_vocab = [self.PAD, self.UNK, self.START, self.END] + train_vocab
+
+        token_to_idx = defaultdict(lambda: 1)  # Default index 1 -> UNK; 0 is padding
+        for token_idx, token in enumerate(train_vocab):
+            token_to_idx[token] = token_idx
+
+        return token_to_idx
+
+    def _batch_tokenize_strings(self, inputs):
+        """inputs: [n_batch input strings].
+        outputs: [n_batch [START + tokens + END] token arrays]."""
+        tokenized_strings = []
+        for input_string in inputs:
+            if input_string in self.tokenizer_cache:
+                tokenized_strings.append(self.tokenizer_cache[input_string])
+            else:
+                tokenized_string = (
+                    [self.START] + self.tokenizer_fn(input_string) + [self.END]
+                )
+                self.tokenizer_cache[input_string] = tokenized_string
+                tokenized_strings.append(tokenized_string)
+        return tokenized_strings
+
+    def _input_strings_to_padded_token_tensor(self, inputs):
+        """ TODO(gg): Replace with torch.nn.utils.rnn.pad_sequence"""
+        """inputs: [n_batch input strings].
+        :ret: [n_batch * max_token_len] tensor padded with 0s; lengths.
+        """
+        input_token_arrays = self._batch_tokenize_strings(inputs)
+        max_len = max([len(s) for s in input_token_arrays])
+        input_token_indices, lengths = [], []
+        for input_token_array in input_token_arrays:
+            token_length = len(input_token_array)
+            lengths.append(token_length)
+            input_token_index_array = [
+                self.token_to_idx[t] for t in input_token_array
+            ] + [self.token_to_idx[self.PAD]] * (max_len - token_length)
+            input_token_indices.append(input_token_index_array)
+        input_token_indices, lengths = torch.tensor(input_token_indices), torch.tensor(
+            lengths
+        )
+        return input_token_indices, lengths
+
+    def forward(self, inputs, hidden=None):
+        """inputs: [n_batch input strings].
+        attention_memory: hidden state from recurrent encoder to drive attention.
+        outputs: [n_batch x embedding_dim] tensor.
+        """
+        padded_tokens, token_lengths = self._input_strings_to_padded_token_tensor(
+            inputs
+        )
+        embedded = self.embedding(padded_tokens)
+        packed = pack_padded_sequence(
+            embedded, token_lengths, batch_first=True, enforce_sorted=False
+        )
+        outputs, hidden = self.gru(packed, hidden)
+        outputs, _ = pad_packed_sequence(outputs, batch_first=True)
+
+        hidden = hidden.view(-1, 1, self.num_directions * self.encoder_dim)
+        return outputs, hidden
 
 
 @ProgramDecoderRegistry.register
@@ -602,3 +533,11 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         """
         print("Unimplemented -- score_frontier_avg_conditional_log_likelihoods")
         # TODO(gg): implement this function for scoring the programs in the frontiers for a set of tasks.
+
+
+class Flatten(nn.Module):
+    def __init__(self):
+        super(Flatten, self).__init__()
+
+    def forward(self, x):
+        return x.view(x.size(0), -1)
