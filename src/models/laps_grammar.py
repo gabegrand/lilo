@@ -43,11 +43,18 @@ class LAPSGrammar(Grammar):
 
     # API keys for the OCaml compressor API.
     API_FN, REQUIRED_ARGS, KWARGS = "api_fn", "required_args", "kwargs"
-    GRAMMAR, FRONTIERS = "grammar", "frontiers"
+    GRAMMAR, FRONTIERS, COMPRESSION_SCORES = (
+        "grammar",
+        "frontiers",
+        "compression_scores",
+    )
     TEST_API_FN = "test_send_receive_response"  # Test ping function to make sure the binary is avaiable.
 
     # Standard hyperparameters for the compressor.
     MAX_CANDIDATES_PER_COMPRESSION_STEP = "max_candidates_per_compression_step"
+    MAX_CANDIDATES_TO_RETAIN_FOR_REWRITING = (
+        "max_grammar_candidates_to_retain_for_rewriting"
+    )
     MAX_COMPRESSION_STEPS = "max_compression_steps"
     ARITY = "arity"
     PSEUDOCOUNTS = "pseudocounts"
@@ -256,7 +263,7 @@ class LAPSGrammar(Grammar):
             )
             json_response = json.loads(json_response.decode("utf-8"))
         except Exception as e:
-            print("Error in _send_receive_compressor_api_call: {e}")
+            print(f"Error in _send_receive_compressor_api_call: {e}")
 
         json_deserialized_response = json_response
         json_deserialized_response[self.REQUIRED_ARGS][self.GRAMMAR] = [
@@ -276,7 +283,6 @@ class LAPSGrammar(Grammar):
                 json_deserialized_response[self.REQUIRED_ARGS][self.FRONTIERS]
             )
         ]
-
         json_serialized_binary_message = json.loads(json_serialized_binary_message)
         return json_deserialized_response, json_error, json_serialized_binary_message
 
@@ -330,6 +336,91 @@ class LAPSGrammar(Grammar):
                 )
         return deserialized_frontiers
 
+    def _get_compressed_grammar_candidates_and_rewritten_frontiers(
+        self,
+        experiment_state,
+        task_splits,
+        task_ids_in_splits,
+        max_candidates_per_compression_step,  # How many to consider.
+        max_grammar_candidates_to_retain_for_rewriting,  # How many to actually rewrite.
+        top_k=DEFAULT_TOP_K,
+        pseudocounts=DEFAULT_PSEUDOCOUNTS,
+        arity=DEFAULT_ARITY,
+        aic=DEFAULT_AIC,
+        structure_penalty=DEFAULT_STRUCTURE_PENALTY,
+        compressor_type=DEFAULT_COMPRESSOR_TYPE,
+        compressor=DEFAULT_API_COMPRESSOR,
+        compressor_directory=DEFAULT_BINARY_DIRECTORY,
+        cpus=DEFAULT_CPUS,
+    ):
+        """
+        Corresponding OCaml API Function:
+        get_compressed_grammar_candidates_and_rewritten_frontiers
+        Call the compressor to return a set of grammar candidates augmneted with library functions {g_c_0, g_c_1...} and frontiers rewritten under each candidate.
+
+        Evaluates max_candidates_per_compression_step under the compression score, and currently returns the max_candidates_per_compression_step under the compression score.
+
+        Always assumes it should only optimize with respect to the TRAIN frontiers, but rewrites train/test frontiers under the compressed grammar.
+
+        :ret:
+            Array of {
+                "grammar": Grammar candidate.
+                "frontiers": {split:[rewritten frontiers]}.
+                "compression_score": scalar score of grammar wrt. frontiers.
+            }
+        """
+        api_fn = "get_compressed_grammar_candidates_and_rewritten_frontiers"
+        frontiers = experiment_state.get_frontiers_for_ids_in_splits(
+            task_splits=task_splits,
+            task_ids_in_splits=task_ids_in_splits,
+            include_samples=False,
+        )
+
+        ## TODO: remove this -- test on train and test
+        frontiers["test"] = frontiers["train"]
+
+        # Build the standard KWARGS.
+        kwargs = {
+            self.MAX_CANDIDATES_PER_COMPRESSION_STEP: max_candidates_per_compression_step,
+            self.MAX_CANDIDATES_TO_RETAIN_FOR_REWRITING: max_grammar_candidates_to_retain_for_rewriting,
+            self.ARITY: arity,
+            self.PSEUDOCOUNTS: pseudocounts,
+            self.AIC: aic,
+            self.CPUS: cpus,
+            self.STRUCTURE_PENALTY: structure_penalty,
+            self.TOP_K: top_k,
+        }
+
+        json_deserialized_response, _, _ = self._send_receive_compressor_api_call(
+            api_fn=api_fn,
+            grammar=self,
+            frontiers=frontiers,
+            kwargs=kwargs,
+            compressor_type=compressor_type,
+            compressor=compressor,
+            compressor_directory=compressor_directory,
+        )
+
+        grammar_candidates = json_deserialized_response[self.REQUIRED_ARGS][
+            self.GRAMMAR
+        ]
+
+        rewritten_frontier_candidates = json_deserialized_response[self.REQUIRED_ARGS][
+            self.FRONTIERS
+        ]
+        grammar_frontier_score_candidates = [
+            {
+                self.GRAMMAR: grammar_candidates[idx],
+                self.FRONTIERS: rewritten_frontier_candidates[idx],
+                self.COMPRESSION_SCORES: json_deserialized_response[self.REQUIRED_ARGS][
+                    self.COMPRESSION_SCORES
+                ][idx],
+            }
+            for idx in range(len(grammar_candidates))
+        ]
+
+        return grammar_frontier_score_candidates
+
     def _get_compressed_grammmar_and_rewritten_frontiers(
         self,
         experiment_state,
@@ -348,7 +439,7 @@ class LAPSGrammar(Grammar):
         cpus=DEFAULT_CPUS,
     ):
         """
-        API Function: get_compressed_grammmar_and_rewritten_frontiers.
+        Corresponding OCaml API Function:get_compressed_grammmar_and_rewritten_frontiers.
         Call the compressor to rewrite the grammar and the frontiers.
 
         Runs compression up to max_compression_steps, evaluating max_candidates_per_compression_step under the compression score, and greedily adding the top candidate each time.
@@ -396,9 +487,6 @@ class LAPSGrammar(Grammar):
         rewritten_train_test_frontiers = json_deserialized_response[self.REQUIRED_ARGS][
             self.FRONTIERS
         ][0]
-
-        # Cast back to LAPSGrammar
-        optimized_grammar = LAPSGrammar.fromGrammar(optimized_grammar)
 
         experiment_state.models[model_loaders.GRAMMAR] = optimized_grammar
         for task_split in rewritten_train_test_frontiers:

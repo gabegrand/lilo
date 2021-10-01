@@ -31,6 +31,7 @@ let collect_data = ref false;;
 (** Standard hyperparameters for the compressor. **)
 let kwargs_string = "kwargs";;
 let max_candidates_per_compression_step_string = "max_candidates_per_compression_step";;
+let max_grammar_candidates_to_retain_for_rewriting_string = "max_grammar_candidates_to_retain_for_rewriting";;
 let max_compression_steps_string = "max_compression_steps";;
 let arity_string = "arity";; 
 let pseudocounts_string = "pseudocounts";;
@@ -42,6 +43,7 @@ let language_alignments_string = "language_alignments";;
 let top_k_string = "top_k";;
 
 (** Default values for hyperparameters for the compressor. **)
+let default_max_grammar_candidates_to_retain_for_rewriting = 1;;
 let default_max_candidates_per_compression_step = 200;;
 let default_max_compression_steps = 1000;;
 let default_arity = 3;;
@@ -78,6 +80,10 @@ let deserialize_compressor_kwargs json_kwargs =
   let max_candidates_per_compression_step = try
     json_kwargs |> member max_candidates_per_compression_step_string |> to_int
   with _ -> default_max_candidates_per_compression_step in
+
+  let max_grammar_candidates_to_retain_for_rewriting = try
+    json_kwargs |> member  max_grammar_candidates_to_retain_for_rewriting_string |> to_int
+  with _ -> default_max_grammar_candidates_to_retain_for_rewriting in
 
   let max_compression_steps = try
     json_kwargs |> member max_compression_steps_string |> to_int
@@ -118,6 +124,7 @@ let deserialize_compressor_kwargs json_kwargs =
 
   (** Log the KWARGS *)
   let () = (Printf.eprintf "[ocaml] kwarg: \t max_candidates_per_compression_step %d \n" (max_candidates_per_compression_step)) in
+  let () = (Printf.eprintf "[ocaml] kwarg: \t max_grammar_candidates_to_retain_for_rewriting %d \n" (max_grammar_candidates_to_retain_for_rewriting)) in
   let () = (Printf.eprintf "[ocaml] kwarg: \t max_compression_steps %d \n" (max_compression_steps)) in
   let () = (Printf.eprintf "[ocaml] kwarg: \t top_k %d \n" (top_k)) in
   let () = (Printf.eprintf "[ocaml] kwarg: \t arity %d \n" (arity)) in
@@ -129,7 +136,7 @@ let deserialize_compressor_kwargs json_kwargs =
   let () = (Printf.eprintf "[ocaml] kwarg: \t language_alignments_weight %f \n" (language_alignments_weight)) in
   let () = (Printf.eprintf "[ocaml] kwarg: \t with %d language_alignments \n" (List.length language_alignments)) in
   
-  max_candidates_per_compression_step, max_compression_steps, top_k, arity, pseudocounts, structure_penalty, aic, cpus, language_alignments_weight, language_alignments
+  max_candidates_per_compression_step, max_grammar_candidates_to_retain_for_rewriting, max_compression_steps, top_k, arity, pseudocounts, structure_penalty, aic, cpus, language_alignments_weight, language_alignments
   ;;
 
 
@@ -651,16 +658,20 @@ let compression_worker connection ~inline ~arity ~bs ~topK g frontiers test_fron
        exit 0)
   done;;
 
-let compression_step_master ~inline ~nc ~structurePenalty ~aic ~pseudoCounts ~lc_score ?arity:(arity=3) ~bs ~topI ~topK g frontiers test_frontiers language_alignments =
+let compression_step_master ~inline ~nc ~structurePenalty ~aic ~pseudoCounts ~lc_score ?arity:(arity=3) ~bs ~topI ~topK ?max_grammar_candidates_to_retain_for_rewriting:(max_grammar_candidates_to_retain_for_rewriting=1) g frontiers test_frontiers language_alignments =
+  (**
+    params: 
+      retain_all_grammar_candidates: if True, returns the topI grammar candidates and rewrites frontiers with respect to them.
+  *)
   let sockets = ref [] in
   let timestamp = Time.now() |> Time.to_filename_string ~zone:Time.Zone.utc in
-  let fork_worker (frontiers, test_frontiers) =
+  let fork_worker (train_frontiers, test_frontiers) =
     let p = List.length !sockets in
     let address = Printf.sprintf "ipc:///tmp/compression_ipc_%s_%d" timestamp p in
     sockets := !sockets @ [address];
 
     match Unix.fork() with
-    | `In_the_child -> compression_worker address ~arity ~bs ~topK ~inline g frontiers test_frontiers
+    | `In_the_child -> compression_worker address ~arity ~bs ~topK ~inline g train_frontiers test_frontiers
     | _ -> ()
   in
 
@@ -683,9 +694,9 @@ let compression_step_master ~inline ~nc ~structurePenalty ~aic ~pseudoCounts ~lc
     partition residual xs
   in
   let start_time = Time.now () in
-  let partitioned_test = divide_work_fairly nc frontiers in
-  let partitioned_train = divide_work_fairly nc test_frontiers in 
-  List.zip_exn partitioned_test partitioned_train |> List.iter ~f:fork_worker;
+  let partitioned_train = divide_work_fairly nc frontiers in
+  let partitioned_test = divide_work_fairly nc test_frontiers in 
+  List.zip_exn partitioned_train partitioned_test |> List.iter ~f:fork_worker;
 
   (* Now that we have created the workers, we can make our own sockets *)
   let context = Zmq.Context.create() in
@@ -753,6 +764,7 @@ let compression_step_master ~inline ~nc ~structurePenalty ~aic ~pseudoCounts ~lc
   in
   assert (List.length new_frontiers = List.length candidates);
   
+  (** Compression score: globally score the topI candidates.*)
   let score frontiers candidate =
     let new_grammar = uniform_grammar (normalize_invention candidate :: grammar_primitives g) in
     let g',s = grammar_induction_score ~aic ~pseudoCounts ~structurePenalty frontiers new_grammar in
@@ -788,41 +800,94 @@ let compression_step_master ~inline ~nc ~structurePenalty ~aic ~pseudoCounts ~lc
   if best_mdl_score < initial_mdl_score then
       (Printf.eprintf "No improvement possible with MDL.\n");
   
-  (** Combine the scores **)
-  let (g',best_joint_score, best_mdl_score), best_candidate = time_it "Scored candidates with language and grammar" (fun () ->
+  (** Combine the scores and retain the best candidates for globally rewritting. **)
+  let best_scores_and_candidates 
+  = time_it "Scored candidates with language and grammar" (fun () ->
       List.map2_exn candidates new_frontiers ~f:(fun candidate frontiers ->
           let (new_g, mdl_score) = score frontiers candidate in
           let lang_score = language_score language_alignments candidate in
           let combined_score = ((1.0 -. lc_score) *. mdl_score) +. (lc_score *. lang_score) in
-          ((new_g, combined_score, mdl_score), candidate)) |> minimum_by (fun ((_,s,_),_) -> -.s))
+          ((new_g, combined_score, mdl_score), candidate))
+          |> sort_by (fun ((_,s,_),_) -> -.s)
+          |> slice 0 max_grammar_candidates_to_retain_for_rewriting)
+      in
+  let _ = Printf.eprintf "Retained top %d candidates for rewriting \n" (List.length best_scores_and_candidates)  in
+  let (g',best_joint_score, best_mdl_score), best_candidate = best_scores_and_candidates |> List.hd_exn 
   in
   let _ = Printf.eprintf "Best joint score: %f with %s\n" best_joint_score (string_of_program best_candidate) in
   
   if best_joint_score < initial_joint_score then
-      (Printf.eprintf "No improvement possible with joint score.\n"; finish(); None)
+      (Printf.eprintf "No improvement possible with the best joint score.\n"; finish(); None)
     else
       (let new_primitive = grammar_primitives g' |> List.hd_exn in
        Printf.eprintf "Improved score to %f (dScore=%f) w/ new primitive\n\t%s : %s\n"
          best_joint_score (best_joint_score-.initial_joint_score)
          (string_of_program new_primitive) (closed_inference new_primitive |> canonical_type |> string_of_type);
        flush_everything();
-       (* Rewrite the entire frontiers for both train and test *)
-       let combined_frontiers'' : (frontier list * frontier list) list = time_it "rewrote all of the frontiers" (fun () ->
-           send @@ FinalFrontier(best_candidate);
-           sockets |> List.map ~f:receive |> List.concat)
-       in
-       let train_frontiers'' = combined_frontiers'' |> List.map ~f:fst |> List.concat in 
-       let test_frontiers'' = combined_frontiers'' |> List.map ~f:snd |> List.concat in 
+       
+
+      (* Rewrite all of the remaining candidates. *)
+      let grammar_candidates, compression_scores_for_candidates, train_frontiers_for_candidates, test_frontiers_for_candidates = ref [], ref [], ref [], ref [] in
+      let _ = time_it "Rewrote all frontiers for all candidates" (
+        fun () ->
+          List.map best_scores_and_candidates ~f:(
+            fun ((g_candidate', combined_score, mdl_score), invention_candidate) ->
+            let combined_frontiers'' : (frontier list * frontier list) list = time_it "rewrote all of the frontiers for one candidate" (fun () ->
+             let _ = (Printf.eprintf "Rewriting with new primitive\n\t%s : %s\n" (string_of_program invention_candidate) (closed_inference invention_candidate |> canonical_type |> string_of_type)) in 
+              send @@ FinalFrontier(invention_candidate);
+              sockets |> List.map ~f:receive |> List.concat)
+              in
+              let train_frontiers'' = combined_frontiers'' |> List.map ~f:fst |> List.concat in 
+              let test_frontiers'' = combined_frontiers'' |> List.map ~f:snd |> List.concat in 
+              let g'' = inside_outside ~pseudoCounts g_candidate' train_frontiers'' |> fst in
+              
+              grammar_candidates := !grammar_candidates @ [g''];
+              compression_scores_for_candidates := !compression_scores_for_candidates @ [combined_score];
+              train_frontiers_for_candidates := !train_frontiers_for_candidates @ [train_frontiers''];
+              test_frontiers_for_candidates := !test_frontiers_for_candidates @ [test_frontiers'']; 
+          )
+        )
+       in 
        finish();
-       let g'' = inside_outside ~pseudoCounts g' train_frontiers'' |> fst in
-       Some(g'',train_frontiers'', test_frontiers''))
+       let _ = (Printf.eprintf "Returning rewritten grammars and frontiers for %d candidates\n" (List.length !grammar_candidates)) in 
+       Some(!grammar_candidates, !compression_scores_for_candidates,!train_frontiers_for_candidates, !test_frontiers_for_candidates))
+      ;;
+let find_new_primitive old_grammar new_grammar =
+  (** Helper sub-function for reporting new primitives in a grammar with respect to another grammar. *)
+  new_grammar |> grammar_primitives |> List.filter ~f:(fun p ->
+      not (List.mem ~equal:program_equal (old_grammar |> grammar_primitives) p)) |>
+  singleton_head;;
 
-        
+let illustrate_new_primitive new_grammar primitive frontiers =
+  (** Helper sub-function for reporting where primitives are used in a set of frontiers. *)
+  let illustrations = 
+    frontiers |> List.filter_map ~f:(fun frontier ->
+        let best_program = (restrict ~topK:1 new_grammar frontier).programs |> List.hd_exn |> fst in
+        if List.mem ~equal:program_equal (program_subexpressions best_program) primitive then
+          Some(best_program)
+        else None)
+  in
+  Printf.eprintf "[ocaml] New primitive is used %d times in the best programs in each of the training frontiers.\n"
+      (List.length illustrations);
+    Printf.eprintf "[ocaml] Here is where it is used:\n";
+    illustrations |> List.iter ~f:(fun program -> Printf.eprintf "  %s\n" (string_of_program program));;
 
-(* let get_parallel_or_serial_compress_rewrite_step ~cpus =
-  (** Wrapper function: instantiates a parallel step if CPUS > 1 else gets the serial compression step. *) 
-  let compress_rewrite_step = if cpus = 1 then serial_compress_rewrite_step else parallel_compress_rewrite_step_master ~cpus
-in compress_rewrite_step *)
+let compress_grammar_candidates_and_rewrite_frontiers_for_each ~grammar ~train_frontiers ~test_frontiers ?language_alignments:(language_alignments=[]) ~max_candidates_per_compression_step
+~max_grammar_candidates_to_retain_for_rewriting ~max_compression_steps ~top_k ~arity ~pseudocounts ~structure_penalty ~aic ~cpus  ?language_alignments_weight:(language_alignments_weight=0.0) = 
+  (** compress_grammar_candidates_and_rewrite_frontiers_for_each: compresses the grammar with respect to train_frontiers to retain max_candidates_per_compression_step top candidates, and rewrites train/test frontiesrs *with respect to each candidate grammar.*
+
+  :params:
+       See: compress_grammar_and_rewrite_frontiers_loop or compression_step_master. Note that this does NOT have a max_compression_steps, as we currently return candidates after a single step.
+  *)
+  let compress_rewrite_step = compression_step_master ~nc:cpus in
+  match time_it "[ocaml] Completed one iteration of compression and rewriting for all candidates."
+              (fun () -> compress_rewrite_step ~inline:true ~structurePenalty:structure_penalty ~aic ~pseudoCounts:pseudocounts ~lc_score:language_alignments_weight ~arity ~bs:100000 ~topI:max_candidates_per_compression_step ~topK:top_k grammar train_frontiers test_frontiers language_alignments
+              ~max_grammar_candidates_to_retain_for_rewriting)
+      with
+      | None -> [grammar], [0.0], [train_frontiers], [test_frontiers]
+      | Some(grammar_candidates', compression_scores_candidates', train_frontiers_candidates', test_frontiers_candidates') -> 
+        grammar_candidates', compression_scores_candidates',  train_frontiers_candidates', test_frontiers_candidates'
+
 
 let compress_grammar_and_rewrite_frontiers_loop 
 ~grammar ~train_frontiers ~test_frontiers ?language_alignments:(language_alignments=[]) ~max_candidates_per_compression_step ~max_compression_steps ~top_k ~arity ~pseudocounts ~structure_penalty ~aic ~cpus  ?language_alignments_weight:(language_alignments_weight=0.0) = 
@@ -844,40 +909,23 @@ Compare to the implementation in compression.ml
   Language alignments weight: weighting string for the language alignment compression score.
 
 :ret:
-  compressed_grammar: compressed grammar with new DSL inventions.
+  compressed_grammars: compressed grammar with new DSL inventions.
   rewritten_train_frontiers, rewritten_test_frontiers: frontiers rewritten under the new DSL.
 *)
-
-(* Helper sub functions for reporting any new primitives added during compression *)
-let find_new_primitive old_grammar new_grammar =
-  new_grammar |> grammar_primitives |> List.filter ~f:(fun p ->
-      not (List.mem ~equal:program_equal (old_grammar |> grammar_primitives) p)) |>
-  singleton_head
-in
-let illustrate_new_primitive new_grammar primitive frontiers =
-  let illustrations = 
-    frontiers |> List.filter_map ~f:(fun frontier ->
-        let best_program = (restrict ~topK:1 new_grammar frontier).programs |> List.hd_exn |> fst in
-        if List.mem ~equal:program_equal (program_subexpressions best_program) primitive then
-          Some(best_program)
-        else None)
-  in
-  Printf.eprintf "[ocaml] New primitive is used %d times in the best programs in each of the training frontiers.\n"
-      (List.length illustrations);
-    Printf.eprintf "[ocaml] Here is where it is used:\n";
-    illustrations |> List.iter ~f:(fun program -> Printf.eprintf "  %s\n" (string_of_program program))
-  in 
-
   let compress_rewrite_step = compression_step_master ~nc:cpus in
   let rec compress_rewrite_report_loop ~max_compression_steps grammar train_frontiers test_frontiers =
     if max_compression_steps < 1 then
       (Printf.eprintf "[ocaml] Maximum compression steps reached; exiting compression.\n"; grammar, train_frontiers, test_frontiers)
     else
       match time_it "[ocaml] Completed one iteration of compression and rewriting."
-              (fun () -> compress_rewrite_step ~inline:true ~structurePenalty:structure_penalty ~aic ~pseudoCounts:pseudocounts ~lc_score:language_alignments_weight ~arity ~bs:100000 ~topI:max_candidates_per_compression_step ~topK:top_k grammar train_frontiers test_frontiers language_alignments)
+              (fun () -> compress_rewrite_step 
+              ~max_grammar_candidates_to_retain_for_rewriting:1
+              ~inline:true ~structurePenalty:structure_penalty ~aic ~pseudoCounts:pseudocounts ~lc_score:language_alignments_weight ~arity ~bs:100000 ~topI:max_candidates_per_compression_step 
+              ~topK:top_k grammar train_frontiers test_frontiers language_alignments)
       with
       | None -> grammar, train_frontiers, test_frontiers
-      | Some(grammar', train_frontiers', test_frontiers') ->
+      | Some(grammar_candidates', _, train_frontiers_candidates', test_frontiers_candidates') ->
+        let (grammar', train_frontiers', test_frontiers') = List.hd_exn grammar_candidates', List.hd_exn train_frontiers_candidates', List.hd_exn test_frontiers_candidates' in
         illustrate_new_primitive grammar' (find_new_primitive grammar grammar') train_frontiers';
         flush_everything();
         compress_rewrite_report_loop (max_compression_steps - 1) grammar' train_frontiers' test_frontiers'

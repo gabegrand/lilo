@@ -156,7 +156,7 @@ def generate_rel_plot(
 def test_discrimination_original_final_libraries_full(
     args,
     config,
-    num_training_buckets=10,  # How many buckets to make of the training programs.
+    num_training_buckets=5,  # How many buckets to make of the training programs.
     max_candidates_per_compression_step=100,
     arity=2,
     max_compression_steps=1,
@@ -238,6 +238,58 @@ def test_discrimination_original_final_libraries_full(
                 y_titles=[TEST_LOG_LIKELIHOOD],
                 plot_title="test_discrimination_original_final_libraries_full",
             )
+
+
+@register_test
+def test_discrimination_candidate_alignments(
+    args,
+    config,
+    num_training_buckets=10,  # How many buckets to make of the training programs.
+    max_candidates_per_compression_step=10,
+    max_grammar_candidates_to_retain_for_rewriting=4,
+    arity=2,
+    debug=True,
+    report_top_k=5,
+):
+    """Tests whether the model scoring function can meaningfully rerank a set of proposed DSL candidates and compare this ranking to that produced by the compressor.."""
+
+    initial_ground_truth_experiment_state = get_initial_ground_truth_experiment_state(
+        config
+    )
+    for train_task_subset in make_program_log_prior_buckets_iterator(
+        initial_ground_truth_experiment_state,
+        task_split=TRAIN,
+        num_buckets=num_training_buckets,
+    ):
+        print(
+            f"Train task subset: {len(train_task_subset)} tasks: up to {train_task_subset[-1].name}"
+        )
+        # Make the comparison experiment_state by compressing the frontiers.
+        compressed_experiment_state = get_initial_ground_truth_experiment_state(config)
+
+        # Get the compression candidates.
+        grammars_scores_frontiers = compressed_experiment_state.models[
+            GRAMMAR
+        ]._get_compressed_grammar_candidates_and_rewritten_frontiers(
+            experiment_state=compressed_experiment_state,
+            task_splits=[TRAIN, TEST],
+            task_ids_in_splits={
+                TRAIN: [t.name for t in train_task_subset],
+                TEST: ALL,  # TODO: why does this not work with fewer -- fix this.
+            },
+            max_candidates_per_compression_step=max_candidates_per_compression_step,
+            max_grammar_candidates_to_retain_for_rewriting=max_grammar_candidates_to_retain_for_rewriting,
+            arity=arity,
+        )
+
+        print(
+            f"Received {len(grammars_scores_frontiers)} candidates; reporting the first K:"
+        )
+        top_k_grammars_scores_frontiers = grammars_scores_frontiers[:report_top_k]
+        for idx, grammar_score_frontier in enumerate(top_k_grammars_scores_frontiers):
+            print(f"Reporting {idx}: ")
+            print(grammar_score_frontier["grammar"])
+            print(f"Score: {grammar_score_frontier['compression_scores']}")
 
 
 def load_config_from_file(args):

@@ -40,6 +40,7 @@ let required_args_string = "required_args";;
 
 let grammar_string = "grammar";;
 let frontiers_string = "frontiers";;
+let compression_scores_string = "compression_scores"
 let train_string = "train";;
 let test_string = "test" ;;
 
@@ -76,7 +77,7 @@ register_api_fn "get_compressed_grammmar_and_rewritten_frontiers" (fun grammar t
   let () = (Printf.eprintf "[ocaml] get_compressed_grammmar_and_rewritten_frontiers \n") in 
   let () = (Printf.eprintf "[ocaml] Compressing grammar and rewriting from %d train_frontiers and %d test_frontiers \n" (List.length train_frontiers) (List.length test_frontiers)) in 
 
-  let max_candidates_per_compression_step, max_compression_steps, top_k, arity, pseudocounts, structure_penalty, aic, cpus, language_alignments_weight, language_alignments = deserialize_compressor_kwargs kwargs in
+  let max_candidates_per_compression_step, max_grammar_candidates_to_retain_for_rewriting, max_compression_steps, top_k, arity, pseudocounts, structure_penalty, aic, cpus, language_alignments_weight, language_alignments = deserialize_compressor_kwargs kwargs in
 
   let compressed_grammar, rewritten_train_frontiers, rewritten_test_frontiers = compress_grammar_and_rewrite_frontiers_loop ~grammar ~train_frontiers ~test_frontiers ~language_alignments ~max_candidates_per_compression_step ~max_compression_steps ~top_k ~arity ~pseudocounts ~structure_penalty ~aic ~cpus  ~language_alignments_weight in 
 
@@ -87,6 +88,39 @@ register_api_fn "get_compressed_grammmar_and_rewritten_frontiers" (fun grammar t
         train_string, `List(rewritten_train_frontiers |> List.map ~f:serialize_frontier);
         test_string, `List(rewritten_test_frontiers |> List.map ~f:serialize_frontier);
       ])])
+    ])
+  ]) in 
+  serialized_response
+);;
+
+(** get_compression_grammar_candidates_and_rewritten_frontiers: compresses the grammar with respect to the train frontiers and returns the top_k grammar candidates and frontiers rewritten under each. 
+  Reference: compression implementation in compression.ml
+  Returns JSON response containing: 
+    grammar : [up to top-k (k = max_candidates_per_compression_step) grammars containing a single library function each.]
+    frontiers: [k frontier objects with
+      [split: split frontiers rewritten wrt the fully compressed grammar_i]
+      ] 
+    scores:[k scalar compression scores corresponding to each grammar.]
+*)
+register_api_fn "get_compressed_grammar_candidates_and_rewritten_frontiers" (fun grammar train_frontiers test_frontiers kwargs ->
+  let () = (Printf.eprintf "[ocaml] get_compressed_grammmar_candidates_and_rewritten_frontiers \n") in 
+  let () = (Printf.eprintf "[ocaml] Compressing grammar and rewriting candidates from %d train_frontiers and %d test_frontiers \n" (List.length train_frontiers) (List.length test_frontiers)) in 
+
+  let max_candidates_per_compression_step, max_grammar_candidates_to_retain_for_rewriting, max_compression_steps, top_k, arity, pseudocounts, structure_penalty, aic, cpus, language_alignments_weight, language_alignments = deserialize_compressor_kwargs kwargs in
+
+  let compressed_grammar_candidates, compression_scores_candidates, rewritten_train_frontiers_candidates, rewritten_test_frontiers_candidates = compress_grammar_candidates_and_rewrite_frontiers_for_each ~grammar ~train_frontiers ~test_frontiers ~language_alignments ~max_candidates_per_compression_step ~max_grammar_candidates_to_retain_for_rewriting ~max_compression_steps ~top_k ~arity ~pseudocounts ~structure_penalty ~aic ~cpus  ~language_alignments_weight in 
+
+  let serialized_frontiers = List.map2_exn rewritten_train_frontiers_candidates rewritten_test_frontiers_candidates ~f: (fun train_frontiers test_frontiers ->
+    `Assoc([
+        train_string, `List(train_frontiers |> List.map ~f:serialize_frontier);
+        test_string, `List(test_frontiers |> List.map ~f:serialize_frontier);
+      ])
+    ) in 
+  let serialized_response = `Assoc([
+    required_args_string, `Assoc([
+      grammar_string, `List(compressed_grammar_candidates |> List.map ~f:serialize_grammar);
+      frontiers_string, `List(serialized_frontiers);
+      compression_scores_string, `List(compression_scores_candidates |> List.map ~f:(fun score -> `Float(score)))
     ])
   ]) in 
   serialized_response
