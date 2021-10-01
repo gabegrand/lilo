@@ -677,6 +677,7 @@ let compression_step_master ~inline ~nc ~structurePenalty ~aic ~pseudoCounts ~lc
 
   if !verbose_compression then ignore(Unix.system "ps aux|grep compression 1>&2");
 
+  (** TODO: CATWONG: need to divide these correctly amongst the different groups -- right now, not guaranteed for frontiers and test_frontiers to be the same size.*)
   let divide_work_fairly nc xs =
     let nt = List.length xs in
     let base_count = nt/nc in
@@ -696,6 +697,7 @@ let compression_step_master ~inline ~nc ~structurePenalty ~aic ~pseudoCounts ~lc
   let start_time = Time.now () in
   let partitioned_train = divide_work_fairly nc frontiers in
   let partitioned_test = divide_work_fairly nc test_frontiers in 
+  let partitioned_train, partitioned_test = pad_to_equal_length_2 partitioned_train partitioned_test ~pad:[] in
   List.zip_exn partitioned_train partitioned_test |> List.iter ~f:fork_worker;
 
   (* Now that we have created the workers, we can make our own sockets *)

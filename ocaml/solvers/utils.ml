@@ -3,6 +3,20 @@ open Unix.Select_fds
 open Sys
 open Obj
 
+(** Pad the shorter list to the longer list length*)
+let pad_to_equal_length_2 list_a list_b ~pad =
+  let pad_list_to_length l len_to_pad pad = 
+    let diff = len_to_pad - List.length l in 
+    if diff > 0 then l @ (List.init diff (fun x->pad)) else 
+    l 
+  in
+  let len_a, len_b = List.length list_a, List.length list_b in
+  let max_len = max len_a len_b in 
+  let padded_a = pad_list_to_length list_a max_len pad in 
+  let padded_b = pad_list_to_length list_b max_len pad in 
+  padded_a, padded_b
+
+
 let power_of exponent natural =
   let rec loop n =
     if n = natural then true else

@@ -275,7 +275,7 @@ def test_discrimination_candidate_alignments(
             task_splits=[TRAIN, TEST],
             task_ids_in_splits={
                 TRAIN: [t.name for t in train_task_subset],
-                TEST: ALL,  # TODO: why does this not work with fewer -- fix this.
+                TEST: [],
             },
             max_candidates_per_compression_step=max_candidates_per_compression_step,
             max_grammar_candidates_to_retain_for_rewriting=max_grammar_candidates_to_retain_for_rewriting,

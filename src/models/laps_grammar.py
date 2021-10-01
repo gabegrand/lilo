@@ -376,9 +376,6 @@ class LAPSGrammar(Grammar):
             include_samples=False,
         )
 
-        ## TODO: remove this -- test on train and test
-        frontiers["test"] = frontiers["train"]
-
         # Build the standard KWARGS.
         kwargs = {
             self.MAX_CANDIDATES_PER_COMPRESSION_STEP: max_candidates_per_compression_step,
