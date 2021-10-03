@@ -12,6 +12,7 @@ python evaluate_compression_model_scoring.py
        test_discrimination_candidate_alignments,
        test_heldout_scores_with_model_reranking]
 
+# TODO: catwong: implement simple pickle caching based on the test name and iteration. (We can also re-use the cache between tests over candidates.)
 
 """
 import time
@@ -71,6 +72,7 @@ TEST_FUNCTIONS_REGISTRY = {}
 
 MODEL_SCORE, COMPRESSOR_SCORE = "model score", "compressor score"
 MODEL_RANK, COMPRESSOR_RANK = "model rank", "compressor rank"
+FRONTIERS = "frontiers"
 
 
 def register_test(test_fn):
@@ -192,21 +194,6 @@ def test_discrimination_original_final_libraries_full(
 
 
 @register_test
-def test_heldout_scores_with_model_reranking(
-    args,
-    config,
-    num_training_buckets=5,  # How many buckets to make of the training programs.
-    max_candidates_per_compression_step=100,
-    max_grammar_candidates_to_retain_for_rewriting=4,  # How many candidates to actually return for evaluating.
-    arity=2,
-):
-    """
-    Tests whether the candidates ranked by the model (a) improve model likelihood scores over the test set and (b) improve grammar likelihood scores over the test set.
-    """
-    pass
-
-
-@register_test
 def test_discrimination_candidate_alignments(
     args,
     config,
@@ -233,7 +220,11 @@ def test_discrimination_candidate_alignments(
             f"Iteration: {train_iteration}. Train task subset: {len(train_task_subset)} tasks: up to {train_task_subset[-1].name}"
         )
 
-        candidate_grammars_to_scores = get_compressor_candidates_and_model_reranking(
+        (
+            candidate_grammars_to_scores,
+            _,
+            _,
+        ) = get_compressor_candidates_and_model_reranking(
             args,
             config,
             train_iteration,
@@ -247,6 +238,52 @@ def test_discrimination_candidate_alignments(
         report_model_compressor_score_agreement(
             train_iteration, candidate_grammars_to_scores
         )
+
+
+@register_test
+def test_heldout_scores_with_model_reranking(
+    args,
+    config,
+    num_training_buckets=5,  # How many buckets to make of the training programs.
+    max_candidates_per_compression_step=100,
+    max_grammar_candidates_to_retain_for_rewriting=4,  # How many candidates to actually return for evaluating.
+    arity=2,
+):
+    """
+    Tests whether the candidates ranked by the model (a) improve model likelihood scores over the test set and (b) improve grammar likelihood scores over the test set. Note that this only tests adding the single top candidate to the model -- alternatively we could add the first one where they diverge.
+    """
+    initial_ground_truth_experiment_state = get_initial_ground_truth_experiment_state(
+        config
+    )
+    for train_iteration, train_task_subset in make_program_log_prior_buckets_iterator(
+        initial_ground_truth_experiment_state,
+        task_split=TRAIN,
+        num_buckets=num_training_buckets,
+    ):
+        print(
+            f"Iteration: {train_iteration}. Train task subset: {len(train_task_subset)} tasks: up to {train_task_subset[-1].name}"
+        )
+
+        (
+            candidate_grammars_to_scores,
+            compressor_sorted_grammars,
+            model_sorted_grammars,
+        ) = get_compressor_candidates_and_model_reranking(
+            args,
+            config,
+            train_iteration,
+            train_task_subset,
+            max_candidates_per_compression_step,
+            max_grammar_candidates_to_retain_for_rewriting,
+            arity,
+            compress_test_frontiers=False,
+        )
+
+        report_model_compressor_score_agreement(
+            train_iteration, candidate_grammars_to_scores
+        )
+
+        # TODO (catwong): we should also return the best MODEL and then evaluate it on the test tasks.
 
 
 def make_program_log_prior_buckets_iterator(
@@ -358,9 +395,11 @@ def get_compressor_candidates_and_model_reranking(
     Returns:
         {
             grammar: {
-                model_score, model_ranking, compressor_score, compressor_ranking
+                model_score, model_ranking, compressor_score, compressor_ranking, rewritten_frontiers
             }
-        } for each candidate grammar.
+        }
+        sorted_compressor_grammars: grammars sorted by the compressor ranking.
+        sorted_model_grammars: grammars sorted by the model ranking.
     """
     candidate_grammars_to_scores = defaultdict(
         lambda: {
@@ -370,6 +409,7 @@ def get_compressor_candidates_and_model_reranking(
                 MODEL_RANK,
                 COMPRESSOR_SCORE,
                 COMPRESSOR_RANK,
+                FRONTIERS,
             ]
         }
     )
@@ -442,7 +482,9 @@ def get_compressor_candidates_and_model_reranking(
         candidate_grammars_to_scores[candidate_grammar][
             COMPRESSOR_SCORE
         ] = candidate_score
+        candidate_grammars_to_scores[candidate_grammar][FRONTIERS] = candidate_frontiers
     # Rank them with respect to their scores.
+    all_sorted_grammars = {}
     for score_type, rank_type in [
         (MODEL_SCORE, MODEL_RANK),
         (COMPRESSOR_SCORE, COMPRESSOR_RANK),
@@ -453,15 +495,22 @@ def get_compressor_candidates_and_model_reranking(
                 candidate_grammar
             ][score_type],
         )
+        all_sorted_grammars[score_type] = sorted_grammars
         for (idx, g) in enumerate(sorted_grammars):
             candidate_grammars_to_scores[g][rank_type] = idx
-    return candidate_grammars_to_scores
+    return (
+        candidate_grammars_to_scores,
+        all_sorted_grammars[COMPRESSOR_SCORE],
+        all_sorted_grammars[MODEL_SCORE],
+    )
 
 
 def report_model_compressor_score_agreement(
     train_iteration, candidate_grammars_to_scores, report_top_k=3
 ):
-    print("Iteration: {train_iteration} Reporting model vs. compressor score agreement")
+    print(
+        f"Iteration: {train_iteration} Reporting model vs. compressor score agreement"
+    )
     for score_type, rank_type, comparison_score_type, comparison_rank_type in [
         (MODEL_SCORE, MODEL_RANK, COMPRESSOR_SCORE, COMPRESSOR_RANK),
         (COMPRESSOR_SCORE, COMPRESSOR_RANK, MODEL_SCORE, MODEL_RANK),
