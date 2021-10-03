@@ -336,6 +336,16 @@ class LAPSGrammar(Grammar):
                 )
         return deserialized_frontiers
 
+    def _get_dummy_grammar_scores_frontiers(self, frontiers):
+        grammar_frontier_score_candidates = [
+            {
+                self.GRAMMAR: self,
+                self.FRONTIERS: frontiers,
+                self.COMPRESSION_SCORES: 0.0,
+            }
+        ]
+        return grammar_frontier_score_candidates
+
     def _get_compressed_grammar_candidates_and_rewritten_frontiers(
         self,
         experiment_state,
@@ -352,6 +362,7 @@ class LAPSGrammar(Grammar):
         compressor=DEFAULT_API_COMPRESSOR,
         compressor_directory=DEFAULT_BINARY_DIRECTORY,
         cpus=DEFAULT_CPUS,
+        debug_get_dummy=False,
     ):
         """
         Corresponding OCaml API Function:
@@ -375,6 +386,10 @@ class LAPSGrammar(Grammar):
             task_ids_in_splits=task_ids_in_splits,
             include_samples=False,
         )
+
+        # Debug mock-method for avoiding an expensive compression step.
+        if debug_get_dummy:
+            return self._get_dummy_grammar_scores_frontiers(frontiers)
 
         # Build the standard KWARGS.
         kwargs = {
