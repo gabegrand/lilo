@@ -7,7 +7,11 @@ Usage:
 python evaluate_compression_model_scoring.py
     --config_file syntax_robustfill_language_only_compositional_graphics_200_synthetic.json # Config to initialize the model and the dataset. Assumes the amortized synthesis model is the one with the scoring function.
     --library_candidates_scoring_fn # Which scoring function you want to use.
-    -k # Pytest keywrods for which test to run (substring of tests), otherwise runs all. 
+    -k # Pytest keywordsds for which test to run (substring of tests), otherwise runs all. 
+       [test_discrimination_original_final_libraries_full,
+       test_discrimination_candidate_alignments,
+       test_heldout_scores_with_model_reranking]
+
 
 """
 import time
@@ -83,98 +87,6 @@ def get_test_fns(args):
             if keyword in test_fn_name:
                 test_fns.append(test_fn)
     return test_fns
-
-
-def make_program_log_prior_buckets_iterator(
-    experiment_state,
-    task_split,
-    num_buckets,
-):
-    """Iterator over num_buckets buckets of tasks with ground truth programs by log_prior under the grammar (as a corollary for description length)."""
-
-    def best_log_prior(task):
-        frontier = experiment_state.task_frontiers[task_split][task]
-        return min([e.logPrior for e in frontier.entries])
-
-    sorted_log_prior = sorted(
-        experiment_state.task_frontiers[task_split],
-        key=lambda task: best_log_prior(task),
-        reverse=True,
-    )
-
-    batch_size = int(len(sorted_log_prior) / num_buckets)
-    for bucket_idx in range(num_buckets + 1):
-        end = (bucket_idx + 1) * batch_size
-        yield bucket_idx, sorted_log_prior[:end]
-
-
-def get_initial_ground_truth_experiment_state(config):
-    experiment_state = ExperimentState(config)
-    experiment_state.initialize_ground_truth_task_frontiers(task_split=TRAIN)
-    experiment_state.initialize_ground_truth_task_frontiers(task_split=TEST)
-    return experiment_state
-
-
-def get_experiment_state_grammar_frontiers(config, grammar, frontiers):
-    initial_experiment_state = get_initial_ground_truth_experiment_state(config)
-    initial_experiment_state.models[model_loaders.GRAMMAR] = grammar
-    for task_split in frontiers:
-        for rewritten_frontier in frontiers[task_split]:
-            initial_experiment_state.task_frontiers[task_split][
-                rewritten_frontier.task
-            ] = rewritten_frontier
-    return initial_experiment_state
-
-
-def generate_rel_plot(
-    args, metrics_to_report, x_titles, y_titles, plot_title, y_lim=1.0
-):
-    for y_title in y_titles:
-        for x_title in x_titles:
-
-            def build_dataframe(metrics_to_report, x_title, y_title):
-                xs = []
-                ys = []
-                model = []
-                for legend in metrics_to_report:
-                    num_iterations = len(metrics_to_report[legend][x_title])
-
-                    for iteration in range(num_iterations):
-                        iter_ys = metrics_to_report[legend][y_title][iteration]
-                        iter_xs = [metrics_to_report[legend][x_title][iteration]] * len(
-                            iter_ys
-                        )
-
-                        xs += iter_xs
-                        ys += iter_ys
-                        model += [legend] * len(iter_ys)
-                d = {
-                    f"{x_title}": xs,
-                    f"{y_title}": ys,
-                    "Model": model,
-                }
-                return pd.DataFrame(data=d)
-
-            plt.figure(figsize=(6, 3))
-            df = build_dataframe(metrics_to_report, x_title, y_title)
-            ax = sns.relplot(
-                x=f"{x_title}",
-                y=f"{y_title}",
-                hue="Model",
-                style="Model",
-                kind="line",
-                data=df,
-            )
-            ax.fig.set_size_inches(12, 3)
-            ax.axes[0, 0].set_ylim(0, y_lim)
-            plt.title(f"{y_title}")
-
-            escaped_y_title = y_title.lower().replace(" ", "_")
-            output_title = f"{plot_title}_{escaped_y_title}.png"
-            output_name = os.path.join(args.output_dir, output_title)
-
-            print(f"Writing plot out to: {output_name}")
-            plt.savefig(output_name)
 
 
 @register_test
@@ -335,6 +247,98 @@ def test_discrimination_candidate_alignments(
         report_model_compressor_score_agreement(
             train_iteration, candidate_grammars_to_scores
         )
+
+
+def make_program_log_prior_buckets_iterator(
+    experiment_state,
+    task_split,
+    num_buckets,
+):
+    """Iterator over num_buckets buckets of tasks with ground truth programs by log_prior under the grammar (as a corollary for description length)."""
+
+    def best_log_prior(task):
+        frontier = experiment_state.task_frontiers[task_split][task]
+        return min([e.logPrior for e in frontier.entries])
+
+    sorted_log_prior = sorted(
+        experiment_state.task_frontiers[task_split],
+        key=lambda task: best_log_prior(task),
+        reverse=True,
+    )
+
+    batch_size = int(len(sorted_log_prior) / num_buckets)
+    for bucket_idx in range(num_buckets + 1):
+        end = (bucket_idx + 1) * batch_size
+        yield bucket_idx, sorted_log_prior[:end]
+
+
+def get_initial_ground_truth_experiment_state(config):
+    experiment_state = ExperimentState(config)
+    experiment_state.initialize_ground_truth_task_frontiers(task_split=TRAIN)
+    experiment_state.initialize_ground_truth_task_frontiers(task_split=TEST)
+    return experiment_state
+
+
+def get_experiment_state_grammar_frontiers(config, grammar, frontiers):
+    initial_experiment_state = get_initial_ground_truth_experiment_state(config)
+    initial_experiment_state.models[model_loaders.GRAMMAR] = grammar
+    for task_split in frontiers:
+        for rewritten_frontier in frontiers[task_split]:
+            initial_experiment_state.task_frontiers[task_split][
+                rewritten_frontier.task
+            ] = rewritten_frontier
+    return initial_experiment_state
+
+
+def generate_rel_plot(
+    args, metrics_to_report, x_titles, y_titles, plot_title, y_lim=1.0
+):
+    for y_title in y_titles:
+        for x_title in x_titles:
+
+            def build_dataframe(metrics_to_report, x_title, y_title):
+                xs = []
+                ys = []
+                model = []
+                for legend in metrics_to_report:
+                    num_iterations = len(metrics_to_report[legend][x_title])
+
+                    for iteration in range(num_iterations):
+                        iter_ys = metrics_to_report[legend][y_title][iteration]
+                        iter_xs = [metrics_to_report[legend][x_title][iteration]] * len(
+                            iter_ys
+                        )
+
+                        xs += iter_xs
+                        ys += iter_ys
+                        model += [legend] * len(iter_ys)
+                d = {
+                    f"{x_title}": xs,
+                    f"{y_title}": ys,
+                    "Model": model,
+                }
+                return pd.DataFrame(data=d)
+
+            plt.figure(figsize=(6, 3))
+            df = build_dataframe(metrics_to_report, x_title, y_title)
+            ax = sns.relplot(
+                x=f"{x_title}",
+                y=f"{y_title}",
+                hue="Model",
+                style="Model",
+                kind="line",
+                data=df,
+            )
+            ax.fig.set_size_inches(12, 3)
+            ax.axes[0, 0].set_ylim(0, y_lim)
+            plt.title(f"{y_title}")
+
+            escaped_y_title = y_title.lower().replace(" ", "_")
+            output_title = f"{plot_title}_{escaped_y_title}.png"
+            output_name = os.path.join(args.output_dir, output_title)
+
+            print(f"Writing plot out to: {output_name}")
+            plt.savefig(output_name)
 
 
 def get_compressor_candidates_and_model_reranking(
