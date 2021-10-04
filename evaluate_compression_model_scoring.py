@@ -545,19 +545,19 @@ def get_compressor_candidates_and_model_reranking(
         # Make the comparison experiment_state by compressing the frontiers.
         compressed_experiment_state = get_initial_ground_truth_experiment_state(config)
         # Get the compression candidates and rewrite the test set.
-        # compressed_experiment_state.models[
-        #     GRAMMAR
-        # ]._get_compressed_grammmar_and_rewritten_frontiers(
-        #     experiment_state=compressed_experiment_state,
-        #     task_splits=[TRAIN, TEST],
-        #     task_ids_in_splits={
-        #         TRAIN: [t.name for t in train_task_subset],
-        #         TEST: ALL,
-        #     },
-        #     max_candidates_per_compression_step=max_candidates_per_compression_step,
-        #     max_compression_steps=max_compression_steps,
-        #     arity=arity,
-        # )
+        compressed_experiment_state.models[
+            GRAMMAR
+        ]._get_compressed_grammmar_and_rewritten_frontiers(
+            experiment_state=compressed_experiment_state,
+            task_splits=[TRAIN, TEST],
+            task_ids_in_splits={
+                TRAIN: [t.name for t in train_task_subset],
+                TEST: ALL,
+            },
+            max_candidates_per_compression_step=max_candidates_per_compression_step,
+            max_compression_steps=max_compression_steps,
+            arity=arity,
+        )
 
         model = candidate_experiment_state.models[AMORTIZED_SYNTHESIS]
         model_test_likelihoods = None
