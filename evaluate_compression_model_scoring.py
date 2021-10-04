@@ -98,7 +98,7 @@ def test_discrimination_original_final_libraries_full(
     num_training_buckets=5,  # How many buckets to make of the training programs.
     max_candidates_per_compression_step=100,
     arity=2,
-    max_compression_steps=1,
+    max_compression_steps=3,
 ):
     """Tests whether the model scoring function can discriminate at all between the initial DSL and the final DSL over all of the training and test programs."""
 
