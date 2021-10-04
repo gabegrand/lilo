@@ -448,15 +448,9 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
                 for token_string in task_language_list
             ]
 
-            (
-                padded_tokens,
-                token_lengths,
-            ) = self.encoder._input_strings_to_padded_token_tensor(language_flattened)
-            encoder_hidden = self.encoder._padded_token_tensor_to_rnn_embeddings(
-                padded_tokens, token_lengths
-            )
+            encoder_outputs, encoder_hidden = self.encoder(language_flattened)
 
-            return encoder_hidden
+            return encoder_outputs, encoder_hidden
 
         # TODO(gg): Implement for images and joint cases
         raise NotImplementedError()
@@ -510,8 +504,11 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         ) = decoder_model._input_strings_to_padded_token_tensor(target_tokens)
 
         # ENCODE INPUTS
-        # TODO(gg): Iterate
-        self._encode_tasks(task_split, task_batch_ids, experiment_state)
+        encoder_outputs, encoder_hidden = self._encode_tasks(
+            task_split, task_batch_ids, experiment_state
+        )
+
+        print(encoder_outputs.shape, encoder_hidden.shape)
 
         raise NotImplementedError()
 
