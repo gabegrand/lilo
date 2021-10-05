@@ -70,9 +70,15 @@ parser.add_argument("-k", nargs="+", help="Substring keywords of tests to run.")
 
 TEST_FUNCTIONS_REGISTRY = {}
 
+# String constants for reporting.
 MODEL_SCORE, COMPRESSOR_SCORE = "model score", "compressor score"
 MODEL_RANK, COMPRESSOR_RANK = "model rank", "compressor rank"
 FRONTIERS = "frontiers"
+MODEL_TEST_LIKELIHOODS = "model_test_likelihoods"
+TOP_K_METRIC = "Top {} {}"
+INITIAL, COMPRESSED = "initial", "compressed"
+NUM_TRAIN_TASKS = "# training tasks"
+TEST_LOG_LIKELIHOOD = "Test log likelihood"
 
 
 def register_test(test_fn):
@@ -100,15 +106,13 @@ def test_discrimination_original_final_libraries_full(
     arity=2,
     max_compression_steps=3,
 ):
-    """Tests whether the model scoring function can discriminate at all between the initial DSL and the final DSL over all of the training and test programs."""
+    """Tests whether the model scoring function can discriminate at all between the initial DSL and the final DSL over all of the training and test programs.
+    Formally: reports p(test_programs | model, language, L_0) vs. p(test_programs | model, language, L_f) where L_f is derived via the original DreamCoder compressor.
+    """
 
     initial_ground_truth_experiment_state = get_initial_ground_truth_experiment_state(
         config
     )
-
-    INITIAL, COMPRESSED = "initial", "compressed"
-    NUM_TRAIN_TASKS = "# training tasks"
-    TEST_LOG_LIKELIHOOD = "Test log likelihood"
     metrics_to_report = {
         model_header: defaultdict(list) for model_header in [INITIAL, COMPRESSED]
     }
@@ -204,6 +208,8 @@ def test_discrimination_candidate_alignments(
 ):
     """Tests whether the model scoring function can meaningfully rerank a set of proposed DSL candidates and compare this ranking to that produced by the compressor.
 
+    Formally: ranks candidate DSLs L_i_0...L_i_n (where n=max_grammar_candidates_to_retain_for_rewriting) according to the compressor score and the model score.
+
     Reports:
         What ranking was given by the model for the top-k best compressor candidates.
         What the ranking was given by the model for the top-k best model candidates.
@@ -248,13 +254,34 @@ def test_heldout_scores_with_model_reranking(
     max_candidates_per_compression_step=100,
     max_grammar_candidates_to_retain_for_rewriting=4,  # How many candidates to actually return for evaluating.
     arity=2,
+    top_k_candidates_to_evaluate_on_heldout=5,  # Compare this many candidates.
 ):
     """
-    Tests whether the candidates ranked by the model (a) improve model likelihood scores over the test set and (b) improve grammar likelihood scores over the test set. Note that this only tests adding the single top candidate to the model -- alternatively we could add the first one where they diverge.
+    Evaluates the top-k grammar candidates proposed by the model vs. the top-k grammar candidates proposed by the compressor.
+
+    Tests whether the candidates ranked by the model (a) improve model likelihood scores over the test set and (b) improve grammar likelihood scores over the test set. Note that this only tests the top-k, which may not diverge.
+
+    TODO(@catwong): we could alternately evaluate the first one where they diverge.
     """
+    # Report best and top-K
+    metrics_to_report = {
+        model_header: defaultdict(list)
+        for model_header in [
+            str.format(TOP_K_METRIC, 1, COMPRESSOR_SCORE),
+            str.format(TOP_K_METRIC, 1, MODEL_SCORE),
+            str.format(
+                TOP_K_METRIC, top_k_candidates_to_evaluate_on_heldout, COMPRESSOR_SCORE
+            ),
+            str.format(
+                TOP_K_METRIC, top_k_candidates_to_evaluate_on_heldout, MODEL_SCORE
+            ),
+        ]
+    }
+
     initial_ground_truth_experiment_state = get_initial_ground_truth_experiment_state(
         config
     )
+    experiment_id = initial_ground_truth_experiment_state.metadata["experiment_id"]
     for train_iteration, train_task_subset in make_program_log_prior_buckets_iterator(
         initial_ground_truth_experiment_state,
         task_split=TRAIN,
@@ -276,14 +303,73 @@ def test_heldout_scores_with_model_reranking(
             max_candidates_per_compression_step,
             max_grammar_candidates_to_retain_for_rewriting,
             arity,
-            compress_test_frontiers=False,
+            compress_test_frontiers=True,
+            evaluate_test_model_likelihoods=True,
         )
 
-        report_model_compressor_score_agreement(
-            train_iteration, candidate_grammars_to_scores
+        report_model_baseline_top_k_candidates_heldout_likelihoods(
+            args,
+            experiment_id,
+            metrics_to_report,
+            len(train_task_subset),
+            candidate_grammars_to_scores,
+            compressor_sorted_grammars,
+            model_sorted_grammars,
+            top_k_candidates_to_evaluate_on_heldout,
         )
 
-        # TODO (catwong): we should also return the best MODEL and then evaluate it on the test tasks.
+
+def report_model_baseline_top_k_candidates_heldout_likelihoods(
+    args,
+    experiment_id,
+    metrics_to_report,
+    num_iteration_train_tasks,  # How many training tasks at this iteration.
+    candidate_grammars_to_scores,
+    compressor_sorted_grammars,
+    model_sorted_grammars,
+    top_k_candidates_to_evaluate_on_heldout,
+):
+    """
+    Reports the top-k heldout likelihoods under the model vs. the top-k under the baseline.
+    """
+    for top_k_candidates, score_type in [
+        (
+            compressor_sorted_grammars[:top_k_candidates_to_evaluate_on_heldout],
+            COMPRESSOR_SCORE,
+        ),
+        (model_sorted_grammars[:top_k_candidates_to_evaluate_on_heldout], MODEL_SCORE),
+    ]:
+        mean_heldout_likelihoods = [
+            np.mean(candidate_grammars_to_scores[candidate][MODEL_TEST_LIKELIHOODS])
+            for candidate in top_k_candidates
+        ]
+        # Report best
+        best_header = str.format(TOP_K_METRIC, 1, score_type)
+        metrics_to_report[best_header][MODEL_TEST_LIKELIHOODS].append(
+            [mean_heldout_likelihoods[0]]
+        )
+        metrics_to_report[best_header][NUM_TRAIN_TASKS].append(
+            num_iteration_train_tasks
+        )
+
+        # Report mean over top-k
+        top_k_header = str.format(
+            TOP_K_METRIC, top_k_candidates_to_evaluate_on_heldout, score_type
+        )
+        metrics_to_report[top_k_header][MODEL_TEST_LIKELIHOODS].append(
+            mean_heldout_likelihoods
+        )
+        metrics_to_report[top_k_header][NUM_TRAIN_TASKS].append(
+            num_iteration_train_tasks
+        )
+    # Generate intermediate curve.
+    generate_rel_plot(
+        args,
+        metrics_to_report,
+        x_titles=[NUM_TRAIN_TASKS],
+        y_titles=[MODEL_TEST_LIKELIHOODS],
+        plot_title="test_heldout_scores_with_model_reranking" + experiment_id,
+    )
 
 
 def make_program_log_prior_buckets_iterator(
@@ -387,6 +473,7 @@ def get_compressor_candidates_and_model_reranking(
     max_grammar_candidates_to_retain_for_rewriting,  # How many candidates to actually return for evaluating.
     arity,
     compress_test_frontiers=False,
+    evaluate_test_model_likelihoods=False,
 ):
     """
     Compresses grammar with respect to frontiers in train_task_subset to produce max_grammar_candidates_to_retain_for_rewriting grammar candidates.
@@ -410,6 +497,7 @@ def get_compressor_candidates_and_model_reranking(
                 COMPRESSOR_SCORE,
                 COMPRESSOR_RANK,
                 FRONTIERS,
+                MODEL_TEST_LIKELIHOODS,
             ]
         }
     )
@@ -456,33 +544,42 @@ def get_compressor_candidates_and_model_reranking(
         )
 
         model = candidate_experiment_state.models[AMORTIZED_SYNTHESIS]
+        model_test_likelihoods = None
         if args.db_no_model_training:
             print("[DEBUG]: skipping model training.")
-            test_model_candidate_score = -1.0
+            model_candidate_score = -1.0
+            model_test_likelihoods = [0.0]
         else:
-            # TODO: @gg: this should actually run cross-validation on the training frontiers and produce a score for the resulting grammar.
-            model.optimize_model_for_frontiers(
+            # TODO: @gg: this should actually run cross-validation on the training frontiers and produce a score for the resulting grammar. Swap out the below.
+            model_candidate_score = model.optimize_model_for_frontiers(
                 candidate_experiment_state,
                 task_split=TRAIN,
                 task_batch_ids=[t.name for t in train_task_subset],
                 # TODO: @gg - add any other hyperparameters you need here.
             )
 
-            test_model_candidate_score = (
-                model.score_frontier_avg_conditional_log_likelihoods(
-                    candidate_experiment_state,
-                    task_split=TRAIN,
-                    task_batch_ids=[t.name for t in train_task_subset],
+            # Evaluate how the model actually would have done on the heldout programs.
+            if evaluate_test_model_likelihoods:
+                model_test_likelihoods = (
+                    model.score_frontier_avg_conditional_log_likelihoods(
+                        candidate_experiment_state,
+                        task_split=TEST,
+                        task_batch_ids=ALL,
+                    )
                 )
-            )
-        # Add their score.
+        # Add their scores under the model vs. the compressor.
         candidate_grammars_to_scores[candidate_grammar][
             MODEL_SCORE
-        ] = test_model_candidate_score
+        ] = model_candidate_score
         candidate_grammars_to_scores[candidate_grammar][
             COMPRESSOR_SCORE
         ] = candidate_score
         candidate_grammars_to_scores[candidate_grammar][FRONTIERS] = candidate_frontiers
+
+        # Add the model likelihoods over the heldout test set if we are evaluating this.
+        candidate_grammars_to_scores[candidate_grammar][
+            MODEL_TEST_LIKELIHOODS
+        ] = model_test_likelihoods
     # Rank them with respect to their scores.
     all_sorted_grammars = {}
     for score_type, rank_type in [
