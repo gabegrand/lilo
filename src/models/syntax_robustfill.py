@@ -14,6 +14,7 @@ from collections import defaultdict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.autograd import Variable
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 import src.models.model_loaders as model_loaders
@@ -247,13 +248,12 @@ class SequenceLanguageEncoder(nn.Module, model_loaders.ModelLoader):
 class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
     """TODO(gg): Refactor with SequenceLanguageEncoder to inherit shared superclass.
 
-    Adapted from https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html
+    Adapted from https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb
 
     """
 
     name = "sequence_program_decoder"
 
-    ATT_GRU = "att_gru"
     DEFAULT_DECODER_DIM = 128
     DEFAULT_ATTENTION_DIM = 128
     DEFAULT_DROPOUT_P = 0
@@ -267,7 +267,6 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
     def __init__(
         self,
         experiment_state=None,
-        decoder_type=ATT_GRU,
         decoder_dim=DEFAULT_DECODER_DIM,
         attention_dim=DEFAULT_ATTENTION_DIM,
         dropout_p=DEFAULT_DROPOUT_P,
@@ -280,18 +279,28 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
             experiment_state
         )
 
+        # Keep for reference
+        self.attn_model = "concat"
         self.hidden_size = decoder_dim
-        # NOTE(gg): On first init, experiment_state = None so len(self.token_to_idx) = 0
         self.output_size = len(self.token_to_idx)
-        self.dropout_p = dropout_p
-        self.max_length = max_sequence_length
+        self.n_layers = 1
+        self.dropout = dropout_p
 
+        # Define layers
         self.embedding = nn.Embedding(self.output_size, self.hidden_size)
-        self.attn = nn.Linear(self.hidden_size * 2, self.max_length)
-        self.attn_combine = nn.Linear(self.hidden_size * 2, self.hidden_size)
-        self.dropout = nn.Dropout(self.dropout_p)
-        self.gru = nn.GRU(self.hidden_size, self.hidden_size)
+        self.embedding_dropout = nn.Dropout(self.dropout)
+        self.gru = nn.GRU(
+            self.hidden_size,
+            self.hidden_size,
+            self.n_layers,
+            batch_first=True,
+            dropout=self.dropout,
+        )
+        self.concat = nn.Linear(self.hidden_size * 2, self.hidden_size)
         self.out = nn.Linear(self.hidden_size, self.output_size)
+
+        # Choose attention model
+        self.attn = DecoderAttn(self.attn_model, self.hidden_size)
 
     def _init_token_to_idx_from_experiment_state(self, experiment_state):
         """Initialize the token_to_idx from the experiment state. This default dictionary also returns the UNK token for any unfound tokens"""
@@ -335,25 +344,90 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         )
         return input_token_indices, lengths
 
-    def forward(self, input, hidden, encoder_outputs):
-        embedded = self.embedding(input).view(1, 1, -1)
-        embedded = self.dropout(embedded)
+    def forward(self, input_seq, last_hidden, encoder_outputs):
+        # Note: we run this one step at a time
 
-        attn_weights = F.softmax(
-            self.attn(torch.cat((embedded[0], hidden[0]), 1)), dim=1
-        )
-        attn_applied = torch.bmm(
-            attn_weights.unsqueeze(0), encoder_outputs.unsqueeze(0)
-        )
+        # Get the embedding of the current input word (last output word)
+        batch_size = input_seq.size(0)
+        embedded = self.embedding(input_seq)
+        embedded = self.embedding_dropout(embedded)
+        embedded = embedded.view(1, batch_size, self.hidden_size)  # S=1 x B x N
 
-        output = torch.cat((embedded[0], attn_applied[0]), 1)
-        output = self.attn_combine(output).unsqueeze(0)
+        # Get current hidden state from input word and last hidden state
+        rnn_output, hidden = self.gru(embedded, last_hidden)
 
-        output = F.relu(output)
-        output, hidden = self.gru(output, hidden)
+        # Calculate attention from current RNN state and all encoder outputs;
+        # apply to encoder outputs to get weighted average
+        attn_weights = self.attn(rnn_output, encoder_outputs)
+        context = attn_weights.bmm(encoder_outputs.transpose(0, 1))  # B x S=1 x N
 
-        output = F.log_softmax(self.out(output[0]), dim=1)
+        # Attentional vector using the RNN hidden state and context vector
+        # concatenated together (Luong eq. 5)
+        rnn_output = rnn_output.squeeze(0)  # S=1 x B x N -> B x N
+        context = context.squeeze(1)  # B x S=1 x N -> B x N
+        concat_input = torch.cat((rnn_output, context), 1)
+        concat_output = F.tanh(self.concat(concat_input))
+
+        # Finally predict next token (Luong eq. 6, without softmax)
+        output = self.out(concat_output)
+
+        # Return final output, hidden state, and attention weights (for visualization)
         return output, hidden, attn_weights
+
+
+class DecoderAttn(nn.Module):
+    """From https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb"""
+
+    def __init__(self, method, hidden_size, cuda=False):
+        super(DecoderAttn, self).__init__()
+
+        self.method = method
+        self.hidden_size = hidden_size
+        self.cuda = cuda
+
+        if self.method == "general":
+            self.attn = nn.Linear(self.hidden_size, hidden_size)
+
+        elif self.method == "concat":
+            self.attn = nn.Linear(self.hidden_size * 2, hidden_size)
+            self.v = nn.Parameter(torch.FloatTensor(1, hidden_size))
+
+    def forward(self, hidden, encoder_outputs):
+        max_len = encoder_outputs.size(0)
+        this_batch_size = encoder_outputs.size(1)
+
+        # Create variable to store attention energies
+        attn_energies = Variable(torch.zeros(this_batch_size, max_len))  # B x S
+
+        if self.cuda:
+            attn_energies = attn_energies.cuda()
+
+        # For each batch of encoder outputs
+        for b in range(this_batch_size):
+            # Calculate energy for each encoder output
+            for i in range(max_len):
+                attn_energies[b, i] = self.score(
+                    hidden[:, b], encoder_outputs[i, b].unsqueeze(0)
+                )
+
+        # Normalize energies to weights in range 0 to 1, resize to 1 x B x S
+        return F.softmax(attn_energies).unsqueeze(1)
+
+    def score(self, hidden, encoder_output):
+
+        if self.method == "dot":
+            energy = hidden.dot(encoder_output)
+            return energy
+
+        elif self.method == "general":
+            energy = self.attn(encoder_output)
+            energy = hidden.dot(energy)
+            return energy
+
+        elif self.method == "concat":
+            energy = self.attn(torch.cat((hidden, encoder_output), 1))
+            energy = self.v.dot(energy)
+            return energy
 
 
 # SyntaxRobustfill model.
@@ -383,6 +457,7 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         self.decoder_hidden_size = decoder_hidden_size
 
         self._initialize_encoders(experiment_state, task_encoder_types)
+        self._initialize_decoder(experiment_state)
 
     # Helper attribute getters.
     def _use_language(self):
@@ -455,6 +530,22 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         # TODO(gg): Implement for images and joint cases
         raise NotImplementedError()
 
+    def _decode_tasks(self, encoder_outputs, encoder_hidden):
+        batch_size = len(encoder_outputs)
+
+        input_start = Variable(
+            torch.tensor([self.decoder.token_to_idx[self.decoder.START]] * batch_size)
+        )
+
+        return self.decoder(
+            input_seq=input_start,
+            last_hidden=encoder_hidden,
+            encoder_outputs=encoder_outputs,
+        )
+        # return self.decoder(input=input_start, hidden=encoder_hidden, encoder_outputs=encoder_outputs)
+
+        raise NotImplementedError()
+
     def optimize_model_for_frontiers(
         self,
         experiment_state,
@@ -509,6 +600,8 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         )
 
         print(encoder_outputs.shape, encoder_hidden.shape)
+
+        self._decode_tasks(encoder_outputs, encoder_hidden)
 
         raise NotImplementedError()
 
