@@ -280,7 +280,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         )
 
         # Keep for reference
-        self.attn_model = "concat"
+        self.attn_model = "dot"
         self.hidden_size = decoder_dim
         self.output_size = len(self.token_to_idx)
         self.dropout = dropout_p
@@ -344,7 +344,9 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
 
     def forward(self, input_seq, last_hidden, encoder_outputs):
         # Note: we run this one step at a time
-        batch_size = input_seq.size(0)
+        batch_size = encoder_outputs.size(0)
+        seq_len = encoder_outputs.size(1)
+
         assert input_seq.size() == (batch_size,), input_seq.size()
         assert last_hidden.size() == (
             batch_size,
@@ -353,7 +355,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         ), last_hidden.size()
         assert encoder_outputs.size() == (
             batch_size,
-            encoder_outputs.size(1),
+            seq_len,
             self.hidden_size,
         ), encoder_outputs.size()  # Sequence length unknown
 
@@ -366,24 +368,41 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         last_hidden = last_hidden.view(1, batch_size, self.hidden_size)
 
         # Get current hidden state from input word and last hidden state
-        rnn_output, hidden = self.gru(embedded, last_hidden)
+        decoder_output, hidden = self.gru(embedded, last_hidden)
+
+        # Reset hidden.size() = (batch, 1, dim)
+        hidden = hidden.view(batch_size, 1, self.hidden_size)
+
+        print("decoder decoder_output", decoder_output.size())
+        # print("decoder hidden", hidden.size())
 
         # Calculate attention from current RNN state and all encoder outputs;
         # apply to encoder outputs to get weighted average
-        attn_weights = self.attn(rnn_output, encoder_outputs)
-        context = attn_weights.bmm(encoder_outputs.transpose(0, 1))  # B x S=1 x N
+        attn_weights = self.attn(decoder_output, encoder_outputs)
+        print("decoder attn_weights", attn_weights.size())
+
+        # (batch, 1, seq) x (batch, seq, dim) = (batch, 1, dim)
+        context = attn_weights.view(batch_size, 1, seq_len).bmm(
+            encoder_outputs
+        )  # B x 1 x N
+        print("decoder context", context.size())
 
         # Attentional vector using the RNN hidden state and context vector
         # concatenated together (Luong eq. 5)
-        rnn_output = rnn_output.squeeze(0)  # S=1 x B x N -> B x N
-        context = context.squeeze(1)  # B x S=1 x N -> B x N
-        concat_input = torch.cat((rnn_output, context), 1)
+        decoder_output = decoder_output.squeeze(1)  # B x 1 x N -> B x N
+        context = context.squeeze(1)  # B x 1 x N -> B x N
+        concat_input = torch.cat((decoder_output, context), dim=1)
         concat_output = F.tanh(self.concat(concat_input))
+        print("decoder concat_output", concat_output.size())
 
         # Finally predict next token (Luong eq. 6, without softmax)
         output = self.out(concat_output)
 
         # Return final output, hidden state, and attention weights (for visualization)
+        assert output.size() == (batch_size, self.output_size), output.size()
+        assert hidden.size() == (batch_size, 1, self.hidden_size), hidden.size()
+        assert attn_weights.size() == (batch_size, seq_len, 1)
+
         return output, hidden, attn_weights
 
 
@@ -402,11 +421,14 @@ class DecoderAttn(nn.Module):
 
         elif self.method == "concat":
             self.attn = nn.Linear(self.hidden_size * 2, hidden_size)
-            self.v = nn.Parameter(torch.FloatTensor(1, hidden_size))
+            self.v = nn.Parameter(torch.FloatTensor(hidden_size))
 
-    def forward(self, hidden, encoder_outputs):
-        max_len = encoder_outputs.size(0)
-        this_batch_size = encoder_outputs.size(1)
+    def forward(self, decoder_output, encoder_outputs):
+        this_batch_size = encoder_outputs.size(0)
+        max_len = encoder_outputs.size(1)
+
+        # print("attn decoder_output", decoder_output.size())
+        # print("attn encoder_outputs", encoder_outputs.size())
 
         # Create variable to store attention energies
         attn_energies = Variable(torch.zeros(this_batch_size, max_len))  # B x S
@@ -419,26 +441,28 @@ class DecoderAttn(nn.Module):
             # Calculate energy for each encoder output
             for i in range(max_len):
                 attn_energies[b, i] = self.score(
-                    hidden[:, b], encoder_outputs[i, b].unsqueeze(0)
+                    decoder_output[b], encoder_outputs[b, i].unsqueeze(0)
                 )
 
-        # Normalize energies to weights in range 0 to 1, resize to 1 x B x S
-        return F.softmax(attn_energies).unsqueeze(1)
+        # Normalize energies to weights in range 0 to 1, resize to B x S x 1
+        return F.softmax(attn_energies, dim=1).unsqueeze(-1)
 
-    def score(self, hidden, encoder_output):
+    def score(self, decoder_output, encoder_output):
+        # print("score decoder_output", decoder_output.size())
+        # print("score encoder_output", encoder_output.size())
 
         if self.method == "dot":
-            energy = hidden.dot(encoder_output)
+            energy = decoder_output.squeeze().dot(encoder_output.squeeze())
             return energy
 
         elif self.method == "general":
             energy = self.attn(encoder_output)
-            energy = hidden.dot(energy)
+            energy = decoder_output.squeeze().dot(energy.squeeze())
             return energy
 
         elif self.method == "concat":
-            energy = self.attn(torch.cat((hidden, encoder_output), 1))
-            energy = self.v.dot(energy)
+            energy = self.attn(torch.cat((decoder_output, encoder_output), dim=1))
+            energy = self.v.dot(energy.squeeze())
             return energy
 
 
