@@ -283,16 +283,14 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         self.attn_model = "concat"
         self.hidden_size = decoder_dim
         self.output_size = len(self.token_to_idx)
-        self.n_layers = 1
         self.dropout = dropout_p
 
         # Define layers
         self.embedding = nn.Embedding(self.output_size, self.hidden_size)
         self.embedding_dropout = nn.Dropout(self.dropout)
         self.gru = nn.GRU(
-            self.hidden_size,
-            self.hidden_size,
-            self.n_layers,
+            input_size=self.hidden_size,
+            hidden_size=self.hidden_size,
             batch_first=True,
             dropout=self.dropout,
         )
@@ -346,12 +344,26 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
 
     def forward(self, input_seq, last_hidden, encoder_outputs):
         # Note: we run this one step at a time
+        batch_size = input_seq.size(0)
+        assert input_seq.size() == (batch_size,), input_seq.size()
+        assert last_hidden.size() == (
+            batch_size,
+            1,
+            self.hidden_size,
+        ), last_hidden.size()
+        assert encoder_outputs.size() == (
+            batch_size,
+            encoder_outputs.size(1),
+            self.hidden_size,
+        ), encoder_outputs.size()  # Sequence length unknown
 
         # Get the embedding of the current input word (last output word)
-        batch_size = input_seq.size(0)
         embedded = self.embedding(input_seq)
         embedded = self.embedding_dropout(embedded)
-        embedded = embedded.view(1, batch_size, self.hidden_size)  # S=1 x B x N
+        embedded = embedded.view(batch_size, 1, self.hidden_size)
+
+        # nn.gru expects hidden.size() = (1, batch, dim) regardless of `batch_first=True`
+        last_hidden = last_hidden.view(1, batch_size, self.hidden_size)
 
         # Get current hidden state from input word and last hidden state
         rnn_output, hidden = self.gru(embedded, last_hidden)
@@ -598,8 +610,6 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         encoder_outputs, encoder_hidden = self._encode_tasks(
             task_split, task_batch_ids, experiment_state
         )
-
-        print(encoder_outputs.shape, encoder_hidden.shape)
 
         self._decode_tasks(encoder_outputs, encoder_hidden)
 
