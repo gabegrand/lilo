@@ -18,9 +18,6 @@ python evaluate_compression_model_scoring.py
 import time
 import os, json, argparse
 import numpy as np
-import seaborn as sns
-import pandas as pd
-import matplotlib.pyplot as plt
 
 from collections import defaultdict
 

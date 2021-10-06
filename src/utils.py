@@ -6,6 +6,14 @@ import subprocess
 import datetime
 from pathlib import Path
 
+import os
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+from collections import defaultdict
+
 
 def escaped_timestamp():
     """[ret]: escaped string timestamp."""
@@ -24,6 +32,8 @@ def mkdir_if_necessary(path):
 
 
 ## Utilities for plotting.
+
+
 def generate_rel_plot(
     args, metrics_to_report, x_titles, y_titles, plot_title, y_lim=1.0
 ):
