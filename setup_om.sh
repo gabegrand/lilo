@@ -5,11 +5,12 @@
 git submodule update --init --recursive
 
 # Download the singularity container (currently owned by Catherine Wong: zyzzyva@mit.edu).
-cp /om2/user/zyzzyva/laps-dev-container.img ../laps-dev-container.img
+mkdir containers
+cp /om2/user/zyzzyva/containers/laps-dev-container.img ../containers/laps-dev-container.img
 
 # Remake the binaries for Linux. This requires using an alternate geomLib/logoLib.
 rm -rf ocaml/solvers/geomLib
 rm -rf ocaml/solvers/logoLib
 mv ocaml/linux_solvers/geomLib_linux ocaml/solvers/geomLib
 mv ocaml/linux_solvers/logoLib_linux ocaml/solvers/logoLib
-cd ocaml && ../../laps-dev-container.img make compression_rescoring_api && ../../laps-dev-container.img make compression
+cd ocaml && ../../containers/laps-dev-container.img make compression_rescoring_api && ../../containers/laps-dev-container.img make compression

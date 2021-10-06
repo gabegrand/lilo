@@ -27,6 +27,7 @@ from collections import defaultdict
 from src.experiment_iterator import ExperimentState
 from src.task_loaders import TRAIN, TEST, ALL
 from src.models.model_loaders import *
+from src.utils import *
 
 from data.compositional_graphics.make_tasks import *
 
@@ -39,6 +40,13 @@ from src.models.syntax_robustfill import *
 
 DEFAULT_CONFIG_DIR = "experiments/configs"
 DEFAULT_OUTPUT_DIR = "experiments/outputs/evaluate_compression_model"
+
+# Default hyperparamters for the evaluations
+DEFAULT_NUM_TRAINING_BUCKETS = 10
+DEFAULT_MAX_COMPRESSION_STEPS = 5
+DEFAULT_MAX_CANDIDATES_PER_COMPRESSION_STEP = 100
+DEFAULT_MAX_GRAMMAR_CANDIDATES_TO_RETAIN_FOR_REWRITING = 10
+DEFAULT_ARITY = 2
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -57,6 +65,11 @@ parser.add_argument(
     help="Top level directory for where to output results.",
 )
 parser.add_argument(
+    "--util_generate_cloud_command",
+    default=None,
+    help="If provided, generates a command for running this in the cloud instead of actually running locally.",
+)
+parser.add_argument(
     "--db_no_compression",
     action="store_true",
     help="Debug flag: avoids expensive compression runs.",
@@ -66,7 +79,39 @@ parser.add_argument(
     action="store_true",
     help="Debug flag: avoids training the model.",
 )
-parser.add_argument("-k", nargs="+", help="Substring keywords of tests to run.")
+
+# Hyperparameters for the tests and compressor.
+parser.add_argument(
+    "--hp_num_training_buckets",
+    type=int,
+    default=DEFAULT_NUM_TRAINING_BUCKETS,
+    help="Test hyperparameter: how many buckets to make of the training tasks when evaluating the model on increasing batches of tasks.",
+)
+parser.add_argument(
+    "--hp_max_compression_steps",
+    type=int,
+    default=DEFAULT_MAX_COMPRESSION_STEPS,
+    help="Test hyperparameter: maximum number of candidates to add to the grammar each time.",
+)
+parser.add_argument(
+    "--hp_max_candidates_per_compression_step",
+    type=int,
+    default=DEFAULT_MAX_CANDIDATES_PER_COMPRESSION_STEP,
+    help="Test hyperparameter: how many candidates the compressor considers before choosing the top-k to rank the global compressor score.",
+)
+parser.add_argument(
+    "--hp_max_grammar_candidates_to_retain_for_rewriting",
+    type=int,
+    default=DEFAULT_MAX_CANDIDATES_PER_COMPRESSION_STEP,
+    help="Test hyperparameter: how many candidates to return in which we actually rewrite the grammar and the frontiers.",
+)
+parser.add_argument(
+    "--hp_arity",
+    type=int,
+    default=DEFAULT_ARITY,
+    help="Test hyperparameter: arity: maximum arity that we consider for candidate library functions.",
+)
+parser.add_argument("--k", nargs="+", help="Substring keywords of tests to run.")
 
 TEST_FUNCTIONS_REGISTRY = {}
 
@@ -98,14 +143,7 @@ def get_test_fns(args):
 
 
 @register_test
-def test_discrimination_original_final_libraries_full(
-    args,
-    config,
-    num_training_buckets=5,  # How many buckets to make of the training programs.
-    max_candidates_per_compression_step=100,
-    arity=2,
-    max_compression_steps=3,
-):
+def test_discrimination_original_final_libraries_full(args, config):
     """Tests whether the model scoring function can discriminate at all between the initial DSL and the final DSL over all of the training and test programs.
     Formally: reports p(test_programs | model, language, L_0) vs. p(test_programs | model, language, L_f) where L_f is derived via the original DreamCoder compressor.
     """
@@ -120,7 +158,7 @@ def test_discrimination_original_final_libraries_full(
     for train_iteration, train_task_subset in make_program_log_prior_buckets_iterator(
         initial_ground_truth_experiment_state,
         task_split=TRAIN,
-        num_buckets=num_training_buckets,
+        num_buckets=args.hp_num_training_buckets,
     ):
         print(
             f"Iteration: {train_iteration}. Train task subset: {len(train_task_subset)} tasks: up to {train_task_subset[-1].name}"
@@ -142,9 +180,9 @@ def test_discrimination_original_final_libraries_full(
                     TRAIN: [t.name for t in train_task_subset],
                     TEST: ALL,
                 },
-                max_candidates_per_compression_step=max_candidates_per_compression_step,
-                max_compression_steps=max_compression_steps,
-                arity=arity,
+                max_candidates_per_compression_step=args.hp_max_candidates_per_compression_step,
+                max_compression_steps=args.hp_max_compression_steps,
+                arity=args.hp_arity,
             )
             print(
                 f"[DEBUG]: compression - {train_iteration} - took {(time.time() - start_time)} s."
@@ -198,14 +236,7 @@ def test_discrimination_original_final_libraries_full(
 
 
 @register_test
-def test_discrimination_candidate_alignments(
-    args,
-    config,
-    num_training_buckets=5,  # How many buckets to make of the training programs.
-    max_candidates_per_compression_step=100,
-    max_grammar_candidates_to_retain_for_rewriting=4,  # How many candidates to actually return for evaluating.
-    arity=2,
-):
+def test_discrimination_candidate_alignments(args, config):
     """Tests whether the model scoring function can meaningfully rerank a set of proposed DSL candidates and compare this ranking to that produced by the compressor.
 
     Formally: ranks candidate DSLs L_i_0...L_i_n (where n=max_grammar_candidates_to_retain_for_rewriting) according to the compressor score and the model score.
@@ -220,7 +251,7 @@ def test_discrimination_candidate_alignments(
     for train_iteration, train_task_subset in make_program_log_prior_buckets_iterator(
         initial_ground_truth_experiment_state,
         task_split=TRAIN,
-        num_buckets=num_training_buckets,
+        num_buckets=args.hp_num_training_buckets,
     ):
         print(
             f"Iteration: {train_iteration}. Train task subset: {len(train_task_subset)} tasks: up to {train_task_subset[-1].name}"
@@ -235,9 +266,9 @@ def test_discrimination_candidate_alignments(
             config,
             train_iteration,
             train_task_subset,
-            max_candidates_per_compression_step,
-            max_grammar_candidates_to_retain_for_rewriting,
-            arity,
+            args.hp_max_candidates_per_compression_step,
+            args.hp_max_grammar_candidates_to_retain_for_rewriting,
+            args.hp_arity,
             compress_test_frontiers=False,
         )
 
@@ -250,11 +281,7 @@ def test_discrimination_candidate_alignments(
 def test_heldout_scores_with_model_reranking(
     args,
     config,
-    num_training_buckets=5,  # How many buckets to make of the training programs.
-    max_candidates_per_compression_step=100,
-    max_grammar_candidates_to_retain_for_rewriting=4,  # How many candidates to actually return for evaluating.
-    arity=2,
-    top_k_candidates_to_evaluate_on_heldout=5,  # Compare this many candidates.
+    top_k_candidates_to_evaluate_on_heldout=10,  # Compare this many candidates.
 ):
     """
     Evaluates the top-k grammar candidates proposed by the model vs. the top-k grammar candidates proposed by the compressor.
@@ -285,7 +312,7 @@ def test_heldout_scores_with_model_reranking(
     for train_iteration, train_task_subset in make_program_log_prior_buckets_iterator(
         initial_ground_truth_experiment_state,
         task_split=TRAIN,
-        num_buckets=num_training_buckets,
+        num_buckets=args.hp_num_training_buckets,
     ):
         print(
             f"Iteration: {train_iteration}. Train task subset: {len(train_task_subset)} tasks: up to {train_task_subset[-1].name}"
@@ -300,9 +327,9 @@ def test_heldout_scores_with_model_reranking(
             config,
             train_iteration,
             train_task_subset,
-            max_candidates_per_compression_step,
-            max_grammar_candidates_to_retain_for_rewriting,
-            arity,
+            args.hp_max_candidates_per_compression_step,
+            args.hp_max_grammar_candidates_to_retain_for_rewriting,
+            args.hp_arity,
             compress_test_frontiers=True,
             evaluate_test_model_likelihoods=True,
         )
@@ -411,57 +438,6 @@ def get_experiment_state_grammar_frontiers(config, grammar, frontiers):
                 rewritten_frontier.task
             ] = rewritten_frontier
     return initial_experiment_state
-
-
-def generate_rel_plot(
-    args, metrics_to_report, x_titles, y_titles, plot_title, y_lim=1.0
-):
-    for y_title in y_titles:
-        for x_title in x_titles:
-
-            def build_dataframe(metrics_to_report, x_title, y_title):
-                xs = []
-                ys = []
-                model = []
-                for legend in metrics_to_report:
-                    num_iterations = len(metrics_to_report[legend][x_title])
-
-                    for iteration in range(num_iterations):
-                        iter_ys = metrics_to_report[legend][y_title][iteration]
-                        iter_xs = [metrics_to_report[legend][x_title][iteration]] * len(
-                            iter_ys
-                        )
-
-                        xs += iter_xs
-                        ys += iter_ys
-                        model += [legend] * len(iter_ys)
-                d = {
-                    f"{x_title}": xs,
-                    f"{y_title}": ys,
-                    "Model": model,
-                }
-                return pd.DataFrame(data=d)
-
-            plt.figure(figsize=(6, 3))
-            df = build_dataframe(metrics_to_report, x_title, y_title)
-            ax = sns.relplot(
-                x=f"{x_title}",
-                y=f"{y_title}",
-                hue="Model",
-                style="Model",
-                kind="line",
-                data=df,
-            )
-            ax.fig.set_size_inches(12, 3)
-            ax.axes[0, 0].set_ylim(0, y_lim)
-            plt.title(f"{y_title}")
-
-            escaped_y_title = y_title.lower().replace(" ", "_")
-            output_title = f"{plot_title}_{escaped_y_title}.png"
-            output_name = os.path.join(args.output_dir, output_title)
-
-            print(f"Writing plot out to: {output_name}")
-            plt.savefig(output_name)
 
 
 def get_compressor_candidates_and_model_reranking(
@@ -634,6 +610,19 @@ def load_config_from_file(args):
         return json.load(f)
 
 
+def build_cloud_job_name():
+    """
+    Builds job and logfile name as: {CONCATENATED_TEST_NAMES}_{EXPERIMENT_ID}_{TIMESTAMP}.
+    """
+    test_fns = TEST_FUNCTIONS_REGISTRY.values() if not args.k else args.k
+    concatenated_test_names = "_".join(test_fns)
+
+    config = load_config_from_file(args)
+    experiment_id = config["metadata"]["experiment_id"]
+    timestamp = escaped_timestamp()
+    return f"{concatenated_test_names}_{experiment_id}_{timestamp}"
+
+
 def main(args):
     config = load_config_from_file(args)
 
@@ -642,9 +631,18 @@ def main(args):
     print(f"Now running {len(test_fns)} tests...")
     for idx, test_fn in enumerate(test_fns):
         print(f"Running {idx} / {len(test_fns)}: {test_fn.__name__}")
+        print_hyperparameter_arguments(args)
         test_fn(args, config)
 
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    main(args)
+    if args.util_generate_cloud_command is not None:
+        generate_cloud_command(
+            source_python_file=os.path.basename(__file__),
+            output_dir=args.output_dir,
+            job_name=build_cloud_job_name(),
+            args=args,
+        )
+    else:
+        main(args)
