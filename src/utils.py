@@ -129,9 +129,9 @@ def generate_singularity_command(
     return wrapped_command, singularity_command
 
 
-DEFAULT_OM_MEMORY = "10G"
+DEFAULT_OM_MEMORY = "30G"
 DEFAULT_CPUS_PER_TASK = "12"
-DEFAULT_TIME_HRS = "48"
+DEFAULT_TIME_HRS = "24"
 
 
 def generate_om_singularity_command(
@@ -153,7 +153,7 @@ def generate_om_singularity_command(
         source_python_file, args, singularity_container_location
     )
     logfile = f"{output_dir}/{job_name}"
-    om_command = f"sbatch --job-name={job_name} --output={logfile} --ntasks=1 --mem={memory} --cpus-per-task {cpus} --time={time}:00 --qos=tenenbaum --partition=tenenbaum --wrap='{singularity_command}'"
+    om_command = f"sbatch --job-name={job_name} --output={logfile} --ntasks=1 --mem={memory} --cpus-per-task {cpus} --time={time}:00:00 --qos=tenenbaum --partition=tenenbaum --wrap='{singularity_command}'"
 
     print(f"\n{om_command}\n")
     return logfile, wrapped_command, om_command
