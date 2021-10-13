@@ -16,6 +16,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+from torch.optim import Adam
 
 import src.models.model_loaders as model_loaders
 from src.task_loaders import *
@@ -258,6 +259,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
     DEFAULT_ATTENTION_DIM = 128
     DEFAULT_DROPOUT_P = 0
     MAX_SEQUENCE_LENGTH = 128  # TODO(gg): Verify that this value makes sense
+    CLIP_GRAD_MAX_NORM = 50.0  # TODO(gg): Verify that this value makes sense
     START, END, UNK, PAD = "<START>", "<END>", "<UNK>", "<PAD>"
 
     @staticmethod
@@ -271,6 +273,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         attention_dim=DEFAULT_ATTENTION_DIM,
         dropout_p=DEFAULT_DROPOUT_P,
         max_sequence_length=MAX_SEQUENCE_LENGTH,
+        clip_grad_max_norm=CLIP_GRAD_MAX_NORM,
         cuda=False,  # TODO: implement CUDA support.
     ):
         super().__init__()
@@ -279,11 +282,13 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
             experiment_state
         )
 
-        # Keep for reference
+        # TODO(gg): Make `attn_model` available in experiment config
         self.attn_model = "dot"
         self.hidden_size = decoder_dim
         self.output_size = len(self.token_to_idx)
         self.dropout = dropout_p
+        self.max_sequence_length = max_sequence_length
+        self.clip_grad_max_norm = clip_grad_max_norm
 
         # Define layers
         self.embedding = nn.Embedding(self.output_size, self.hidden_size)
@@ -490,6 +495,7 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
 
         self.task_encoder_types = task_encoder_types
         self.encoder = None
+        self.decoder = None
         self.decoder_hidden_size = decoder_hidden_size
 
         self._initialize_encoders(experiment_state, task_encoder_types)
@@ -551,6 +557,7 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
             language_for_ids = experiment_state.get_language_for_ids(
                 task_split, task_ids
             )
+            n_inputs_per_task = torch.LongTensor([len(x) for x in language_for_ids])
 
             # Flattened list: [task_0_tokens_0, task_0_tokens_1, ..., task_1_tokens_0, task_1_tokens_1, ...]
             language_flattened = [
@@ -561,26 +568,111 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
 
             encoder_outputs, encoder_hidden = self.encoder(language_flattened)
 
-            return encoder_outputs, encoder_hidden
+            return encoder_outputs, encoder_hidden, n_inputs_per_task
 
         # TODO(gg): Implement for images and joint cases
         raise NotImplementedError()
 
-    def _decode_tasks(self, encoder_outputs, encoder_hidden):
-        batch_size = len(encoder_outputs)
-
-        input_start = Variable(
-            torch.tensor([self.decoder.token_to_idx[self.decoder.START]] * batch_size)
-        )
-
+    def _decode_tasks(self, input_token, encoder_outputs, encoder_hidden):
         return self.decoder(
-            input_seq=input_start,
+            input_seq=input_token,
             last_hidden=encoder_hidden,
             encoder_outputs=encoder_outputs,
         )
-        # return self.decoder(input=input_start, hidden=encoder_hidden, encoder_outputs=encoder_outputs)
 
-        raise NotImplementedError()
+    def _train_tasks(
+        self,
+        task_split,
+        task_batch_ids,
+        experiment_state,
+        encoder_optimizer,
+        decoder_optimizer,
+        criterion,
+    ):
+        train_frontiers = experiment_state.get_frontiers_for_ids(
+            task_split=task_split, task_ids=task_batch_ids
+        )
+
+        # Ground truth program tokens for supervision
+        target_tokens = [e.tokens for f in train_frontiers for e in f.entries]
+        n_outputs_per_task = torch.LongTensor([len(f.entries) for f in train_frontiers])
+        (
+            target_ids,
+            target_lengths,
+        ) = self.decoder._input_strings_to_padded_token_tensor(target_tokens)
+
+        encoder_optimizer.zero_grad()
+        decoder_optimizer.zero_grad()
+        loss = 0
+
+        encoder_outputs, encoder_hidden, n_inputs_per_task = self._encode_tasks(
+            task_split, task_batch_ids, experiment_state
+        )
+
+        # Construct cross-product for encoder_outputs
+        repeats_encoder_outputs = torch.repeat_interleave(
+            input=n_outputs_per_task, repeats=n_inputs_per_task
+        )
+        encoder_outputs = torch.repeat_interleave(
+            input=encoder_outputs, repeats=repeats_encoder_outputs, dim=0
+        )
+
+        # Construct cross-product for target_ids
+        repeats_target_ids = torch.repeat_interleave(
+            input=n_inputs_per_task, repeats=n_outputs_per_task
+        )
+        target_ids = torch.repeat_interleave(
+            input=target_ids, repeats=repeats_target_ids, dim=0
+        )
+
+        assert encoder_outputs.size(0) == target_ids.size(0)
+        batch_size = encoder_outputs.size(0)
+        target_seq_len = target_ids.size(1)
+
+        # Train using teacher forcing
+        # TODO(gg): Implement scheduled sampling
+        all_decoder_outputs = Variable(
+            torch.zeros(batch_size, target_seq_len, self.decoder.output_size)
+        )
+
+        # TODO: Add extra dim
+        decoder_input = Variable(
+            torch.tensor([self.decoder.token_to_idx[self.decoder.START]] * batch_size)
+        )
+
+        for t in range(target_seq_len):
+            decoder_output, decoder_hidden, decoder_attn = self._decode_tasks(
+                decoder_input, encoder_outputs, encoder_hidden
+            )
+
+            all_decoder_outputs[:, t, :] = decoder_output
+            decoder_input = target_ids[:, t]  # Next input is current target
+
+        # Loss calculation and backpropagation
+        # TODO(gg): Implement masked cross entropy loss
+        loss = criterion(
+            input=all_decoder_outputs.view(
+                batch_size, self.decoder.output_size, target_seq_len
+            ),
+            target=target_ids,
+        )
+        loss.backward()
+
+        # Clip gradient norms
+        ec = nn.utils.clip_grad_norm_(
+            parameters=self.encoder.parameters(),
+            max_norm=self.decoder.clip_grad_max_norm,
+        )
+        dc = nn.utils.clip_grad_norm_(
+            parameters=self.decoder.parameters(),
+            max_norm=self.decoder.clip_grad_max_norm,
+        )
+
+        # Update parameters with optimizers
+        encoder_optimizer.step()
+        decoder_optimizer.step()
+
+        return
 
     def optimize_model_for_frontiers(
         self,
@@ -589,7 +681,7 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         task_batch_ids=ALL,
         recognition_train_steps=5000,  # Gradient steps to train model.
         recognition_train_epochs=None,  # Alternatively, how many epochs to train
-        # TODO(gg): Add any other hyperparameters: batch_size, learning rate, etc.
+        learning_rate=1e-3,
     ):
         """Train the model with respect to the tasks in task_batch_ids.
         The model is trained to regress from a task encoding according to
@@ -605,39 +697,19 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
 
         On completion, model parameters should be updated to the trained model.
         """
+        encoder_optimizer = Adam(params=self.encoder.parameters(), lr=learning_rate)
+        decoder_optimizer = Adam(params=self.decoder.parameters(), lr=learning_rate)
+        criterion = nn.CrossEntropyLoss()
 
-        # TODO(gg): implement this as a standard training loop for the seq2seq
-        # model. This should:
-
-        # Compute a batched forward pass through the encoder (which encodes task
-        # language) -> decoder to predictions over linearized programs.
-
-        # Evaluate the loss (cross-entropy is fine) wrt. the ground truth
-        # programs in train_frontiers. Note that there can be muliple ground
-        # truth programs per task, and multiple sentences per task. But you
-        # could just supervise on the full cross productof (input: sentence,
-        # predict: program) for each task.
-
-        train_frontiers = experiment_state.get_frontiers_for_ids(
-            task_split=task_split, task_ids=task_batch_ids
+        # TODO(gg): Implement batching over task ids
+        self._train_tasks(
+            task_split,
+            task_batch_ids,
+            experiment_state,
+            encoder_optimizer,
+            decoder_optimizer,
+            criterion,
         )
-
-        # Ground truth program tokens for supervision
-        target_tokens = [e.tokens for f in train_frontiers for e in f.entries]
-        decoder_model = experiment_state.models[model_loaders.PROGRAM_DECODER]
-        (
-            target_ids,
-            target_lengths,
-        ) = decoder_model._input_strings_to_padded_token_tensor(target_tokens)
-
-        # ENCODE INPUTS
-        encoder_outputs, encoder_hidden = self._encode_tasks(
-            task_split, task_batch_ids, experiment_state
-        )
-
-        self._decode_tasks(encoder_outputs, encoder_hidden)
-
-        raise NotImplementedError()
 
     def score_frontier_avg_conditional_log_likelihoods(
         self, experiment_state, task_split=TRAIN, task_batch_ids=ALL
