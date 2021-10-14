@@ -568,29 +568,38 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
             encoder_outputs=encoder_outputs,
         )
 
-    def _train_tasks(
+    def _run_tasks(
         self,
         task_split,
         task_batch_ids,
         experiment_state,
-        encoder_optimizer,
-        decoder_optimizer,
-        criterion,
+        encoder_optimizer=None,
+        decoder_optimizer=None,
+        mode=TRAIN,
     ):
-        train_frontiers = experiment_state.get_frontiers_for_ids(
+        if mode == TRAIN:
+            self.encoder.train()
+            self.decoder.train()
+            encoder_optimizer.zero_grad()
+            decoder_optimizer.zero_grad()
+        elif mode == TEST:
+            self.encoder.eval()
+            self.decoder.eval()
+        else:
+            raise ValueError(mode)
+
+        frontiers = experiment_state.get_frontiers_for_ids(
             task_split=task_split, task_ids=task_batch_ids
         )
 
         # Ground truth program tokens for supervision
-        target_tokens = [e.tokens for f in train_frontiers for e in f.entries]
-        n_outputs_per_task = torch.LongTensor([len(f.entries) for f in train_frontiers])
+        target_tokens = [e.tokens for f in frontiers for e in f.entries]
+        n_outputs_per_task = torch.LongTensor([len(f.entries) for f in frontiers])
         (
             target_ids,
             target_lengths,
         ) = self.decoder._input_strings_to_padded_token_tensor(target_tokens)
 
-        encoder_optimizer.zero_grad()
-        decoder_optimizer.zero_grad()
         loss = 0
 
         encoder_outputs, encoder_hidden, n_inputs_per_task = self._encode_tasks(
@@ -616,6 +625,7 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         assert encoder_outputs.size(0) == target_ids.size(0)
         batch_size = encoder_outputs.size(0)
         target_seq_len = target_ids.size(1)
+        n_examples_per_task = n_inputs_per_task * n_outputs_per_task
 
         # Train using teacher forcing
         # TODO(gg): Implement scheduled sampling
@@ -638,27 +648,49 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
 
         # Loss calculation and backpropagation
         # TODO(gg): Implement masked cross entropy loss
-        loss = criterion(
+        loss_per_example = nn.functional.cross_entropy(
             input=all_decoder_outputs.view(
                 batch_size, self.decoder.output_size, target_seq_len
             ),
             target=target_ids,
+            reduction="none",
         )
-        loss.backward()
+        loss = loss_per_example.mean()
 
-        # Clip gradient norms
-        ec = nn.utils.clip_grad_norm_(
-            parameters=self.encoder.parameters(),
-            max_norm=self.decoder.clip_grad_max_norm,
-        )
-        dc = nn.utils.clip_grad_norm_(
-            parameters=self.decoder.parameters(),
-            max_norm=self.decoder.clip_grad_max_norm,
-        )
+        # Compute mean loss per task = inputs x outputs within loss_per_example
+        loss_per_task = {}
+        for i, f in enumerate(frontiers):
+            example_idx_start, example_idx_stop = sum(n_examples_per_task[:i]), sum(
+                n_examples_per_task[: i + 1]
+            )
+            task_loss = loss_per_example[example_idx_start:example_idx_stop].mean()
+            loss_per_task[f.task.name] = task_loss
 
-        # Update parameters with optimizers
-        encoder_optimizer.step()
-        decoder_optimizer.step()
+        if mode == TRAIN:
+            loss.backward()
+
+            # Clip gradient norms
+            ec = nn.utils.clip_grad_norm_(
+                parameters=self.encoder.parameters(),
+                max_norm=self.decoder.clip_grad_max_norm,
+            )
+            dc = nn.utils.clip_grad_norm_(
+                parameters=self.decoder.parameters(),
+                max_norm=self.decoder.clip_grad_max_norm,
+            )
+
+            # Update parameters with optimizers
+            encoder_optimizer.step()
+            decoder_optimizer.step()
+
+        return {
+            "loss": loss,
+            "loss_per_task": loss_per_task,
+            "n_tasks": len(frontiers),
+            "n_inputs_per_task": n_inputs_per_task,
+            "n_outputs_per_task": n_outputs_per_task,
+            "n_examples_per_task": n_examples_per_task,
+        }
 
     def optimize_model_for_frontiers(
         self,
@@ -685,17 +717,21 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         """
         encoder_optimizer = Adam(params=self.encoder.parameters(), lr=learning_rate)
         decoder_optimizer = Adam(params=self.decoder.parameters(), lr=learning_rate)
-        criterion = nn.CrossEntropyLoss()
 
         # TODO(gg): Implement batching over task ids
-        self._train_tasks(
+        run_results = self._run_tasks(
             task_split,
             task_batch_ids,
             experiment_state,
             encoder_optimizer,
             decoder_optimizer,
-            criterion,
+            mode=TRAIN,
         )
+
+        print(
+            f"[TRAIN] Fit {self.name} on {run_results['n_tasks']} tasks with total loss: {run_results['loss'].item()}"
+        )
+        return run_results
 
     def score_frontier_avg_conditional_log_likelihoods(
         self, experiment_state, task_split=TRAIN, task_batch_ids=ALL
@@ -713,9 +749,18 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
             task_id : score(frontier for task_id)
         }
         """
-        # TODO(gg): implement this function for scoring the programs in the frontiers for a set of tasks.
+        # TODO(gg): Implement batching over task ids
+        run_results = self._run_tasks(
+            task_split,
+            task_batch_ids,
+            experiment_state,
+            mode=TEST,
+        )
 
-        raise NotImplementedError()
+        print(
+            f"[TEST] Evaluated {self.name} on {run_results['n_tasks']} tasks with total loss: {run_results['loss'].item()}"
+        )
+        return run_results["loss_per_task"]
 
 
 class Flatten(nn.Module):
