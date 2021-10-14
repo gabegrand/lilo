@@ -15,20 +15,13 @@ python evaluate_compression_model_scoring.py
 # TODO: catwong: implement simple pickle caching based on the test name and iteration. (We can also re-use the cache between tests over candidates.)
 
 """
+import argparse
+import json
+import os
 import time
-import os, json, argparse
-import numpy as np
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import seaborn as sns
-
 from collections import defaultdict
 
-from src.experiment_iterator import ExperimentState
-from src.task_loaders import TRAIN, TEST, ALL
-from src.models.model_loaders import *
-from src.utils import *
+import numpy as np
 
 from data.compositional_graphics.encoder import *
 
@@ -40,6 +33,7 @@ from src.models.laps_dreamcoder_recognition import *
 from src.models.model_loaders import *
 from src.models.syntax_robustfill import *
 from src.task_loaders import ALL, TEST, TRAIN
+from src.utils import *
 
 DEFAULT_CONFIG_DIR = "experiments/configs"
 DEFAULT_OUTPUT_DIR = "experiments/outputs/evaluate_compression_model"
