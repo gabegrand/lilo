@@ -143,10 +143,9 @@ class SequenceLanguageEncoder(nn.Module, model_loaders.ModelLoader):
 
         if experiment_state is None:
             """
-            TODO(gg): See if this breaks anything. If experiment_state is None,
-                we really shouldn't try to init this model in the first place.
+            If experiment_state is None, we cannot init the model.
             """
-            return
+            return None
 
         self.tokenizer_fn, self.tokenizer_cache = self._init_tokenizer(tokenizer_fn)
         self.token_to_idx = self._init_token_to_idx_from_experiment_state(
@@ -633,7 +632,6 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
             torch.zeros(batch_size, target_seq_len, self.decoder.output_size)
         )
 
-        # TODO: Add extra dim
         decoder_input = Variable(
             torch.tensor([self.decoder.token_to_idx[self.decoder.START]] * batch_size)
         )
