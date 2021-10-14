@@ -378,19 +378,14 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         # Reset hidden.size() = (batch, 1, dim)
         hidden = hidden.view(batch_size, 1, self.hidden_size)
 
-        print("decoder decoder_output", decoder_output.size())
-        # print("decoder hidden", hidden.size())
-
         # Calculate attention from current RNN state and all encoder outputs;
         # apply to encoder outputs to get weighted average
         attn_weights = self.attn(decoder_output, encoder_outputs)
-        print("decoder attn_weights", attn_weights.size())
 
         # (batch, 1, seq) x (batch, seq, dim) = (batch, 1, dim)
         context = attn_weights.view(batch_size, 1, seq_len).bmm(
             encoder_outputs
         )  # B x 1 x N
-        print("decoder context", context.size())
 
         # Attentional vector using the RNN hidden state and context vector
         # concatenated together (Luong eq. 5)
@@ -398,7 +393,6 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         context = context.squeeze(1)  # B x 1 x N -> B x N
         concat_input = torch.cat((decoder_output, context), dim=1)
         concat_output = F.tanh(self.concat(concat_input))
-        print("decoder concat_output", concat_output.size())
 
         # Finally predict next token (Luong eq. 6, without softmax)
         output = self.out(concat_output)
@@ -432,9 +426,6 @@ class DecoderAttn(nn.Module):
         this_batch_size = encoder_outputs.size(0)
         max_len = encoder_outputs.size(1)
 
-        # print("attn decoder_output", decoder_output.size())
-        # print("attn encoder_outputs", encoder_outputs.size())
-
         # Create variable to store attention energies
         attn_energies = Variable(torch.zeros(this_batch_size, max_len))  # B x S
 
@@ -453,9 +444,6 @@ class DecoderAttn(nn.Module):
         return F.softmax(attn_energies, dim=1).unsqueeze(-1)
 
     def score(self, decoder_output, encoder_output):
-        # print("score decoder_output", decoder_output.size())
-        # print("score encoder_output", encoder_output.size())
-
         if self.method == "dot":
             energy = decoder_output.squeeze().dot(encoder_output.squeeze())
             return energy
@@ -672,8 +660,6 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         encoder_optimizer.step()
         decoder_optimizer.step()
 
-        return
-
     def optimize_model_for_frontiers(
         self,
         experiment_state,
@@ -727,8 +713,9 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
             task_id : score(frontier for task_id)
         }
         """
-        print("Unimplemented -- score_frontier_avg_conditional_log_likelihoods")
         # TODO(gg): implement this function for scoring the programs in the frontiers for a set of tasks.
+
+        raise NotImplementedError()
 
 
 class Flatten(nn.Module):
