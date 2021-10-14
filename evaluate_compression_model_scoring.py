@@ -219,6 +219,13 @@ def test_discrimination_original_final_libraries_full(args, config):
                 )
 
                 # Evaluate it with respect to the test tasks.
+                """
+                TODO(cw): As you spec'ed out, `test_frontier_log_likelihoods`
+                    returns a dict `{task_id : score(frontier for task_id)}`, so 
+                    either this reporting logic needs to be updated to fit the
+                    API, or score_frontier_avg_conditional_log_likelihoods should
+                    just return a single loss.
+                """
                 test_frontier_log_likelihoods = (
                     model.score_frontier_avg_conditional_log_likelihoods(
                         experiment_state, task_split=TEST, task_batch_ids=ALL
