@@ -433,6 +433,43 @@ class LAPSGrammar(Grammar):
 
         return grammar_frontier_score_candidates
 
+    def _get_compressed_grammar_candidates_and_rewritten_frontiers_parallel(
+        self,
+        experiment_state,
+        task_splits,
+        task_ids_in_splits,
+        max_candidates_per_compression_step,
+        max_compression_steps,
+        top_k=DEFAULT_TOP_K,
+        pseudocounts=DEFAULT_PSEUDOCOUNTS,
+        arity=DEFAULT_ARITY,
+        aic=DEFAULT_AIC,
+        structure_penalty=DEFAULT_STRUCTURE_PENALTY,
+        compressor_type=DEFAULT_COMPRESSOR_TYPE,
+        compressor=DEFAULT_API_COMPRESSOR,
+        compressor_directory=DEFAULT_BINARY_DIRECTORY,
+        cpus=DEFAULT_CPUS,
+    ):
+        """
+        Parallel implementation for getting candidate compressed grammars and rewritten frontiers.
+        Corresponding OCaml API Function:
+        get_compressed_grammar_candidates_and_rewritten_frontiers
+        Call the compressor to return a set of grammar candidates augmneted with library functions {g_c_0, g_c_1...} and frontiers rewritten under each candidate.
+
+        Evaluates max_candidates_per_compression_step under the compression score, and currently returns the max_candidates_per_compression_step under the compression score.
+
+        Always assumes it should only optimize with respect to the TRAIN frontiers, but rewrites train/test frontiers under the compressed grammar.
+
+        :ret:
+            Array of {
+                "grammar": Grammar candidate.
+                "frontiers": {split:[rewritten frontiers]}.
+                "compression_score": scalar score of grammar wrt. frontiers.
+            }
+        """
+        pass
+        # NB  this could actually be done with separate threads.
+
     def _get_compressed_grammmar_and_rewritten_frontiers(
         self,
         experiment_state,
