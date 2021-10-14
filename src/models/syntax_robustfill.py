@@ -269,7 +269,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         self,
         experiment_state=None,
         decoder_dim=DEFAULT_DECODER_DIM,
-        attention_dim=DEFAULT_ATTENTION_DIM,
+        attn_model="dot",
         dropout_p=DEFAULT_DROPOUT_P,
         max_sequence_length=MAX_SEQUENCE_LENGTH,
         clip_grad_max_norm=CLIP_GRAD_MAX_NORM,
@@ -281,8 +281,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
             experiment_state
         )
 
-        # TODO(gg): Make `attn_model` available in experiment config
-        self.attn_model = "dot"
+        self.attn_model = attn_model
         self.hidden_size = decoder_dim
         self.output_size = len(self.token_to_idx)
         self.dropout = dropout_p
@@ -456,6 +455,9 @@ class DecoderAttn(nn.Module):
             energy = self.attn(torch.cat((decoder_output, encoder_output), dim=1))
             energy = self.v.dot(energy.squeeze())
             return energy
+
+        else:
+            raise ValueError(f"Unknown attention method: {self.method}")
 
 
 # SyntaxRobustfill model.

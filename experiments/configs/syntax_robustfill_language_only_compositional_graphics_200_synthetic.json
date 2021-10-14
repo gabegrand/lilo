@@ -28,7 +28,9 @@
             "model_type": "program_decoder",
             "model_loader": "sequence_program_decoder",
             "model_initializer_fn": "load_model",
-            "params": {}
+            "params": {
+                "attn_model": "general"
+            }
         },
         {
             "model_type": "amortized_synthesis",
