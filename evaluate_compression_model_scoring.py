@@ -44,6 +44,7 @@ DEFAULT_MAX_COMPRESSION_STEPS = 5
 DEFAULT_MAX_CANDIDATES_PER_COMPRESSION_STEP = 100
 DEFAULT_MAX_GRAMMAR_CANDIDATES_TO_RETAIN_FOR_REWRITING = 10
 DEFAULT_ARITY = 2
+DEFAULT_PARALLEL_GRAMMAR_CANDIDATES = 0
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -107,6 +108,12 @@ parser.add_argument(
     type=int,
     default=DEFAULT_ARITY,
     help="Test hyperparameter: arity: maximum arity that we consider for candidate library functions.",
+)
+parser.add_argument(
+    "--hp_parallel_grammar_candidate_rewriting",
+    type=int,
+    default=DEFAULT_PARALLEL_GRAMMAR_CANDIDATES,
+    help="Test hyperparameter: whether or not to enumerate different grammar candidates in parallel. This consumes more memory but takes less time. Use int [0, 1] to indicate boolean True, False",
 )
 parser.add_argument("--k", nargs="+", help="Substring keywords of tests to run.")
 
@@ -267,6 +274,9 @@ def test_discrimination_candidate_alignments(args, config):
             args.hp_max_grammar_candidates_to_retain_for_rewriting,
             args.hp_arity,
             compress_test_frontiers=False,
+            parallel_grammar_candidate_rewriting=bool(
+                args.hp_parallel_grammar_candidate_rewriting
+            ),
         )
 
         report_model_compressor_score_agreement(
@@ -447,6 +457,7 @@ def get_compressor_candidates_and_model_reranking(
     arity,
     compress_test_frontiers=False,
     evaluate_test_model_likelihoods=False,
+    parallel_grammar_candidate_rewriting=False,
 ):
     """
     Compresses grammar with respect to frontiers in train_task_subset to produce max_grammar_candidates_to_retain_for_rewriting grammar candidates.
@@ -460,6 +471,9 @@ def get_compressor_candidates_and_model_reranking(
         }
         sorted_compressor_grammars: grammars sorted by the compressor ranking.
         sorted_model_grammars: grammars sorted by the model ranking.
+
+    # TODOs (@CathyWong): de-couple the compressor from the
+    # Wrap it in a thread and re-call if it seems stuck? Or allow it to send responses? Since it seems like OM interrupts.
     """
     candidate_grammars_to_scores = defaultdict(
         lambda: {
@@ -480,11 +494,26 @@ def get_compressor_candidates_and_model_reranking(
     # Get the compression candidates.
     if args.db_no_compression:
         print("[DEBUG]: skipping library compression.")
+
     # Get the compression candidates and rewrite the test set.
     start_time = time.time()
-    grammars_scores_frontiers = compressed_experiment_state.models[
-        GRAMMAR
-    ]._get_compressed_grammar_candidates_and_rewritten_frontiers(
+    # Use the memory intensive
+    if parallel_grammar_candidate_rewriting:
+        print(
+            "Using the parallel implementation to rewrite the grammar candidates and frontiers."
+        )
+        candidate_rewriting_fn = compressed_experiment_state.models[
+            GRAMMAR
+        ]._get_compressed_grammar_candidates_and_rewritten_frontiers_parallel
+    else:
+        print(
+            "Using the non-parallel implementation to rewrite the grammar candidates and frontiers."
+        )
+        candidate_rewriting_fn = compressed_experiment_state.models[
+            GRAMMAR
+        ]._get_compressed_grammar_candidates_and_rewritten_frontiers
+
+    grammars_scores_frontiers = candidate_rewriting_fn(
         experiment_state=compressed_experiment_state,
         task_splits=[TRAIN, TEST],
         task_ids_in_splits={

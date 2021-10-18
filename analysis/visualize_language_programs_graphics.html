@@ -1,0 +1,2190 @@
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>split</th>
+      <th>synthetic language</th>
+      <th>human language</th>
+      <th>gt_initial_program</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>train</td>
+      <td>a small triangle</td>
+      <td>small triangle\nsmall thick lined triangle in the center of page\nsmall triangle</td>
+      <td>(λ (x) (for 3 (λ (y z) (move (* 1 1) (/ 2π 3) z)) x))</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>train</td>
+      <td>a medium triangle</td>
+      <td>triangle\ntriangles\na medium triangle</td>
+      <td>(λ (x) (for 3 (λ (y z) (move (* 1 2) (/ 2π 3) z)) x))</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>train</td>
+      <td>a small 8 gon</td>
+      <td>a medium octagon\n1 large 8 gon in center of page\nmedium octagon</td>
+      <td>(λ (x) (for 8 (λ (y z) (move (* 1 1) (/ 2π 8) z)) x))</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>train</td>
+      <td>a small 9 gon next to a medium square</td>
+      <td>a large nonagon next to a medium square\n1 medium 8 gon with 1 flat side up against the left top side of a medium square\n9 gon touching a square</td>
+      <td>(λ (x) (for 9 (λ (y z) (move (* 1 1) (/ 2π 9) z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 4 (λ (v w) (move (* 1 2) (/ 2π 4) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>train</td>
+      <td>4 concentric square s</td>
+      <td>nested square\nsquare of square s\n4 nested square s</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 y) (/ 2π 4) w)) u)) z)) x))</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>train</td>
+      <td>4 concentric square s</td>
+      <td>4 nested small square s\n4 nested box\n4 square s inside each other wifi symbol</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 y) (/ 2π 4) w)) u)) z)) x))</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>train</td>
+      <td>7 sided snowflake with a medium circle and a small 5 gon as arms</td>
+      <td>ring of 7 overlapped circle s surrounded by 7 5 gon s\nsmall space in middle with 7 small circle s around it and 7 5 gon s outside circle s\na snowflake with 7 pentagon leaves on the outside with 7 small circle s on the inside\n7 circle s in the middle with 7 pentagon s on the outside</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) (for ∞ (λ (b c) (move (* ε 2) ε c)) (pen-up (λ (d) (move 1 0 d)) (for 5 (λ (e f) (move (* 1 1) (/ 2π 5) f)) u)))))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>train</td>
+      <td>a short line next to a small 6 gon</td>
+      <td>a small dash and a medium 6 gon\nshoirt loine with a 5 sided medium gon\nline on left and 6 gon on the right</td>
+      <td>(λ (x) (move 1 0 (pen-up (λ (y) (move (* 1 2) 0 y)) (for 6 (λ (z u) (move (* 1 1) (/ 2π 6) u)) x))))</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>train</td>
+      <td>6 sided snowflake with a short line and a small semicircle as arms</td>
+      <td>line art\n6 candy cane pinwheel</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for ∞ (λ (v w) (move (* ε 1) ε w)) u))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>train</td>
+      <td>6 small 5 gon s in a row</td>
+      <td>6 overlapping horizontal 5 gon s\n6 overlapping pentagon s in a line\n6 merged pentagon\n6 pentagon s in a row</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (for 5 (λ (v w) (move (* 1 1) (/ 2π 5) w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>train</td>
+      <td>3 sided snowflake with a short line and a small square as arms</td>
+      <td>snowflake with 3 lines 3 square s as arms\n3 flake with line arms and square ends\n3 lined snowflake pattern connected at a point in center 3 smallmedium square s on each line at ends\nsnowflake made up of 3 arms of small line and small square</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for 4 (λ (v w) (move (* 1 1) (/ 2π 4) w)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>train</td>
+      <td>6 sided snowflake with a small 5 gon and a short line as arms</td>
+      <td>6 sided snowflake with 6 lines and 5 gon s between those lines\na 5 gon with 6 arms and small 5 gon s between the arms\nflower with hexagon s</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for 5 (λ (w a) (move (* 1 1) (/ 2π 5) a)) (pen-up (λ (b) (move 1 0 b)) (move 1 0 u))))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>train</td>
+      <td>3 sided snowflake with a short space and a short line and a short space and a short line as arms</td>
+      <td>a large y shape using 6 disconnected lines\n3 disjoint lines</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (move 1 0 u))))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>train</td>
+      <td>a medium 8 gon</td>
+      <td>octagonal\noctogon\nlarge 8 gon</td>
+      <td>(λ (x) (for 8 (λ (y z) (move (* 1 2) (/ 2π 8) z)) x))</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>train</td>
+      <td>4 medium semicircle s in a row</td>
+      <td>4 half circle s arranged in a horizontal line\n4 medium half circle s side by side curve on the right\n4 medium semicircle s in a row</td>
+      <td>(λ (x) (for 4 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 2) ε w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>train</td>
+      <td>a small circle connected by a big line to a small semicircle</td>
+      <td>broken paperclip facing upwards\nflat broken paperclip\na small circle connected at the bottom to a line connected to a small semi circle</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 1) ε z)) (for ∞ (λ (u v) (move (* ε 1) ε v)) (move (* 1 5) 0 (for ∞ (λ (w a) (move (* ε 1) ε a)) x)))))</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>train</td>
+      <td>a medium 5 gon next to a small 5 gon</td>
+      <td>a small pentagon somewhat in front of a larger pentagon\ni big pentagon and 1 small pentagon inside\nlarger polygon in the middle and small polygon overlapping the bottom right side</td>
+      <td>(λ (x) (for 5 (λ (y z) (move (* 1 2) (/ 2π 5) z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 5 (λ (v w) (move (* 1 1) (/ 2π 5) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>train</td>
+      <td>6 sided snowflake with a small triangle as arms</td>
+      <td>6 gon made of 6 tiny triangles touching\nsmall 6 gon made up of 6 smaller triangles\na 6 sided gon that is divided into 6 triangles on the inside\na 6 gon divided into triangles</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (for 3 (λ (v w) (move (* 1 1) (/ 2π 3) w)) u)) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>train</td>
+      <td>8 sided snowflake with a small triangle as arms</td>
+      <td>a small 8 sided snowflake with lines connecting for arms\noctagon fiolled with 9 balck sied\nshaded black pinwheel</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (for 3 (λ (v w) (move (* 1 1) (/ 2π 3) w)) u)) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>train</td>
+      <td>7 sided snowflake with a short space and a medium triangle as arms</td>
+      <td>asdsd\n7 slices forming a circular formation</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for 3 (λ (w a) (move (* 1 2) (/ 2π 3) a)) u))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>train</td>
+      <td>6 sided snowflake with a short line and a medium circle as arms</td>
+      <td>6 circle s spaced with 6 lines in middle\n6 spoked wheel with space short line and then space and small circle s as spokes\n6 circle s around 6 lines\n6 sided snowflake with a medium circle and small lines that are not connected as arms</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) (for ∞ (λ (c d) (move (* ε 2) ε d)) u)))))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>train</td>
+      <td>8 concentric circle s</td>
+      <td>8 nesting circle s\n8 nested circle s\nnestled circle s inside 1 another going from large to small\n8 nested circle s</td>
+      <td>(λ (x) (for 9 (λ (y z) (for ∞ (λ (u v) (move (* ε y) ε v)) (for ∞ (λ (w a) (move (* ε y) ε a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>train</td>
+      <td>a small 7 gon next to a small 9 gon</td>
+      <td>7 gon and 9 gon interconnected\nmed 7 gon intertwined with a large 8 gon\ncircle link</td>
+      <td>(λ (x) (for 7 (λ (y z) (move (* 1 1) (/ 2π 7) z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 9 (λ (v w) (move (* 1 1) (/ 2π 9) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>train</td>
+      <td>6 sided snowflake with a short line as arms</td>
+      <td>star symbol on a ph1\nits has a star shape</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (move 1 0 u)) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>24</th>
+      <td>train</td>
+      <td>a small 9 gon</td>
+      <td>9 sided polygon\noctagon\n9 sided polygoncircle in the middle</td>
+      <td>(λ (x) (for 9 (λ (y z) (move (* 1 1) (/ 2π 9) z)) x))</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td>train</td>
+      <td>5 sided snowflake with a short line and a medium triangle as arms</td>
+      <td>snowflake with 5 triangles connected to an axis\n5 medium triangles snowflake on underside outer edge of 5 medium lines in a star shape\n5 sided snowflake with connected line and triangle arms</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for 3 (λ (v w) (move (* 1 2) (/ 2π 3) w)) u))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>26</th>
+      <td>train</td>
+      <td>2 concentric circle s</td>
+      <td>circle within circle\nsmall circle in larger circle\na small circle with a medium circle overlapped</td>
+      <td>(λ (x) (for 3 (λ (y z) (for ∞ (λ (u v) (move (* ε y) ε v)) (for ∞ (λ (w a) (move (* ε y) ε a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>27</th>
+      <td>train</td>
+      <td>6 small square s in a row</td>
+      <td>6 square s in a row\n6 boxes next to each other\n6 square tetris piece</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 1) (/ 2π 4) w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>28</th>
+      <td>train</td>
+      <td>3 sided snowflake with a short line and a small triangle as arms</td>
+      <td>a wheel of 3 tiny triangle flags\n3 sided figure with small line and small triangle arms\nsnowflake with 3 small triangles on the outside attached to straight lines on the inside\n3 triangles connected by 3 lines</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for 3 (λ (v w) (move (* 1 1) (/ 2π 3) w)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>29</th>
+      <td>train</td>
+      <td>5 sided snowflake with a short space and a short line and a short space and a small semicircle as arms</td>
+      <td>a 5 sided snowflake with a space a line a space and semicircle s as arms\n5 semi circle s 5 rafiant lnes\n5 lines with semicricles at the top</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) u))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>30</th>
+      <td>train</td>
+      <td>3 sided snowflake with a medium line and a small 6 gon as arms</td>
+      <td>sa\n3 hexagon s each with a line extending off of them and connecting at the center</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (move (* 1 2) 0 (for 6 (λ (v w) (move (* 1 1) (/ 2π 6) w)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>31</th>
+      <td>train</td>
+      <td>7 sided snowflake with a small 9 gon as arms</td>
+      <td>7 8 gon s in spiral connection\n7 overlapping 9 sided figures in a circle formation\nlike a rangoli\n7 9 gon s connected at 1 point</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (for 9 (λ (v w) (move (* 1 1) (/ 2π 9) w)) u)) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>32</th>
+      <td>train</td>
+      <td>5 sided snowflake with a small 9 gon as arms</td>
+      <td>snowflake with 9 sided gon as arms\n5 flake with 9 gon arms\nsnowflake pattern of 5 lines connecting to 9 sided polygon and the lines make up 1 side of the polygon has a medium 3 d appearance\n5 overlapping 9 gon s</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for 9 (λ (v w) (move (* 1 1) (/ 2π 9) w)) u)) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>33</th>
+      <td>train</td>
+      <td>2 concentric circle s</td>
+      <td>3 nested circle\n2 small nesting circle s\ncircle in circle small tunnel</td>
+      <td>(λ (x) (for 3 (λ (y z) (for ∞ (λ (u v) (move (* ε y) ε v)) (for ∞ (λ (w a) (move (* ε y) ε a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>34</th>
+      <td>train</td>
+      <td>7 concentric circle s</td>
+      <td>7 circle russian doll\na spring</td>
+      <td>(λ (x) (for 8 (λ (y z) (for ∞ (λ (u v) (move (* ε y) ε v)) (for ∞ (λ (w a) (move (* ε y) ε a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>35</th>
+      <td>train</td>
+      <td>a medium 9 gon</td>
+      <td>a large 9 gon\n9 gon very large\na large 9 gon\na large 9 gon</td>
+      <td>(λ (x) (for 9 (λ (y z) (move (* 1 2) (/ 2π 9) z)) x))</td>
+    </tr>
+    <tr>
+      <th>36</th>
+      <td>train</td>
+      <td>7 sided snowflake with a short space and a short line and a short space and a small 5 gon as arms</td>
+      <td>7 small lines inside of 7 medium pentagon s\n7 5 gon s snowflake with 7 short lines inside around a circle shape center\n7 sided snowflake with floating line and pentagon arms</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 5 (λ (a b) (move (* 1 1) (/ 2π 5) b)) u))))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>37</th>
+      <td>train</td>
+      <td>4 medium semicircle s in a row</td>
+      <td>4 semi circle s\n4 half circle s\n4 semi circle s arranged horizontally</td>
+      <td>(λ (x) (for 4 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 2) ε w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>38</th>
+      <td>train</td>
+      <td>a small semicircle connected by a big line to a small 9 gon</td>
+      <td>a fish hook with a 9 sided polygon\noctagon hook\n9 side polygon with cane coming out of the top cane is curved downward</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 1) ε z)) (move (* 1 5) 0 (for 9 (λ (u v) (move (* 1 1) (/ 2π 9) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>39</th>
+      <td>train</td>
+      <td>7 sided snowflake with a short line and a small square as arms</td>
+      <td>a wheel of 7 square flags\nsmall circle 6 small lines 7 small square s\na snowflake with 7 small square s on the outside attached to 7 connected lines on the inside\n7 6 s joined in the middle</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for 4 (λ (v w) (move (* 1 1) (/ 2π 4) w)) u))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>40</th>
+      <td>train</td>
+      <td>6 sided snowflake with a medium semicircle and a small circle as arms</td>
+      <td>a 6 sided snowflake with a space and a circle and a semi circle for arms\ncircle and attached semic ricle snopwgflkake of 5 sides\n6 eyes</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) (pen-up (λ (b) (move 1 0 b)) (for ∞ (λ (c d) (move (* ε 1) ε d)) (for ∞ (λ (e f) (move (* ε 1) ε f)) u)))))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>41</th>
+      <td>train</td>
+      <td>7 sided snowflake with a short space and a short line and a short space and a short line as arms</td>
+      <td>line art\n6 lines each with 2 black lines separated by a white space and forming a pinwheel nothing is connected</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (move 1 0 u))))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>42</th>
+      <td>train</td>
+      <td>8 sided snowflake with a short line and a medium circle as arms</td>
+      <td>flower\ncircle s made of circle s\nan 8 sided snowflake with a black center and 8 overlapping circle s as arms</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) (for ∞ (λ (c d) (move (* ε 2) ε d)) u)))))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>43</th>
+      <td>train</td>
+      <td>a small circle next to a small 6 gon</td>
+      <td>a small circle and a 6 sided gon\nsmall circle next to 6 gon\nsmall circle on left and 6 sided polygon on right not connected or touching\nsmall circle next to 6 gon</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 1) ε z)) (for ∞ (λ (u v) (move (* ε 1) ε v)) (pen-up (λ (w) (move (* 1 2) 0 w)) (for 6 (λ (a b) (move (* 1 1) (/ 2π 6) b)) x)))))</td>
+    </tr>
+    <tr>
+      <th>44</th>
+      <td>train</td>
+      <td>6 short line s in a row</td>
+      <td>horizontal line\na straight line\nstraight line</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (move 1 0 u)) (pen-up (λ (v) (move 1 0 v)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>45</th>
+      <td>train</td>
+      <td>a small 6 gon next to a medium 5 gon</td>
+      <td>a small 6 sided shape on the left of a larger 5 sided shape\na 6 sides shape and a 5 sides shape</td>
+      <td>(λ (x) (for 6 (λ (y z) (move (* 1 1) (/ 2π 6) z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 5 (λ (v w) (move (* 1 2) (/ 2π 5) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>46</th>
+      <td>train</td>
+      <td>a small semicircle</td>
+      <td>a small semi circle\nsemicricle\n1 semicircle facing left</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 1) ε z)) x))</td>
+    </tr>
+    <tr>
+      <th>47</th>
+      <td>train</td>
+      <td>8 sided snowflake with a short space and a short line and a short space and a small 5 gon as arms</td>
+      <td>8 medium lines arranged in a circle inside of 8 pentagon s\n8 medium 5 gon s with spaces between each and 8 small lines in a circle inside with spaces between each\n8 sided snowflake with floating line and pentagon arms</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 5 (λ (a b) (move (* 1 1) (/ 2π 5) b)) u))))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>48</th>
+      <td>train</td>
+      <td>8 sided snowflake with a short line and a medium circle as arms</td>
+      <td>flower\ncircle s made of circle s\nan 8 sided snowflake with a black center and 8 overlapping circle s as arms</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for ∞ (λ (v w) (move (* ε 2) ε w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) u)))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>49</th>
+      <td>train</td>
+      <td>7 sided snowflake with a medium semicircle and a medium circle as arms</td>
+      <td>7 sided circular fan\nvery complex snowflake with hooks\ncomplicated flower that is spinning clockwise 7 legs</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) (pen-up (λ (b) (move 1 0 b)) (for ∞ (λ (c d) (move (* ε 2) ε d)) (for ∞ (λ (e f) (move (* ε 2) ε f)) u)))))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>50</th>
+      <td>train</td>
+      <td>5 sided snowflake with a short space and a short line and a short space and a small 5 gon as arms</td>
+      <td>a sunburst of 5 lines with 5 5 gon s just past the outer ends\nsmall space in middle with 5 small lines outside then 5 small 5 gon s outside the lines\n5 pentagon s on the outside with 5 detached lines on the inside\n5 pentagon s in a pentagon formation with lines pointing inward</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 5 (λ (a b) (move (* 1 1) (/ 2π 5) b)) u))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>51</th>
+      <td>train</td>
+      <td>3 sided snowflake with a medium space and a medium triangle as arms</td>
+      <td>a 3 sided snowflake with a large space and triangles for arms\n3 med traingles\n3 traingles</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 2) 0 v)) (for 3 (λ (w a) (move (* 1 2) (/ 2π 3) a)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>52</th>
+      <td>train</td>
+      <td>8 sided snowflake with a small circle and a medium circle as arms</td>
+      <td>dasdas\n8 small circle s encased by 8 larger circle s</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for ∞ (λ (w a) (move (* ε 1) ε a)) (for ∞ (λ (b c) (move (* ε 1) ε c)) (pen-up (λ (d) (move 1 0 d)) (for ∞ (λ (e f) (move (* ε 2) ε f)) (for ∞ (λ (g h) (move (* ε 2) ε h)) u))))))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>53</th>
+      <td>train</td>
+      <td>a medium semicircle connected by a big line to a medium triangle</td>
+      <td>hook inverted triangle l hook d right\ntriangle with vertex down then a long line to the right and a semicircle curving down\na reversed hanger\na cane with a triangle shaped flag on the straight end</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (move (* 1 5) 0 (for 3 (λ (u v) (move (* 1 2) (/ 2π 3) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>54</th>
+      <td>train</td>
+      <td>6 sided snowflake with a short space and a short line and a short space and a medium semicircle as arms</td>
+      <td>snowflake with space small line medium space and 6 semicircle arms\n6 flake with arms of space line space semicircle\n6 sided snowflake with small lines then a small space then half circle s above each line\nsnowflake made up of 6 arms of small line and semicircle</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) u))))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>55</th>
+      <td>train</td>
+      <td>8 sided snowflake with a small 6 gon as arms</td>
+      <td>complex snowflake with solid center of 8 lines\na snowflake with dark starburst in inside\nflower star</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (for 6 (λ (v w) (move (* 1 1) (/ 2π 6) w)) u)) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>56</th>
+      <td>train</td>
+      <td>3 sided snowflake with a short line and a small 5 gon as arms</td>
+      <td>3 house shaped symbols connected by 3 lines in a y shape\npentagon s</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for 5 (λ (v w) (move (* 1 1) (/ 2π 5) w)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>57</th>
+      <td>train</td>
+      <td>a small circle</td>
+      <td>asas\na small circle</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 1) ε z)) (for ∞ (λ (u v) (move (* ε 1) ε v)) x)))</td>
+    </tr>
+    <tr>
+      <th>58</th>
+      <td>train</td>
+      <td>a small 7 gon connected by a medium line to a small triangle</td>
+      <td>medium heptagon connected to small triangle\n7 gon medium on the left side top of a medium line and a small triangle on the top right side of the line\nmedium 7 gon connected by line to small triangle</td>
+      <td>(λ (x) (for 7 (λ (y z) (move (* 1 1) (/ 2π 7) z)) (move (* 1 2) 0 (for 3 (λ (u v) (move (* 1 1) (/ 2π 3) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>59</th>
+      <td>train</td>
+      <td>5 sided snowflake with a medium semicircle and a small semicircle as arms</td>
+      <td>separated flower\ninterlocking half circle s\n5 sided snow flake with 5 small semi circle s and 5 medium semi circle s as arms</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) (pen-up (λ (b) (move 1 0 b)) (for ∞ (λ (c d) (move (* ε 1) ε d)) u))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>60</th>
+      <td>train</td>
+      <td>5 sided snowflake with a short space and a short line and a short space and a small square as arms</td>
+      <td>a small line then a square in a star formation\nstar with boxes on the ends\n5 lines shooting out from middle square s on the outside</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 4 (λ (a b) (move (* 1 1) (/ 2π 4) b)) u))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>61</th>
+      <td>train</td>
+      <td>7 sided snowflake with a medium 5 gon as arms</td>
+      <td>7 overlapped 5 gon s that make a flower with 7 petals in the center\n4 5 gon s connected in the middle with 3 more 5 gon s connected behind them to make flower shape\noverlapping pentagon s with 7 boded lines in the middle\n7 pentagon s joined together</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (for 5 (λ (v w) (move (* 1 2) (/ 2π 5) w)) u)) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>62</th>
+      <td>train</td>
+      <td>6 sided snowflake with a medium space and a medium triangle as arms</td>
+      <td>a 6 sided snowflake with a space and triangles for arms\n7 snowflake 7 sdoed triangles\n6 triangles unconnected</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 2) 0 v)) (for 3 (λ (w a) (move (* 1 2) (/ 2π 3) a)) u))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>63</th>
+      <td>train</td>
+      <td>a small 9 gon connected by a big line to a medium square</td>
+      <td>sasas\nnonagon on left connected to square on right by a line</td>
+      <td>(λ (x) (for 9 (λ (y z) (move (* 1 1) (/ 2π 9) z)) (move (* 1 5) 0 (for 4 (λ (u v) (move (* 1 2) (/ 2π 4) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>64</th>
+      <td>train</td>
+      <td>a medium triangle connected by a big line to a small 8 gon</td>
+      <td>triangle on left bottom line to 8 gon right\ntriangle medium line medium octagon\na triangle with 8 shape\na large triangle connected by a long line to an octagon</td>
+      <td>(λ (x) (for 3 (λ (y z) (move (* 1 2) (/ 2π 3) z)) (move (* 1 5) 0 (for 8 (λ (u v) (move (* 1 1) (/ 2π 8) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>65</th>
+      <td>train</td>
+      <td>a small 8 gon next to a small 5 gon</td>
+      <td>a 8 sided gon beside a 5 sided gon\n8 gon next to 5 gon\nmedium octagon on left touching a small pentagon on right at 1 point\nmedium 8 gon next to small 5 gon</td>
+      <td>(λ (x) (for 8 (λ (y z) (move (* 1 1) (/ 2π 8) z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 5 (λ (v w) (move (* 1 1) (/ 2π 5) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>66</th>
+      <td>train</td>
+      <td>7 sided snowflake with a short space and a small square as arms</td>
+      <td>7 small square s arranged in a circular shape\n7 square s in a circle\nflower square</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for 4 (λ (w a) (move (* 1 1) (/ 2π 4) a)) u))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>67</th>
+      <td>train</td>
+      <td>a 4 stepped staircase</td>
+      <td>3 short stairs going up to the right\nladder</td>
+      <td>(λ (x) (for 4 (λ (y z) (move 1 (/ 2π 4) (move 1 (/ 2π 4) (move 0 (/ 2π 2) z)))) x))</td>
+    </tr>
+    <tr>
+      <th>68</th>
+      <td>train</td>
+      <td>a medium semicircle</td>
+      <td>right half circle\na small right half of a semicircle\nan half circle\nhalf a circle</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) x))</td>
+    </tr>
+    <tr>
+      <th>69</th>
+      <td>train</td>
+      <td>3 medium semicircle s in a row</td>
+      <td>3 medium half circle s\n3 medium half circle s in a horizontal side by side row curve on the right\n3 medium semicircle s in a row</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 2) ε w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>70</th>
+      <td>train</td>
+      <td>a small semicircle connected by a big line to a medium circle</td>
+      <td>broken paperclip\nshort paperclip\na medium circle connected by a line to a small semi circle</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 1) ε z)) (move (* 1 5) 0 (for ∞ (λ (u v) (move (* ε 2) ε v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) x)))))</td>
+    </tr>
+    <tr>
+      <th>71</th>
+      <td>train</td>
+      <td>5 sided snowflake with a medium circle and a short line as arms</td>
+      <td>5 small circle s joined in a circle with 5 expanding lines\nsnowflake made of circle s and lines\n5 circle in middle 5 lines shooting out</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) (for ∞ (λ (b c) (move (* ε 2) ε c)) (pen-up (λ (d) (move 1 0 d)) (move 1 0 u)))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>72</th>
+      <td>train</td>
+      <td>5 sided snowflake with a short space and a short line and a short space and a small triangle as arms</td>
+      <td>sunburst of 5 short lines with 5 tiny triangles just past the outer ends\nsmall space with 5 small lines outside then 5 small triangles outside lines\nsnow flake with 5 small triangles on the outside with 5 small detached lines on the inside\n5 triangles wiht lines pointing inward</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 3 (λ (a b) (move (* 1 1) (/ 2π 3) b)) u))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>73</th>
+      <td>train</td>
+      <td>4 short line s in a row</td>
+      <td>a medium horizontal line\nmedium straihght loine\nshorter line horizontal</td>
+      <td>(λ (x) (for 4 (λ (y z) (get/set (λ (u) (move 1 0 u)) (pen-up (λ (v) (move 1 0 v)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>74</th>
+      <td>train</td>
+      <td>a medium triangle connected by a big line to a small square</td>
+      <td>line art\na triangle and a square connected to each other via a line at the base</td>
+      <td>(λ (x) (for 3 (λ (y z) (move (* 1 2) (/ 2π 3) z)) (move (* 1 5) 0 (for 4 (λ (u v) (move (* 1 1) (/ 2π 4) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>75</th>
+      <td>train</td>
+      <td>a 4 stepped staircase</td>
+      <td>4 base steps\ndiagonal wavy line\nlike steps\n4 backwards ls making a stair shape</td>
+      <td>(λ (x) (for 4 (λ (y z) (move 1 (/ 2π 4) (move 1 (/ 2π 4) (move 0 (/ 2π 2) z)))) x))</td>
+    </tr>
+    <tr>
+      <th>76</th>
+      <td>train</td>
+      <td>8 sided snowflake with a small square as arms</td>
+      <td>a diamond with 8 small lines with a dark center circle and a square\n2 overlapping square s offset 4 5 degrees with lines between their corners\n8 lined snowflake pattern connecting to a square thats inside of another square wheel figure inside of a diamond inside of a square\nwheel inside 2 square s</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 1) (/ 2π 4) w)) u)) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>77</th>
+      <td>train</td>
+      <td>a medium square connected by a big line to a small square</td>
+      <td>large square connected to small square via horizontal line\na medium square with a small square to the right attached by a line\nsquare tail square</td>
+      <td>(λ (x) (for 4 (λ (y z) (move (* 1 2) (/ 2π 4) z)) (move (* 1 5) 0 (for 4 (λ (u v) (move (* 1 1) (/ 2π 4) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>78</th>
+      <td>train</td>
+      <td>8 sided snowflake with a short space and a medium circle as arms</td>
+      <td>9 looped circle s making 1 giant circle\nrings of circle</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) (for ∞ (λ (b c) (move (* ε 2) ε c)) u)))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>79</th>
+      <td>train</td>
+      <td>a medium circle</td>
+      <td>medium circle\nmed circle\nsmallmedium circle\nsmall circle</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (for ∞ (λ (u v) (move (* ε 2) ε v)) x)))</td>
+    </tr>
+    <tr>
+      <th>80</th>
+      <td>train</td>
+      <td>6 sided snowflake with a small 7 gon as arms</td>
+      <td>6 heptagon s arranged in a circle\n6 7 sided medium sized gon s snowflake with thick 5 sided small line in a star shaped in the center\n6 sided snowflake made from interlocking 7 gon s</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (for 7 (λ (v w) (move (* 1 1) (/ 2π 7) w)) u)) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>81</th>
+      <td>train</td>
+      <td>4 concentric square s</td>
+      <td>nested square with little damage at the top right corner\nsquare s inside\n4 nested square s</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 y) (/ 2π 4) w)) u)) z)) x))</td>
+    </tr>
+    <tr>
+      <th>82</th>
+      <td>train</td>
+      <td>5 sided snowflake with a medium line and a small 7 gon as arms</td>
+      <td>5 7 sided polygon s connected by 5 lines to a single point\nsnowflake made with hexagon s\n5 circle s in clover</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (move (* 1 2) 0 (for 7 (λ (v w) (move (* 1 1) (/ 2π 7) w)) u))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>83</th>
+      <td>train</td>
+      <td>5 small square s in a row</td>
+      <td>5 tiny square s in a row touching\nmedium rectangle made from 5 small square s\n5 square boxes in a row\n5 square s touching in a line</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 1) (/ 2π 4) w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>84</th>
+      <td>train</td>
+      <td>3 sided snowflake with a medium line and a medium 5 gon as arms</td>
+      <td>a 3 sided snowflake with straight lines and 5 gon s for arms\nsnowflake composed of 3 5 sided gon s ande radiant connecte d lines\n3 pentagon wheel</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (move (* 1 2) 0 (for 5 (λ (v w) (move (* 1 2) (/ 2π 5) w)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>85</th>
+      <td>train</td>
+      <td>a small 7 gon connected by a medium line to a small semicircle</td>
+      <td>asa\n7 gon with a candy cane connected to the base of it</td>
+      <td>(λ (x) (for 7 (λ (y z) (move (* 1 1) (/ 2π 7) z)) (move (* 1 2) 0 (for ∞ (λ (u v) (move (* ε 1) ε v)) x))))</td>
+    </tr>
+    <tr>
+      <th>86</th>
+      <td>train</td>
+      <td>a 5 stepped zigzag</td>
+      <td>zigzag vertical\n5 greater than signs on top of each other\nzig zag\na vertical zig zag made of 1 0 short lines</td>
+      <td>(λ (x) (move 0 (/ 2π 8) (for 5 (λ (y z) (move 1 (/ 2π 4) (move 1 (logo_ADDA (/ 2π 2) (/ 2π 4)) z))) x)))</td>
+    </tr>
+    <tr>
+      <th>87</th>
+      <td>train</td>
+      <td>7 sided snowflake with a medium space and a small 5 gon as arms</td>
+      <td>a snowflake with 5 sided gon and 7 arms\n7 flake with small 5 gon arms not overlapping\nsnowflake design with 7 objects nothing in the middle and objects are pentagon s arranged in the snowfake pattern\nsnowflake made up of 7 pentagon s</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 2) 0 v)) (for 5 (λ (w a) (move (* 1 1) (/ 2π 5) a)) u))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>88</th>
+      <td>train</td>
+      <td>a 4 stepped zigzag</td>
+      <td>4 step ladder going from top to bottom\nsquiggly line with 8 dashes\nzig zag long</td>
+      <td>(λ (x) (move 0 (/ 2π 8) (for 4 (λ (y z) (move 1 (/ 2π 4) (move 1 (logo_ADDA (/ 2π 2) (/ 2π 4)) z))) x)))</td>
+    </tr>
+    <tr>
+      <th>89</th>
+      <td>train</td>
+      <td>8 sided snowflake with a short line and a medium semicircle as arms</td>
+      <td>loading wheel 8 hooks making a circle with a circle in the middle\nflower shape object</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for ∞ (λ (v w) (move (* ε 2) ε w)) u))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>90</th>
+      <td>train</td>
+      <td>a big semicircle</td>
+      <td>semicircle\na semi circle\nhalf circle</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 5) ε z)) x))</td>
+    </tr>
+    <tr>
+      <th>91</th>
+      <td>train</td>
+      <td>5 sided snowflake with a short space and a medium circle as arms</td>
+      <td>5 small circle s arranged in a circle\n5 medium circle s touching and looking like a snowflake\n5 sided snowflake with small circle s for arms</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) (for ∞ (λ (b c) (move (* ε 2) ε c)) u)))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>92</th>
+      <td>train</td>
+      <td>3 sided snowflake with a short space and a short line and a short space and a small semicircle as arms</td>
+      <td>spinner\n3 dashes and 3 lines\n3 sided snowflake with 3 lines a space and 3 semi circle s as arms</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) u))))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>93</th>
+      <td>train</td>
+      <td>7 sided snowflake with a short space and a short line and a short space and a small triangle as arms</td>
+      <td>a 7 sided snowflake with 7 triangles and lines\n7 point snowflake made of lines and triangles\n7 lines in the middle shooting out and triangles going counter clockwise</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 3 (λ (a b) (move (* 1 1) (/ 2π 3) b)) u))))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>94</th>
+      <td>train</td>
+      <td>7 sided snowflake with a medium square as arms</td>
+      <td>a 7 pizza petal flower on a 7 point napkin\nsmall black circle with 7 4 gon s connected to ti with large 4 gon around it with large 5 gon underneath flower\noverlapping square s with 7 triangles in the middle\na flower with 7 petals on top of 2 square s</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 2) (/ 2π 4) w)) u)) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>95</th>
+      <td>train</td>
+      <td>a small 9 gon separated by a big space from a small circle</td>
+      <td>a large 9 gon and a small circle\nvbog octo small circle\n9 gon on left with small circle on right not connected</td>
+      <td>(λ (x) (for 9 (λ (y z) (move (* 1 1) (/ 2π 9) z)) (pen-up (λ (u) (move (* 1 5) 0 u)) (for ∞ (λ (v w) (move (* ε 1) ε w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) x)))))</td>
+    </tr>
+    <tr>
+      <th>96</th>
+      <td>train</td>
+      <td>5 sided snowflake with a short line and a medium circle as arms</td>
+      <td>dsd\n5 circle s each with a line next to them forming a pinwhell nothing is connected</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) (for ∞ (λ (c d) (move (* ε 2) ε d)) u)))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>97</th>
+      <td>train</td>
+      <td>3 sided snowflake with a small triangle and a small 5 gon as arms</td>
+      <td>3 spaced 5 gon s each connected to small triangles\n3 pentagon s and triangles as spokes of a wheel\n3 different objects\n3 medium pentagon shapes with 3 small triangles attached to each 1</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for 3 (λ (w a) (move (* 1 1) (/ 2π 3) a)) (pen-up (λ (b) (move 1 0 b)) (for 5 (λ (c d) (move (* 1 1) (/ 2π 5) d)) u))))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>98</th>
+      <td>train</td>
+      <td>a small triangle connected by a big line to a medium triangle</td>
+      <td>a small triangle with a long line and a medium triangle\nsmall triangle connected to med triangle with line\nsmall triangle connected to a larger large triangle by a large line\nsmall triangle connected to a larger triangle by a line</td>
+      <td>(λ (x) (for 3 (λ (y z) (move (* 1 1) (/ 2π 3) z)) (move (* 1 5) 0 (for 3 (λ (u v) (move (* 1 2) (/ 2π 3) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>99</th>
+      <td>train</td>
+      <td>a small circle connected by a medium line to a small 8 gon</td>
+      <td>small circle connected to 8 gon via a line\na circle attached to a 8 gon by a line\noctacgon with tail</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 1) ε z)) (for ∞ (λ (u v) (move (* ε 1) ε v)) (move (* 1 2) 0 (for 8 (λ (w a) (move (* 1 1) (/ 2π 8) a)) x)))))</td>
+    </tr>
+    <tr>
+      <th>100</th>
+      <td>train</td>
+      <td>4 concentric square s</td>
+      <td>russian doll square\nart clip</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 y) (/ 2π 4) w)) u)) z)) x))</td>
+    </tr>
+    <tr>
+      <th>101</th>
+      <td>train</td>
+      <td>a big circle</td>
+      <td>just a circle\na round circle</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 5) ε z)) (for ∞ (λ (u v) (move (* ε 5) ε v)) x)))</td>
+    </tr>
+    <tr>
+      <th>102</th>
+      <td>train</td>
+      <td>4 small 5 gon s in a row</td>
+      <td>4 interlocking pentagon s in a straight line\n4 5 gon s overlapping on top of a medium long horizontal line\n4 small interlocked pentagon s in a row</td>
+      <td>(λ (x) (for 4 (λ (y z) (get/set (λ (u) (for 5 (λ (v w) (move (* 1 1) (/ 2π 5) w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>103</th>
+      <td>train</td>
+      <td>a small semicircle connected by a medium line to a medium triangle</td>
+      <td>broken half umbrella\ntriangle clip\na triangle connected to a small semi circle by a line</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 1) ε z)) (move (* 1 2) 0 (for 3 (λ (u v) (move (* 1 2) (/ 2π 3) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>104</th>
+      <td>train</td>
+      <td>4 concentric square s</td>
+      <td>4 nested square s\n5 nested box\n4 square s inside each other wifi symbol</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 y) (/ 2π 4) w)) u)) z)) x))</td>
+    </tr>
+    <tr>
+      <th>105</th>
+      <td>train</td>
+      <td>3 sided snowflake with a short space and a medium triangle as arms</td>
+      <td>3 medium triangles arranged in a messy triangle\nsmall space in between 3 medium triangles\n3 triangles that are not aligned or attached together\n3 triangles spread apart</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for 3 (λ (w a) (move (* 1 2) (/ 2π 3) a)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>106</th>
+      <td>train</td>
+      <td>a 7 stepped staircase</td>
+      <td>a long zig zag line running diagonally\nlobnest wavy line\n7 stair steps facing right</td>
+      <td>(λ (x) (for 7 (λ (y z) (move 1 (/ 2π 4) (move 1 (/ 2π 4) (move 0 (/ 2π 2) z)))) x))</td>
+    </tr>
+    <tr>
+      <th>107</th>
+      <td>train</td>
+      <td>8 sided snowflake with a small 5 gon and a short line as arms</td>
+      <td>sa\n8 pentagon s connecting to each other with each 1 separated by a line kind of looks like a ninja star or a weapon</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for 5 (λ (w a) (move (* 1 1) (/ 2π 5) a)) (pen-up (λ (b) (move 1 0 b)) (move 1 0 u))))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>108</th>
+      <td>train</td>
+      <td>5 sided snowflake with a small triangle and a medium circle as arms</td>
+      <td>5 candy corn pointing in\n5 ice cream c1 s in a circle\n5 lamps in rounded\na 5 sided snowflake made of medium circle s connected to small triangles</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for 3 (λ (w a) (move (* 1 1) (/ 2π 3) a)) (pen-up (λ (b) (move 1 0 b)) (for ∞ (λ (c d) (move (* ε 2) ε d)) (for ∞ (λ (e f) (move (* ε 2) ε f)) u)))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>109</th>
+      <td>train</td>
+      <td>7 sided snowflake with a medium triangle as arms</td>
+      <td>a 7 section pie with 7 medium dark lines in between sections\n7 gon with lines from center to vertices\n7 lined snowflake design inside of a 7 sided polygon looks like a wheel\n7 spoked wheel</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (for 3 (λ (v w) (move (* 1 2) (/ 2π 3) w)) u)) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>110</th>
+      <td>train</td>
+      <td>3 sided snowflake with a small 7 gon as arms</td>
+      <td>3 sided snowflake that is made up of 3 7 gon s\n3 7 gon s attached\n3 octagon</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (for 7 (λ (v w) (move (* 1 1) (/ 2π 7) w)) u)) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>111</th>
+      <td>train</td>
+      <td>6 sided snowflake with 2 short line s as arms</td>
+      <td>a large disconnected 5 sided star with disconnected lines and an invisible circle in the middle\nart clip</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (move 1 0 u))))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>112</th>
+      <td>train</td>
+      <td>a small square</td>
+      <td>a small square\nsmall square\nsmall square</td>
+      <td>(λ (x) (for 4 (λ (y z) (move (* 1 1) (/ 2π 4) z)) x))</td>
+    </tr>
+    <tr>
+      <th>113</th>
+      <td>train</td>
+      <td>a short line</td>
+      <td>short horizontal line\nshort line horizontal\nshort horizontal line</td>
+      <td>(λ (x) (move 1 0 x))</td>
+    </tr>
+    <tr>
+      <th>114</th>
+      <td>train</td>
+      <td>a vertical short line</td>
+      <td>half of the number 1\ndash\na vertical line</td>
+      <td>(λ (x) (move 0 (/ 2π 4) (move 1 0 x)))</td>
+    </tr>
+    <tr>
+      <th>115</th>
+      <td>train</td>
+      <td>3 concentric square s</td>
+      <td>3 nested square s\n3 nested boxes\n3 square s inside wifi symbol</td>
+      <td>(λ (x) (for 4 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 y) (/ 2π 4) w)) u)) z)) x))</td>
+    </tr>
+    <tr>
+      <th>116</th>
+      <td>train</td>
+      <td>a medium semicircle connected by a medium line to a medium circle</td>
+      <td>lower case g on its left side\nsmall circle connected to hook shape which looks like number 9\na small circle connected to a larger oval that is not closed\na 9 on its side</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (move (* 1 2) 0 (for ∞ (λ (u v) (move (* ε 2) ε v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) x)))))</td>
+    </tr>
+    <tr>
+      <th>117</th>
+      <td>train</td>
+      <td>a 4 stepped staircase</td>
+      <td>medium zig zag horizontal lines with 4 bottom points\nwavy line\nshorter squiggly line pointing right</td>
+      <td>(λ (x) (for 4 (λ (y z) (move 1 (/ 2π 4) (move 1 (/ 2π 4) (move 0 (/ 2π 2) z)))) x))</td>
+    </tr>
+    <tr>
+      <th>118</th>
+      <td>train</td>
+      <td>5 sided snowflake with a short space and a short line and a short space and a short line as arms</td>
+      <td>daad\na 5 sides version of the pinwhell with each line separated by a white space</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (move 1 0 u))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>119</th>
+      <td>train</td>
+      <td>a medium triangle separated by a big space from a medium triangle</td>
+      <td>2 spaced triangles\na triangle medium space and then another triangle\n2 triangles in distance\n2 large triangles</td>
+      <td>(λ (x) (for 3 (λ (y z) (move (* 1 2) (/ 2π 3) z)) (pen-up (λ (u) (move (* 1 5) 0 u)) (for 3 (λ (v w) (move (* 1 2) (/ 2π 3) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>120</th>
+      <td>train</td>
+      <td>7 sided snowflake with a short line and a small 8 gon as arms</td>
+      <td>a snowflake with 8 gon with a small space and a circle with 7 gon s as arms\n7 flake with med 8 gon arms overlapping\n7 small lined snowflake pattern connecting to 8 sided polygon\nflower made up of 7 arms of 8 gon s</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for 8 (λ (v w) (move (* 1 1) (/ 2π 8) w)) u))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>121</th>
+      <td>train</td>
+      <td>2 concentric circle s</td>
+      <td>3 nested circle\n2 small circle s nesting\ncircle in circle</td>
+      <td>(λ (x) (for 3 (λ (y z) (for ∞ (λ (u v) (move (* ε y) ε v)) (for ∞ (λ (w a) (move (* ε y) ε a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>122</th>
+      <td>train</td>
+      <td>a 7 stepped staircase</td>
+      <td>a large 6 step stair going to the right\nladder shape object</td>
+      <td>(λ (x) (for 7 (λ (y z) (move 1 (/ 2π 4) (move 1 (/ 2π 4) (move 0 (/ 2π 2) z)))) x))</td>
+    </tr>
+    <tr>
+      <th>123</th>
+      <td>train</td>
+      <td>a medium square</td>
+      <td>a medium square\n1 medium square\na square\na medium square</td>
+      <td>(λ (x) (for 4 (λ (y z) (move (* 1 2) (/ 2π 4) z)) x))</td>
+    </tr>
+    <tr>
+      <th>124</th>
+      <td>train</td>
+      <td>3 sided snowflake with a short space and a small 5 gon as arms</td>
+      <td>3 small pentagon s\n3 5 gon medium snowflake\n3 pentagon s in a circle</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for 5 (λ (w a) (move (* 1 1) (/ 2π 5) a)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>125</th>
+      <td>train</td>
+      <td>a small 5 gon separated by a big space from a small 9 gon</td>
+      <td>hexagon and big gon\ncirclegon pentagon\na small 5 gon and a space and a large 9 gon</td>
+      <td>(λ (x) (for 5 (λ (y z) (move (* 1 1) (/ 2π 5) z)) (pen-up (λ (u) (move (* 1 5) 0 u)) (for 9 (λ (v w) (move (* 1 1) (/ 2π 9) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>126</th>
+      <td>train</td>
+      <td>8 sided snowflake with a medium triangle as arms</td>
+      <td>a pinwheel with 8 skinny triangles\nhexagon snowflake\nbuddhism wheel</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (for 3 (λ (v w) (move (* 1 2) (/ 2π 3) w)) u)) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>127</th>
+      <td>train</td>
+      <td>a 4 stepped staircase</td>
+      <td>small zigzag of 4 steps\n4 stepped staircase\na 4 step staircase\n4 stairs</td>
+      <td>(λ (x) (for 4 (λ (y z) (move 1 (/ 2π 4) (move 1 (/ 2π 4) (move 0 (/ 2π 2) z)))) x))</td>
+    </tr>
+    <tr>
+      <th>128</th>
+      <td>train</td>
+      <td>a medium triangle connected by a medium line to a small 9 gon</td>
+      <td>a triangle next to a 9 gon\ntruiangle attacjed to large octo\nice cream c1</td>
+      <td>(λ (x) (for 3 (λ (y z) (move (* 1 2) (/ 2π 3) z)) (move (* 1 2) 0 (for 9 (λ (u v) (move (* 1 1) (/ 2π 9) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>129</th>
+      <td>train</td>
+      <td>8 concentric circle s</td>
+      <td>asas\n8 circle s in each other</td>
+      <td>(λ (x) (for 9 (λ (y z) (for ∞ (λ (u v) (move (* ε y) ε v)) (for ∞ (λ (w a) (move (* ε y) ε a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>130</th>
+      <td>train</td>
+      <td>3 sided snowflake with a small 8 gon as arms</td>
+      <td>3 slightly overlapping 8 gon s\n3 octagon s forming a clover shape\n3 merged 8 shapes\n3 octagon s connected at 1 point</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (for 8 (λ (v w) (move (* 1 1) (/ 2π 8) w)) u)) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>131</th>
+      <td>train</td>
+      <td>6 small 5 gon s in a row</td>
+      <td>6 4 sided gon in a row with a long line at the bottom\n6 5 gon s in a row overlapping\n6 overlapped pentagon s going left to right\n6 pentagon s overlapping each other</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (for 5 (λ (v w) (move (* 1 1) (/ 2π 5) w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>132</th>
+      <td>train</td>
+      <td>6 sided snowflake with a short space and a small 7 gon as arms</td>
+      <td>6 sided snowflake with 7 gon at end of each arm\nsmall 5 gon surrounded by 6 7 gon s\nmany octagon flower</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for 7 (λ (w a) (move (* 1 1) (/ 2π 7) a)) u))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>133</th>
+      <td>train</td>
+      <td>7 sided snowflake with a small semicircle and a short line as arms</td>
+      <td>7 clouds on top of each other going in a circle making a star shape\nring flower</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for ∞ (λ (w a) (move (* ε 1) ε a)) (pen-up (λ (b) (move 1 0 b)) (move 1 0 u))))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>134</th>
+      <td>train</td>
+      <td>a small 5 gon</td>
+      <td>a medium 5 gon\nsmnall 5 sided gon\nsmall pentagon</td>
+      <td>(λ (x) (for 5 (λ (y z) (move (* 1 1) (/ 2π 5) z)) x))</td>
+    </tr>
+    <tr>
+      <th>135</th>
+      <td>train</td>
+      <td>7 sided snowflake with a small circle and a small 5 gon as arms</td>
+      <td>7 small circle s inside of 7 medium pentagon s\n7 5 gon s snowflake with 7 small circle s around in the center\n7 sided snowflake with floating small circle and medium pentagon arms</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for ∞ (λ (w a) (move (* ε 1) ε a)) (for ∞ (λ (b c) (move (* ε 1) ε c)) (pen-up (λ (d) (move 1 0 d)) (for 5 (λ (e f) (move (* 1 1) (/ 2π 5) f)) u)))))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>136</th>
+      <td>train</td>
+      <td>4 small square s in a row</td>
+      <td>4 square s\n4 square s\n4 square s sharing sides arranged horizontally</td>
+      <td>(λ (x) (for 4 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 1) (/ 2π 4) w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>137</th>
+      <td>train</td>
+      <td>3 sided snowflake with a short space and a short line and a short space and a small square as arms</td>
+      <td>small square s and lines in a y formation\n3 point star made of lines and square s\n3 lines shooting out from middle square on the outside</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 4 (λ (a b) (move (* 1 1) (/ 2π 4) b)) u))))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>138</th>
+      <td>train</td>
+      <td>3 sided snowflake with a short space and a medium square as arms</td>
+      <td>3 medium square s arranged in a messy triangle\n3 medium square s with small space in the middle\n3 square s that are not in a line\n3 square s in a triangle formation</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for 4 (λ (w a) (move (* 1 2) (/ 2π 4) a)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>139</th>
+      <td>train</td>
+      <td>4 concentric square s</td>
+      <td>4 stacked square s\n4 concentric square s\n4 nested square s</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 y) (/ 2π 4) w)) u)) z)) x))</td>
+    </tr>
+    <tr>
+      <th>140</th>
+      <td>train</td>
+      <td>a small 8 gon next to a small 7 gon</td>
+      <td>sdsa\nan octagon slightly going into the left side of a 7 gon</td>
+      <td>(λ (x) (for 8 (λ (y z) (move (* 1 1) (/ 2π 8) z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 7 (λ (v w) (move (* 1 1) (/ 2π 7) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>141</th>
+      <td>train</td>
+      <td>3 small triangle s in a row</td>
+      <td>3 small touching triangles\n3 little triangles side by side\n3 triangle in a row\n3 small triangles in a row</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (for 3 (λ (v w) (move (* 1 1) (/ 2π 3) w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>142</th>
+      <td>train</td>
+      <td>a small 5 gon next to a small 7 gon</td>
+      <td>a 5 sided gon beside a 7 sided gon\nsmall 5 gon next to med 7 gon\nsmallmedium pentagon connected on leftto 7 sided polygon they are touching at 1 point\n5 gon next to 7 gon</td>
+      <td>(λ (x) (for 5 (λ (y z) (move (* 1 1) (/ 2π 5) z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 7 (λ (v w) (move (* 1 1) (/ 2π 7) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>143</th>
+      <td>train</td>
+      <td>5 sided snowflake with a short line and a medium 5 gon as arms</td>
+      <td>5 sided snowflake with 5 gon touching at the end of each arm\n5 5 gon s on a starburst\nhexagon flower</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for 5 (λ (v w) (move (* 1 2) (/ 2π 5) w)) u))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>144</th>
+      <td>train</td>
+      <td>5 small triangle s in a row</td>
+      <td>5 small triangles in a row\na teeth shape object</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for 3 (λ (v w) (move (* 1 1) (/ 2π 3) w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>145</th>
+      <td>train</td>
+      <td>a medium 5 gon</td>
+      <td>line art\npentagon</td>
+      <td>(λ (x) (for 5 (λ (y z) (move (* 1 2) (/ 2π 5) z)) x))</td>
+    </tr>
+    <tr>
+      <th>146</th>
+      <td>train</td>
+      <td>7 sided snowflake with a short space and a short line and a short space and a medium semicircle as arms</td>
+      <td>7 medium lines inside of 7 medium half circle s\n7 half circle g1 curve on the outside with 7 short lines in the center around a medium circle\n7 sided snowflake with floating line and semicircle arms</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) u))))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>147</th>
+      <td>train</td>
+      <td>8 sided snowflake with a medium line and a small 9 gon as arms</td>
+      <td>wheel with 8 gon\noctogon s with lines\nan 8 sided snowflake with a black dot connected to lines connected to 9 gon s as sides</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (move (* 1 2) 0 (for 9 (λ (v w) (move (* 1 1) (/ 2π 9) w)) u))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>148</th>
+      <td>train</td>
+      <td>a medium triangle separated by a big space from a small 9 gon</td>
+      <td>a small triangle close to a bigger 9 sided polygon\ntriangle and hexagon spaced\nsmall triangle on the left and circle on the right spaced out</td>
+      <td>(λ (x) (for 3 (λ (y z) (move (* 1 2) (/ 2π 3) z)) (pen-up (λ (u) (move (* 1 5) 0 u)) (for 9 (λ (v w) (move (* 1 1) (/ 2π 9) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>149</th>
+      <td>train</td>
+      <td>a small 9 gon connected by a medium line to a small 7 gon</td>
+      <td>a medium 9 gon connected to and overlapping a small 7 gon\nmedium 8 gon connected to small 8 gon by small line\na 9 sided gon that is attached by a line on the bottom to a smaller 7 sided gon that overlaps the tow gon s\na 9 gon overlapping a 7 gon with a line on the bottom</td>
+      <td>(λ (x) (for 9 (λ (y z) (move (* 1 1) (/ 2π 9) z)) (move (* 1 2) 0 (for 7 (λ (u v) (move (* 1 1) (/ 2π 7) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>150</th>
+      <td>train</td>
+      <td>3 sided snowflake with a short line and a small semicircle as arms</td>
+      <td>a 3 sided snowflake with a small line and a small semi circle for arms\nsnowflake compsoed of 3 j like fugures\n3 line wave</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for ∞ (λ (v w) (move (* ε 1) ε w)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>151</th>
+      <td>train</td>
+      <td>7 concentric circle s</td>
+      <td>sasas\na smaller version of the bunch of circle s within each other</td>
+      <td>(λ (x) (for 8 (λ (y z) (for ∞ (λ (u v) (move (* ε y) ε v)) (for ∞ (λ (w a) (move (* ε y) ε a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>152</th>
+      <td>train</td>
+      <td>a small 9 gon connected by a big line to a small 8 gon</td>
+      <td>8 gon l underline small 8 gon r\na 9 gon connected to an octagon by a line\n9 shape with 8 shape\na 9 gon connected by a long line to an octagon</td>
+      <td>(λ (x) (for 9 (λ (y z) (move (* 1 1) (/ 2π 9) z)) (move (* 1 5) 0 (for 8 (λ (u v) (move (* 1 1) (/ 2π 8) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>153</th>
+      <td>train</td>
+      <td>8 sided snowflake with a small 7 gon as arms</td>
+      <td>a snowflake with 7 sided gon and 8 arms\n8 flake with med 7 gon arms overlapping like flower\nsnowflake pattern 8 lines in center connected to 6 sided polygon creating a 3 d ball illusion\nflower made up of 7 gon s</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (for 7 (λ (v w) (move (* 1 1) (/ 2π 7) w)) u)) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>154</th>
+      <td>train</td>
+      <td>3 sided snowflake with a short space and a short line and a short space and a medium semicircle as arms</td>
+      <td>3 sided snowflake with arms that are lines with a semi circle at the end\n3 candy cane shapes with spaces in them\nboomerang</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) u))))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>155</th>
+      <td>train</td>
+      <td>a medium circle connected by a big line to a medium circle</td>
+      <td>1 circle on each end of a long line making a face\npin</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (for ∞ (λ (u v) (move (* ε 2) ε v)) (move (* 1 5) 0 (for ∞ (λ (w a) (move (* ε 2) ε a)) (for ∞ (λ (b c) (move (* ε 2) ε c)) x))))))</td>
+    </tr>
+    <tr>
+      <th>156</th>
+      <td>train</td>
+      <td>a small 6 gon</td>
+      <td>6 gon\nsmall hexagon\nhexagon\nmedium hexagon</td>
+      <td>(λ (x) (for 6 (λ (y z) (move (* 1 1) (/ 2π 6) z)) x))</td>
+    </tr>
+    <tr>
+      <th>157</th>
+      <td>train</td>
+      <td>7 sided snowflake with a medium semicircle and a short line as arms</td>
+      <td>7 medium half circle s with lines through them spaced in a large circle\n7 half circle s in a snowflake shape with a short line on the right side of each 1\n7 sided snowflake with semicircle s and short lines for arms</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) (pen-up (λ (b) (move 1 0 b)) (move 1 0 u))))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>158</th>
+      <td>train</td>
+      <td>7 sided snowflake with a medium space and a small circle as arms</td>
+      <td>7 circle s\n7 circle s\na 7 sided snowflake with a space and small circle s as sides</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 2) 0 v)) (for ∞ (λ (w a) (move (* ε 1) ε a)) (for ∞ (λ (b c) (move (* ε 1) ε c)) u)))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>159</th>
+      <td>train</td>
+      <td>3 sided snowflake with a short space and a small triangle as arms</td>
+      <td>3 small triangles in no order\n3 triangles spaced\n3 small triangles overall points north west</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for 3 (λ (w a) (move (* 1 1) (/ 2π 3) a)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>160</th>
+      <td>train</td>
+      <td>6 sided snowflake with a small semicircle as arms</td>
+      <td>3 tiny s shapes in an overlapped spiral\nsmall sun with 6 arms\na snowflake with 6 curvy arms\n6 cc spiraling from middle</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 1) ε w)) u)) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>161</th>
+      <td>train</td>
+      <td>a greek spiral with 8 turns</td>
+      <td>a long line that curls in on itself at right angles\nlines evolving concentrically\ne shape</td>
+      <td>(λ (x) (for 9 (λ (y z) (move (* 1 y) (/ 2π 4) z)) x))</td>
+    </tr>
+    <tr>
+      <th>162</th>
+      <td>train</td>
+      <td>8 sided snowflake with a medium space and a small 8 gon as arms</td>
+      <td>ads\n8 octagon s forming a snowflake</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 2) 0 v)) (for 8 (λ (w a) (move (* 1 1) (/ 2π 8) a)) u))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>163</th>
+      <td>train</td>
+      <td>a small 8 gon next to a medium square</td>
+      <td>8 gon l square r\nan octagon and then a square right next to it\n8 shape nearby square\na large octagon next to a large square</td>
+      <td>(λ (x) (for 8 (λ (y z) (move (* 1 1) (/ 2π 8) z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 4 (λ (v w) (move (* 1 2) (/ 2π 4) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>164</th>
+      <td>train</td>
+      <td>3 concentric square s</td>
+      <td>3 nesting square s\n3 nested square s\n3 nestled square s going small medium then large to the right\n3 nested square s</td>
+      <td>(λ (x) (for 4 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 y) (/ 2π 4) w)) u)) z)) x))</td>
+    </tr>
+    <tr>
+      <th>165</th>
+      <td>train</td>
+      <td>5 sided snowflake with a short line and a small 5 gon as arms</td>
+      <td>5 sided snowflake with each arm having a line and a 5 gon at the end\na sun with 5 5 gon s surrounding it\nhexagon flower</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 5 (λ (a b) (move (* 1 1) (/ 2π 5) b)) u))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>166</th>
+      <td>train</td>
+      <td>a 9 pointed star</td>
+      <td>9 sided pointy star with a circle in the middle\nstar</td>
+      <td>(λ (x) (for 9 (λ (y z) (move (* 1 4) (- (/ 2π 2) (/ (/ 2π 2) 9)) z)) x))</td>
+    </tr>
+    <tr>
+      <th>167</th>
+      <td>train</td>
+      <td>a medium 6 gon</td>
+      <td>6 sided gon\nlarge 6 gon\nmedium to large 6 sided polygon\n6 gon</td>
+      <td>(λ (x) (for 6 (λ (y z) (move (* 1 2) (/ 2π 6) z)) x))</td>
+    </tr>
+    <tr>
+      <th>168</th>
+      <td>train</td>
+      <td>5 medium semicircle s in a row</td>
+      <td>5 medium half circle s\n5 half circle s in a row on their sides with the curves facing right\n5 medium semicircle s in a row</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 2) ε w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>169</th>
+      <td>train</td>
+      <td>8 sided snowflake with a small triangle and a medium circle as arms</td>
+      <td>8 light bulbs\nice cream c1 s\n8 sided snowflake with light bulbs as arms</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for 3 (λ (w a) (move (* 1 1) (/ 2π 3) a)) (pen-up (λ (b) (move 1 0 b)) (for ∞ (λ (c d) (move (* ε 2) ε d)) (for ∞ (λ (e f) (move (* ε 2) ε f)) u)))))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>170</th>
+      <td>train</td>
+      <td>4 small circle s in a row</td>
+      <td>4 small circle s in a row\n4 circle s spaced\naudi but not overlapping small circle s small spaces between</td>
+      <td>(λ (x) (for 4 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 1) ε w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) u))) (pen-up (λ (c) (move 1 0 c)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>171</th>
+      <td>train</td>
+      <td>a small square connected by a big line to a small 9 gon</td>
+      <td>a small square connected by a medium line to a medium 9 gon\n1 small square connected by medium line to medium 9 gon\na small square on the left attached by a straight line to a larger 9 gon on the right\na square is connected to a 6 on its side</td>
+      <td>(λ (x) (for 4 (λ (y z) (move (* 1 1) (/ 2π 4) z)) (move (* 1 5) 0 (for 9 (λ (u v) (move (* 1 1) (/ 2π 9) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>172</th>
+      <td>train</td>
+      <td>3 small 5 gon s in a row</td>
+      <td>3 overlapping 5 gon s\n3 5 goins c1 cted in middle\n3 connected pentagon s</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (for 5 (λ (v w) (move (* 1 1) (/ 2π 5) w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>173</th>
+      <td>train</td>
+      <td>5 sided snowflake with a short space and a small 7 gon as arms</td>
+      <td>foot ballvector\n5 7 sided shapes forming a snowflake</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for 7 (λ (w a) (move (* 1 1) (/ 2π 7) a)) u))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>174</th>
+      <td>train</td>
+      <td>3 sided snowflake with a short space and a small 7 gon as arms</td>
+      <td>3 7 gon s not touch inverted triangle\n3 medium hexagon s forming triangle\n3 rounded 7 shapes\n3 large 7 gon s</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for 7 (λ (w a) (move (* 1 1) (/ 2π 7) a)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>175</th>
+      <td>train</td>
+      <td>a medium semicircle next to a small 9 gon</td>
+      <td>a 9 sided gon and a semicircle\n9 gon next to small semicircle\nmedium to large 9 sided polygon on left and small semi circle on the left facing the left not touching\nmedium 9 gon next to small semicircle</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 9 (λ (v w) (move (* 1 1) (/ 2π 9) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>176</th>
+      <td>train</td>
+      <td>7 sided snowflake with a short line and a small 5 gon as arms</td>
+      <td>7 sided snowflake with 5 gon s touching each other like a flower\n7 small triangles surrounded by multiple 5 gon s\nflower triangle hex</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for 5 (λ (v w) (move (* 1 1) (/ 2π 5) w)) u))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>177</th>
+      <td>train</td>
+      <td>3 sided snowflake with a medium line and a small 9 gon as arms</td>
+      <td>3 9 shaped objects connected by 3 lines making a y shape\n3 wheel</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (move (* 1 2) 0 (for 9 (λ (v w) (move (* 1 1) (/ 2π 9) w)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>178</th>
+      <td>train</td>
+      <td>a small 7 gon</td>
+      <td>7 gon\nmedium 7 gon\nhectagon by itself</td>
+      <td>(λ (x) (for 7 (λ (y z) (move (* 1 1) (/ 2π 7) z)) x))</td>
+    </tr>
+    <tr>
+      <th>179</th>
+      <td>train</td>
+      <td>3 short line s in a row</td>
+      <td>medium horizontal line\nmedium horizontal line in the middle\nmedium horizontal line</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (move 1 0 u)) (pen-up (λ (v) (move 1 0 v)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>180</th>
+      <td>train</td>
+      <td>8 sided snowflake with a short space and a small semicircle as arms</td>
+      <td>8 rainbows formed a circle\nhalf circle s\nan 8 sided snowflake with a large space and semi circle s as arms</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for ∞ (λ (w a) (move (* ε 1) ε a)) u))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>181</th>
+      <td>train</td>
+      <td>a 4 stepped staircase</td>
+      <td>4 stairs\n4 step steps\n4 step stair</td>
+      <td>(λ (x) (for 4 (λ (y z) (move 1 (/ 2π 4) (move 1 (/ 2π 4) (move 0 (/ 2π 2) z)))) x))</td>
+    </tr>
+    <tr>
+      <th>182</th>
+      <td>train</td>
+      <td>8 sided snowflake with a short space and a short line and a short space and a small circle as arms</td>
+      <td>a sunburst of 8 short lines with tiny circle s just past the outer ends\nsmall space in middle with 8 small lines with 8 small circle arms\n8 small circle s on the outside with 8 small detached lines on the inside\n8 small circle s with lines going inward</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) (for ∞ (λ (c d) (move (* ε 1) ε d)) u)))))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>183</th>
+      <td>train</td>
+      <td>5 short line s in a row</td>
+      <td>a medium vertical line\na straihjt line\nlonger straight line</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (move 1 0 u)) (pen-up (λ (v) (move 1 0 v)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>184</th>
+      <td>train</td>
+      <td>4 small semicircle s in a row</td>
+      <td>sd\n4 small half circle s in a line facing the left side</td>
+      <td>(λ (x) (for 4 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 1) ε w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>185</th>
+      <td>train</td>
+      <td>a medium circle connected by a medium line to a small 5 gon</td>
+      <td>circle with underline connecting 5 gon\ncircle line pentagon\ncircle with 5 shape\na medium circle connected by a line to a pentagon</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (for ∞ (λ (u v) (move (* ε 2) ε v)) (move (* 1 2) 0 (for 5 (λ (w a) (move (* 1 1) (/ 2π 5) a)) x)))))</td>
+    </tr>
+    <tr>
+      <th>186</th>
+      <td>train</td>
+      <td>a 7 stepped staircase</td>
+      <td>a small line going to the right a small line going up and a continuous repeat pattern for 7 times\nstaircase with 7 steps\nstairway pattern going up from left to right\n7 step ladder</td>
+      <td>(λ (x) (for 7 (λ (y z) (move 1 (/ 2π 4) (move 1 (/ 2π 4) (move 0 (/ 2π 2) z)))) x))</td>
+    </tr>
+    <tr>
+      <th>187</th>
+      <td>train</td>
+      <td>7 sided snowflake with a medium semicircle as arms</td>
+      <td>7 semicircle s touching at a central point and fanning out like a pinwheel\na hurricane snowflake\nswirly</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 2) ε w)) u)) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>188</th>
+      <td>train</td>
+      <td>6 sided snowflake with a short space and a small semicircle as arms</td>
+      <td>disconnected 6 sided star with round edges\nring circle</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for ∞ (λ (w a) (move (* ε 1) ε a)) u))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>189</th>
+      <td>train</td>
+      <td>a medium 7 gon</td>
+      <td>a 6 sided hexagon\nits an hexagon it has 7 sides</td>
+      <td>(λ (x) (for 7 (λ (y z) (move (* 1 2) (/ 2π 7) z)) x))</td>
+    </tr>
+    <tr>
+      <th>190</th>
+      <td>train</td>
+      <td>a medium 5 gon separated by a big space from a short line</td>
+      <td>large pentagon with a small line to the right\non large 5 g1 point up and big space then small line on the right\nbig pentagon far from short low line</td>
+      <td>(λ (x) (for 5 (λ (y z) (move (* 1 2) (/ 2π 5) z)) (pen-up (λ (u) (move (* 1 5) 0 u)) (move 1 0 x))))</td>
+    </tr>
+    <tr>
+      <th>191</th>
+      <td>train</td>
+      <td>8 sided snowflake with a short space and a short line and a short space and a small square as arms</td>
+      <td>sun with 8 square s\n8 square s with 8 lines\n8 sided snowflake with 8 lines a space and 8 square s as arms</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 4 (λ (a b) (move (* 1 1) (/ 2π 4) b)) u))))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>192</th>
+      <td>train</td>
+      <td>6 medium circle s in a row</td>
+      <td>6 connected small circle s\n6 circle chain\naudi but with 6 rings</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 2) ε w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) u))) (pen-up (λ (c) (move 1 0 c)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>193</th>
+      <td>train</td>
+      <td>a greek spiral with 6 turns</td>
+      <td>a spiral going counterclock\n6 lines connected together to from backwards large g shape\na line that goes right down left up right and then down\na square spiral that starts at the top left</td>
+      <td>(λ (x) (for 7 (λ (y z) (move (* 1 y) (/ 2π 4) z)) x))</td>
+    </tr>
+    <tr>
+      <th>194</th>
+      <td>train</td>
+      <td>3 sided snowflake with a medium space and a small 6 gon as arms</td>
+      <td>3 sided snowflake with a space and 6 gon for arms\n3 pentagon s\n3 non connected 6 g1</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 2) 0 v)) (for 6 (λ (w a) (move (* 1 1) (/ 2π 6) a)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>195</th>
+      <td>train</td>
+      <td>5 sided snowflake with a small 5 gon and a small circle as arms</td>
+      <td>dsd\n5 pentagon s forming a snowflake a small circle intersects each of the pentagon s on 1 of the sides</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for 5 (λ (w a) (move (* 1 1) (/ 2π 5) a)) (pen-up (λ (b) (move 1 0 b)) (for ∞ (λ (c d) (move (* ε 1) ε d)) (for ∞ (λ (e f) (move (* ε 1) ε f)) u)))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>196</th>
+      <td>train</td>
+      <td>a small semicircle connected by a big line to a medium semicircle</td>
+      <td>hook large end left down\na medium left semicircle long line and smaller right semicicrcle\nlike a hook\na double sided cane with 1 small end and 1 large end</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 1) ε z)) (move (* 1 5) 0 (for ∞ (λ (u v) (move (* ε 2) ε v)) x))))</td>
+    </tr>
+    <tr>
+      <th>197</th>
+      <td>train</td>
+      <td>5 sided snowflake with a small square and a small triangle as arms</td>
+      <td>5 sided snowflake with a medium space with a 4 side square and a 4 triangles as arms\n5 flake with squaretriangle arms\n5 snowflake design with nothing in middle and arms are 4 square s with triangles connected to it small square s and smaller triangles\nsnowflake with 5 arms made up of small square s next to small triangles</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for 4 (λ (w a) (move (* 1 1) (/ 2π 4) a)) (pen-up (λ (b) (move 1 0 b)) (for 3 (λ (c d) (move (* 1 1) (/ 2π 3) d)) u))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>198</th>
+      <td>train</td>
+      <td>6 sided snowflake with a medium triangle as arms</td>
+      <td>6 gon divided into 6 touching triangles\n6 triangles that make a 6 gon\nhexagon triangle</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (for 3 (λ (v w) (move (* 1 2) (/ 2π 3) w)) u)) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>199</th>
+      <td>train</td>
+      <td>7 sided snowflake with a small triangle as arms</td>
+      <td>a dark small hampster wheel with 7 small tirangles and a circle in the middle\nwheel</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (for 3 (λ (v w) (move (* 1 1) (/ 2π 3) w)) u)) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>200</th>
+      <td>test</td>
+      <td>a greek spiral with 7 turns</td>
+      <td>a long line that snakes in on itself\nl1 line on the left side with long line at top going right then medium long line going down on the right and at bottom of that line a small to medium line going left but not touching the left long line then a smaller line going up from that line then smaller line going right and small line going downlike a maze\nlarge rectangular spiral made of 7 lines</td>
+      <td>(λ (x) (for 8 (λ (y z) (move (* 1 y) (/ 2π 4) z)) x))</td>
+    </tr>
+    <tr>
+      <th>201</th>
+      <td>test</td>
+      <td>a 7 pointed star</td>
+      <td>star\nstar\na 7 sided snowflake with long triangles as arms</td>
+      <td>(λ (x) (for 7 (λ (y z) (move (* 1 4) (- (/ 2π 2) (/ (/ 2π 2) 7)) z)) x))</td>
+    </tr>
+    <tr>
+      <th>202</th>
+      <td>test</td>
+      <td>a 5 stepped staircase</td>
+      <td>5 step staircase\nstair case going up to the right as 5 half square s\n4 step staircase</td>
+      <td>(λ (x) (for 5 (λ (y z) (move 1 (/ 2π 4) (move 1 (/ 2π 4) (move 0 (/ 2π 2) z)))) x))</td>
+    </tr>
+    <tr>
+      <th>203</th>
+      <td>test</td>
+      <td>8 sided snowflake with a short line and a small semicircle as arms</td>
+      <td>8 medium lines arranged in a circle inside of 8 small half circle s\n8 half circle s snowflake with 8 short lines around a center circle\n8 sided snowflake with small floating lines and semicircle s for arms</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) u))))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>204</th>
+      <td>test</td>
+      <td>8 sided snowflake with a medium semicircle and a small 5 gon as arms</td>
+      <td>dark whirlpool\nblob of lines\nan 8 sided snowflake with a black center and triangles connected to semi circle s as arms</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) (pen-up (λ (b) (move 1 0 b)) (for 5 (λ (c d) (move (* 1 1) (/ 2π 5) d)) u))))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>205</th>
+      <td>test</td>
+      <td>6 sided snowflake with a small circle and a small semicircle as arms</td>
+      <td>a 6 sided snowflake with 6 small circle s inside\nhexagon of circle s surrounded by semi circle s\n6 small circle s in the middle and half os on the outside</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for ∞ (λ (w a) (move (* ε 1) ε a)) (for ∞ (λ (b c) (move (* ε 1) ε c)) (pen-up (λ (d) (move 1 0 d)) (for ∞ (λ (e f) (move (* ε 1) ε f)) u)))))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>206</th>
+      <td>test</td>
+      <td>8 sided snowflake with a small 5 gon and a medium semicircle as arms</td>
+      <td>8 5 gon s in a circle with semi circle s attached outside each\n7 gon in middle with 9 small 5 gon s around it with half cir cles connected to the 5 gon s\n8 pentagon s with hooks that go up and to the right on the outside with a 8 gon attached on the inside\n8 pentagon s with a curl</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for 5 (λ (w a) (move (* 1 1) (/ 2π 5) a)) (pen-up (λ (b) (move 1 0 b)) (for ∞ (λ (c d) (move (* ε 2) ε d)) u))))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>207</th>
+      <td>test</td>
+      <td>6 sided snowflake with a small triangle and a medium circle as arms</td>
+      <td>a 6 sided snowflake with a space and a triangle and a circle for arms\nsnoflake 6 sides odd ball shaoes\n6 ice cream c1 s</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for 3 (λ (w a) (move (* 1 1) (/ 2π 3) a)) (pen-up (λ (b) (move 1 0 b)) (for ∞ (λ (c d) (move (* ε 2) ε d)) (for ∞ (λ (e f) (move (* ε 2) ε f)) u)))))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>208</th>
+      <td>test</td>
+      <td>3 sided snowflake with a medium semicircle and a small semicircle as arms</td>
+      <td>dsd\nsmall half and big half circle but 3 of them and they are forming a snowflake</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) (pen-up (λ (b) (move 1 0 b)) (for ∞ (λ (c d) (move (* ε 1) ε d)) u))))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>209</th>
+      <td>test</td>
+      <td>8 sided snowflake with a medium circle and a small circle as arms</td>
+      <td>6 overlapped circle s with 8 smaller circle s adjacent outer\nsnowflake with 8 circle s in the middle of the sides of an octagon with ovals connecting these to a smaller octagon in the center\nflower art\n8 connected medium circle s with 8 smaller circle s on the outer edge</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) (for ∞ (λ (b c) (move (* ε 2) ε c)) (pen-up (λ (d) (move 1 0 d)) (for ∞ (λ (e f) (move (* ε 1) ε f)) (for ∞ (λ (g h) (move (* ε 1) ε h)) u))))))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>210</th>
+      <td>test</td>
+      <td>5 sided snowflake with 2 small circle s as arms</td>
+      <td>snowflake with 1 0 circle s as arms\n5 flake with arms made of 2 circle s in a line\nsnowflake design with no lines 2 circle pairs make up the 5 spoked design\nstar made up of 5 legs of 2 circle s</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for ∞ (λ (w a) (move (* ε 1) ε a)) (for ∞ (λ (b c) (move (* ε 1) ε c)) (pen-up (λ (d) (move 1 0 d)) (for ∞ (λ (e f) (move (* ε 1) ε f)) (for ∞ (λ (g h) (move (* ε 1) ε h)) u))))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>211</th>
+      <td>test</td>
+      <td>3 sided snowflake with a small square and a small circle as arms</td>
+      <td>3 sided snowflake with square and circle at end of each arm\n3 small square s with tiny cirlces in them\ncircle square link</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for 4 (λ (w a) (move (* 1 1) (/ 2π 4) a)) (pen-up (λ (b) (move 1 0 b)) (for ∞ (λ (c d) (move (* ε 1) ε d)) (for ∞ (λ (e f) (move (* ε 1) ε f)) u)))))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>212</th>
+      <td>test</td>
+      <td>5 sided snowflake with a small 5 gon and a small square as arms</td>
+      <td>5 pairs of a square and a house shape in a circle pattern\njoint shapes of a square and pentagon</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for 5 (λ (w a) (move (* 1 1) (/ 2π 5) a)) (pen-up (λ (b) (move 1 0 b)) (for 4 (λ (c d) (move (* 1 1) (/ 2π 4) d)) u))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>213</th>
+      <td>test</td>
+      <td>a 8 stepped staircase</td>
+      <td>stairs\nlarge stairs\na staircase with 8 steps</td>
+      <td>(λ (x) (for 8 (λ (y z) (move 1 (/ 2π 4) (move 1 (/ 2π 4) (move 0 (/ 2π 2) z)))) x))</td>
+    </tr>
+    <tr>
+      <th>214</th>
+      <td>test</td>
+      <td>6 sided snowflake with a small 5 gon and a small square as arms</td>
+      <td>6 pentagon s with square s attached\n6 medium 6 gon s snowflake with small square s ont eh top right of each gon at the outer side\n6 sided snowflake with arms of touching pentagon s and small square s</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for 5 (λ (w a) (move (* 1 1) (/ 2π 5) a)) (pen-up (λ (b) (move 1 0 b)) (for 4 (λ (c d) (move (* 1 1) (/ 2π 4) d)) u))))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>215</th>
+      <td>test</td>
+      <td>a 3 stepped staircase</td>
+      <td>3 stairs\n3 step stairs\n3 step stair</td>
+      <td>(λ (x) (for 3 (λ (y z) (move 1 (/ 2π 4) (move 1 (/ 2π 4) (move 0 (/ 2π 2) z)))) x))</td>
+    </tr>
+    <tr>
+      <th>216</th>
+      <td>test</td>
+      <td>a 6 stepped staircase</td>
+      <td>a zigzag of 6 steps\n6 stepped staircase\na 6 step staircase\n6 stairs</td>
+      <td>(λ (x) (for 6 (λ (y z) (move 1 (/ 2π 4) (move 1 (/ 2π 4) (move 0 (/ 2π 2) z)))) x))</td>
+    </tr>
+    <tr>
+      <th>217</th>
+      <td>test</td>
+      <td>a 3 stepped zigzag</td>
+      <td>a vertical zig zag line with 3 right points\nmed veert wavy line\nvertical squggle</td>
+      <td>(λ (x) (move 0 (/ 2π 8) (for 3 (λ (y z) (move 1 (/ 2π 4) (move 1 (logo_ADDA (/ 2π 2) (/ 2π 4)) z))) x)))</td>
+    </tr>
+    <tr>
+      <th>218</th>
+      <td>test</td>
+      <td>a medium 5 gon next to a medium square</td>
+      <td>ad\na pentagon penetrating a square from the left side of the square and touching part of the top side</td>
+      <td>(λ (x) (for 5 (λ (y z) (move (* 1 2) (/ 2π 5) z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 4 (λ (v w) (move (* 1 2) (/ 2π 4) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>219</th>
+      <td>test</td>
+      <td>a medium semicircle next to a small 8 gon</td>
+      <td>8 gon and small half circle\nlarger octagon space small semicircle\n8 shape with half circle\na large octagon to the left of a medium half circle</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 8 (λ (v w) (move (* 1 1) (/ 2π 8) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>220</th>
+      <td>test</td>
+      <td>a medium circle next to a short line</td>
+      <td>medium circle small line\nsmall circle to left of underscore\nsmallmedium circle on left and dash or underscore on right with space in between\ncircle next to line</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (for ∞ (λ (u v) (move (* ε 2) ε v)) (pen-up (λ (w) (move (* 1 2) 0 w)) (move 1 0 x)))))</td>
+    </tr>
+    <tr>
+      <th>221</th>
+      <td>test</td>
+      <td>a medium circle next to a small 9 gon</td>
+      <td>small circle next to a larger 9 gon\na small circle next to a large 9 gon\noctagon circle</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (for ∞ (λ (u v) (move (* ε 2) ε v)) (pen-up (λ (w) (move (* 1 2) 0 w)) (for 9 (λ (a b) (move (* 1 1) (/ 2π 9) b)) x)))))</td>
+    </tr>
+    <tr>
+      <th>222</th>
+      <td>test</td>
+      <td>a small 7 gon next to a medium triangle</td>
+      <td>a larger 7 sided shape on the left to a triangle\na mathematical shape of hexagon and triangle</td>
+      <td>(λ (x) (for 7 (λ (y z) (move (* 1 1) (/ 2π 7) z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 3 (λ (v w) (move (* 1 2) (/ 2π 3) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>223</th>
+      <td>test</td>
+      <td>6 concentric square s</td>
+      <td>6 nested square s\n6 nested boxes\n6 square s inside each other wifi symbol</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 y) (/ 2π 4) w)) u)) z)) x))</td>
+    </tr>
+    <tr>
+      <th>224</th>
+      <td>test</td>
+      <td>a small semicircle next to a small 9 gon</td>
+      <td>a large nonagon with a small half circle\nlarge n1 gon and a small half circle at top right after a space curve to the right\nbig 9 gon next to small high semicircle</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 1) ε z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 9 (λ (v w) (move (* 1 1) (/ 2π 9) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>225</th>
+      <td>test</td>
+      <td>a small square next to a small 6 gon</td>
+      <td>square with hexagon\nsquare and stopsign\na small square and a medium 6 gon</td>
+      <td>(λ (x) (for 4 (λ (y z) (move (* 1 1) (/ 2π 4) z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 6 (λ (v w) (move (* 1 1) (/ 2π 6) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>226</th>
+      <td>test</td>
+      <td>a medium semicircle separated by a big space from a medium circle</td>
+      <td>a small circle close to a half circle\ncircle with big space then semi circle\ncircle and then a half circle on the right of it spaced out pretty far half circle is pointing to right</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (pen-up (λ (u) (move (* 1 5) 0 u)) (for ∞ (λ (v w) (move (* ε 2) ε w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) x)))))</td>
+    </tr>
+    <tr>
+      <th>227</th>
+      <td>test</td>
+      <td>a medium square next to a medium triangle</td>
+      <td>a medium square touching a medium triangle\nmedium square connected to medium triangle\na slightly larger square attached to a triangle\na square and triangle touching</td>
+      <td>(λ (x) (for 4 (λ (y z) (move (* 1 2) (/ 2π 4) z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for 3 (λ (v w) (move (* 1 2) (/ 2π 3) w)) x))))</td>
+    </tr>
+    <tr>
+      <th>228</th>
+      <td>test</td>
+      <td>a small 7 gon separated by a big space from a small circle</td>
+      <td>a medium 7 gon and a small circle\nlarge octagon with a small circle\n6 g1 with small circle on its right unconnected</td>
+      <td>(λ (x) (for 7 (λ (y z) (move (* 1 1) (/ 2π 7) z)) (pen-up (λ (u) (move (* 1 5) 0 u)) (for ∞ (λ (v w) (move (* ε 1) ε w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) x)))))</td>
+    </tr>
+    <tr>
+      <th>229</th>
+      <td>test</td>
+      <td>a medium semicircle next to a small semicircle</td>
+      <td>ds\na small half circle facing right next to the left of a larger half circle facing left</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (pen-up (λ (u) (move (* 1 2) 0 u)) (for ∞ (λ (v w) (move (* ε 1) ε w)) x))))</td>
+    </tr>
+    <tr>
+      <th>230</th>
+      <td>test</td>
+      <td>a medium circle separated by a big space from a short line</td>
+      <td>circle left minus sign right\nsmall circle large space short line\na circle distant with a line\na medium circle with a small line far to the right of it</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (for ∞ (λ (u v) (move (* ε 2) ε v)) (pen-up (λ (w) (move (* 1 5) 0 w)) (move 1 0 x)))))</td>
+    </tr>
+    <tr>
+      <th>231</th>
+      <td>test</td>
+      <td>a small triangle connected by a medium line to a small 8 gon</td>
+      <td>small triangle small line 8 sided gon\nmed 6 gon and small triangle connect by line\nsmall triangle connected on left to medium 8 sided polygon by a short distance line\nsmall triangle next to 8 gon connected by small line</td>
+      <td>(λ (x) (for 3 (λ (y z) (move (* 1 1) (/ 2π 3) z)) (move (* 1 2) 0 (for 8 (λ (u v) (move (* 1 1) (/ 2π 8) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>232</th>
+      <td>test</td>
+      <td>a medium 5 gon connected by a big line to a medium circle</td>
+      <td>large 5 gon on left connected to small circle via line\na 5 gon with a small circle attached by a line to the right\nhexagon tail cricle</td>
+      <td>(λ (x) (for 5 (λ (y z) (move (* 1 2) (/ 2π 5) z)) (move (* 1 5) 0 (for ∞ (λ (u v) (move (* ε 2) ε v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) x)))))</td>
+    </tr>
+    <tr>
+      <th>233</th>
+      <td>test</td>
+      <td>a short line connected by a big line to a medium semicircle</td>
+      <td>candy cane laying on its side sticking up\nhook shape</td>
+      <td>(λ (x) (move 1 0 (move (* 1 5) 0 (for ∞ (λ (y z) (move (* ε 2) ε z)) x))))</td>
+    </tr>
+    <tr>
+      <th>234</th>
+      <td>test</td>
+      <td>8 concentric square s</td>
+      <td>8 concentric square s starting bottom left\n8 square s stepped together from very small to huge\n8 square s on top of each other\n8 nested square s</td>
+      <td>(λ (x) (for 9 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 y) (/ 2π 4) w)) u)) z)) x))</td>
+    </tr>
+    <tr>
+      <th>235</th>
+      <td>test</td>
+      <td>a small circle connected by a medium line to a small triangle</td>
+      <td>small circle connected to a small triangle\na long line with a small circle on the left top and a small triangle on the right side top of the line\nsmall circle connected by line to small triangle</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 1) ε z)) (for ∞ (λ (u v) (move (* ε 1) ε v)) (move (* 1 2) 0 (for 3 (λ (w a) (move (* 1 1) (/ 2π 3) a)) x)))))</td>
+    </tr>
+    <tr>
+      <th>236</th>
+      <td>test</td>
+      <td>a medium semicircle connected by a big line to a medium circle</td>
+      <td>broken paperclip with longer ends\nbroken paperclip\na medium circle connected at the top by a horizontal line to a medium semi circle</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (move (* 1 5) 0 (for ∞ (λ (u v) (move (* ε 2) ε v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) x)))))</td>
+    </tr>
+    <tr>
+      <th>237</th>
+      <td>test</td>
+      <td>a small 5 gon connected by a medium line to a small 5 gon</td>
+      <td>2 pentagon s connected by a line at the bottom\n2 pentagon s connected by a line\n2 pentagon s connected by line at the bottom spaced out pentagon</td>
+      <td>(λ (x) (for 5 (λ (y z) (move (* 1 1) (/ 2π 5) z)) (move (* 1 2) 0 (for 5 (λ (u v) (move (* 1 1) (/ 2π 5) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>238</th>
+      <td>test</td>
+      <td>a small circle connected by a medium line to a medium semicircle</td>
+      <td>a fishhook pointing right\nvery small circle connected to hook shape looks like side umbrella\nsmall circle with a short straight line attached to a hook that points up and to the left\na fish hook on its side</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 1) ε z)) (for ∞ (λ (u v) (move (* ε 1) ε v)) (move (* 1 2) 0 (for ∞ (λ (w a) (move (* ε 2) ε a)) x)))))</td>
+    </tr>
+    <tr>
+      <th>239</th>
+      <td>test</td>
+      <td>a small 8 gon connected by a big line to a small 8 gon</td>
+      <td>2 8 gon s connected by a long straight line\n2 octo an a line\n6 g1 connected on botton to another 6 gon</td>
+      <td>(λ (x) (for 8 (λ (y z) (move (* 1 1) (/ 2π 8) z)) (move (* 1 5) 0 (for 8 (λ (u v) (move (* 1 1) (/ 2π 8) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>240</th>
+      <td>test</td>
+      <td>a small 7 gon connected by a big line to a small 5 gon</td>
+      <td>sas\na 7 gon connecting at the based with a line to a hexagon</td>
+      <td>(λ (x) (for 7 (λ (y z) (move (* 1 1) (/ 2π 7) z)) (move (* 1 5) 0 (for 5 (λ (u v) (move (* 1 1) (/ 2π 5) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>241</th>
+      <td>test</td>
+      <td>a medium semicircle connected by a big line to a medium square</td>
+      <td>square with long hook on top\n1 half of square glasses\nrotated 9\na cane with a square shaped flag at the straight end</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (move (* 1 5) 0 (for 4 (λ (u v) (move (* 1 2) (/ 2π 4) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>242</th>
+      <td>test</td>
+      <td>a small square connected by a medium line to a small 6 gon</td>
+      <td>small square small line medium 6 sided gon\nsmall square connected to 6 gon by line\nsmallmedium square on left connected to 6 sided polygon on right by a smallmedium line\nsmall square connected to medium 6 gon by small line</td>
+      <td>(λ (x) (for 4 (λ (y z) (move (* 1 1) (/ 2π 4) z)) (move (* 1 2) 0 (for 6 (λ (u v) (move (* 1 1) (/ 2π 6) v)) x))))</td>
+    </tr>
+    <tr>
+      <th>243</th>
+      <td>test</td>
+      <td>a medium circle connected by a medium line to a medium 5 gon</td>
+      <td>small circle connected to larger 5 gon via a line\na circle is attached to a 5 gon by a line\nhexagon circle</td>
+      <td>(λ (x) (for ∞ (λ (y z) (move (* ε 2) ε z)) (for ∞ (λ (u v) (move (* ε 2) ε v)) (move (* 1 2) 0 (for 5 (λ (w a) (move (* 1 2) (/ 2π 5) a)) x)))))</td>
+    </tr>
+    <tr>
+      <th>244</th>
+      <td>test</td>
+      <td>4 small triangle s in a row</td>
+      <td>4 small tirangles in a row\nteeth shape object</td>
+      <td>(λ (x) (for 4 (λ (y z) (get/set (λ (u) (for 3 (λ (v w) (move (* 1 1) (/ 2π 3) w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>245</th>
+      <td>test</td>
+      <td>5 concentric square s</td>
+      <td>5 stacked square s\n5 concentric square s\nlarger 5 nested square s</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 y) (/ 2π 4) w)) u)) z)) x))</td>
+    </tr>
+    <tr>
+      <th>246</th>
+      <td>test</td>
+      <td>6 small semicircle s in a row</td>
+      <td>6 small half circle s\n6 small half circle in a horizontal row with curve on the right side\n6 small semicircle s in a row</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 1) ε w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>247</th>
+      <td>test</td>
+      <td>5 medium circle s in a row</td>
+      <td>5 circle s\n5 circle s\n5 small overlapping circle s in a row</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 2) ε w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) u))) (pen-up (λ (c) (move 1 0 c)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>248</th>
+      <td>test</td>
+      <td>3 small semicircle s in a row</td>
+      <td>3 small half circle s\n3 semi circle s spaced\n3 commas facing right</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 1) ε w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>249</th>
+      <td>test</td>
+      <td>4 medium circle s in a row</td>
+      <td>4 linked small circle s in a row\n4 small circle s linked together\n4 small circle s that overlap slightly and are arranged in a row\n4 circle s overlapping in a line</td>
+      <td>(λ (x) (for 4 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 2) ε w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) u))) (pen-up (λ (c) (move 1 0 c)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>250</th>
+      <td>test</td>
+      <td>5 small circle s in a row</td>
+      <td>5 small circle s in a row\n5 asnall cirlces\n5 circle s</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 1) ε w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) u))) (pen-up (λ (c) (move 1 0 c)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>251</th>
+      <td>test</td>
+      <td>6 small circle s in a row</td>
+      <td>sa\n6 small circle s forming a line</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 1) ε w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) u))) (pen-up (λ (c) (move 1 0 c)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>252</th>
+      <td>test</td>
+      <td>5 small 5 gon s in a row</td>
+      <td>5 overlapping 5 gon s\n5 overlapping pentagon s in a row\n5 merged pentagon\n5 pentagon s in a row</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for 5 (λ (v w) (move (* 1 1) (/ 2π 5) w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>253</th>
+      <td>test</td>
+      <td>6 small triangle s in a row</td>
+      <td>6 small triangles\n6 triangles in a row\n6 small triangles connected in a row together\n6 triangles next to each other</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (for 3 (λ (v w) (move (* 1 1) (/ 2π 3) w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>254</th>
+      <td>test</td>
+      <td>3 small circle s in a row</td>
+      <td>3 small circle s lined up in a line\n3 small circle s\n3 circle s</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 1) ε w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) u))) (pen-up (λ (c) (move 1 0 c)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>255</th>
+      <td>test</td>
+      <td>3 small square s in a row</td>
+      <td>3 square s in a row on its side\n3 jointed square shape object</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 1) (/ 2π 4) w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>256</th>
+      <td>test</td>
+      <td>7 concentric square s</td>
+      <td>laberinto small and a\n7 square s in each other congregating at the left bottom corner</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 y) (/ 2π 4) w)) u)) z)) x))</td>
+    </tr>
+    <tr>
+      <th>257</th>
+      <td>test</td>
+      <td>5 small semicircle s in a row</td>
+      <td>5 small half circle s\n5 small half circle s with space between them in a row curve on the right\n5 small semicircle s in a row</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 1) ε w)) u)) (pen-up (λ (a) (move 1 0 a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>258</th>
+      <td>test</td>
+      <td>5 sided snowflake with a small 8 gon as arms</td>
+      <td>5 gon\noverlapping octogon s\n5 medium overlapping 8 gon s in a circle</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for 8 (λ (v w) (move (* 1 1) (/ 2π 8) w)) u)) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>259</th>
+      <td>test</td>
+      <td>3 sided snowflake with a small 5 gon as arms</td>
+      <td>3 pentagon s connected at a single point\n3 pentagon s connected\n3 pentagon stuck together in the middle offset 4 5 deg right</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (for 5 (λ (v w) (move (* 1 1) (/ 2π 5) w)) u)) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>260</th>
+      <td>test</td>
+      <td>5 sided snowflake with a small circle as arms</td>
+      <td>5 tiny overlapping circle s\nvery small 5 gon made from super small circle s\na small circle that is divided into 5 circle s on the outside and 5 circle s on the inside\n5 tiny circle s in a pentagon formation</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 1) ε w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) u))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>261</th>
+      <td>test</td>
+      <td>3 sided snowflake with a small triangle as arms</td>
+      <td>a 3 sided snowflake with triangles for arms\nsnoflake composed of 3 tringles\n3 traingle wheel no lines</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (for 3 (λ (v w) (move (* 1 1) (/ 2π 3) w)) u)) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>262</th>
+      <td>test</td>
+      <td>3 sided snowflake with a medium square as arms</td>
+      <td>asa\n3 square s connecting at the center</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 2) (/ 2π 4) w)) u)) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>263</th>
+      <td>test</td>
+      <td>8 sided snowflake with a medium 5 gon as arms</td>
+      <td>8 overlapped 5 gon s\n8 large pentagon s forming a circle and overlapping\ncomplicated 1\n8 pentagon s connected at 1 point</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (for 5 (λ (v w) (move (* 1 2) (/ 2π 5) w)) u)) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>264</th>
+      <td>test</td>
+      <td>3 sided snowflake with a medium semicircle as arms</td>
+      <td>3 semicircle s connected\n3 flake with semicircle arms\n3 object snowflake and the object is a half circle touching in the middle\nsnowflake with 3 semicircle arms</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 2) ε w)) u)) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>265</th>
+      <td>test</td>
+      <td>8 sided snowflake with a medium semicircle as arms</td>
+      <td>8 semicircle s connected at a central point\na hurricane with 8 arms\nswirly</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (for ∞ (λ (v w) (move (* ε 2) ε w)) u)) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>266</th>
+      <td>test</td>
+      <td>3 sided snowflake with a small 6 gon as arms</td>
+      <td>a 3 piece h1 y comb 6 sided pieces\n3 hexagon</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (for 6 (λ (v w) (move (* 1 1) (/ 2π 6) w)) u)) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>267</th>
+      <td>test</td>
+      <td>5 concentric circle s</td>
+      <td>5 inscribed circle s\n5 concentric circle s\n5 nested holes\n5 nested circle s</td>
+      <td>(λ (x) (for 6 (λ (y z) (for ∞ (λ (u v) (move (* ε y) ε v)) (for ∞ (λ (w a) (move (* ε y) ε a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>268</th>
+      <td>test</td>
+      <td>7 sided snowflake with a short line as arms</td>
+      <td>an asterisk\n7 thick short lines in a snowflake\nsmall 7 sided snowflake with short connected line arms</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (move 1 0 u)) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>269</th>
+      <td>test</td>
+      <td>8 sided snowflake with a medium square as arms</td>
+      <td>2 square with different angle on top of each other\noffset square s\nan 8 sided snowflake with a dot connected to lines connected to the bottom center of triangles as sides</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (for 4 (λ (v w) (move (* 1 2) (/ 2π 4) w)) u)) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>270</th>
+      <td>test</td>
+      <td>8 sided snowflake with a short line as arms</td>
+      <td>an asterisk\nsnowflake of lines\nasterisk 8 leg</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (move 1 0 u)) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>271</th>
+      <td>test</td>
+      <td>6 sided snowflake with a short line and a medium semicircle as arms</td>
+      <td>a wheel of 3 backward s shapes\nvery small black circle connected to 6 medium curve sun arms\na snow flake with 6 curvy lines slightly larger than the other 1\n6 js connected at the center</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for ∞ (λ (v w) (move (* ε 2) ε w)) u))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>272</th>
+      <td>test</td>
+      <td>3 sided snowflake with a medium line and a medium square as arms</td>
+      <td>a 3 sided snowflake with straight arms and square s at the end of the arms\n3 sided snowflake on triple axia\n3 connected square s</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (move (* 1 2) 0 (for 4 (λ (v w) (move (* 1 2) (/ 2π 4) w)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>273</th>
+      <td>test</td>
+      <td>8 sided snowflake with a short line and a small 5 gon as arms</td>
+      <td>assas\n8 pentagon s with a circle in the center and 8 triangles within the circle s tight</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for 5 (λ (v w) (move (* 1 1) (/ 2π 5) w)) u))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>274</th>
+      <td>test</td>
+      <td>3 sided snowflake with a medium line and a medium circle as arms</td>
+      <td>3 outer circle s connected by 3 lines\n3 spoked pinwheel with 3 medium lines and small circle s as spokes\nlike a fan\na 3 sided snowflake made of medium circle s and medium lines that are connected</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (move (* 1 2) 0 (for ∞ (λ (v w) (move (* ε 2) ε w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) u)))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>275</th>
+      <td>test</td>
+      <td>6 sided snowflake with a medium line and a small 9 gon as arms</td>
+      <td>snowflake with 9 sided gon star shape with 6 medium lines and 6 arms\n6 flake with 9 gon arms connect via line\n6 lined snowflake pattern connecting to 9 sided polygon\nwheel made up of 6 arms of 9 gon s</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (move (* 1 2) 0 (for 9 (λ (v w) (move (* 1 1) (/ 2π 9) w)) u))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>276</th>
+      <td>test</td>
+      <td>3 sided snowflake with a medium line and a small square as arms</td>
+      <td>3 sided snowflake with square s connected to lines as arms\n3 arms with 3 square s\nboomerang square line</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (move (* 1 2) 0 (for 4 (λ (v w) (move (* 1 1) (/ 2π 4) w)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>277</th>
+      <td>test</td>
+      <td>6 sided snowflake with a medium line and a small circle as arms</td>
+      <td>3 long lines on top of each other making a 6 sided star with hollow circle s on each end\npin circle</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (move (* 1 2) 0 (for ∞ (λ (v w) (move (* ε 1) ε w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) u)))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>278</th>
+      <td>test</td>
+      <td>4 concentric circle s</td>
+      <td>4 nesting circle s\n4 nested circle s\n4 nestled circle s going upward in size and direction\n4 nested circle s</td>
+      <td>(λ (x) (for 5 (λ (y z) (for ∞ (λ (u v) (move (* ε y) ε v)) (for ∞ (λ (w a) (move (* ε y) ε a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>279</th>
+      <td>test</td>
+      <td>6 sided snowflake with a short line and a small 9 gon as arms</td>
+      <td>6 nonagon s with a line to a middle axis point\n6 9 gon s overlapping into a snowflake with a 5 medium length star inside attached to each\n6 sided snowflake with 9 gon s for arms</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for 9 (λ (v w) (move (* 1 1) (/ 2π 9) w)) u))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>280</th>
+      <td>test</td>
+      <td>7 sided snowflake with a medium line and a medium circle as arms</td>
+      <td>wheel with 9 balls\ncircle s with lines\na 7 sided snowflake with lines connected to circle s as arms</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (move (* 1 2) 0 (for ∞ (λ (v w) (move (* ε 2) ε w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) u)))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>281</th>
+      <td>test</td>
+      <td>3 sided snowflake with a short line and a small 8 gon as arms</td>
+      <td>3 octagon s connected by a y\n3 hexagon s connected\n3 ball cloverleaf</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for 8 (λ (v w) (move (* 1 1) (/ 2π 8) w)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>282</th>
+      <td>test</td>
+      <td>8 sided snowflake with a short line and a medium triangle as arms</td>
+      <td>a wheel of 8 medium triangle flags\nvery small circle in middle connected to 8 medium lines which connect to 8 medium triangles\nsnowflake with 8 medium sized triangles attached to 8 connected lines on the inside\n8 triangles with lines going to the center</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (move (* 1 1) 0 (for 3 (λ (v w) (move (* 1 2) (/ 2π 3) w)) u))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>283</th>
+      <td>test</td>
+      <td>7 sided snowflake with a medium line and a medium triangle as arms</td>
+      <td>a 7 sided snowflake with straight lines and triangles for arms\n7 sided snowflake arounfd a spiral 7 arms\n7 triangle wheel</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (move (* 1 2) 0 (for 3 (λ (v w) (move (* 1 2) (/ 2π 3) w)) u))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>284</th>
+      <td>test</td>
+      <td>3 sided snowflake with a medium space and a medium circle as arms</td>
+      <td>3 circle\n3 small circle s forming a triangle formation</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 2) 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) (for ∞ (λ (b c) (move (* ε 2) ε c)) u)))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>285</th>
+      <td>test</td>
+      <td>6 sided snowflake with a short space and a medium square as arms</td>
+      <td>6 gon square s\n6 square s in a circle\n6 sqaures\n6 large square s arranged in a circle</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for 4 (λ (w a) (move (* 1 2) (/ 2π 4) a)) u))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>286</th>
+      <td>test</td>
+      <td>7 sided snowflake with a short space and a small 7 gon as arms</td>
+      <td>a snowflake with 7 sided gon medium space and 7 arms\n7 flake with 7 gon arms\nsnowflake pattern with 7 sided polygon connected by larger 7 sided polygon s\nsnowflake made up of 7 arms of 7 gon s</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for 7 (λ (w a) (move (* 1 1) (/ 2π 7) a)) u))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>287</th>
+      <td>test</td>
+      <td>8 sided snowflake with a medium space and a medium circle as arms</td>
+      <td>8 small circle s arranged in a circular shape\n8 small circle s in a circle\ncircle flower spread</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 2) 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) (for ∞ (λ (b c) (move (* ε 2) ε c)) u)))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>288</th>
+      <td>test</td>
+      <td>5 sided snowflake with a medium space and a medium semicircle as arms</td>
+      <td>large 5 sided disconnected star with round edges\nline circle</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 2) 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) u))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>289</th>
+      <td>test</td>
+      <td>6 concentric circle s</td>
+      <td>6 nested circle s\nnesting circle s with 6 circlews\ncircle tunnel</td>
+      <td>(λ (x) (for 7 (λ (y z) (for ∞ (λ (u v) (move (* ε y) ε v)) (for ∞ (λ (w a) (move (* ε y) ε a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>290</th>
+      <td>test</td>
+      <td>8 sided snowflake with a short space and a small 8 gon as arms</td>
+      <td>8 octagon s arranged in a circle\n8 8 gon s overlapping with small 8 gon in the center touching all the others\n8 sided snowflake with overlapping octagon arms</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for 8 (λ (w a) (move (* 1 1) (/ 2π 8) a)) u))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>291</th>
+      <td>test</td>
+      <td>3 sided snowflake with a short space and a medium circle as arms</td>
+      <td>3 circle s\n3 circle s\n3 small circle s arranged in a triangle</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) (for ∞ (λ (b c) (move (* ε 2) ε c)) u)))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>292</th>
+      <td>test</td>
+      <td>8 sided snowflake with a short space and a medium semicircle as arms</td>
+      <td>a 8 sided chubby snowflake\nflower pattern made of semi circle s\ncloud going clockwise</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for ∞ (λ (w a) (move (* ε 2) ε a)) u))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>293</th>
+      <td>test</td>
+      <td>7 sided snowflake with a short space and a medium 5 gon as arms</td>
+      <td>overlapping linked large 5 gon bracelet\nsmall space in middle with 7 medium 5 gon s connected around it\n7 pentagon s in a snowflake shape that overlap\n7 pentagon s joined</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for 5 (λ (w a) (move (* 1 2) (/ 2π 5) a)) u))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>294</th>
+      <td>test</td>
+      <td>8 sided snowflake with a short space and a small square as arms</td>
+      <td>an 8 sided snowflake with a space and square s for arms\n8 ssnowflake compsed of sqyuares\n8 square wheel no lines</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for 4 (λ (w a) (move (* 1 1) (/ 2π 4) a)) u))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>295</th>
+      <td>test</td>
+      <td>7 sided snowflake with a short space and a small circle as arms</td>
+      <td>sasas\n7 small circle s</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 1) 0 v)) (for ∞ (λ (w a) (move (* ε 1) ε a)) (for ∞ (λ (b c) (move (* ε 1) ε c)) u)))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>296</th>
+      <td>test</td>
+      <td>3 sided snowflake with a medium space and a small 9 gon as arms</td>
+      <td>3 8 gon inverted triangle\n3 9 gon s in a triangle with space between them\n3 distance 9 shapes\n3 large 9 gon s</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move (* 1 2) 0 v)) (for 9 (λ (w a) (move (* 1 1) (/ 2π 9) a)) u))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>297</th>
+      <td>test</td>
+      <td>5 sided snowflake with a short space and a short line and a short space and a small circle as arms</td>
+      <td>a snowflake with small circle s a space small lines and medium space with 5 arms\n5 flake with arms of space line space small circle\n5 lined snowflakepinwheel pattern with small spaces to small circle s with each line but not touching\nloose snowflake made up of 5 arms of lines and circle s</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) (for ∞ (λ (c d) (move (* ε 1) ε d)) u)))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+    <tr>
+      <th>298</th>
+      <td>test</td>
+      <td>6 sided snowflake with a short space and a short line and a short space and a small square as arms</td>
+      <td>6 sided snowflake with each arm having a line and a square\na sun with 6 square s surrounding it\nflower spread</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 4 (λ (a b) (move (* 1 1) (/ 2π 4) b)) u))))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>299</th>
+      <td>test</td>
+      <td>3 sided snowflake with a short space and a short line and a short space and a small 5 gon as arms</td>
+      <td>a y shape with 3 disconnected lines with 3 house shapes at each end\n3 pentagon</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 5 (λ (a b) (move (* 1 1) (/ 2π 5) b)) u))))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>300</th>
+      <td>test</td>
+      <td>3 concentric circle s</td>
+      <td>3 circle s russian doll\nspring</td>
+      <td>(λ (x) (for 4 (λ (y z) (for ∞ (λ (u v) (move (* ε y) ε v)) (for ∞ (λ (w a) (move (* ε y) ε a)) z))) x))</td>
+    </tr>
+    <tr>
+      <th>301</th>
+      <td>test</td>
+      <td>6 sided snowflake with a short space and a short line and a short space and a small triangle as arms</td>
+      <td>6 lines arranged in a circle inside of 6 small triangles\n6 small triangles snowflake with 6 short lines in a circle at the middle\n7 sided snowflake with floating line and small triangle arms</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 3 (λ (a b) (move (* 1 1) (/ 2π 3) b)) u))))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>302</th>
+      <td>test</td>
+      <td>7 sided snowflake with a short space and a short line and a short space and a small semicircle as arms</td>
+      <td>sun with 7 rainbows\n7 dashes with half circle s\na 7 sided snowflake with a space a line and a space and a semi circle as arms</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) u))))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>303</th>
+      <td>test</td>
+      <td>8 sided snowflake with a short space and a short line and a short space and a small triangle as arms</td>
+      <td>8 flags and lines in a snowflake pattern\noctagon snowflake made of lines and circle s\n8 lines shooting out from middle triangles on the outside going counter clockwise</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 3 (λ (a b) (move (* 1 1) (/ 2π 3) b)) u))))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>304</th>
+      <td>test</td>
+      <td>8 sided snowflake with a short space and a short line and a short space and a medium circle as arms</td>
+      <td>sunburst of 8 short lines with 8 medium circle s just past the outer ends\nsmall space 8 small lines outside 8 small circle s\na snowflake with 8 circle s on the outside with 8 small detached lines on the inside\n8 circle s with lines pointing to the center</td>
+      <td>(λ (x) (for 8 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) (for ∞ (λ (c d) (move (* ε 2) ε d)) u)))))) (move 0 (/ 2π 8) z))) x))</td>
+    </tr>
+    <tr>
+      <th>305</th>
+      <td>test</td>
+      <td>3 sided snowflake with a short space and a short line and a short space and a small circle as arms</td>
+      <td>a 3 sided snowflake with a space a line a space and small circle s for arms\nsnowflake composed of 3 dcirlcles and 3 radiant lines\n3 circle s connected by 3 lines</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 1) ε b)) (for ∞ (λ (c d) (move (* ε 1) ε d)) u)))))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>306</th>
+      <td>test</td>
+      <td>7 sided snowflake with a short space and a short line and a short space and a medium circle as arms</td>
+      <td>7 circle\n7 circle s with a small black line next to each of them forming a pinwhell nothing is connected</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for ∞ (λ (a b) (move (* ε 2) ε b)) (for ∞ (λ (c d) (move (* ε 2) ε d)) u)))))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>307</th>
+      <td>test</td>
+      <td>3 sided snowflake with a short space and a short line and a short space and a small triangle as arms</td>
+      <td>3 outer triangles 3 inner lines not touching\n3 spoked wheel with space and then a short line and then a space and then a triangle as spokes\n3 triangle around 3 lines\na 3 sided snowflake with small triangles and small lines that are not connected as arms</td>
+      <td>(λ (x) (for 3 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 3 (λ (a b) (move (* 1 1) (/ 2π 3) b)) u))))) (move 0 (/ 2π 3) z))) x))</td>
+    </tr>
+    <tr>
+      <th>308</th>
+      <td>test</td>
+      <td>7 sided snowflake with a short space and a short line and a short space and a small square as arms</td>
+      <td>a 7 snowflake with a space a medium line and a medium space with 7 square arms\n7 gon with arms of space line space square\n7 lined snowflake and square s at the outermost locations good bit of space between the center the lines and the square s\nsnowflake made up of 7 arms of small square s and small lines</td>
+      <td>(λ (x) (for 7 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 4 (λ (a b) (move (* 1 1) (/ 2π 4) b)) u))))) (move 0 (/ 2π 7) z))) x))</td>
+    </tr>
+    <tr>
+      <th>309</th>
+      <td>test</td>
+      <td>6 sided snowflake with a short space and a short line and a short space and a small 5 gon as arms</td>
+      <td>6 sided snowflake with each arm having a line and a 5 gon at the end\na sun with 6 5 gon s around it\nhectagon flower spread</td>
+      <td>(λ (x) (for 6 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (move 1 0 (pen-up (λ (w) (move 1 0 w)) (for 5 (λ (a b) (move (* 1 1) (/ 2π 5) b)) u))))) (move 0 (/ 2π 6) z))) x))</td>
+    </tr>
+    <tr>
+      <th>310</th>
+      <td>test</td>
+      <td>5 sided snowflake with 2 small 5 gon s as arms</td>
+      <td>5 pairings of house shaped objects\n1 0 pentagon</td>
+      <td>(λ (x) (for 5 (λ (y z) (get/set (λ (u) (pen-up (λ (v) (move 1 0 v)) (for 5 (λ (w a) (move (* 1 1) (/ 2π 5) a)) (pen-up (λ (b) (move 1 0 b)) (for 5 (λ (c d) (move (* 1 1) (/ 2π 5) d)) u))))) (move 0 (/ 2π 5) z))) x))</td>
+    </tr>
+  </tbody>
+</table>
