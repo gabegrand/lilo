@@ -383,12 +383,32 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         )
         return input_token_indices, lengths
 
-    def forward(self, input_seq, last_hidden, encoder_outputs):
-        # Note: we run this one step at a time
+    def forward(self, last_token_idx, last_hidden, encoder_outputs):
+        """Decoder forward pass.
+
+        NOTE: Unlike the encoder, the decoder accepts a *single* token at a time
+        and is designed to run in the context of a for loop. Also, note that
+        `last_token_idx` takes a target token *index* (as produced by
+        _input_strings_to_padded_token_tensor), and not a token string.
+
+        :params:
+            last_token_idx: Tensor [batch_size] of token idxs corresponding to
+                the decoder output from the previous timestep.
+            last_hidden: Tensor [batch_size, 1, self.hidden_size] corresponding
+                to the decoder hidden state from the previous timestep.
+            encoder_outputs: Tensor [batch_size, seq_len, self.hidden_size] of
+                encoder outputs over which to perform attention.
+
+        :returns:
+            output: Tensor [batch_size, self.output_size]
+            hidden: Tensor [batch_size, 1, self.hidden_size]
+            att_weights: Tensor [batch_size, seq_len, 1]
+
+        """
         batch_size = encoder_outputs.size(0)
         seq_len = encoder_outputs.size(1)
 
-        assert input_seq.size() == (batch_size,), input_seq.size()
+        assert last_token_idx.size() == (batch_size,), last_token_idx.size()
         assert last_hidden.size() == (
             batch_size,
             1,
@@ -401,7 +421,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         ), encoder_outputs.size()  # Sequence length unknown
 
         # Get the embedding of the current input word (last output word)
-        embedded = self.embedding(input_seq)
+        embedded = self.embedding(last_token_idx)
         embedded = self.embedding_dropout(embedded)
         embedded = embedded.view(batch_size, 1, self.hidden_size)
 
@@ -601,9 +621,9 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         # TODO(gg): Implement for images and joint cases
         raise NotImplementedError()
 
-    def _decode_tasks(self, input_token, encoder_outputs, encoder_hidden):
+    def _decode_tasks(self, last_token_idx, encoder_outputs, encoder_hidden):
         return self.decoder(
-            input_seq=input_token,
+            last_token_idx=last_token_idx,
             last_hidden=encoder_hidden,
             encoder_outputs=encoder_outputs,
         )
@@ -672,7 +692,7 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         target_tokens = [e.tokens for f in frontiers for e in f.entries]
         n_outputs_per_task = torch.LongTensor([len(f.entries) for f in frontiers])
         (
-            target_ids,
+            target_token_idxs,
             target_lengths,
         ) = self.decoder._input_strings_to_padded_token_tensor(target_tokens)
 
@@ -690,17 +710,17 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
             input=encoder_outputs, repeats=repeats_encoder_outputs, dim=0
         )
 
-        # Construct cross-product for target_ids
-        repeats_target_ids = torch.repeat_interleave(
+        # Construct cross-product for target_token_idxs
+        repeats_target_token_idxs = torch.repeat_interleave(
             input=n_inputs_per_task, repeats=n_outputs_per_task
         )
-        target_ids = torch.repeat_interleave(
-            input=target_ids, repeats=repeats_target_ids, dim=0
+        target_token_idxs = torch.repeat_interleave(
+            input=target_token_idxs, repeats=repeats_target_token_idxs, dim=0
         )
 
-        assert encoder_outputs.size(0) == target_ids.size(0)
+        assert encoder_outputs.size(0) == target_token_idxs.size(0)
         batch_size = encoder_outputs.size(0)
-        target_seq_len = target_ids.size(1)
+        target_seq_len = target_token_idxs.size(1)
         n_examples_per_task = n_inputs_per_task * n_outputs_per_task
 
         # Train using teacher forcing
@@ -710,7 +730,7 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
         )
 
         for t in range(target_seq_len):
-            decoder_input = target_ids[:, t]  # Next input is current target
+            decoder_input = target_token_idxs[:, t]  # Next input is current target
             decoder_output, decoder_hidden, decoder_attn = self._decode_tasks(
                 decoder_input, encoder_outputs, encoder_hidden
             )
@@ -722,7 +742,7 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
             input=all_decoder_outputs.view(
                 batch_size, self.decoder.output_size, target_seq_len
             ),
-            target=target_ids,
+            target=target_token_idxs,
             reduction="none",
         )
         loss = loss_per_example.mean()
