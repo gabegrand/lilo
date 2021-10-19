@@ -7,6 +7,8 @@ git submodule update --init --recursive
 # Download the singularity container (currently owned by Catherine Wong: zyzzyva@mit.edu).
 mkdir containers
 cp /om2/user/zyzzyva/containers/laps-dev-container.img ../containers/laps-dev-container.img
+# Install the NLTK word tokenize package.
+python -m nltk.downloader 'punkt'
 
 # Remake the binaries for Linux. This requires using an alternate geomLib/logoLib.
 rm -rf ocaml/solvers/geomLib

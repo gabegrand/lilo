@@ -115,9 +115,7 @@ def cleaned_args_dict(args):
     return cleaned_args_dict
 
 
-def generate_singularity_command(
-    source_python_file, args, singularity_container_location
-):
+def generate_python_command_string(source_python_file, args):
     args_string = " ".join(
         [
             f"{arg_name} {arg_value}"
@@ -125,13 +123,48 @@ def generate_singularity_command(
         ]
     )
     wrapped_command = f"python {source_python_file}  {args_string}"
+    return wrapped_command
+
+
+def generate_singularity_command(
+    source_python_file, args, singularity_container_location
+):
+    wrapped_command = generate_python_command_string(source_python_file, args)
     singularity_command = f"singularity exec -B /om2 --nv {singularity_container_location} {wrapped_command}"
     return wrapped_command, singularity_command
 
 
-DEFAULT_OM_MEMORY = "30G"
+def generate_supercloud_module_command(source_python_file, args):
+    wrapped_command = generate_python_command_string(source_python_file, args)
+    module_command = f"module load anaconda2020/b; {wrapped_command}"
+    return wrapped_command, module_command
+
+
+DEFAULT_MEMORY = "30G"
 DEFAULT_CPUS_PER_TASK = "12"
 DEFAULT_TIME_HRS = "24"
+
+
+def generate_supercloud_command(
+    source_python_file,
+    output_dir,
+    job_name,
+    args,
+    singularity_container_location=DEFAULT_SINGULARITY_CONTAINER,
+    memory=DEFAULT_MEMORY,
+    cpus=DEFAULT_CPUS_PER_TASK,
+    time=DEFAULT_TIME_HRS,
+):
+    """Generates a SLURM command specifically for running on the Supercloud cluster."""
+    print(f"To run on Supercloud, run the following command: \n")
+    wrapped_command, module_command = generate_supercloud_module_command(
+        source_python_file, args
+    )
+    logfile = f"{output_dir}/{job_name}"
+    cloud_command = f"sbatch --job-name={job_name} --output={logfile} --ntasks=1 --mem={memory} --cpus-per-task {cpus} --time={time}:00:00 --wrap='{module_command}'"
+
+    print(f"\n{cloud_command}\n")
+    return logfile, wrapped_command, cloud_command
 
 
 def generate_om_singularity_command(
@@ -140,7 +173,7 @@ def generate_om_singularity_command(
     job_name,
     args,
     singularity_container_location=DEFAULT_SINGULARITY_CONTAINER,
-    memory=DEFAULT_OM_MEMORY,
+    memory=DEFAULT_MEMORY,
     cpus=DEFAULT_CPUS_PER_TASK,
     time=DEFAULT_TIME_HRS,
 ):
@@ -160,18 +193,22 @@ def generate_om_singularity_command(
 
 
 CLOUD_OM = "om"
-CLOUD_COMMAND_GENERATORS = {CLOUD_OM: generate_om_singularity_command}
+CLOUD_SUPERCLOUD = "supercloud"
+CLOUD_COMMAND_GENERATORS = {
+    CLOUD_OM: generate_om_singularity_command,
+    CLOUD_SUPERCLOUD: generate_supercloud_command,
+}
 
 
 def generate_cloud_command(source_python_file, job_name, args, output_dir):
     print(
         f"Generating cloud command for {source_python_file} to run on: {args.util_generate_cloud_command} \n"
     )
-
-    # Generate the cloud command.
-    cloud_command_generator = CLOUD_COMMAND_GENERATORS[args.util_generate_cloud_command]
-    # Remove the cloud command argument.
+    cloud_location = args.util_generate_cloud_command
+    # Remove the cloud command argument before we generate the argument string.
     del args.util_generate_cloud_command
+    # Generate the cloud command.
+    cloud_command_generator = CLOUD_COMMAND_GENERATORS[cloud_location]
 
     logfile, wrapped_command, cloud_command = cloud_command_generator(
         source_python_file, output_dir, job_name, args
@@ -181,7 +218,9 @@ def generate_cloud_command(source_python_file, job_name, args, output_dir):
     print_hyperparameter_arguments(args)
 
     # Generate the experiment replication log information.
-    generate_experiment_replication_log_information(logfile, wrapped_command)
+    generate_experiment_replication_log_information(
+        logfile, wrapped_command, cloud_location
+    )
 
 
 def print_hyperparameter_arguments(args):
@@ -200,12 +239,16 @@ def get_git_commit_sha():
     )
 
 
-def generate_experiment_replication_log_information(logfile, wrapped_command):
+def generate_experiment_replication_log_information(
+    logfile, wrapped_command, cloud_location
+):
     """
     Generates log-information for replicating this exact experiment.
     """
     print("\nAdd this information to your logfile for replication: ")
     log_information = {}
+    # Cloud location.
+    log_information["cloud_location"] = cloud_location
     # Git SHA commit.
     log_information["git_commit_sha"] = get_git_commit_sha()
 
