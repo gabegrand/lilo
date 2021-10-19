@@ -1,0 +1,51 @@
+{
+    "metadata": {
+        "experiment_id": "seq2seq_language_only_compositional_graphics_200_synthetic",
+        "human_readable": "Initializes a language only sequence to sequence model. Domain: compositional graphics 200. Synthetic language.",
+        "export_directory": null,
+        "log_directory": null,
+        "tasks_loader": "compositional_graphics_200",
+        "task_language_loader": "compositional_graphics_200_synthetic",
+        "resume_checkpoint_directory": null,
+        "init_frontiers_from_checkpoint": false,
+        "ocaml_special_handler": "LOGO",
+        "random_seed": 0
+    },
+    "model_initializers": [
+        {
+            "model_type": "grammar",
+            "model_loader": "LOGO",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "language_encoder",
+            "model_loader": "sequence_language_encoder",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "program_decoder",
+            "model_loader": "sequence_program_decoder",
+            "model_initializer_fn": "load_model",
+            "params": {
+                "attn_model": "general"
+            }
+        },
+        {
+            "model_type": "amortized_synthesis",
+            "model_loader": "seq2seq",
+            "model_initializer_fn": "load_model",
+            "params": {
+                "task_encoder_types": [
+                    "language_encoder"
+                ]
+            }
+        }
+    ],
+    "experiment_iterator": {
+        "max_iterations": 1,
+        "task_batcher": "ordered_task_batcher",
+        "loop_blocks": []
+    }
+}
