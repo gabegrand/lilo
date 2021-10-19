@@ -289,6 +289,12 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
     ):
         super().__init__()
 
+        if experiment_state is None:
+            """
+            If experiment_state is None, we cannot init the model.
+            """
+            return None
+
         self.token_to_idx = self._init_token_to_idx_from_experiment_state(
             experiment_state
         )
@@ -304,7 +310,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         self.embedding = nn.Embedding(
             num_embeddings=self.output_size,
             embedding_dim=self.hidden_size,
-            padding_idx=self.self.token_to_idx[self.PAD],
+            padding_idx=self.token_to_idx[self.PAD],
         )
         self.embedding_dropout = nn.Dropout(self.dropout)
         self.gru = nn.GRU(
