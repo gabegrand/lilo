@@ -395,7 +395,8 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         # Get current hidden state from input word and last hidden state
         decoder_output, hidden = self.gru(embedded, last_hidden)
 
-        # Reset hidden.size() = (batch, 1, dim)
+        # Revert back to batch-first after call to gru()
+        # hidden.size() = (batch, 1, dim)
         hidden = hidden.view(batch_size, 1, self.hidden_size)
 
         # Calculate attention from current RNN state and all encoder outputs;
@@ -692,17 +693,12 @@ class SyntaxRobustfill(nn.Module, model_loaders.ModelLoader):
             torch.zeros(batch_size, target_seq_len, self.decoder.output_size)
         )
 
-        decoder_input = Variable(
-            torch.tensor([self.decoder.token_to_idx[self.decoder.START]] * batch_size)
-        )
-
         for t in range(target_seq_len):
+            decoder_input = target_ids[:, t]  # Next input is current target
             decoder_output, decoder_hidden, decoder_attn = self._decode_tasks(
                 decoder_input, encoder_outputs, encoder_hidden
             )
-
             all_decoder_outputs[:, t, :] = decoder_output
-            decoder_input = target_ids[:, t]  # Next input is current target
 
         # Loss calculation and backpropagation
         # TODO(gg): Implement masked cross entropy loss
