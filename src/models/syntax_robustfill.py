@@ -1,13 +1,19 @@
 """
-syntax_robustfill.py | Author : Catherine Wong.
+seq2seq.py | Authors : Gabriel Grand & Catherine Wong.
 
-Implements a syntax-aware decoder over program sequences. 
-This implementation draws heavily from the syntax_robustfill model implemented in: https://github.com/insperatum/pinn/blob/master/syntax_robustfill.py. 
-and the sequence to sequence model implementation in:
-https://github.com/mila-iqia/babyai/tree/master/babyai 
+Implements modular sequence-to-sequence NN components for transducing from
+language and/or images to programs.
 
+End-to-end wrapper:
+- SyntaxRobustfill
 
-This also implements several common front-end encoders designed for user with the sequence decoder: a SequenceLanguageEncoder, ImageExampleEncoder, and JointLanguageImageEncoder.
+Encoders:
+- SequenceLanguageEncoder
+- ImageExampleEncoder
+- JointLanguageImageEncoder (WIP)
+
+Decoders:
+- SequenceProgramDecoder
 """
 from collections import defaultdict
 from typing import List
