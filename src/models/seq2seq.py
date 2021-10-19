@@ -297,7 +297,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         self,
         experiment_state=None,
         decoder_dim=DEFAULT_DECODER_DIM,
-        attn_model="dot",
+        attn_model=None,
         dropout_p=DEFAULT_DROPOUT_P,
         max_sequence_length=MAX_SEQUENCE_LENGTH,
         clip_grad_max_norm=CLIP_GRAD_MAX_NORM,
@@ -314,6 +314,10 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         self.token_to_idx = self._init_token_to_idx_from_experiment_state(
             experiment_state
         )
+
+        # Default to dot-product attention
+        if attn_model is None:
+            attn_model = DecoderAttn.DOT
 
         self.attn_model = attn_model
         self.hidden_size = decoder_dim
@@ -465,6 +469,8 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
 class DecoderAttn(nn.Module):
     """From https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation-batched.ipynb"""
 
+    ATTN_DOT, ATTN_GENERAL, ATTN_CONCAT = "dot", "general", "concat"
+
     def __init__(self, method, hidden_size, cuda=False):
         super(DecoderAttn, self).__init__()
 
@@ -472,12 +478,15 @@ class DecoderAttn(nn.Module):
         self.hidden_size = hidden_size
         self.cuda = cuda
 
-        if self.method == "general":
+        if self.method == self.ATTN_DOT:
+            pass  # No changes needed
+        elif self.method == self.ATTN_GENERAL:
             self.attn = nn.Linear(self.hidden_size, hidden_size)
-
-        elif self.method == "concat":
+        elif self.method == self.ATTN_CONCAT:
             self.attn = nn.Linear(self.hidden_size * 2, hidden_size)
             self.v = nn.Parameter(torch.FloatTensor(hidden_size))
+        else:
+            raise ValueError(f"Unknown attention method: {self.method}")
 
     def forward(self, decoder_output, encoder_outputs):
         this_batch_size = encoder_outputs.size(0)
@@ -501,16 +510,16 @@ class DecoderAttn(nn.Module):
         return F.softmax(attn_energies, dim=1).unsqueeze(-1)
 
     def score(self, decoder_output, encoder_output):
-        if self.method == "dot":
+        if self.method == self.ATTN_DOT:
             energy = decoder_output.squeeze().dot(encoder_output.squeeze())
             return energy
 
-        elif self.method == "general":
+        elif self.method == self.ATTN_GENERAL:
             energy = self.attn(encoder_output)
             energy = decoder_output.squeeze().dot(energy.squeeze())
             return energy
 
-        elif self.method == "concat":
+        elif self.method == self.ATTN_CONCAT:
             energy = self.attn(torch.cat((decoder_output, encoder_output), dim=1))
             energy = self.v.dot(energy.squeeze())
             return energy
