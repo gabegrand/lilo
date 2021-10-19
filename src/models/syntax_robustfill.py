@@ -238,10 +238,26 @@ class SequenceLanguageEncoder(nn.Module, model_loaders.ModelLoader):
         return input_token_indices, lengths
 
     def forward(self, inputs, hidden=None):
-        """inputs: [n_batch input strings].
-        attention_memory: hidden state from recurrent encoder to drive attention.
-        outputs: [n_batch x embedding_dim] tensor.
+        """Encoder forward pass.
+
+        :params:
+            inputs: List [batch_size] of space-separated input strings.
+            hidden: Tensor of size [batch_size, 1, self.num_directions * self.encoder_dim].
+                If None, `hidden` will be auto-initialized.
+
+        :returns:
+            outputs: [batch_size, seq_len, self.num_directions * self.encoder_dim]
+            hidden: [batch_size, 1, self.num_directions * self.encoder_dim]
+
         """
+        batch_size = len(inputs)
+        if hidden is not None:
+            assert hidden.size() == [
+                batch_size,
+                1,
+                self.num_directions * self.encoder_dim,
+            ]
+
         padded_tokens, token_lengths = self._input_strings_to_padded_token_tensor(
             inputs
         )
