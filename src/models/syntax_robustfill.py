@@ -161,7 +161,11 @@ class SequenceLanguageEncoder(nn.Module, model_loaders.ModelLoader):
         )
 
         self.embedding_dim = embedding_dim
-        self.embedding = nn.Embedding(len(self.token_to_idx), self.embedding_dim)
+        self.embedding = nn.Embedding(
+            num_embeddings=len(self.token_to_idx),
+            embedding_dim=self.embedding_dim,
+            padding_idx=self.token_to_idx[self.PAD],
+        )
 
         self.bidirectional = bidirectional
         self.num_directions = 2 if self.bidirectional else 1
@@ -297,7 +301,11 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         self.clip_grad_max_norm = clip_grad_max_norm
 
         # Define layers
-        self.embedding = nn.Embedding(self.output_size, self.hidden_size)
+        self.embedding = nn.Embedding(
+            num_embeddings=self.output_size,
+            embedding_dim=self.hidden_size,
+            padding_idx=self.self.token_to_idx[self.PAD],
+        )
         self.embedding_dropout = nn.Dropout(self.dropout)
         self.gru = nn.GRU(
             input_size=self.hidden_size,
