@@ -284,6 +284,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
 
     DEFAULT_DECODER_DIM = 128
     DEFAULT_ATTENTION_DIM = 128
+    DEFAULT_ATTN_MODEL = "dot"
     DEFAULT_DROPOUT_P = 0
     MAX_SEQUENCE_LENGTH = 128  # TODO(gg): Verify that this value makes sense
     CLIP_GRAD_MAX_NORM = 50.0  # TODO(gg): Verify that this value makes sense
@@ -297,7 +298,7 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         self,
         experiment_state=None,
         decoder_dim=DEFAULT_DECODER_DIM,
-        attn_model=None,
+        attn_model=DEFAULT_ATTN_MODEL,
         dropout_p=DEFAULT_DROPOUT_P,
         max_sequence_length=MAX_SEQUENCE_LENGTH,
         clip_grad_max_norm=CLIP_GRAD_MAX_NORM,
@@ -314,10 +315,6 @@ class SequenceProgramDecoder(nn.Module, model_loaders.ModelLoader):
         self.token_to_idx = self._init_token_to_idx_from_experiment_state(
             experiment_state
         )
-
-        # Default to dot-product attention
-        if attn_model is None:
-            attn_model = DecoderAttn.DOT
 
         self.attn_model = attn_model
         self.hidden_size = decoder_dim

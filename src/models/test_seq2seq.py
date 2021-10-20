@@ -20,6 +20,12 @@ language_encoder_config_block = {
     MODEL_INITIALIZER_FN: "load_model",
     PARAMS: {},
 }
+program_decoder_config_block = {
+    MODEL_TYPE: PROGRAM_DECODER,
+    MODEL_LOADER: seq2seq.SequenceProgramDecoder.name,
+    MODEL_INITIALIZER_FN: "load_model",
+    PARAMS: {},
+}
 seq2seq_config_block = {
     MODEL_TYPE: AMORTIZED_SYNTHESIS,
     MODEL_LOADER: seq2seq.Seq2Seq.name,
@@ -41,6 +47,7 @@ TEST_SEQUENCE_CONFIG[MODEL_INITIALIZERS] = [
     single_image_example_encoder_config_block,
     language_encoder_config_block,
     seq2seq_config_block,
+    program_decoder_config_block,
 ]
 # Image Example encoder tests.
 def _get_default_image_encoder():
@@ -175,10 +182,7 @@ def test_seq2seq_load_model():
     test_config = TEST_SEQUENCE_CONFIG
     test_experiment_state = ExperimentState(test_config)
 
-    assert (
-        type(test_experiment_state.models[AMORTIZED_SYNTHESIS])
-        == seq2seq.Seq2Seq
-    )
+    assert type(test_experiment_state.models[AMORTIZED_SYNTHESIS]) == seq2seq.Seq2Seq
 
 
 def test_seq2seq_initialize_encoders():
