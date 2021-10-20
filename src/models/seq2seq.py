@@ -678,6 +678,11 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
                     generated examples per task. This is equal to the
                     pointwise product of `n_inputs_per_task * n_outputs_per_task`.
             }
+
+            NOTE: If none of the frontiers have any entries (no solved programs),
+            then it is not possible to compute a loss. In this case, `_run_tasks`
+            will return `None` and is up to the caller to handle this corner
+            case appropriately.
         """
         if mode == TRAIN:
             self.encoder.train()
@@ -693,6 +698,11 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
         frontiers = experiment_state.get_frontiers_for_ids(
             task_split=task_split, task_ids=task_batch_ids
         )
+
+        # Remove frontiers with no programs
+        frontiers = [f for f in frontiers if len(f.entries) > 0]
+        if len(frontiers) == 0:
+            return None
 
         # Ground truth program tokens for supervision
         target_tokens = [e.tokens for f in frontiers for e in f.entries]
@@ -824,10 +834,16 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             mode=TRAIN,
         )
 
-        print(
-            f"[TRAIN] Fit {self.name} on {run_results['n_tasks']} tasks with total loss: {run_results['loss'].item()}"
-        )
-        return run_results
+        if run_results is None:
+            print(
+                f"[TRAIN] Skipped training - None of the frontiers had any entries to train on."
+            )
+            return None
+        else:
+            print(
+                f"[TRAIN] Fit {self.name} on {run_results['n_tasks']} tasks with total loss: {run_results['loss'].item()}"
+            )
+            return run_results
 
     def score_frontier_avg_conditional_log_likelihoods(
         self, experiment_state, task_split=TRAIN, task_batch_ids=ALL
@@ -852,11 +868,15 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             experiment_state,
             mode=TEST,
         )
-
-        print(
-            f"[TEST] Evaluated {self.name} on {run_results['n_tasks']} tasks with total loss: {run_results['loss'].item()}"
-        )
-        return run_results["loss_per_task"]
+        if run_results is None:
+            raise ValueError(
+                f"[EVAL] None of the frontiers had any entries to eval on."
+            )
+        else:
+            print(
+                f"[TEST] Evaluated {self.name} on {run_results['n_tasks']} tasks with total loss: {run_results['loss'].item()}"
+            )
+            return run_results["loss_per_task"]
 
 
 class Flatten(nn.Module):

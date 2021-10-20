@@ -1,6 +1,8 @@
 """
 test_seq2seq.py | Author : Catherine Wong
 """
+import pytest
+
 import src.models.seq2seq as seq2seq
 from src.experiment_iterator import *
 from src.models.model_loaders import *
@@ -188,16 +190,31 @@ def test_seq2seq_load_model():
 def test_seq2seq_optimize_and_score():
     test_config = TEST_SEQUENCE_CONFIG
     test_experiment_state = ExperimentState(test_config)
-    test_experiment_state.initialize_ground_truth_task_frontiers(task_split=TRAIN)
     test_task_ids = ["a small triangle", "a medium triangle"]
-
     model = test_experiment_state.models[AMORTIZED_SYNTHESIS]
-    model.optimize_model_for_frontiers(
+
+    # No ground truth, so we expect optimize to return `None`
+    train_results = model.optimize_model_for_frontiers(
         test_experiment_state, task_split=TRAIN, task_batch_ids=test_task_ids
     )
-    model.score_frontier_avg_conditional_log_likelihoods(
+    assert train_results is None
+    # No ground truth, so we expect score to raise an error
+    # (it doesn't make sense to ask for a score when we have no entries)
+    with pytest.raises(ValueError):
+        eval_results = model.score_frontier_avg_conditional_log_likelihoods(
+            test_experiment_state, task_split=TRAIN, task_batch_ids=test_task_ids
+        )
+
+    # Now initialize with ground truth - both methods should return a value
+    test_experiment_state.initialize_ground_truth_task_frontiers(task_split=TRAIN)
+    train_results = model.optimize_model_for_frontiers(
         test_experiment_state, task_split=TRAIN, task_batch_ids=test_task_ids
     )
+    assert train_results
+    eval_results = model.score_frontier_avg_conditional_log_likelihoods(
+        test_experiment_state, task_split=TRAIN, task_batch_ids=test_task_ids
+    )
+    assert eval_results
 
 
 def test_seq2seq_initialize_encoders():
