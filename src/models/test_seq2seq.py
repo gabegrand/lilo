@@ -185,6 +185,21 @@ def test_seq2seq_load_model():
     assert type(test_experiment_state.models[AMORTIZED_SYNTHESIS]) == seq2seq.Seq2Seq
 
 
+def test_seq2seq_optimize_and_score():
+    test_config = TEST_SEQUENCE_CONFIG
+    test_experiment_state = ExperimentState(test_config)
+    test_experiment_state.initialize_ground_truth_task_frontiers(task_split=TRAIN)
+    test_task_ids = ["a small triangle", "a medium triangle"]
+
+    model = test_experiment_state.models[AMORTIZED_SYNTHESIS]
+    model.optimize_model_for_frontiers(
+        test_experiment_state, task_split=TRAIN, task_batch_ids=test_task_ids
+    )
+    model.score_frontier_avg_conditional_log_likelihoods(
+        test_experiment_state, task_split=TRAIN, task_batch_ids=test_task_ids
+    )
+
+
 def test_seq2seq_initialize_encoders():
     Seq2Seq = seq2seq.Seq2Seq
 
