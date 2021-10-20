@@ -5,7 +5,7 @@ Evaluation for new models that score candidate library functions. Runs simulated
 
 Usage: 
 python evaluate_compression_model_scoring.py
-    --config_file syntax_robustfill_language_only_compositional_graphics_200_synthetic.json # Config to initialize the model and the dataset. Assumes the amortized synthesis model is the one with the scoring function.
+    --config_file seq2seq_language_only_compositional_graphics_200_synthetic.json # Config to initialize the model and the dataset. Assumes the amortized synthesis model is the one with the scoring function.
     --library_candidates_scoring_fn # Which scoring function you want to use.
     -k # Pytest keywordsds for which test to run (substring of tests), otherwise runs all. 
        [test_discrimination_original_final_libraries_full,
@@ -15,25 +15,25 @@ python evaluate_compression_model_scoring.py
 # TODO: catwong: implement simple pickle caching based on the test name and iteration. (We can also re-use the cache between tests over candidates.)
 
 """
+import argparse
+import json
+import os
 import time
-import os, json, argparse
-import numpy as np
-
 from collections import defaultdict
 
-from src.experiment_iterator import ExperimentState
-from src.task_loaders import TRAIN, TEST, ALL
-from src.models.model_loaders import *
-from src.utils import *
+import numpy as np
 
-from data.compositional_graphics.make_tasks import *
+from data.compositional_graphics.encoder import *
 
 # All of the model loaders we import.
 from data.compositional_graphics.grammar import *
-from data.compositional_graphics.encoder import *
-
+from data.compositional_graphics.make_tasks import *
+from src.experiment_iterator import ExperimentState
 from src.models.laps_dreamcoder_recognition import *
-from src.models.syntax_robustfill import *
+from src.models.model_loaders import *
+from src.models.seq2seq import *
+from src.task_loaders import ALL, TEST, TRAIN
+from src.utils import *
 
 DEFAULT_CONFIG_DIR = "experiments/configs"
 DEFAULT_OUTPUT_DIR = "experiments/outputs/evaluate_compression_model"

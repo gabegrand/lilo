@@ -1,11 +1,11 @@
 {
     "metadata": {
-        "experiment_id": "syntax_robustfill_language_only_compositional_graphics_200_synthetic",
-        "human_readable": "Initializes a language only sequence to sequence model. Domain: compositional graphics 200. Synthetic language.",
+        "experiment_id": "seq2seq_language_only_compositional_graphics_200_human",
+        "human_readable": "Initializes a language only sequence to sequence model. Domain: compositional graphics 200. Human language.",
         "export_directory": null,
         "log_directory": null,
         "tasks_loader": "compositional_graphics_200",
-        "task_language_loader": "compositional_graphics_200_synthetic",
+        "task_language_loader": "compositional_graphics_200_human",
         "resume_checkpoint_directory": null,
         "init_frontiers_from_checkpoint": false,
         "ocaml_special_handler": "LOGO",
@@ -26,7 +26,7 @@
         },
         {
             "model_type": "amortized_synthesis",
-            "model_loader": "syntax_robustfill",
+            "model_loader": "seq2seq",
             "model_initializer_fn": "load_model",
             "params": {
                 "task_encoder_types": [

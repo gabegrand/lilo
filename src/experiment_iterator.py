@@ -2,13 +2,12 @@
 experiment_iterator.py | Author : Catherine Wong.
 Utility classes for initializing and running iterated experiments from configs.
 """
-import os, json
+import os
 
-from dreamcoder.frontier import Frontier
-
-import src.utils as utils
 import src.models.model_loaders as model_loaders
 import src.task_loaders as task_loaders
+import src.utils as utils
+from dreamcoder.frontier import Frontier
 
 # Experiment state config constants
 METADATA = "metadata"
@@ -79,12 +78,12 @@ class ExperimentState:
 
         return language_loader.load_task_language()
 
-    def init_models_from_config(self, config, encoders_to_initialize=None):
+    def init_models_from_config(self, config, models_to_initialize=None):
         for model_initializer_block in config[MODEL_INITIALIZERS]:
             model_type = model_initializer_block[MODEL_TYPE]
             if (
-                encoders_to_initialize is not None
-                and model_type not in encoders_to_initialize
+                models_to_initialize is not None
+                and model_type not in models_to_initialize
             ):
                 continue
 
