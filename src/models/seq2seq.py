@@ -808,6 +808,7 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
         recognition_train_epochs=100,  # Max epochs to fit the model
         learning_rate=1e-2,
         early_stopping_epsilon=1e-4,
+        early_stopping_patience=5,
     ):
         """Train the model with respect to the tasks in task_batch_ids.
         The model is trained to regress from a task encoding according to
@@ -827,6 +828,9 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
         decoder_optimizer = Adam(params=self.decoder.parameters(), lr=learning_rate)
 
         loss_per_epoch = []
+        early_stopping_counter = (
+            0  # Tracks the number of times early stopping conditions were met.
+        )
 
         # TODO(gg): Implement batching over task ids
         for epoch in range(recognition_train_epochs):
@@ -852,12 +856,16 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
 
             # Check whether to trigger early stopping
             loss_per_epoch.append(loss)
+
             if epoch > 0:
-                previous_loss = loss_per_epoch[-1]
-                if abs(loss - previous_loss) < early_stopping_epsilon:
-                    print(
-                        f"Early stopping triggered: Change in loss smaller than {early_stopping_epsilon}."
-                    )
+                best_loss = min(loss_per_epoch[:-1])
+                if (best_loss - loss) < early_stopping_epsilon:
+                    early_stopping_counter += 1
+                else:
+                    early_stopping_counter = 0
+
+                if early_stopping_counter >= early_stopping_patience:
+                    print(f"Early stopping triggered at epoch {epoch}")
                     break
 
         return run_results
