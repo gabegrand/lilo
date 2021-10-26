@@ -820,7 +820,14 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             task_split: which split to train tasks on.
             task_batch_ids: list of IDs of tasks to train on or ALL to train on
                 all possible solved tasks in the split.
-            other params: hyperparameters of the model.
+            early_stopping_epsilon: Best train loss must decrease by at least this
+                amount each epoch, otherwise the early stopping counter is
+                incremented.
+            early_stopping_patience: If the train loss doesn't decrease by
+                early_stopping_epsilon for this number of consecutive epochs,
+                then early stopping will be triggered. Note that the counter
+                resets after each "successful" training epoch in which the
+                conditions are not met.
 
         On completion, model parameters should be updated to the trained model.
         """
