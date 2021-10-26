@@ -792,7 +792,7 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             decoder_optimizer.step()
 
         return {
-            "loss": loss.detach().numpy(),
+            "loss": loss.detach().numpy().item(),
             "loss_per_task": loss_per_task,
             "n_tasks": len(frontiers),
             "n_inputs_per_task": n_inputs_per_task,
@@ -805,9 +805,9 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
         experiment_state,
         task_split=TRAIN,
         task_batch_ids=ALL,
-        recognition_train_steps=5000,  # Gradient steps to train model.
-        recognition_train_epochs=None,  # Alternatively, how many epochs to train
-        learning_rate=1e-3,
+        recognition_train_epochs=100,  # Max epochs to fit the model
+        learning_rate=1e-2,
+        early_stopping_patience_epochs=5,
     ):
         """Train the model with respect to the tasks in task_batch_ids.
         The model is trained to regress from a task encoding according to
@@ -826,26 +826,46 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
         encoder_optimizer = Adam(params=self.encoder.parameters(), lr=learning_rate)
         decoder_optimizer = Adam(params=self.decoder.parameters(), lr=learning_rate)
 
-        # TODO(gg): Implement batching over task ids
-        run_results = self._run_tasks(
-            task_split,
-            task_batch_ids,
-            experiment_state,
-            encoder_optimizer,
-            decoder_optimizer,
-            mode=TRAIN,
-        )
+        loss_per_epoch = []
 
-        if run_results is None:
-            print(
-                f"[TRAIN] Skipped training - None of the frontiers had any entries to train on."
+        # TODO(gg): Implement batching over task ids
+        for epoch in range(recognition_train_epochs):
+            run_results = self._run_tasks(
+                task_split,
+                task_batch_ids,
+                experiment_state,
+                encoder_optimizer,
+                decoder_optimizer,
+                mode=TRAIN,
             )
-            return None
-        else:
+
+            if run_results is None:
+                print(
+                    f"[TRAIN] Skipped training - None of the frontiers had any entries to train on."
+                )
+                return None
+
+            loss = run_results["loss"]
             print(
-                f"[TRAIN] Fit {self.name} on {run_results['n_tasks']} tasks with total loss: {run_results['loss'].item()}"
+                f"[TRAIN {epoch} / {recognition_train_epochs}] Fit {self.name} on {run_results['n_tasks']} tasks with total loss: {loss}"
             )
-            return run_results
+
+            loss_per_epoch.append(loss)
+
+            # Check whether to trigger early stopping
+            if len(loss_per_epoch) > early_stopping_patience_epochs:
+                best_current_loss = min(
+                    loss_per_epoch[-early_stopping_patience_epochs:]
+                )
+                best_previous_loss = min(
+                    loss_per_epoch[:-early_stopping_patience_epochs]
+                )
+                if not best_current_loss < best_previous_loss:
+                    print(
+                        f"Early stopping triggered: Best loss {best_previous_loss} not improved after {early_stopping_patience_epochs} epochs."
+                    )
+
+        return run_results
 
     def score_frontier_avg_conditional_log_likelihoods(
         self, experiment_state, task_split=TRAIN, task_batch_ids=ALL
