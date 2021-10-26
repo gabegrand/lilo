@@ -807,7 +807,7 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
         task_batch_ids=ALL,
         recognition_train_epochs=100,  # Max epochs to fit the model
         learning_rate=1e-2,
-        early_stopping_patience_epochs=5,
+        early_stopping_epsilon=1e-4,
     ):
         """Train the model with respect to the tasks in task_batch_ids.
         The model is trained to regress from a task encoding according to
@@ -850,20 +850,15 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
                 f"[TRAIN {epoch} / {recognition_train_epochs}] Fit {self.name} on {run_results['n_tasks']} tasks with total loss: {loss}"
             )
 
-            loss_per_epoch.append(loss)
-
             # Check whether to trigger early stopping
-            if len(loss_per_epoch) > early_stopping_patience_epochs:
-                best_current_loss = min(
-                    loss_per_epoch[-early_stopping_patience_epochs:]
-                )
-                best_previous_loss = min(
-                    loss_per_epoch[:-early_stopping_patience_epochs]
-                )
-                if not best_current_loss < best_previous_loss:
+            loss_per_epoch.append(loss)
+            if epoch > 0:
+                previous_loss = loss_per_epoch[-1]
+                if abs(loss - previous_loss) < early_stopping_epsilon:
                     print(
-                        f"Early stopping triggered: Best loss {best_previous_loss} not improved after {early_stopping_patience_epochs} epochs."
+                        f"Early stopping triggered: Change in loss smaller than {early_stopping_epsilon}."
                     )
+                    break
 
         return run_results
 
@@ -896,7 +891,7 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             )
 
         print(
-            f"[TEST] Evaluated {self.name} on {run_results['n_tasks']} tasks with total loss: {run_results['loss'].item()}"
+            f"[TEST] Evaluated {self.name} on {run_results['n_tasks']} tasks with total loss: {run_results['loss']}"
         )
         return run_results
 
