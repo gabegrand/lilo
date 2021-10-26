@@ -769,7 +769,9 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             example_idx_start, example_idx_stop = sum(n_examples_per_task[:i]), sum(
                 n_examples_per_task[: i + 1]
             )
-            task_loss = loss_per_example[example_idx_start:example_idx_stop].mean()
+            task_loss = (
+                loss_per_example[example_idx_start:example_idx_stop].mean().item()
+            )
             loss_per_task[f.task.name] = task_loss
 
         if mode == TRAIN:
@@ -790,7 +792,7 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             decoder_optimizer.step()
 
         return {
-            "loss": loss,
+            "loss": loss.detach().numpy(),
             "loss_per_task": loss_per_task,
             "n_tasks": len(frontiers),
             "n_inputs_per_task": n_inputs_per_task,
@@ -872,11 +874,11 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             raise ValueError(
                 f"[EVAL] None of the frontiers had any entries to eval on."
             )
-        else:
-            print(
-                f"[TEST] Evaluated {self.name} on {run_results['n_tasks']} tasks with total loss: {run_results['loss'].item()}"
-            )
-            return run_results["loss_per_task"]
+
+        print(
+            f"[TEST] Evaluated {self.name} on {run_results['n_tasks']} tasks with total loss: {run_results['loss'].item()}"
+        )
+        return run_results
 
 
 class Flatten(nn.Module):
