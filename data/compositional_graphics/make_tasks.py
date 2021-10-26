@@ -62,6 +62,6 @@ class CompositionalGraphics200SyntheticLanguageLoader(TaskDataLoader):
     def load_task_language(self):
         task_dataset = CompositionalGraphics200Loader.name
         dataset_path = os.path.join(
-            DEFAULT_DATA_DIRECTORY, LANGUAGE, task_dataset, HUMAN
+            DEFAULT_DATA_DIRECTORY, LANGUAGE, task_dataset, SYNTHETIC
         )
         return self.load_task_language_for_directory(dataset_path, splits=[TRAIN, TEST])
