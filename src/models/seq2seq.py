@@ -792,12 +792,12 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             decoder_optimizer.step()
 
         return {
-            "loss": loss.detach().numpy().item(),
+            "loss": loss.item(),
             "loss_per_task": loss_per_task,
             "n_tasks": len(frontiers),
-            "n_inputs_per_task": n_inputs_per_task,
-            "n_outputs_per_task": n_outputs_per_task,
-            "n_examples_per_task": n_examples_per_task,
+            "n_inputs_per_task": n_inputs_per_task.tolist(),
+            "n_outputs_per_task": n_outputs_per_task.tolist(),
+            "n_examples_per_task": n_examples_per_task.tolist(),
         }
 
     def optimize_model_for_frontiers(
@@ -834,6 +834,7 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
         encoder_optimizer = Adam(params=self.encoder.parameters(), lr=learning_rate)
         decoder_optimizer = Adam(params=self.decoder.parameters(), lr=learning_rate)
 
+        run_results_per_epoch = []
         loss_per_epoch = []
         early_stopping_counter = (
             0  # Tracks the number of times early stopping conditions were met.
@@ -856,6 +857,9 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
                 )
                 return None
 
+            run_results["epoch"] = epoch
+            run_results_per_epoch.append(run_results)
+
             loss = run_results["loss"]
             print(
                 f"[TRAIN {epoch} / {recognition_train_epochs}] Fit {self.name} on {run_results['n_tasks']} tasks with total loss: {loss}"
@@ -875,7 +879,7 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
                     print(f"Early stopping triggered at epoch {epoch}")
                     break
 
-        return run_results
+        return run_results_per_epoch
 
     def score_frontier_avg_conditional_log_likelihoods(
         self, experiment_state, task_split=TRAIN, task_batch_ids=ALL

@@ -127,7 +127,7 @@ MODEL_TEST_LIKELIHOODS = "model_test_likelihoods"
 TOP_K_METRIC = "Top {} {}"
 INITIAL, COMPRESSED = "initial", "compressed"
 NUM_TRAIN_TASKS = "# training tasks"
-TEST_LOG_LIKELIHOOD = "Test log likelihood"
+TEST_CROSS_ENTROPY_LOSS = "Test cross entropy loss"
 
 
 def register_test(test_fn):
@@ -205,12 +205,27 @@ def test_discrimination_original_final_libraries_full(args, config):
                 print("[DEBUG]: skipping model training.")
                 test_frontier_log_likelihoods = [0.0]
             else:
-                model.optimize_model_for_frontiers(
+                start_time = time.time()
+                run_results_per_epoch = model.optimize_model_for_frontiers(
                     experiment_state,
                     task_split=TRAIN,
                     task_batch_ids=[t.name for t in train_task_subset],
                     # TODO: @gg - add any other hyperparameters you need here.
                 )
+                print(
+                    f"[DEBUG]: Model training ({header}, {len(train_task_subset)} tasks) took {(time.time() - start_time)} s."
+                )
+
+                # Save training run results to disk
+                results_path = os.path.join(
+                    args.output_dir,
+                    "training",
+                    header,
+                    f"{str(len(train_task_subset)).zfill(4)}_tasks.json",
+                )
+                os.makedirs(os.path.dirname(results_path), exist_ok=True)
+                with open(results_path, "w") as f:
+                    json.dump(run_results_per_epoch, f)
 
                 # Evaluate it with respect to the test tasks.
                 # test_batch_ids = [
@@ -225,11 +240,22 @@ def test_discrimination_original_final_libraries_full(args, config):
                     test_results["loss_per_task"].values()
                 )
 
+                # Save test run results to disk
+                results_path = os.path.join(
+                    args.output_dir,
+                    "test",
+                    header,
+                    f"{str(len(train_task_subset)).zfill(4)}_tasks.json",
+                )
+                os.makedirs(os.path.dirname(results_path), exist_ok=True)
+                with open(results_path, "w") as f:
+                    json.dump(test_results, f)
+
             # Report on likelihoods.
             print(
                 f"Evaluated model on {header} library: test likelihoods = {np.mean(test_frontier_log_likelihoods)}"
             )
-            metrics_to_report[header][TEST_LOG_LIKELIHOOD].append(
+            metrics_to_report[header][TEST_CROSS_ENTROPY_LOSS].append(
                 (test_frontier_log_likelihoods)
             )
 
@@ -239,7 +265,7 @@ def test_discrimination_original_final_libraries_full(args, config):
                 args,
                 metrics_to_report,
                 x_titles=[NUM_TRAIN_TASKS],
-                y_titles=[TEST_LOG_LIKELIHOOD],
+                y_titles=[TEST_CROSS_ENTROPY_LOSS],
                 plot_title="test_discrimination_original_final_libraries_full"
                 + experiment_id,
                 y_lim=None,
