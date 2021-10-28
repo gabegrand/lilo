@@ -3,10 +3,13 @@ compositional_graphics: make_tasks.py | Author: Catherine Wong.
 
 Utility functions for loading tasks and language for the compositional graphics domain. This domain was originally collected and used in the LAPS-ICML 2021 paper and can be found in the dreamcoder/logo domain.
 """
-import os, dill
+import os
+
+import dill
+
 from src.task_loaders import *
 
-ROOT_DIR = os.path.abspath(os.getcwd())
+ROOT_DIR = os.getcwd()
 DEFAULT_DATA_DIRECTORY = os.path.join(ROOT_DIR, "data/compositional_graphics")
 OCAML_SPECIAL_HANDLER_LOGO = "LOGO"  # Special string flag for OCaml handling.
 
