@@ -228,13 +228,8 @@ def test_discrimination_original_final_libraries_full(args, config):
                     json.dump(run_results_per_epoch, f)
 
                 # Evaluate it with respect to the test tasks.
-                # test_batch_ids = [
-                #     "a greek spiral with 7 turns",
-                #     "a 7 pointed star",
-                # ]  # TODO(gg): Remove
-                test_batch_ids = ALL
                 test_results = model.score_frontier_avg_conditional_log_likelihoods(
-                    experiment_state, task_split=TEST, task_batch_ids=test_batch_ids
+                    experiment_state, task_split=TEST, task_batch_ids=ALL
                 )
                 test_frontier_log_likelihoods = list(
                     test_results["loss_per_task"].values()
