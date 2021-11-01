@@ -769,7 +769,9 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             example_idx_start, example_idx_stop = sum(n_examples_per_task[:i]), sum(
                 n_examples_per_task[: i + 1]
             )
-            task_loss = loss_per_example[example_idx_start:example_idx_stop].mean()
+            task_loss = (
+                loss_per_example[example_idx_start:example_idx_stop].mean().item()
+            )
             loss_per_task[f.task.name] = task_loss
 
         if mode == TRAIN:
@@ -790,12 +792,12 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             decoder_optimizer.step()
 
         return {
-            "loss": loss,
+            "loss": loss.item(),
             "loss_per_task": loss_per_task,
             "n_tasks": len(frontiers),
-            "n_inputs_per_task": n_inputs_per_task,
-            "n_outputs_per_task": n_outputs_per_task,
-            "n_examples_per_task": n_examples_per_task,
+            "n_inputs_per_task": n_inputs_per_task.tolist(),
+            "n_outputs_per_task": n_outputs_per_task.tolist(),
+            "n_examples_per_task": n_examples_per_task.tolist(),
         }
 
     def optimize_model_for_frontiers(
@@ -803,9 +805,10 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
         experiment_state,
         task_split=TRAIN,
         task_batch_ids=ALL,
-        recognition_train_steps=5000,  # Gradient steps to train model.
-        recognition_train_epochs=None,  # Alternatively, how many epochs to train
-        learning_rate=1e-3,
+        recognition_train_epochs=100,  # Max epochs to fit the model
+        learning_rate=1e-2,
+        early_stopping_epsilon=1e-4,
+        early_stopping_patience=5,
     ):
         """Train the model with respect to the tasks in task_batch_ids.
         The model is trained to regress from a task encoding according to
@@ -817,33 +820,66 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             task_split: which split to train tasks on.
             task_batch_ids: list of IDs of tasks to train on or ALL to train on
                 all possible solved tasks in the split.
-            other params: hyperparameters of the model.
+            early_stopping_epsilon: Best train loss must decrease by at least this
+                amount each epoch, otherwise the early stopping counter is
+                incremented.
+            early_stopping_patience: If the train loss doesn't decrease by
+                early_stopping_epsilon for this number of consecutive epochs,
+                then early stopping will be triggered. Note that the counter
+                resets after each "successful" training epoch in which the
+                conditions are not met.
 
         On completion, model parameters should be updated to the trained model.
         """
         encoder_optimizer = Adam(params=self.encoder.parameters(), lr=learning_rate)
         decoder_optimizer = Adam(params=self.decoder.parameters(), lr=learning_rate)
 
-        # TODO(gg): Implement batching over task ids
-        run_results = self._run_tasks(
-            task_split,
-            task_batch_ids,
-            experiment_state,
-            encoder_optimizer,
-            decoder_optimizer,
-            mode=TRAIN,
+        run_results_per_epoch = []
+        loss_per_epoch = []
+        early_stopping_counter = (
+            0  # Tracks the number of times early stopping conditions were met.
         )
 
-        if run_results is None:
-            print(
-                f"[TRAIN] Skipped training - None of the frontiers had any entries to train on."
+        # TODO(gg): Implement batching over task ids
+        for epoch in range(recognition_train_epochs):
+            run_results = self._run_tasks(
+                task_split,
+                task_batch_ids,
+                experiment_state,
+                encoder_optimizer,
+                decoder_optimizer,
+                mode=TRAIN,
             )
-            return None
-        else:
+
+            if run_results is None:
+                print(
+                    f"[TRAIN] Skipped training - None of the frontiers had any entries to train on."
+                )
+                return None
+
+            run_results["epoch"] = epoch
+            run_results_per_epoch.append(run_results)
+
+            loss = run_results["loss"]
             print(
-                f"[TRAIN] Fit {self.name} on {run_results['n_tasks']} tasks with total loss: {run_results['loss'].item()}"
+                f"[TRAIN {epoch} / {recognition_train_epochs}] Fit {self.name} on {run_results['n_tasks']} tasks with total loss: {loss}"
             )
-            return run_results
+
+            # Check whether to trigger early stopping
+            loss_per_epoch.append(loss)
+
+            if epoch > 0:
+                best_loss = min(loss_per_epoch[:-1])
+                if (best_loss - loss) < early_stopping_epsilon:
+                    early_stopping_counter += 1
+                else:
+                    early_stopping_counter = 0
+
+                if early_stopping_counter >= early_stopping_patience:
+                    print(f"Early stopping triggered at epoch {epoch}")
+                    break
+
+        return run_results_per_epoch
 
     def score_frontier_avg_conditional_log_likelihoods(
         self, experiment_state, task_split=TRAIN, task_batch_ids=ALL
@@ -872,11 +908,11 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             raise ValueError(
                 f"[EVAL] None of the frontiers had any entries to eval on."
             )
-        else:
-            print(
-                f"[TEST] Evaluated {self.name} on {run_results['n_tasks']} tasks with total loss: {run_results['loss'].item()}"
-            )
-            return run_results["loss_per_task"]
+
+        print(
+            f"[TEST] Evaluated {self.name} on {run_results['n_tasks']} tasks with total loss: {run_results['loss']}"
+        )
+        return run_results
 
 
 class Flatten(nn.Module):

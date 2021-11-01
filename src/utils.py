@@ -2,17 +2,14 @@
 utils.py | Author : Catherine Wong
 General purpose utilities.
 """
-import subprocess
 import datetime
+import os
+import subprocess
 from pathlib import Path
 
-import os
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
-import numpy as np
-
-from collections import defaultdict
 
 
 def escaped_timestamp():
@@ -66,7 +63,7 @@ def generate_rel_plot(
                 }
                 return pd.DataFrame(data=d)
 
-            plt.figure(figsize=(6, 3))
+            plt.figure(figsize=(12, 8))
             df = build_dataframe(metrics_to_report, x_title, y_title)
             ax = sns.relplot(
                 x=f"{x_title}",
@@ -85,7 +82,7 @@ def generate_rel_plot(
             output_name = os.path.join(args.output_dir, output_title)
 
             print(f"Writing plot out to: {output_name}")
-            plt.savefig(output_name)
+            plt.savefig(output_name, dpi=300, bbox_inches="tight")
 
 
 ## Utilities for running experiments.
