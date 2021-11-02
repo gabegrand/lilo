@@ -2,7 +2,7 @@
 experiment_iterator.py | Author : Catherine Wong.
 Utility classes for initializing and running iterated experiments from configs.
 """
-import os
+import os, json
 
 import src.models.model_loaders as model_loaders
 import src.task_loaders as task_loaders
@@ -15,10 +15,12 @@ EXPERIMENT_ID = "experiment_id"
 EXPORT_DIRECTORY = "export_directory"
 LOG_DIRECTORY = "log_directory"
 RESUME_CHECKPOINT_DIRECTORY = "resume_checkpoint_directory"
+EXPORT_WITH_TIMESTAMP = "export_with_timestamp"
 
 TASKS_LOADER = "tasks_loader"
 TASK_LANGUAGE_LOADER = "task_language_loader"
 INIT_FRONTIERS_FROM_CHECKPOINT = "init_frontiers_from_checkpoint"
+FRONTIERS_CHECKPOINT = "frontiers.json"
 
 MODEL_INITIALIZERS = "model_initializers"
 MODEL_TYPE = "model_type"
@@ -101,10 +103,14 @@ class ExperimentState:
 
     def init_metadata_from_config(self, config):
         metadata = config[METADATA]
-        metadata[TIMESTAMP] = utils.escaped_timestamp()
-        metadata[
-            TIMESTAMPED_EXPERIMENT_ID
-        ] = f"{metadata[EXPERIMENT_ID]}_{metadata[TIMESTAMP]}"
+        metadata[TIMESTAMP] = (
+            utils.escaped_timestamp() if metadata[EXPORT_WITH_TIMESTAMP] else ""
+        )
+        metadata[TIMESTAMPED_EXPERIMENT_ID] = (
+            f"{metadata[EXPERIMENT_ID]}_{metadata[TIMESTAMP]}"
+            if metadata[EXPORT_WITH_TIMESTAMP]
+            else metadata[EXPERIMENT_ID]
+        )
         return metadata
 
     def init_log_and_export_from_config(self):
@@ -154,8 +160,48 @@ class ExperimentState:
             )
         print(f"====================================")
 
+    def get_checkpoint_directory(self):
+        checkpoint_directory = os.path.join(
+            self.metadata[EXPORT_DIRECTORY], str(self.curr_iteration)
+        )
+        utils.mkdir_if_necessary(checkpoint_directory)
+        return checkpoint_directory
+
+    def get_resume_checkpoint_directory(self):
+        return os.path.join(
+            self.metadata[RESUME_CHECKPOINT_DIRECTORY], str(self.curr_iteration)
+        )
+
     def checkpoint_frontiers(self):
-        pass
+        json_frontiers = {
+            split: {
+                task.name: self.task_frontiers[split][task].json()
+                for task in self.task_frontiers[split]
+            }
+            for split in self.task_frontiers
+        }
+        with open(
+            os.path.join(self.get_checkpoint_directory(), FRONTIERS_CHECKPOINT), "w"
+        ) as f:
+            json.dump(json_frontiers, f)
+
+    def load_frontiers_from_checkpoint(self):
+        """Note that this loads NON-EMPTY frontiers to combine with existing frontiers."""
+        with open(
+            os.path.join(self.get_checkpoint_directory(), FRONTIERS_CHECKPOINT), "r"
+        ) as f:
+            json_frontiers = json.load(f)
+
+        for split in self.task_frontiers:
+            for task in self.task_frontiers[split]:
+                if task.name in json_frontiers[split]:
+                    json_frontier = json_frontiers[split][task.name]
+                    loaded_frontier = Frontier.makeFromJSON(
+                        task, self.models[model_loaders.GRAMMAR], json_frontier
+                    )
+                    self.task_frontiers[split][task] = self.task_frontiers[split][
+                        task
+                    ].combine(loaded_frontier)
 
     def checkpoint_samples(self):
         pass
@@ -164,6 +210,9 @@ class ExperimentState:
         pass
 
     def checkpoint_models(self, models_to_checkpoint):
+        pass
+
+    def load_models_from_checkpoint(self):
         pass
 
     def get_non_empty_frontiers_for_split(self, task_split):
@@ -270,6 +319,16 @@ class ExperimentState:
             self.task_frontiers[task_split][task] = self.task_frontiers[task_split][
                 task
             ].replaceWithSupervised(g=self.models[model_loaders.GRAMMAR])
+
+    def empty_task_frontiers(self, task_split, task_ids):
+        tasks = self.get_tasks_for_ids(
+            task_split,
+            task_ids,
+            include_samples=False,
+            include_ground_truth_tasks=True,
+        )
+        for task in tasks:
+            self.task_frontiers[task_split][task] = Frontier.makeEmpty(task)
 
 
 # Experiment iterator config constants

@@ -15,3 +15,16 @@ def test_ordered_task_batcher():
     task_batcher = OrderedTaskBatcher(
         test_experiment_state, curr_iteration=None, max_iterations=None
     )
+
+
+def test_ground_truth_ordered_task_batcher():
+    test_config = TEST_GRAPHICS_CONFIG
+    test_experiment_state = ExperimentState(test_config)
+
+    task_batcher = GroundTruthOrderedTaskBatcher(
+        test_experiment_state, curr_iteration=None, max_iterations=None
+    )
+    for split in task_batcher.task_id_orderings:
+        assert len(task_batcher.task_id_orderings[split]) == len(
+            test_experiment_state.tasks[split]
+        )

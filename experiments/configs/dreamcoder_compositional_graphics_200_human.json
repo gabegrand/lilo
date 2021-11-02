@@ -1,105 +1,100 @@
 {
-  "metadata" : {
-    "experiment_id" : "dreamcoder_compositional_graphics_200_human",
+  "metadata": {
+    "experiment_id": "dreamcoder_compositional_graphics_200_human",
     "human_readable": "DreamCoder baseline. Domain: compositional graphics 200. Human language.",
-    "export_directory" : "experiments/outputs/compositional_graphics",
-    "log_directory" : "experiments/logs/compositional_graphics",
-    "tasks_loader" : "compositional_graphics_200",
-    "task_language_loader" : "compositional_graphics_200_human",
-    "resume_checkpoint_directory" : null,
-    "init_frontiers_from_checkpoint" : false,
-    
-    "ocaml_special_handler" : "LOGO",
+    "export_directory": "experiments/outputs/compositional_graphics",
+    "log_directory": "experiments/logs/compositional_graphics",
+    "tasks_loader": "compositional_graphics_200",
+    "task_language_loader": "compositional_graphics_200_human",
+    "export_with_timestamp": false,
+    "resume_checkpoint_directory": null,
+    "init_frontiers_from_checkpoint": false,
+    "ocaml_special_handler": "LOGO",
     "random_seed": 0
   },
-  "model_initializers" : [
+  "model_initializers": [
     {
-      "model_type" : "grammar",
-      "model_loader" : "LOGO",
-      "model_initializer_fn" : "load_model",
-      "params" : {}
+      "model_type": "grammar",
+      "model_loader": "LOGO",
+      "model_initializer_fn": "load_model",
+      "params": {}
     },
     {
-      "model_type" : "examples_encoder",
-      "model_loader" : "LOGO",
-      "model_initializer_fn" : "load_model_initializer",
-      "params" : {}
+      "model_type": "examples_encoder",
+      "model_loader": "LOGO",
+      "model_initializer_fn": "load_model_initializer",
+      "params": {}
     },
     {
-      "model_type" : "amortized_synthesis",
-      "model_loader" : "dreamcoder_recognition",
-      "model_initializer_fn" : "load_model",
-      "params" : {}
+      "model_type": "amortized_synthesis",
+      "model_loader": "dreamcoder_recognition",
+      "model_initializer_fn": "load_model",
+      "params": {}
     }
   ],
-  "experiment_iterator" : {
-    "max_iterations" : 2,
-    "task_batcher" : "ordered_task_batcher",
-    "loop_blocks" : [
-      { 
-        "experiment_block_type" : "state_fn",
-        "state_fn" : "log_metadata",
-        "params" : {
-          "verbosity" : 3
+  "experiment_iterator": {
+    "max_iterations": 2,
+    "task_batcher": "ordered_task_batcher",
+    "loop_blocks": [
+      {
+        "experiment_block_type": "state_fn",
+        "state_fn": "log_metadata",
+        "params": {
+          "verbosity": 3
         }
       },
-      
-      { 
-        "experiment_block_type" : "model_fn",
-        "model_type" : "grammar",
-        "model_fn" : "infer_programs_for_tasks",
-        "task_split" : "train",
-        "task_batch_size" : 40,
-        "params" : {
-          "enumeration_timeout" : 5
+      {
+        "experiment_block_type": "model_fn",
+        "model_type": "grammar",
+        "model_fn": "infer_programs_for_tasks",
+        "task_split": "train",
+        "task_batch_size": 40,
+        "params": {
+          "enumeration_timeout": 5
         }
       },
-      { 
-        "experiment_block_type" : "state_fn",
-        "state_fn" : "log_frontiers",
-        "params" : {
-          "verbosity" : 3
+      {
+        "experiment_block_type": "state_fn",
+        "state_fn": "log_frontiers",
+        "params": {
+          "verbosity": 3
         }
       },
-      
-      { 
-        "experiment_block_type" : "model_fn",
-        "model_type" : "amortized_synthesis",
-        "model_fn" : "optimize_model_for_frontiers",
-        "task_split" : "train",
-        "task_batch_size" : "all",
-        "params" : {
-            "recognition_train_steps" : 100
+      {
+        "experiment_block_type": "model_fn",
+        "model_type": "amortized_synthesis",
+        "model_fn": "optimize_model_for_frontiers",
+        "task_split": "train",
+        "task_batch_size": "all",
+        "params": {
+          "recognition_train_steps": 100
         }
       },
-      { 
-        "experiment_block_type" : "state_fn",
-        "state_fn" : "log_frontiers",
-        "params" : {
-          "verbosity" : 3
+      {
+        "experiment_block_type": "state_fn",
+        "state_fn": "log_frontiers",
+        "params": {
+          "verbosity": 3
         }
       },
-      { 
-        "experiment_block_type" : "model_fn",
-        "model_type" : "amortized_synthesis",
-        "model_fn" : "infer_programs_for_tasks",
-        "task_split" : "train",
-        "task_batch_size" :40,
-        "params" : {
-            "enumeration_timeout" : 10
+      {
+        "experiment_block_type": "model_fn",
+        "model_type": "amortized_synthesis",
+        "model_fn": "infer_programs_for_tasks",
+        "task_split": "train",
+        "task_batch_size": 40,
+        "params": {
+          "enumeration_timeout": 10
         }
       },
-      
-      { 
-        "experiment_block_type" : "model_fn",
-        "model_type" : "grammar",
-        "model_fn" : "optimize_grammar_frontiers_for_frontiers",
-        "task_split" : "train",
-        "task_batch_size" : "all",
-        "params" : {
-        }
+      {
+        "experiment_block_type": "model_fn",
+        "model_type": "grammar",
+        "model_fn": "optimize_grammar_frontiers_for_frontiers",
+        "task_split": "train",
+        "task_batch_size": "all",
+        "params": {}
       }
-      
     ]
   }
 }

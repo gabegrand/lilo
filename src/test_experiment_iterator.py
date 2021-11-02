@@ -39,8 +39,10 @@ amortized_synthesis_config_block = {
 TEST_GRAPHICS_CONFIG = {
     METADATA: {
         EXPERIMENT_ID: "dreamcoder_compositional_graphics_200_human",
-        LOG_DIRECTORY: "experiments/outputs/compositional_graphics",
-        EXPORT_DIRECTORY: "experiments/logs/compositional_graphics",
+        LOG_DIRECTORY: "experiments/logs/compositional_graphics",
+        EXPORT_DIRECTORY: "experiments/outputs/compositional_graphics_test",
+        RESUME_CHECKPOINT_DIRECTORY: "experiments/logs/compositional_graphics_test",
+        EXPORT_WITH_TIMESTAMP: False,
         TASKS_LOADER: CompositionalGraphics200Loader.name,
         TASK_LANGUAGE_LOADER: CompositionalGraphics200HumanLanguageLoader.name,
         INIT_FRONTIERS_FROM_CHECKPOINT: False,
@@ -138,3 +140,23 @@ def test_get_language_for_ids():
             task_split=split, task_ids=ExperimentState.ALL
         )
         assert len(all_language) == len(test_experiment_state.tasks[split])
+
+
+def test_checkpoint_resume_frontiers():
+    test_config = TEST_GRAPHICS_CONFIG
+    test_experiment_state = ExperimentState(test_config)
+
+    test_experiment_state.curr_iteration = 0
+
+    test_experiment_state.initialize_ground_truth_task_frontiers(task_split=TRAIN)
+    test_experiment_state.checkpoint_frontiers()
+
+    test_experiment_state.empty_task_frontiers(task_split=TRAIN, task_ids=ALL)
+
+    assert len(test_experiment_state.get_non_empty_frontiers_for_split(TRAIN)) == 0
+
+    test_experiment_state.load_frontiers_from_checkpoint()
+
+    assert len(test_experiment_state.get_non_empty_frontiers_for_split(TRAIN)) == len(
+        test_experiment_state.task_frontiers[TRAIN]
+    )

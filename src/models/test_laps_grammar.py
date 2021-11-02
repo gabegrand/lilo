@@ -120,3 +120,16 @@ def test_laps_grammar_send_receive_compressor_api_call():
             )
             == 0
         )
+
+
+def test_laps_grammar_checkpoint_reload(tmpdir):
+    test_config = TEST_GRAPHICS_CONFIG
+    test_experiment_state = ExperimentState(test_config)
+
+    test_grammar = test_experiment_state.models[GRAMMAR]
+
+    test_grammar.checkpoint(test_experiment_state, tmpdir)
+
+    new_grammar = test_grammar.load_model_from_checkpoint(test_experiment_state, tmpdir)
+
+    assert test_grammar == new_grammar

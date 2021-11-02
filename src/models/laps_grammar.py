@@ -5,6 +5,8 @@ Utility wrapper function around the DreamCoder Grammar. Elevates common function
 """
 import subprocess
 import os, json
+from dreamcoder.type import Type
+from dreamcoder.program import Program
 from dreamcoder.grammar import Grammar
 from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.program import Program
@@ -20,6 +22,8 @@ import src.experiment_iterator as experiment_iterator
 
 class LAPSGrammar(Grammar):
     """LAPSGrammar: utility model wrapper around DreamCoder Grammar to support model functions (sampling, program inference, compression)."""
+
+    name = "laps_grammar"
 
     DEFAULT_MAXIMUM_FRONTIER = 5  # Maximum top-programs to keep in frontier
     DEFAULT_CPUS = 12  # Parallel CPUs
@@ -571,3 +575,33 @@ class LAPSGrammar(Grammar):
             [(0.0, p.infer(), p) for p in primitives],
             continuationType=continuationType,
         )
+
+    def get_checkpoint_filepath(self, checkpoint_directory):
+        return os.path.join(checkpoint_directory, f"{self.name}.json")
+
+    def checkpoint(self, experiment_state, checkpoint_directory):
+        with open(self.get_checkpoint_filepath(checkpoint_directory), "w") as f:
+            json.dump(self.json(), f)
+
+    def load_model_from_checkpoint(self, experiment_state, checkpoint_directory):
+        with open(self.get_checkpoint_filepath(checkpoint_directory)) as f:
+            json_grammar = json.load(f)
+
+        reloaded_primitives = [
+            Program.parse(production["expression"])
+            for production in json_grammar["productions"]
+        ]
+        log_probabilities = [
+            production["logProbability"] for production in json_grammar["productions"]
+        ]
+        productions = [
+            (probability, p.infer(), p)
+            for (probability, p) in zip(log_probabilities, reloaded_primitives)
+        ]
+        grammar = LAPSGrammar(
+            logVariable=json_grammar["logVariable"],
+            productions=productions,
+            continuationType=Type.fromjson(json_grammar["continuationType"]),
+        )
+        experiment_state.models[model_loaders.GRAMMAR] = grammar
+        return grammar

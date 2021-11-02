@@ -93,3 +93,37 @@ class OrderedTaskBatcher(TaskBatcher):
         self.batch_pointers[task_split] += batch_size
 
         return task_batch
+
+
+@TaskBatcherRegistry.register
+class GroundTruthOrderedTaskBatcher(OrderedTaskBatcher):
+    """GroundTruthOrderedTaskBatcher: orders tasks according to the log prior for a reference ground truth. No shuffle."""
+
+    name = "ground_truth_ordered_task_batcher"
+
+    def __init__(self, experiment_state, curr_iteration, max_iterations):
+        from dreamcoder.frontier import Frontier
+
+        gt_frontiers = {
+            task_split: {
+                task: Frontier.makeFrontierFromSupervised(task)
+                for task in experiment_state.task_frontiers[task_split]
+            }
+            for task_split in experiment_state.task_frontiers
+        }
+
+        def best_log_prior(task, task_split):
+            frontier = gt_frontiers[task_split][task]
+            return min([e.logPrior for e in frontier.entries])
+
+        def sorted_log_prior(task_split):
+            sorted(
+                gt_frontiers[task_split],
+                key=lambda task: best_log_prior(task),
+                reverse=True,
+            )
+
+        self.task_id_orderings = {
+            split: [t.name for t in gt_frontiers[split]] for split in gt_frontiers
+        }
+        self.batch_pointers = {split: 0 for split in gt_frontiers}
