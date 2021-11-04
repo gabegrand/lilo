@@ -1,0 +1,57 @@
+{
+    "metadata": {
+        "experiment_id": "compress_compositional_graphics_200_ground_truth_original_dsl",
+        "human_readable": "Candidate library generator. Checkpoints out the original ground truth DSL frontiers only.",
+        "export_directory": "experiments/outputs/compositional_graphics",
+        "log_directory": "experiments/logs/compositional_graphics",
+        "tasks_loader": "compositional_graphics_200",
+        "task_language_loader": "compositional_graphics_200_human",
+        "export_with_timestamp": false,
+        "resume_checkpoint_directory": null,
+        "init_frontiers_from_checkpoint": false,
+        "ocaml_special_handler": "LOGO",
+        "random_seed": 0
+    },
+    "model_initializers": [
+        {
+            "model_type": "grammar",
+            "model_loader": "LOGO",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        }
+    ],
+    "experiment_iterator": {
+        "max_iterations": 1,
+        "task_batcher": "ground_truth_dynamic_buckets_task_batcher",
+        "loop_blocks": [
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_metadata",
+                "params": {
+                    "verbosity": 3
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "initialize_ground_truth_task_frontiers",
+                "params": {
+                    "task_split": "train"
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "initialize_ground_truth_task_frontiers",
+                "params": {
+                    "task_split": "test"
+                }
+            },
+            {
+                "experiment_block_type": "checkpoint",
+                "state_to_checkpoint": [
+                    "frontiers"
+                ],
+                "models_to_checkpoint": []
+            }
+        ]
+    }
+}
