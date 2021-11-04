@@ -11,6 +11,7 @@ from dreamcoder.frontier import Frontier
 
 # Experiment state config constants
 METADATA = "metadata"
+CURR_ITERATION = "curr_iteration"
 EXPERIMENT_ID = "experiment_id"
 EXPORT_DIRECTORY = "export_directory"
 LOG_DIRECTORY = "log_directory"
@@ -45,6 +46,10 @@ class ExperimentState:
 
     def __init__(self, config):
         self.config = config
+
+        self.metadata = self.init_metadata_from_config(config)
+        self.curr_iteration = self.init_curr_iteration()
+
         self.tasks, self.task_frontiers = self.init_tasks_from_config(config)
         self.task_language, self.task_vocab = self.init_task_language_from_config(
             config
@@ -54,24 +59,20 @@ class ExperimentState:
         self.models = {}
         self.init_models_from_config(config)
 
-        self.curr_iteration = None
-        self.metadata = self.init_metadata_from_config(config)
         self.init_log_and_export_from_config()
+
+        self.maybe_resume_from_checkpoint()
 
     def init_tasks_from_config(self, config):
         task_loader = task_loaders.TaskLoaderRegistry[config[METADATA][TASKS_LOADER]]
-        tasks = task_loader.load_tasks()
+        self.tasks = task_loader.load_tasks()
 
-        # TODO: allow initialization from frontiers.
-        task_frontiers = {
-            split: {task: Frontier([], task=task) for task in tasks[split]}
-            for split in tasks.keys()
+        self.task_frontiers = {
+            split: {task: Frontier([], task=task) for task in self.tasks[split]}
+            for split in self.tasks.keys()
         }
 
-        if config[METADATA][INIT_FRONTIERS_FROM_CHECKPOINT]:
-            raise NotImplementedError
-
-        return tasks, task_frontiers
+        return self.tasks, self.task_frontiers
 
     def init_task_language_from_config(self, config):
         language_loader = task_loaders.TaskLanguageLoaderRegistry[
@@ -112,6 +113,9 @@ class ExperimentState:
             else metadata[EXPERIMENT_ID]
         )
         return metadata
+
+    def init_curr_iteration(self):
+        return self.metadata.get(CURR_ITERATION, None)
 
     def init_log_and_export_from_config(self):
         """Initializes time-stamped checkpoint directory and log file if log and export directory are provided."""
@@ -160,6 +164,10 @@ class ExperimentState:
             )
         print(f"====================================")
 
+    def maybe_resume_from_checkpoint(self):
+        if self.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
+            self.load_frontiers_from_checkpoint(use_resume_checkpoint=True)
+
     def get_checkpoint_directory(self):
         checkpoint_directory = os.path.join(
             self.metadata[EXPORT_DIRECTORY], str(self.curr_iteration)
@@ -180,16 +188,25 @@ class ExperimentState:
             }
             for split in self.task_frontiers
         }
-        with open(
-            os.path.join(self.get_checkpoint_directory(), FRONTIERS_CHECKPOINT), "w"
-        ) as f:
+        checkpoint_directory = os.path.join(
+            self.get_checkpoint_directory(), FRONTIERS_CHECKPOINT
+        )
+        with open(checkpoint_directory, "w") as f:
             json.dump(json_frontiers, f)
+        print(
+            f"============Checkpointing frontiers to {checkpoint_directory}==========="
+        )
 
-    def load_frontiers_from_checkpoint(self):
+    def load_frontiers_from_checkpoint(self, use_resume_checkpoint=False):
         """Note that this loads NON-EMPTY frontiers to combine with existing frontiers."""
-        with open(
-            os.path.join(self.get_checkpoint_directory(), FRONTIERS_CHECKPOINT), "r"
-        ) as f:
+
+        checkpoint_dir = (
+            self.get_checkpoint_directory()
+            if not use_resume_checkpoint
+            else self.get_resume_checkpoint_directory()
+        )
+        frontiers_checkpoint = os.path.join(checkpoint_dir, FRONTIERS_CHECKPOINT)
+        with open(frontiers_checkpoint, "r") as f:
             json_frontiers = json.load(f)
 
         for split in self.task_frontiers:
@@ -202,15 +219,22 @@ class ExperimentState:
                     self.task_frontiers[split][task] = self.task_frontiers[split][
                         task
                     ].combine(loaded_frontier)
+        f"============Loaded previously checkpointed frontiers from {frontiers_checkpoint}==========="
 
     def checkpoint_samples(self):
         pass
 
     def checkpoint_state(self, state_to_checkpoint):
-        pass
+        for state in state_to_checkpoint:
+            if state == self.FRONTIERS:
+                self.checkpoint_frontiers()
+            else:
+                raise NotImplementedError
 
     def checkpoint_models(self, models_to_checkpoint):
-        pass
+        for model in models_to_checkpoint:
+            if model in self.models:
+                self.models[model].checkpoint(self, self.get_checkpoint_directory())
 
     def load_models_from_checkpoint(self):
         pass
@@ -357,10 +381,13 @@ class ExperimentIterator:
         ) = self.init_iterator_from_config(config, experiment_state)
 
     def init_iterator_from_config(self, config, experiment_state):
-        curr_iteration = 0  # TODO: implement resume.
         max_iterations = config[EXPERIMENT_ITERATOR][MAX_ITERATIONS]
 
-        experiment_state.curr_iteration = curr_iteration
+        if experiment_state.curr_iteration is None:
+            curr_iteration = 0
+            experiment_state.curr_iteration = curr_iteration
+        else:
+            curr_iteration = experiment_state.curr_iteration
 
         task_batcher = task_loaders.TaskBatcherRegistry.get(
             config[EXPERIMENT_ITERATOR][TASK_BATCHER],
@@ -420,16 +447,62 @@ class ExperimentIterator:
             if attr in curr_loop_block:
                 print(f"\t{attr}: {curr_loop_block[attr]}")
 
-        print(
-            f"task_ids: {len(task_batch_ids)} tasks: {task_batch_ids[0]} -- {task_batch_ids[-1]}"
-        )
+        if type(task_batch_ids) == list:
+            print(
+                f"task_ids: {len(task_batch_ids)} tasks: {task_batch_ids[0]} -- {task_batch_ids[-1]}"
+            )
+        else:
+            for split in task_batch_ids:
+                print(
+                    f"task_ids {split}: {len(task_batch_ids)} tasks: {task_batch_ids[split][0]} -- {task_batch_ids[split][-1]}"
+                )
         print(f"====================================")
 
     def execute_model_fn(self, experiment_state, curr_loop_block):
         """Executes a model function on a batch of tasks. Model functions should be of the form:
 
         model_fn(experiment_state, task_split, task_batch_ids, **params...)
+
+        OR
+        model_fn(experiment_state, task_splits, task_ids_in_splits, **params...)
         """
+        if task_loaders.TASK_SPLIT in curr_loop_block:
+            self.execute_model_fn_single_split(experiment_state, curr_loop_block)
+        elif task_loaders.TASK_SPLITS in curr_loop_block:
+            self.execute_model_fn_several_splits(experiment_state, curr_loop_block)
+        else:
+            raise ValueError
+
+    def execute_model_fn_several_splits(self, experiment_state, curr_loop_block):
+        task_splits, task_batch_sizes = (
+            curr_loop_block[task_loaders.TASK_SPLITS],
+            curr_loop_block[task_loaders.TASK_BATCH_SIZES],
+        )
+        task_ids_in_splits = {
+            task_split: self.task_batcher.get_task_batch_ids(
+                experiment_state, self.curr_iteration, task_split, task_batch_size
+            )
+            for task_split, task_batch_size, in zip(task_splits, task_batch_sizes)
+        }
+
+        # Log the model function.
+        self.log_model_fn(experiment_state, curr_loop_block, task_ids_in_splits)
+
+        # Run model function on the batch of tasks
+        model_type, model_fn_name = (
+            curr_loop_block[MODEL_TYPE],
+            curr_loop_block[EXPERIMENT_BLOCK_TYPE_MODEL_FN],
+        )
+        model_fn = getattr(experiment_state.models[model_type], model_fn_name)
+
+        model_fn(
+            experiment_state=experiment_state,
+            task_splits=task_splits,
+            task_ids_in_splits=task_ids_in_splits,
+            **curr_loop_block[PARAMS],
+        )
+
+    def execute_model_fn_single_split(self, experiment_state, curr_loop_block):
         # Get a batch of tasks
         task_split, task_batch_size = (
             curr_loop_block[task_loaders.TASK_SPLIT],
@@ -458,4 +531,4 @@ class ExperimentIterator:
 
     def checkpoint(self, experiment_state, curr_loop_block):
         experiment_state.checkpoint_state(curr_loop_block[STATE_TO_CHECKPOINT])
-        experiment_state.checkpoint_models(curr_loop_block[MODELS_TO_CHECKPOOINT])
+        experiment_state.checkpoint_models(curr_loop_block[MODELS_TO_CHECKPOINT])
