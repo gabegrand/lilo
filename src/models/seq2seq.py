@@ -753,7 +753,6 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             all_decoder_outputs[:, t, :] = decoder_output
 
         # Loss calculation and backpropagation
-        # TODO(gg): Implement masked cross entropy loss
         loss_per_example = nn.functional.cross_entropy(
             input=all_decoder_outputs.view(
                 batch_size, self.decoder.output_size, target_seq_len
