@@ -760,6 +760,7 @@ class Seq2Seq(nn.Module, model_loaders.ModelLoader):
             ),
             target=target_token_idxs,
             reduction="none",
+            ignore_index=self.decoder.token_to_idx[self.decoder.PAD],
         )
         loss = loss_per_example.mean()
 
