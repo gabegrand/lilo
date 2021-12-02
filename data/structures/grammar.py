@@ -16,7 +16,7 @@ GrammarRegistry = ModelLoaderRegistries[GRAMMAR]
 
 
 @GrammarRegistry.register
-class TowerGrammarLoader(ModelLoader):
+class SupervisedTowerGrammarLoader(ModelLoader):
     """Loads the tower grammar.
     Original source: dreamcoder/domains/tower/towerPrimitives.
     Semantics are only implemented in OCaml.
@@ -26,6 +26,6 @@ class TowerGrammarLoader(ModelLoader):
 
     def load_model(self, experiment_state):
         grammar = LAPSGrammar.uniform(
-            towerPrimitives.new_primitives, continuationType=towerPrimitives.ttower
+            towerPrimitives.primitives, continuationType=towerPrimitives.ttower
         )
         return grammar

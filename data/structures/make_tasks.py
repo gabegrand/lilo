@@ -59,6 +59,7 @@ class Structures1KLoader(TaskDataLoader):
                     t.ocaml_serializer = None
                     # Add supervision.
                     t.supervisedSolution = t.original
+                    t.groundTruthProgram = t.original
                     tasks[split].append(t)
         return tasks
 
