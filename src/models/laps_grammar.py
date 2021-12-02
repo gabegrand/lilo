@@ -580,6 +580,7 @@ class LAPSGrammar(Grammar):
         return os.path.join(checkpoint_directory, f"{self.name}.json")
 
     def checkpoint(self, experiment_state, checkpoint_directory):
+        f"=> Checkpointed grammar to: {self.get_checkpoint_filepath(checkpoint_directory)}==========="
         with open(self.get_checkpoint_filepath(checkpoint_directory), "w") as f:
             json.dump(self.json(), f)
 
