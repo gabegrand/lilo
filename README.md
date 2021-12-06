@@ -21,3 +21,18 @@ These are instructions for setting up on the Supercloud computing cluster manage
 3. You can now run experiments via standard SLURM commands [like these](https://supercloud.mit.edu/submitting-jobs). Note that if running interactively or writing your own batch commands, you should call `module load anaconda/2020b` to access the appropriate Python installation.
    - If you are running `evaluate_compression_model_scoring.py`, running your desired command with `--util_generate_cloud_command supercloud` will automatically generate command-line parameters to run on Supercloud.
   - If you are running experiments from `evaluate_compression_model_scoring.py`, you can reference previous reported results [here](https://docs.google.com/spreadsheets/d/11-qKHK_pOyF4lfwhaonRQTZEqHTepPKI4MTdWYAU9hM/edit#gid=0).
+
+## Quickstart.
+#### Experiments.
+Experiments are run and managed through Config files. Example config files can be found in `experiments/configs`.
+
+The Python entrypoint to these is `run_experiment.py`. Example usage: `python run_experiment.py --config_dir experiments/configs --config_file dreamcoder_compositional_graphics_200_human.json`.
+
+#### DreamCoder compression API.
+We implement a rewritten API over the original DreamCoder compressor for ease of use and adaptation into new library learning and library ranking functions.
+If you are just looking to work with this API, you may find it more useful to examine the following:
+
+1. The Python entrypoint to run compressor-specific tests is `evaluate_compression_model_scoring.py`. Example usage: `python evaluate_compression_model_scoring.py -k test_discrimination_original_final_libraries_full --db_no_model_training` will run a test that benchmarks compressor performance on increasingly large numbers of programs in a training set.
+2. We implement a Python wrapper over the compressor that makes API calls in `laps_grammar.py`. See: `_send_receive_compressor_api_call` for an example of the calling syntax, and `_get_compressed_grammmar_and_rewritten_frontiers` for a wrapper function that gets a compressed grammar and rewritten frontiers for a set of train and test programs.
+3. Finally, the OCaml implementation itself is in `ocaml/solvers/compression_rescoring_api.ml` and `ocaml/solvers/compression_rescoring_api_utils.ml`. The former specifies all of the API functions; the latter implements them.
+
