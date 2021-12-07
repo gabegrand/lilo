@@ -56,6 +56,7 @@ dependencies:
   - pluggy
   - pox
   - ppft
+  - pre-commit
   - prompt_toolkit
   - protobuf
   - psutil
@@ -98,6 +99,5 @@ dependencies:
   - pip:
     - mypy-extensions
     - phx-class-registry
-    - pre-commit
     - pregex
     - pytorch-nlp
