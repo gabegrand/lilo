@@ -4,8 +4,9 @@
 # Download LAPS-DreamCoder submodule dependency, which needs to be unpacked into laps/dreamcoder
 git submodule update --init --recursive
 
-# Pip install the requirements locally.
-# Note that this has been tested with Python 3.7.7.
-cat laps_requirements.txt |  xargs -n 1 pip install --user
+# Create a new Conda environment called `laps` with Python 3.7.7
+conda env create -f environment.yml
+conda activate laps
+
 # Install the NLTK word tokenize package.
 python -m nltk.downloader 'punkt'
