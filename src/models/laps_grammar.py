@@ -550,6 +550,13 @@ class LAPSGrammar(Grammar):
 
         return optimized_grammar, rewritten_train_test_frontiers
 
+    def evaluate_frontier_likelihoods(self, experiment_state):
+        """
+        Evaluates and reports the frontier likelihoods with respect to the current grammar.
+        """
+        # TODO @CathyWong
+        pass
+
     ## Elevate static methods to create correct class.
     @staticmethod
     def fromGrammar(grammar):
@@ -606,3 +613,4 @@ class LAPSGrammar(Grammar):
         )
         experiment_state.models[model_loaders.GRAMMAR] = grammar
         return grammar
+

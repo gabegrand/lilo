@@ -1,0 +1,97 @@
+{
+    "metadata": {
+        "experiment_id": "stitch_proposal_codex_library_prior_compositional_graphics_ground_truth",
+        "human_readable": "Candidate library generator. Checkpoints out the original ground truth DSL frontiers only.",
+        "export_directory": "experiments/outputs/compositional_graphics",
+        "log_directory": "experiments/logs/compositional_graphics",
+        "tasks_loader": "compositional_graphics_200",
+        "task_language_loader": "compositional_graphics_200_synthetic",
+        "export_with_timestamp": false,
+        "resume_checkpoint_directory": null,
+        "init_frontiers_from_checkpoint": false,
+        "ocaml_special_handler": "LOGO",
+        "random_seed": 0
+    },
+    "model_initializers": [
+        {
+            "model_type": "grammar",
+            "model_loader": "LOGO",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "library_learner",
+            "model_loader": "stitch_proposer",
+            "model_initializer_fn": "load_model"
+        },
+        {
+            "model_type": "program_rewriter",
+            "model_loader": "stitch_rewriter",
+            "model_initializer_fn": "load_model"
+        }
+    ],
+    "experiment_iterator": {
+        "max_iterations": 1,
+        "task_batcher": "ground_truth_dynamic_buckets_task_batcher",
+        "loop_blocks": [
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_metadata",
+                "params": {
+                    "verbosity": 3
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "initialize_ground_truth_task_frontiers",
+                "params": {
+                    "task_split": "train"
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "initialize_ground_truth_task_frontiers",
+                "params": {
+                    "task_split": "test"
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "library_learner",
+                "model_fn": "get_compressed_grammar_lm_prior_rank",
+                "task_splits": [
+                    "train"
+                ],
+                "task_batch_size": [
+                    "all"
+                ],
+                "params": {}
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "program_rewriter",
+                "model_fn": "get_compressed_grammar_lm_prior_rank",
+                "task_splits": [
+                    "train",
+                    "test"
+                ],
+                "task_batch_size": [
+                    "all",
+                    "all"
+                ],
+                "params": {}
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "grammar",
+                "model_fn": "evaluate_frontier_likelihoods",
+                "task_splits": [
+                    "test"
+                ],
+                "task_batch_sizes": [
+                    "all"
+                ]
+            }
+        ]
+    }
+}

@@ -3,9 +3,12 @@ model_loaders.py | Author : Catherine Wong
 
 Utility functions for loading and initializing many basic models.
 """
+from msilib.schema import Class
 from class_registry import ClassRegistry
 
 GRAMMAR = "grammar"
+LIBRARY_LEARNER = "library_learner"  # Models that update grammars.
+PROGRAM_REWRITER = "program_rewriter"  # Models that rewrite programs wrt. grammars
 LANGUAGE_ENCODER = "language_encoder"
 EXAMPLES_ENCODER = "examples_encoder"
 JOINT_LANGUAGE_EXAMPLES_ENCODER = "joint_language_examples_encoder"
@@ -13,6 +16,8 @@ PROGRAM_DECODER = "program_decoder"
 AMORTIZED_SYNTHESIS = "amortized_synthesis"
 ModelLoaderRegistries = {
     GRAMMAR: ClassRegistry("name", unique=True),
+    LIBRARY_LEARNER: ClassRegistry("name", unique=True),
+    PROGRAM_REWRITER: ClassRegistry("name", unique=True),
     EXAMPLES_ENCODER: ClassRegistry("name", unique=True),
     LANGUAGE_ENCODER: ClassRegistry("name", unique=True),
     JOINT_LANGUAGE_EXAMPLES_ENCODER: ClassRegistry("name", unique=True),
