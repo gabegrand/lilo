@@ -25,6 +25,23 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
     def __init__(self, experiment_state=None):
         super().__init__()
 
+    def get_compressed_grammar_mdl_prior_rank(
+        self, experiment_state, task_splits, task_ids_in_splits
+    ):
+        """
+        Updates experiment_state.models[GRAMMAR].
+        Uses Stitch compressor to propose libraries.
+        Uses p(library) based on the training data description length to rerank the libraries.
+        """
+        frontiers = experiment_state.get_frontiers_for_ids_in_splits(
+            task_splits=task_splits,
+            task_ids_in_splits=task_ids_in_splits,
+            include_samples=False,
+        )
+        import pdb
+
+        pdb.set_trace()
+
     def get_compressed_grammar_lm_prior_rank(
         self, experiment_state, task_splits, task_ids_in_splits
     ):
@@ -35,7 +52,9 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         """
         # grammar:
         # experiment_state.task_frontiers
+        import pdb
 
+        pdb.set_trace()
         pass
 
     def get_compressed_grammar_lm_alignment_rank(
