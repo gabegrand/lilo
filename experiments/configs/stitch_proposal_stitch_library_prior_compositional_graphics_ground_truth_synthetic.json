@@ -68,7 +68,10 @@
                     "all",
                     "all"
                 ],
-                "params": {}
+                "params": {
+                    "max_arity": 2,
+                    "iterations": 1
+                }
             },
             {
                 "experiment_block_type": "model_fn",

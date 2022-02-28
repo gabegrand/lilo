@@ -5,7 +5,9 @@ Library learning model that uses the Stitch compressor to propose libraries.
 Expects an experiment_state with a GRAMMAR and FRONTIERs.
 Updates GRAMMAR based on Stitch compression.
 """
-
+import os
+import json
+from src.experiment_iterator import EXPORT_DIRECTORY
 import src.models.model_loaders as model_loaders
 
 LibraryLearnerRegistry = model_loaders.ModelLoaderRegistries[
@@ -18,6 +20,9 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
 
     name = "stitch_proposer"
 
+    stitch_input_frontiers_file = "stitch_frontiers.json"
+    stitch_output_file = "stitch_output.json"
+
     @staticmethod
     def load_model(experiment_state, **kwargs):
         return StitchProposerLibraryLearner(experiment_state=experiment_state, **kwargs)
@@ -26,24 +31,26 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         super().__init__()
 
     def get_compressed_grammar_mdl_prior_rank(
-        self, experiment_state, task_splits, task_ids_in_splits
+        self, experiment_state, task_splits, task_ids_in_splits, **kwargs
     ):
         """
         Updates experiment_state.models[GRAMMAR].
         Uses Stitch compressor to propose libraries.
         Uses p(library) based on the training data description length to rerank the libraries.
         """
-        frontiers = experiment_state.get_frontiers_for_ids_in_splits(
-            task_splits=task_splits,
-            task_ids_in_splits=task_ids_in_splits,
-            include_samples=False,
+        # Write frontiers for stitch.
+        input_frontiers_file = self._write_frontiers_for_stitch(
+            experiment_state, task_splits, task_ids_in_splits
         )
+        # Call stitch compressor.
+
+        # Update experiment_state grammar.
         import pdb
 
         pdb.set_trace()
 
     def get_compressed_grammar_lm_prior_rank(
-        self, experiment_state, task_splits, task_ids_in_splits
+        self, experiment_state, task_splits, task_ids_in_splits, max_arity, iterations
     ):
         """
         Updates experiment_state.models[GRAMMAR].
@@ -52,18 +59,67 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         """
         # grammar:
         # experiment_state.task_frontiers
-        import pdb
 
-        pdb.set_trace()
         pass
 
     def get_compressed_grammar_lm_alignment_rank(
-        self, experiment_state, task_splits, task_ids_in_splits
+        self, experiment_state, task_splits, task_ids_in_splits, max_arity, iterations
     ):
         """
         Updates experiment_state.models[GRAMMAR].
         Uses Stitch compressor to propose libraries.
         Uses p(language, libraries) under a language model (default Codex) to rerank the libraries.
         """
+        # catwong: here's how you could get an example grammar.
+        # catwong: here's how you get all of the language out of the 
         pass
+
+    def _write_frontiers_for_stitch(
+        self, experiment_state, task_splits, task_ids_in_splits
+    ):
+        """
+        Writes out frontiers for Stitch compressor.
+        Returns filepath for calling stitch compressor.
+        """
+        frontiers = experiment_state.get_frontiers_for_ids_in_splits(
+            task_splits=task_splits,
+            task_ids_in_splits=task_ids_in_splits,
+            include_samples=False,
+        )
+        programs = []
+        for split in frontiers:
+            for frontier in frontiers[split]:
+                frontier_programs = [
+                    str(entry.program).replace("lambda", "lam") for entry in frontier
+                ]
+                programs += frontier_programs
+        # Write out the programs.
+        frontier_file = os.path.join(
+            experiment_state.get_checkpoint_directory(),
+            StitchProposerLibraryLearner.stitch_input_frontiers_file,
+        )
+        with open(frontier_file, "w") as f:
+            json.dump(programs, f)
+        return frontier_file
+
+    def _get_stitch_libraries(
+        self,
+        experiment_state,
+        input_frontiers_file,
+        max_arity,
+        iterations,
+        candidates_per_iteration,
+    ):
+        stitch_base_command = "cargo run --bin=compress --release --"
+        output_file = os.path.join(
+            experiment_state.get_checkpoint_directory(),
+            StitchProposerLibraryLearner.stitch_output_file,
+        )
+        stitch_arguments = {
+            "file": input_frontiers_file,
+            "out": output_file,
+            "max_arity": max_arity,
+            "iterations": iterations,
+        }
+        stitch_command = 
 

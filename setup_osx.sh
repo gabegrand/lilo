@@ -10,3 +10,6 @@ conda activate laps
 
 # Install the NLTK word tokenize package.
 python -m nltk.downloader 'punkt'
+
+# Install Rust for stitch.
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
