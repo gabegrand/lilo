@@ -550,7 +550,9 @@ class LAPSGrammar(Grammar):
 
         return optimized_grammar, rewritten_train_test_frontiers
 
-    def evaluate_frontier_likelihoods(self, experiment_state):
+    def evaluate_frontier_likelihoods(
+        self, experiment_state, task_splits, task_ids_in_splits
+    ):
         """
         Evaluates and reports the frontier likelihoods with respect to the current grammar.
         """

@@ -3,7 +3,6 @@ model_loaders.py | Author : Catherine Wong
 
 Utility functions for loading and initializing many basic models.
 """
-from msilib.schema import Class
 from class_registry import ClassRegistry
 
 GRAMMAR = "grammar"

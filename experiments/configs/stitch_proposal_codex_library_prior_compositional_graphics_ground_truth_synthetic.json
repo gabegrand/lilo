@@ -1,6 +1,6 @@
 {
     "metadata": {
-        "experiment_id": "stitch_proposal_codex_library_prior_compositional_graphics_ground_truth",
+        "experiment_id": "stitch_proposal_codex_library_prior_compositional_graphics_ground_truth_synthetic",
         "human_readable": "Candidate library generator. Checkpoints out the original ground truth DSL frontiers only.",
         "export_directory": "experiments/outputs/compositional_graphics",
         "log_directory": "experiments/logs/compositional_graphics",
@@ -22,12 +22,14 @@
         {
             "model_type": "library_learner",
             "model_loader": "stitch_proposer",
-            "model_initializer_fn": "load_model"
+            "model_initializer_fn": "load_model",
+            "params": {}
         },
         {
             "model_type": "program_rewriter",
             "model_loader": "stitch_rewriter",
-            "model_initializer_fn": "load_model"
+            "model_initializer_fn": "load_model",
+            "params": {}
         }
     ],
     "experiment_iterator": {
@@ -62,7 +64,8 @@
                 "task_splits": [
                     "train"
                 ],
-                "task_batch_size": [
+                "task_batch_sizes": [
+                    "all",
                     "all"
                 ],
                 "params": {}
@@ -70,12 +73,12 @@
             {
                 "experiment_block_type": "model_fn",
                 "model_type": "program_rewriter",
-                "model_fn": "get_compressed_grammar_lm_prior_rank",
+                "model_fn": "get_rewritten_frontiers_for_grammar",
                 "task_splits": [
                     "train",
                     "test"
                 ],
-                "task_batch_size": [
+                "task_batch_sizes": [
                     "all",
                     "all"
                 ],
@@ -90,7 +93,8 @@
                 ],
                 "task_batch_sizes": [
                     "all"
-                ]
+                ],
+                "params": {}
             }
         ]
     }

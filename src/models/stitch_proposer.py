@@ -33,6 +33,9 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         Uses Stitch compressor to propose libraries.
         Uses p(library) under a language model (default Codex) to rerank the libraries.
         """
+        # grammar:
+        # experiment_state.task_frontiers
+
         pass
 
     def get_compressed_grammar_lm_alignment_rank(
