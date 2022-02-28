@@ -33,25 +33,8 @@ class Re2Loader(TaskDataLoader):
         )
 
         tasks = {TRAIN: train_tasks, TEST: test_tasks}
+
         for split in tasks.keys():
             # Need to add supervision.
             pass
-            # split_path = os.path.join(dataset_path, split)
-            # task_files = sorted(
-            #     [
-            #         os.path.join(split_path, t)
-            #         for t in os.listdir(split_path)
-            #         if ".p" in t
-            #     ],
-            #     key=lambda p: os.path.basename(p),
-            # )
-            # for task_file in task_files:
-            #     with open(task_file, "rb") as f:
-            #         t = dill.load(f)
-            #         t.nearest_name = None
-            #         # Add the task serializer.
-            #         t.ocaml_serializer = None
-            #         # Add supervision.
-            #         t.supervisedSolution = t.groundTruthProgram
-            #         tasks[split].append(t)
         return tasks
