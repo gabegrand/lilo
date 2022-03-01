@@ -28,6 +28,7 @@ from data.structures.make_tasks import *
 from data.structures.grammar import *
 
 from src.models.laps_dreamcoder_recognition import *
+from src.models.sample_generator import *
 from src.models.stitch_proposer import *
 from src.models.stitch_rewriter import *
 
