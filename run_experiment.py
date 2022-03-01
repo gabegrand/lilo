@@ -17,7 +17,6 @@ import os, json, argparse
 
 from src.experiment_iterator import ExperimentState, ExperimentIterator
 
-
 from data.compositional_graphics.make_tasks import *
 from data.compositional_graphics.grammar import *
 from data.compositional_graphics.encoder import *
