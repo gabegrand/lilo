@@ -55,8 +55,10 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         )
 
         # Update experiment_state grammar.
-        new_inventions = [(0., Program.parse(inv)) for inv in inventions_list]
-        experiment_state.models[model_loaders.GRAMMAR].productions.extend(new_inventions)
+        new_inventions = [(0.0, Program.parse(inv)) for inv in inventions_list]
+        experiment_state.models[model_loaders.GRAMMAR].productions.extend(
+            new_inventions
+        )
 
     def get_compressed_grammar_lm_prior_rank(
         self, experiment_state, task_splits, task_ids_in_splits, max_arity, iterations
