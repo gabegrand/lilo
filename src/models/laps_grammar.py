@@ -3,6 +3,7 @@ laps_grammmar.py | Author : Catherine Wong
 
 Utility wrapper function around the DreamCoder Grammar. Elevates common functions to be class functions in order to support calling with an ExperimentState.
 """
+import numpy as np
 import subprocess
 import os, json
 from dreamcoder.type import Type
@@ -159,6 +160,7 @@ class LAPSGrammar(Grammar):
         experiment_state,
         task_split,
         task_batch_ids,
+        include_samples=False,
         top_k=DEFAULT_TOP_K,
         pseudocounts=DEFAULT_PSEUDOCOUNTS,
         arity=DEFAULT_ARITY,
@@ -173,7 +175,9 @@ class LAPSGrammar(Grammar):
         """Compresses grammar with respect to frontiers in task_batch_ids (or ALL).
         Updates the experiment_state.models[GRAMMAR] and experiment_state frontiers rewritten with respect to the grammar."""
         frontiers_to_optimize = experiment_state.get_frontiers_for_ids(
-            task_split=task_split, task_ids=task_batch_ids, include_samples=False
+            task_split=task_split,
+            task_ids=task_batch_ids,
+            include_samples=include_samples,
         )
 
         optimized_grammar, optimized_frontiers = induceGrammar(
@@ -196,6 +200,7 @@ class LAPSGrammar(Grammar):
         # Cast back to LAPSGrammar
         optimized_grammar = LAPSGrammar.fromGrammar(optimized_grammar)
 
+        # Add samples.
         experiment_state.models[model_loaders.GRAMMAR] = optimized_grammar
         for optimized_frontier in optimized_frontiers:
             experiment_state.task_frontiers[task_split][
@@ -551,13 +556,27 @@ class LAPSGrammar(Grammar):
         return optimized_grammar, rewritten_train_test_frontiers
 
     def evaluate_frontier_likelihoods(
-        self, experiment_state, task_splits, task_ids_in_splits
+        self, experiment_state, task_splits, task_ids_in_splits, include_samples=False
     ):
         """
         Evaluates and reports the frontier likelihoods with respect to the current grammar.
         """
-        # TODO @CathyWong
-        pass
+        frontiers = experiment_state.get_frontiers_for_ids_in_splits(
+            task_splits=task_splits,
+            task_ids_in_splits=task_ids_in_splits,
+            include_samples=include_samples,
+        )
+
+        # Rescore all frontiers under current grammar.
+        log_likelihoods = []
+        for task_split in task_splits:
+            for f in frontiers[task_split]:
+                log_likelihoods += [
+                    self.logLikelihood(f.task.request, e.program) for e in f
+                ]
+        print(
+            f"EVALUATION: evaluate_frontier_likelihoods : mean ll of {len(log_likelihoods)} programs in splits: {task_splits} is: {np.mean(log_likelihoods)}"
+        )
 
     ## Elevate static methods to create correct class.
     @staticmethod
