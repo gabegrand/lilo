@@ -10,6 +10,7 @@ import os
 import subprocess
 
 import src.models.model_loaders as model_loaders
+from dreamcoder.program import Program
 
 LibraryLearnerRegistry = model_loaders.ModelLoaderRegistries[
     model_loaders.LIBRARY_LEARNER
@@ -45,7 +46,7 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         )
 
         # Call stitch compressor.
-        self._get_stitch_libraries(
+        inventions_list = self._get_stitch_libraries(
             experiment_state,
             input_frontiers_file,
             max_arity=kwargs["max_arity"],
@@ -54,6 +55,8 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         )
 
         # Update experiment_state grammar.
+        new_inventions = [(0., Program.parse(inv)) for inv in inventions_list]
+        experiment_state.models[model_loaders.GRAMMAR].productions.extend(new_inventions)
 
     def get_compressed_grammar_lm_prior_rank(
         self, experiment_state, task_splits, task_ids_in_splits, max_arity, iterations
@@ -135,5 +138,5 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         with open(output_file, "r") as f:
             stitch_results = json.load(f)
 
-        print(stitch_results)
-        print(output_file)
+        inventions_list = [inv["body"] for inv in stitch_results["invs"]]
+        return inventions_list
