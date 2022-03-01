@@ -5,10 +5,12 @@ Library learning model that uses the Stitch compressor to propose libraries.
 Expects an experiment_state with a GRAMMAR and FRONTIERs.
 Updates GRAMMAR based on Stitch compression.
 """
-import os
 import json
-from src.experiment_iterator import EXPORT_DIRECTORY
+import os
+import subprocess
+
 import src.models.model_loaders as model_loaders
+from dreamcoder.program import Program
 
 LibraryLearnerRegistry = model_loaders.ModelLoaderRegistries[
     model_loaders.LIBRARY_LEARNER
@@ -42,12 +44,21 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         input_frontiers_file = self._write_frontiers_for_stitch(
             experiment_state, task_splits, task_ids_in_splits
         )
+
         # Call stitch compressor.
+        inventions_list = self._get_stitch_libraries(
+            experiment_state,
+            input_frontiers_file,
+            max_arity=kwargs["max_arity"],
+            iterations=kwargs["iterations"],
+            candidates_per_iteration=kwargs["candidates_per_iteration"],
+        )
 
         # Update experiment_state grammar.
-        import pdb
-
-        pdb.set_trace()
+        new_inventions = [(0.0, Program.parse(inv)) for inv in inventions_list]
+        experiment_state.models[model_loaders.GRAMMAR].productions.extend(
+            new_inventions
+        )
 
     def get_compressed_grammar_lm_prior_rank(
         self, experiment_state, task_splits, task_ids_in_splits, max_arity, iterations
@@ -60,8 +71,6 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         # grammar:
         # experiment_state.task_frontiers
 
-        pass
-
     def get_compressed_grammar_lm_alignment_rank(
         self, experiment_state, task_splits, task_ids_in_splits, max_arity, iterations
     ):
@@ -71,8 +80,7 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         Uses p(language, libraries) under a language model (default Codex) to rerank the libraries.
         """
         # catwong: here's how you could get an example grammar.
-        # catwong: here's how you get all of the language out of the 
-        pass
+        # catwong: here's how you get all of the language out of the
 
     def _write_frontiers_for_stitch(
         self, experiment_state, task_splits, task_ids_in_splits
@@ -110,16 +118,27 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         iterations,
         candidates_per_iteration,
     ):
-        stitch_base_command = "cargo run --bin=compress --release --"
         output_file = os.path.join(
             experiment_state.get_checkpoint_directory(),
             StitchProposerLibraryLearner.stitch_output_file,
         )
         stitch_arguments = {
-            "file": input_frontiers_file,
-            "out": output_file,
-            "max_arity": max_arity,
+            "file": os.path.join(os.getcwd(), input_frontiers_file),
+            "out": os.path.join(os.getcwd(), output_file),
+            "max-arity": max_arity,
             "iterations": iterations,
         }
-        stitch_command = 
+        stitch_base_command = "cd stitch; cargo run --bin=compress --release -- "
+        stitch_command = stitch_base_command + " ".join(
+            [f"--{k}={v}" for k, v in stitch_arguments.items()]
+        )
+        print("Running Stitch with the following command:")
+        print(stitch_command)
 
+        subprocess.run(stitch_command, capture_output=True, check=True, shell=True)
+
+        with open(output_file, "r") as f:
+            stitch_results = json.load(f)
+
+        inventions_list = [inv["body"] for inv in stitch_results["invs"]]
+        return inventions_list

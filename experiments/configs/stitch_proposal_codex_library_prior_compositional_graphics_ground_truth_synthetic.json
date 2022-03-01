@@ -60,6 +60,23 @@
             {
                 "experiment_block_type": "model_fn",
                 "model_type": "library_learner",
+                "model_fn": "get_compressed_grammar_mdl_prior_rank",
+                "task_splits": [
+                    "train"
+                ],
+                "task_batch_sizes": [
+                    "all",
+                    "all"
+                ],
+                "params": {
+                    "max_arity": 2,
+                    "iterations": 10,
+                    "candidates_per_iteration": 1
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "library_learner",
                 "model_fn": "get_compressed_grammar_lm_prior_rank",
                 "task_splits": [
                     "train"
@@ -68,7 +85,10 @@
                     "all",
                     "all"
                 ],
-                "params": {}
+                "params": {
+                    "max_arity": 2,
+                    "iterations": 10
+                }
             },
             {
                 "experiment_block_type": "model_fn",
