@@ -8,12 +8,13 @@ from src.models.model_loaders import ModelLoaderRegistries, GRAMMAR, ModelLoader
 from src.models.laps_grammar import LAPSGrammar
 
 import dreamcoder.domains.re2.re2Primitives as re2Primitives
+from dreamcoder.program import Program
 
 GrammarRegistry = ModelLoaderRegistries[GRAMMAR]
 
 RE2_PRIMITIVE_SETS = [
     "re2_chars_None",
-    "re_bootstrap_v1_primitives",
+    "re2_bootstrap_v1_primitives",
 ]  # From the ICML paper.
 
 RE2_PRIMITIVES, _ = re2Primitives.load_re2_primitives(RE2_PRIMITIVE_SETS)
@@ -61,7 +62,8 @@ def synthetic_language_to_re2_program(language):
     match_replace_regex = build_match_replace_regex(
         match_type, replace_regex, match_tokens
     )
-    return match_replace_regex
+    p = Program.parse(match_replace_regex).betaNormalForm()
+    return p
 
 
 def get_match_type(language):
@@ -153,8 +155,12 @@ def build_match_replace_regex(match_type, replace_regex, match_tokens):
             f"(lambda (_rflatten (map  {replace_regex}  (_rsplit {match_regex} $0) ) ))"
         )
     elif match_type == STARTS_WITH:
+        f"(lambda (_rflatten (cons _y (cons _w (cdr (_rsplit {match_regex} $0))))))"
+
         return f"(lambda ((lambda (_rflatten (cons ({replace_regex} (car $0)) (cdr $0)) )) (_rsplit {match_regex} $0) ))"
     elif match_type == ENDS_WITH:
+        "(lambda (_rflatten (_rappend (if (_rmatch (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _s) (_rtail $0)) _b (_rtail $0)) (_rrevcdr $0))))"
+
         return f"(lambda ((lambda (_rflatten (_rappend ({replace_regex} (_rtail $0)) (_rrevcdr $0)) )) (_rsplit {match_regex} $0) ))"
     else:
         assert False

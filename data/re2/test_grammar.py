@@ -76,16 +76,27 @@ prepend_postpend_remove_double_tasks = [
 ]
 
 
-def check_equal(name, raw, input, gold):
-    p = Program.parse(raw)
+def check_equal(name, raw, input, gold, task):
+    p = raw
     output = p.evaluate([])(input)
+    # Assert that this types correctly.
+    assert p.infer() == task.request
+    grammar = to_test.Re2GrammarLoader().load_model(experiment_state=None)
+    try:
+        grammar.logLikelihood(p.infer(), p)
+    except:
+        import pdb
+
+        pdb.set_trace()
     print(f"{name} in: {input} | out: {output} | gold: {gold}")
     assert output == gold
 
 
 def assert_regex_on_examples(raw_regex_program, task):
     for (input, output) in task.examples:
-        check_equal(task.name, raw=raw_regex_program, input=input[0], gold=output)
+        check_equal(
+            task.name, raw=raw_regex_program, input=input[0], gold=output, task=task
+        )
 
 
 def _get_sample_tasks(ids, split="train"):

@@ -21,6 +21,8 @@ from src.experiment_iterator import ExperimentState, ExperimentIterator
 from data.compositional_graphics.make_tasks import *
 from data.compositional_graphics.grammar import *
 from data.compositional_graphics.encoder import *
+from data.re2.make_tasks import *
+from data.re2.grammar import *
 
 from data.structures.make_tasks import *
 from data.structures.grammar import *
