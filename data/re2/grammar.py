@@ -3,7 +3,6 @@ re2: grammar.py | Author : Catherine Wong.
 Utility functions for loading in the DSLs for the regex domain.
 """
 from collections import OrderedDict
-from nis import match
 
 from src.models.model_loaders import ModelLoaderRegistries, GRAMMAR, ModelLoader
 from src.models.laps_grammar import LAPSGrammar
@@ -11,6 +10,13 @@ from src.models.laps_grammar import LAPSGrammar
 import dreamcoder.domains.re2.re2Primitives as re2Primitives
 
 GrammarRegistry = ModelLoaderRegistries[GRAMMAR]
+
+RE2_PRIMITIVE_SETS = [
+    "re2_chars_None",
+    "re_bootstrap_v1_primitives",
+]  # From the ICML paper.
+
+RE2_PRIMITIVES, _ = re2Primitives.load_re2_primitives(RE2_PRIMITIVE_SETS)
 
 
 @GrammarRegistry.register
@@ -23,25 +29,16 @@ class Re2GrammarLoader(ModelLoader):
     name = "re2"  # Special handler for OCaml enumeration.
 
     def load_model(self, experiment_state):
-        # Give it re2_chars_None
-        # Give it re2_bootstrap_v1_primitives.
-        # Don't give vowel consonant.
-
-        logo_primitives = list(
-            OrderedDict((x, True) for x in logoPrimitives.primitives).keys()
-        )
-        grammar = LAPSGrammar.uniform(
-            logo_primitives, continuationType=logoPrimitives.turtle
-        )
+        grammar = LAPSGrammar.uniform(RE2_PRIMITIVES)
         return grammar
 
 
 # Utility functions to parse the synthetic language back into regexes.
-STARTS_WITH = ("if the word starts with",)
+STARTS_WITH = "if the word starts with"
 ENDS_WITH = "if the word ends with"
 ANYWHERE = "if there is"
 VOWEL, CONSONANT, ANY_LETTER = "vowel", "consonant", "any letter"
-ANY_REGEX = "."
+ANY_REGEX = "_rdot"
 MATCH_TOKENS = [VOWEL, CONSONANT, ANY_REGEX] + [
     f"{chr(i)}" for i in range(ord("a"), ord("z"))
 ]
@@ -59,18 +56,17 @@ REMOVE_MATCH = "remove that"
 
 def synthetic_language_to_re2_program(language):
     match_type, match_tokens = get_match_type(language)
-    replace_type, replace_tokens = get_replacement_type(language)
-
-    # Build the match regex.
-    match_regex = build_match_regex(match_tokens)
-
-    # Build the replacement.
-
-    # Apply the
+    replace_type, replace_tokens = get_replacement_type(language, match_tokens)
+    replace_regex = build_replace_regex(replace_type, match_tokens, replace_tokens)
+    match_replace_regex = build_match_replace_regex(
+        match_type, replace_regex, match_tokens
+    )
+    return match_replace_regex
 
 
 def get_match_type(language):
-    """:ret: match_type, match regex string."""
+    """Get the regex that we are matching on.
+    :ret: match_type, match_tokens"""
     language = language.replace(ANY_LETTER, ANY_REGEX)
     match_tokens = []
     for match_type in [STARTS_WITH, ENDS_WITH, ANYWHERE]:
@@ -85,29 +81,41 @@ def get_match_type(language):
 
 
 def get_replacement_type(language, match_tokens):
+    """Get the function we are replacing it with, and what tokens we should use to replace.
+    :ret: replacement_type, replacement_tokens.
+    """
     # Replace match.
     language = language.replace(ANY_LETTER, ANY_REGEX)
-    match_tokens = []
     if REPLACE_MATCH in language:
         match_tokens = language.split(REPLACE_MATCH)[1:][0].split()
         return REPLACE_MATCH, match_tokens
-
     # Prepend X to match.
+    if PREPEND_MATCH in language:
+        match_tokens = language.split(ADD)[-1].split(PREPEND_MATCH)[0].split()
+        return PREPEND_MATCH, match_tokens
 
     # Postpend X to match.
+    if POSTPEND_MATCH in language:
+        match_tokens = language.split(ADD)[-1].split(POSTPEND_MATCH)[0].split()
+        return POSTPEND_MATCH, match_tokens
 
     # Remove match.
+    if REMOVE_MATCH in language:
+        return REMOVE_MATCH, match_tokens
 
     # Double match.
+    if DOUBLE_MATCH in language:
+        return DOUBLE_MATCH, match_tokens
 
 
 def token_to_regex(token):
+    """Given a token, give its regex program. """
     if token == VOWEL:
         return VOWEL_MATCH_REGEX
     if token == CONSONANT:
         return CONSONANT_MATCH_REGEX
-    if token == ANY_LETTER:
-        return ANY_LETTER
+    if token == ANY_REGEX:
+        return ANY_REGEX
     return "_" + token
 
 
@@ -131,12 +139,14 @@ def build_replace_regex(replace_type, match_tokens, replace_tokens):
     elif replace_type == POSTPEND_MATCH:
         return f"(lambda  (if (_rmatch {match_regex} $0) (_rconcat $0 {replace_regex}) $0)   )"
     elif replace_type == REMOVE_MATCH:
-        return f"(lambda  (if (_rmatch {match_regex} $0) _emptystr $0) )"
+        return f"(lambda  (if (_rmatch {match_regex} $0) _rempty $0))"
+    elif replace_type == DOUBLE_MATCH:
+        return f"(lambda  (if (_rmatch {match_regex} $0) (_rconcat $0 $0) $0))"
     else:
         assert False
 
 
-def build_full_regex(match_type, replace_regex, match_tokens):
+def build_match_replace_regex(match_type, replace_regex, match_tokens):
     match_regex = build_match_regex(match_tokens)
     if match_type == ANYWHERE:
         return (
