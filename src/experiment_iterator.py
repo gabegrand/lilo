@@ -50,11 +50,13 @@ class ExperimentState:
         self.metadata = self.init_metadata_from_config(config)
         self.curr_iteration = self.init_curr_iteration()
 
+        # Contains tasks, frontiers, language sampled from a generative model.
+        self.sample_tasks, self.sample_frontiers, self.sample_language = {}, {}, {}
+
         self.tasks, self.task_frontiers = self.init_tasks_from_config(config)
         self.task_language, self.task_vocab = self.init_task_language_from_config(
             config
         )
-        self.sample_tasks, self.sample_frontiers, self.sample_language = {}, {}, {}
 
         self.models = {}
         self.init_models_from_config(config)
@@ -71,6 +73,9 @@ class ExperimentState:
             split: {task: Frontier([], task=task) for task in self.tasks[split]}
             for split in self.tasks.keys()
         }
+        self.sample_tasks = {split: [] for split in self.tasks.keys()}
+        self.sample_language = {split: [] for split in self.tasks.keys()}
+        self.sample_frontiers = {split: [] for split in self.tasks.keys()}
 
         return self.tasks, self.task_frontiers
 
@@ -127,8 +132,7 @@ class ExperimentState:
             utils.mkdir_if_necessary(self.metadata[LOG_DIRECTORY])
             # Set log directory to the timestamped output file
             self.metadata[LOG_DIRECTORY] = os.path.join(
-                self.metadata[LOG_DIRECTORY],
-                self.metadata[TIMESTAMPED_EXPERIMENT_ID],
+                self.metadata[LOG_DIRECTORY], self.metadata[TIMESTAMPED_EXPERIMENT_ID],
             )
             self.init_logger()
 
@@ -255,12 +259,16 @@ class ExperimentState:
         include_ground_truth_tasks=True,
     ):
         """Returns array of language for list of task_ids. If task_ids is ALL, returns all tasks in task_split and does NOT return samples."""
-        return [
+        language = [
             self.task_language[task_split][task.name]
             for task in self.get_tasks_for_ids(
                 task_split, task_ids, include_samples, include_ground_truth_tasks
             )
+            if task.name in self.task_language[task_split]
         ]
+        if include_samples:
+            language += self.sample_language[task_split]
+        return language
 
     def get_tasks_for_ids(
         self,
@@ -273,13 +281,12 @@ class ExperimentState:
         tasks = []
         if include_ground_truth_tasks:
             if task_ids == self.ALL:
-                return self.tasks[task_split]
-
-            tasks = [t for t in self.tasks[task_split] if t.name in task_ids]
+                tasks = [t for t in self.tasks[task_split]]
+            else:
+                tasks = [t for t in self.tasks[task_split] if t.name in task_ids]
         if include_samples:
-            if task_ids == self.ALL:
-                return self.sample_tasks
-            tasks += [t for t in self.sample_tasks if t.name in task_ids]
+            # Include all of the samples for a given split.
+            tasks += self.sample_tasks[task_split]
         return tasks
 
     def get_frontiers_for_ids(
@@ -290,12 +297,16 @@ class ExperimentState:
         include_ground_truth_tasks=True,
     ):
         """Returns array of frontiers for list of task_ids. Indicate whether to include samples or regular frontiers."""
-        return [
+        frontiers = [
             self.task_frontiers[task_split][task]
             for task in self.get_tasks_for_ids(
                 task_split, task_ids, include_samples, include_ground_truth_tasks
             )
+            if task in self.task_frontiers[task_split]
         ]
+        if include_samples:
+            frontiers += self.sample_frontiers[task_split]
+        return frontiers
 
     def get_frontiers_for_ids_in_splits(
         self,
@@ -306,15 +317,12 @@ class ExperimentState:
     ):
         """Returns {split: [array of frontiers]} for [split in task_splits] and task_ids_in_splits = {split : [task_ids or ALL]}. Indicate whether to include samples or regular frontiers."""
         return {
-            task_split: [
-                self.task_frontiers[task_split][task]
-                for task in self.get_tasks_for_ids(
-                    task_split,
-                    task_ids_in_splits[task_split],
-                    include_samples,
-                    include_ground_truth_tasks,
-                )
-            ]
+            task_split: self.get_frontiers_for_ids(
+                task_split,
+                task_ids_in_splits[task_split],
+                include_samples,
+                include_ground_truth_tasks,
+            )
             for task_split in task_splits
         }
 
@@ -435,9 +443,7 @@ class ExperimentIterator:
         state_fn_name = curr_loop_block[EXPERIMENT_BLOCK_TYPE_STATE_FN]
         state_fn = getattr(experiment_state, state_fn_name)
 
-        state_fn(
-            **curr_loop_block[PARAMS],
-        )
+        state_fn(**curr_loop_block[PARAMS],)
 
     def log_model_fn(self, experiment_state, curr_loop_block, task_batch_ids):
         print(f"============LOGGING MODEL_FN============")

@@ -120,6 +120,26 @@ def test_get_tasks_for_ids():
         assert len(all_tasks) == len(test_experiment_state.tasks[split])
 
 
+def test_get_tasks_with_samples():
+    test_config = TEST_GRAPHICS_CONFIG
+    test_experiment_state = ExperimentState(test_config)
+
+    test_task_ids = ["a small triangle", "a medium triangle"]
+
+    # Add a sample task in each.
+    for split in (TRAIN, TEST):
+        test_experiment_state.sample_tasks[split] += ["test"]
+
+    for split in (TRAIN, TEST):
+        all_tasks = test_experiment_state.get_tasks_for_ids(
+            task_split=split, task_ids=ExperimentState.ALL, include_samples=True
+        )
+        all_tasks_no_samples = test_experiment_state.get_tasks_for_ids(
+            task_split=split, task_ids=ExperimentState.ALL, include_samples=False
+        )
+        assert len(all_tasks) == len(all_tasks_no_samples) + 1
+
+
 def test_get_language_for_ids():
     test_config = TEST_GRAPHICS_CONFIG
     test_experiment_state = ExperimentState(test_config)
@@ -138,6 +158,17 @@ def test_get_language_for_ids():
     for split in (TRAIN, TEST):
         all_language = test_experiment_state.get_language_for_ids(
             task_split=split, task_ids=ExperimentState.ALL
+        )
+        assert len(all_language) == len(test_experiment_state.tasks[split])
+
+
+def test_get_language_for_ids_with_samples():
+    test_config = TEST_GRAPHICS_CONFIG
+    test_experiment_state = ExperimentState(test_config)
+    # Check ALL
+    for split in (TRAIN, TEST):
+        all_language = test_experiment_state.get_language_for_ids(
+            task_split=split, task_ids=ExperimentState.ALL, include_samples=True
         )
         assert len(all_language) == len(test_experiment_state.tasks[split])
 
