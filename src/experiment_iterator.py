@@ -74,8 +74,8 @@ class ExperimentState:
             for split in self.tasks.keys()
         }
         self.sample_tasks = {split: [] for split in self.tasks.keys()}
-        self.sample_language = {split: [] for split in self.tasks.keys()}
-        self.sample_frontiers = {split: [] for split in self.tasks.keys()}
+        self.sample_language = {split: {} for split in self.tasks.keys()}
+        self.sample_frontiers = {split: {} for split in self.tasks.keys()}
 
         return self.tasks, self.task_frontiers
 
