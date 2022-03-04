@@ -13,7 +13,7 @@ from openai.error import InvalidRequestError
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
-from dreamcoder.program import Program
+from dreamcoder.program import InferenceFailure, ParseFailure, Program
 from dreamcoder.task import Task
 from src.task_loaders import ALL, TRAIN
 
@@ -45,6 +45,8 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
         task_ids_in_splits,
         n_samples: int = 5,
         n_train_programs_per_prompt: int = 10,
+        temperature: float = 0.75,
+        max_tokens: int = 256,
         debug: bool = False,
     ):
         """
@@ -88,7 +90,12 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
         if debug:
             completion = self.query_mock(experiment_state, n_samples=n_samples)
         else:
-            completion = self.query_codex(prompt_text, n_samples=n_samples)
+            completion = self.query_codex(
+                prompt_text,
+                n_samples=n_samples,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
 
         if completion is not None:
             query_results = {
@@ -104,11 +111,19 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
                 program_str = choice["text"]
                 try:
                     p = Program.parse(program_str)
-                    query_results["programs_valid"].append(program_str)
-                except:
-                    # print(f"Failed to parse Codex-generated program: {program_str}")
+                except (ParseFailure, IndexError, AssertionError) as e:
+                    print(f"Failed to parse ({type(e)}): {program_str}")
                     query_results["programs_invalid"].append(program_str)
                     continue
+
+                try:
+                    p_type = p.infer()
+                except InferenceFailure as e:
+                    print(e)
+                    query_results["programs_invalid"].append(program_str)
+                    continue
+
+                query_results["programs_valid"].append(program_str)
 
                 # TODO(gg): avoid adding duplicate generated programs
                 # A bit tricky since task-to-program mapping is many-to-many
@@ -116,7 +131,7 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
 
                 task = Task(
                     name=f"codex_{program_hash}",
-                    request=p.infer(),
+                    request=p_type,
                     examples=[],
                 )
 
@@ -149,7 +164,13 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
             # TODO(gg): Better error handling
             print("Query to Codex encountered an error. No samples were added.")
 
-    def query_codex(self, prompt: str, n_samples: int, temperature: float = 0.75):
+    def query_codex(
+        self,
+        prompt: str,
+        n_samples: int,
+        temperature: float = 0.75,
+        max_tokens: int = 256,
+    ):
         """
         TODO(gg): Make params for temperature, n, and max_tokens
         """
@@ -160,7 +181,7 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
                 temperature=temperature,
                 n=n_samples,
                 stop=self.SEP,
-                max_tokens=256,
+                max_tokens=max_tokens,
             )
         except InvalidRequestError as e:
             print(e)
