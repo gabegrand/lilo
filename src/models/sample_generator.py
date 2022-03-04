@@ -11,7 +11,9 @@ import openai
 from openai.error import InvalidRequestError
 
 import src.models.model_loaders as model_loaders
+from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.program import Program
+from dreamcoder.task import Task
 from src.task_loaders import ALL, TRAIN
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
@@ -33,44 +35,71 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
     def __init__(self, experiment_state=None):
         super().__init__()
 
-    def generate_samples(self, experiment_state, task_splits, task_ids_in_splits):
+    def generate_samples(
+        self, experiment_state, task_splits, task_ids_in_splits, debug=False
+    ):
         """
         Queries Codex API to generate new samples.
         """
         frontiers = experiment_state.get_frontiers_for_ids(TRAIN, ALL)
+
+        # TODO(gg): Extend to use language
         # language = experiment_state.get_language_for_ids(TRAIN, ALL)
 
         # Remove frontiers with no programs
-        programs = [str(e.program) for f in frontiers for e in f.entries]
-        if len(programs) == 0:
-            print("CodexSampleGenerator: No programs to sample.")
+        programs_train = [str(e.program) for f in frontiers for e in f.entries]
+        if len(programs_train) == 0:
+            print("CodexSampleGenerator: No non-empty training frontiers.")
             return None
 
-        programs = np.random.choice(programs, size=5, replace=False)
+        # TODO(gg): Prevent generation of duplicate programs
+        set(map(hash, programs_train))
 
-        prompt = self.SEP.join(programs) + self.SEP
+        programs_for_prompt = np.random.choice(programs_train, size=5, replace=False)
+        prompt = self.SEP.join(programs_for_prompt) + self.SEP
 
-        completion = self.query_codex(prompt)
+        if debug:
+            completion = self.query_mock(experiment_state)
+        else:
+            completion = self.query_codex(prompt)
 
-        # TODO(gg): Better error handling
         if completion is not None:
-            sampled_programs = []
-            for choice in completion.choices:
-                p = choice.text
+            for choice in completion["choices"]:
+                program_str = choice["text"]
                 try:
-                    Program.parse(p)
-                    sampled_programs.append(p)
+                    p = Program.parse(program_str)
                 except:
-                    pass
+                    print(f"Failed to parse Codex-generated program: {program_str}")
+                    continue
 
-        # TODO(gg): Add sampled_programs to experiment_state
+                # TODO(gg): avoid adding duplicate generated programs
+                # A bit tricky since task-to-program mapping is many-to-many
+                program_hash = hash(program_str)
 
-        import pdb
+                task = Task(
+                    name=f"codex_{program_hash}",
+                    request=p.infer(),
+                    examples=[],
+                )
 
-        pdb.set_trace()
-        quit()
+                frontier = Frontier(
+                    frontier=[
+                        FrontierEntry(
+                            program=p,
+                            logPrior=0.0,
+                            logLikelihood=0.0,
+                        )
+                    ],
+                    task=task,
+                )
 
-    def query_codex(self, prompt: str, temperature: int = 0.75):
+                experiment_state.sample_tasks[TRAIN].append(task)
+                experiment_state.sample_frontiers[TRAIN][task] = frontier
+        else:
+            # TODO(gg): Better error handling
+            pass
+
+    def query_codex(self, prompt: str, n_samples: int = 3, temperature: int = 0.75):
         """
         TODO(gg): Make params for temperature, n, and max_tokens
         """
@@ -79,11 +108,22 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
                 engine=self.ENGINE,
                 prompt=prompt,
                 temperature=temperature,
-                n=3,
+                n=n_samples,
                 stop=self.SEP,
                 max_tokens=256,
             )
-        except InvalidRequestError:
+        except InvalidRequestError as e:
+            print(e)
             completion = None
 
+        return completion
+
+    def query_mock(self, experiment_state, n_samples: int = 3, **kwargs):
+        """Debugging query that returns a sample of programs from the task."""
+        frontiers = experiment_state.get_frontiers_for_ids(
+            task_split=TRAIN, task_ids=ALL
+        )
+        frontiers = np.random.choice(frontiers, size=n_samples)
+        program_str_list = [str(e.program) for f in frontiers for e in f.entries]
+        completion = dict(choices=[dict(text=p_str) for p_str in program_str_list])
         return completion

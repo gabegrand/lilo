@@ -62,7 +62,9 @@
                     "all",
                     "all"
                 ],
-                "params": {}
+                "params": {
+                    "debug": false
+                }
             },
             {
                 "experiment_block_type": "model_fn",
