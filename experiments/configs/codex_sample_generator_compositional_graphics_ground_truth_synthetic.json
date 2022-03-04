@@ -27,7 +27,7 @@
         }
     ],
     "experiment_iterator": {
-        "max_iterations": 1,
+        "max_iterations": 5,
         "task_batcher": "ground_truth_dynamic_buckets_task_batcher",
         "loop_blocks": [
             {
@@ -63,7 +63,9 @@
                     "all"
                 ],
                 "params": {
-                    "debug": false
+                    "debug": false,
+                    "n_samples": 10,
+                    "n_train_programs_per_prompt": 20
                 }
             },
             {
