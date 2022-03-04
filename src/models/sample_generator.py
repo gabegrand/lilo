@@ -41,8 +41,6 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
     def generate_samples(
         self,
         experiment_state,
-        task_splits,
-        task_ids_in_splits,
         n_samples: int = 5,
         n_train_programs_per_prompt: int = 10,
         temperature: float = 0.75,
@@ -50,15 +48,22 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
         debug: bool = False,
     ):
         """
-        Queries Codex API to generate new samples.
+        Queries Codex API to generate new samples based on training data.
+
+        Currently supports only program generation. Generation of language and
+        generation of programs conditioned on language are both forthcoming.
 
         params:
             experiment_state: experiment_state
-            task_splits: task_splits
-            task_ids_in_splits: task_ids_in_splits
-            n_samples: Number of programs for Codex to generate
+            n_samples: Number of programs for Codex to generate. Some of these
+                programs may be invalid; only valid programs are added to the
+                experiment_state.
             n_train_programs_per_prompt: Number of training programs to include
-                in the Codex prompt.
+                in the Codex prompt. If `n_train_programs_per_prompt` is too high,
+                the prompt may exceed the token budget and trigger an `InvalidRequestError`.
+            temperature: Codex temperature sampling value in `[0., 1.]` range.
+            max_tokens: Max number of tokens for a single program in the completion.
+                Codex will stop at `SEP` anyway, so this value should be generous.
             debug: If True, replaces live query to Codex with a random sample
                 from the training set.
 
@@ -171,9 +176,6 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
         temperature: float = 0.75,
         max_tokens: int = 256,
     ):
-        """
-        TODO(gg): Make params for temperature, n, and max_tokens
-        """
         try:
             completion = openai.Completion.create(
                 engine=self.ENGINE,
