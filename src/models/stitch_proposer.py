@@ -11,6 +11,7 @@ import subprocess
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.program import Program
+from src.models.laps_grammar import LAPSGrammar
 
 LibraryLearnerRegistry = model_loaders.ModelLoaderRegistries[
     model_loaders.LIBRARY_LEARNER
@@ -46,7 +47,7 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         )
 
         # Call stitch compressor.
-        inventions_list = self._get_stitch_libraries(
+        inv_programs = self._get_stitch_libraries(
             experiment_state,
             input_frontiers_file,
             max_arity=kwargs["max_arity"],
@@ -54,11 +55,15 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
             candidates_per_iteration=kwargs["candidates_per_iteration"],
         )
 
-        # Update experiment_state grammar.
-        new_inventions = [(0.0, Program.parse(inv)) for inv in inventions_list]
-        experiment_state.models[model_loaders.GRAMMAR].productions.extend(
-            new_inventions
+        # Update the grammar with the new inventions.
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        new_productions = [(0.0, p.infer(), p) for p in inv_programs]
+        new_grammar = LAPSGrammar(
+            logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
+            productions=grammar.productions + new_productions,
+            continuationType=grammar.continuationType,
         )
+        experiment_state.models[model_loaders.GRAMMAR] = new_grammar
 
     def get_compressed_grammar_lm_prior_rank(
         self, experiment_state, task_splits, task_ids_in_splits, max_arity, iterations
@@ -150,16 +155,12 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         # Replace `inv0` with inlined definitions in dreamcoder format
         for inv_name, inv_dc_fmt in inv_name_to_dc_fmt.items():
             for prior_inv_name, prior_inv_dc_fmt in inv_name_to_dc_fmt.items():
+                # Assume ordered dict with inventions inv0, inv1, ...
+                # inv_i only includes prior inventions inv0, ..., inv_i-1
                 if prior_inv_name == inv_name:
                     break
                 inv_dc_fmt.replace(prior_inv_name, prior_inv_dc_fmt)
             inv_name_to_dc_fmt[inv_name] = inv_dc_fmt
 
-        inventions_list = list(inv_name_to_dc_fmt.values())
-
-        import pdb
-
-        pdb.set_trace()
-
-        # inventions_list = [inv["body"] for inv in stitch_results["invs"]]
-        return inventions_list
+        inv_programs = [Program.parse(p) for p in inv_name_to_dc_fmt.values()]
+        return inv_programs
