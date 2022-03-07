@@ -118,17 +118,20 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         iterations,
         candidates_per_iteration,
     ):
+        input_file = os.path.join(os.getcwd(), input_frontiers_file)
         output_file = os.path.join(
+            os.getcwd(),
             experiment_state.get_checkpoint_directory(),
             StitchProposerLibraryLearner.stitch_output_file,
         )
         stitch_arguments = {
-            "file": os.path.join(os.getcwd(), input_frontiers_file),
-            "out": os.path.join(os.getcwd(), output_file),
+            "out": output_file,
             "max-arity": max_arity,
             "iterations": iterations,
         }
-        stitch_base_command = "cd stitch; cargo run --bin=compress --release -- "
+        stitch_base_command = (
+            f"cd stitch; cargo run --bin=compress --release -- {input_file} "
+        )
         stitch_command = stitch_base_command + " ".join(
             [f"--{k}={v}" for k, v in stitch_arguments.items()]
         )
@@ -140,5 +143,23 @@ class StitchProposerLibraryLearner(model_loaders.ModelLoader):
         with open(output_file, "r") as f:
             stitch_results = json.load(f)
 
-        inventions_list = [inv["body"] for inv in stitch_results["invs"]]
+        inv_name_to_dc_fmt = {
+            inv["name"]: inv["dreamcoder"] for inv in stitch_results["invs"]
+        }
+
+        # Replace `inv0` with inlined definitions in dreamcoder format
+        for inv_name, inv_dc_fmt in inv_name_to_dc_fmt.items():
+            for prior_inv_name, prior_inv_dc_fmt in inv_name_to_dc_fmt.items():
+                if prior_inv_name == inv_name:
+                    break
+                inv_dc_fmt.replace(prior_inv_name, prior_inv_dc_fmt)
+            inv_name_to_dc_fmt[inv_name] = inv_dc_fmt
+
+        inventions_list = list(inv_name_to_dc_fmt.values())
+
+        import pdb
+
+        pdb.set_trace()
+
+        # inventions_list = [inv["body"] for inv in stitch_results["invs"]]
         return inventions_list
