@@ -85,7 +85,9 @@ class StitchBase(object):
 
         return inv_name_to_dc_fmt
 
-    def _get_filepath_for_current_iteration(self, checkpoint_directory, filename: str):
+    def _get_filepath_for_current_iteration(
+        self, checkpoint_directory: str, filename: str
+    ):
         return os.path.join(
             os.getcwd(),
             checkpoint_directory,
