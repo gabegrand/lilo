@@ -42,7 +42,7 @@ class StitchBase(object):
         experiment_state,
         task_splits,
         task_ids_in_splits,
-        frontiers_filename: str = "stitch_frontiers.json",
+        frontiers_filepath: str,
     ):
         """Dumps programs from frontiers to a file that can be passed to Stitch.
 
@@ -62,16 +62,11 @@ class StitchBase(object):
                 ]
                 programs += frontier_programs
         # Write out the programs.
-        frontiers_filepath = os.path.join(
-            experiment_state.get_checkpoint_directory(),
-            frontiers_filename,
-        )
         with open(frontiers_filepath, "w") as f:
             json.dump(programs, f)
-        return frontiers_filepath
 
-    def get_inventions_from_file(self, stitch_output_file: str):
-        with open(stitch_output_file, "r") as f:
+    def get_inventions_from_file(self, stitch_output_filepath: str):
+        with open(stitch_output_filepath, "r") as f:
             stitch_results = json.load(f)
 
         inv_name_to_dc_fmt = {
@@ -89,3 +84,10 @@ class StitchBase(object):
             inv_name_to_dc_fmt[inv_name] = inv_dc_fmt
 
         return inv_name_to_dc_fmt
+
+    def _get_filepath_for_current_iteration(self, checkpoint_directory, filename: str):
+        return os.path.join(
+            os.getcwd(),
+            checkpoint_directory,
+            filename,
+        )

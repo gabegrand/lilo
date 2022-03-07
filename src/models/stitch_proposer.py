@@ -5,7 +5,6 @@ Library learning model that uses the Stitch compressor to propose libraries.
 Expects an experiment_state with a GRAMMAR and FRONTIERs.
 Updates GRAMMAR based on Stitch compression.
 """
-import os
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.program import Program
@@ -22,8 +21,8 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
 
     name = "stitch_proposer"
 
-    stitch_input_frontiers_file = "stitch_frontiers.json"
-    stitch_output_file = "stitch_output.json"
+    frontiers_filename = "stitch_frontiers.json"
+    inventions_filename = "stitch_output.json"
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
@@ -41,14 +40,21 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         Uses p(library) based on the training data description length to rerank the libraries.
         """
         # Write frontiers for stitch.
-        input_frontiers_file = self.write_frontiers_to_file(
-            experiment_state, task_splits, task_ids_in_splits
+        frontiers_filepath = self._get_filepath_for_current_iteration(
+            experiment_state.get_checkpoint_directory(),
+            StitchProposerLibraryLearner.frontiers_filename,
+        )
+        self.write_frontiers_to_file(
+            experiment_state,
+            task_splits,
+            task_ids_in_splits,
+            frontiers_filepath=frontiers_filepath,
         )
 
         # Call stitch compressor.
         inv_programs = self._get_stitch_libraries(
             experiment_state,
-            input_frontiers_file,
+            frontiers_filepath,
             max_arity=kwargs["max_arity"],
             iterations=kwargs["iterations"],
             candidates_per_iteration=kwargs["candidates_per_iteration"],
@@ -89,28 +95,26 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
     def _get_stitch_libraries(
         self,
         experiment_state,
-        input_frontiers_file,
+        frontiers_filepath,
         max_arity,
         iterations,
         candidates_per_iteration,
     ):
-        input_file = os.path.join(os.getcwd(), input_frontiers_file)
-        output_file = os.path.join(
-            os.getcwd(),
+        inventions_filepath = self._get_filepath_for_current_iteration(
             experiment_state.get_checkpoint_directory(),
-            StitchProposerLibraryLearner.stitch_output_file,
+            StitchProposerLibraryLearner.inventions_filename,
         )
         self.run_binary(
             bin="compress",
-            stitch_args=[input_file],
+            stitch_args=[frontiers_filepath],
             stitch_kwargs={
-                "out": output_file,
+                "out": inventions_filepath,
                 "max-arity": max_arity,
                 "iterations": iterations,
             },
         )
         inv_name_to_dc_fmt = self.get_inventions_from_file(
-            stitch_output_file=output_file
+            stitch_output_filepath=inventions_filepath
         )
         inv_programs = [Program.parse(p) for p in inv_name_to_dc_fmt.values()]
         return inv_programs
