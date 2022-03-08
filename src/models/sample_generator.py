@@ -165,6 +165,11 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
                     task=task,
                 )
 
+                # Re-score the logPrior and logLikelihood of the frontier under the current grammar
+                frontier = experiment_state.models[
+                    model_loaders.GRAMMAR
+                ].rescoreFrontier(frontier)
+
                 experiment_state.sample_tasks[TRAIN].append(task)
                 experiment_state.sample_frontiers[TRAIN][task] = frontier
 
