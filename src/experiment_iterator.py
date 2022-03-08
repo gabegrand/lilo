@@ -2,7 +2,8 @@
 experiment_iterator.py | Author : Catherine Wong.
 Utility classes for initializing and running iterated experiments from configs.
 """
-import os, json
+import json
+import os
 
 import src.models.model_loaders as model_loaders
 import src.task_loaders as task_loaders
@@ -50,13 +51,15 @@ class ExperimentState:
         self.metadata = self.init_metadata_from_config(config)
         self.curr_iteration = self.init_curr_iteration()
 
-        # Contains tasks, frontiers, language sampled from a generative model.
-        self.sample_tasks, self.sample_frontiers, self.sample_language = {}, {}, {}
-
         self.tasks, self.task_frontiers = self.init_tasks_from_config(config)
         self.task_language, self.task_vocab = self.init_task_language_from_config(
             config
         )
+
+        # Contains tasks, frontiers, language sampled from a generative model.
+        self.sample_tasks = {split: [] for split in self.tasks.keys()}
+        self.sample_language = {split: {} for split in self.tasks.keys()}
+        self.sample_frontiers = {split: {} for split in self.tasks.keys()}
 
         self.models = {}
         self.init_models_from_config(config)
@@ -73,9 +76,6 @@ class ExperimentState:
             split: {task: Frontier([], task=task) for task in self.tasks[split]}
             for split in self.tasks.keys()
         }
-        self.sample_tasks = {split: [] for split in self.tasks.keys()}
-        self.sample_language = {split: {} for split in self.tasks.keys()}
-        self.sample_frontiers = {split: {} for split in self.tasks.keys()}
 
         return self.tasks, self.task_frontiers
 
@@ -132,7 +132,8 @@ class ExperimentState:
             utils.mkdir_if_necessary(self.metadata[LOG_DIRECTORY])
             # Set log directory to the timestamped output file
             self.metadata[LOG_DIRECTORY] = os.path.join(
-                self.metadata[LOG_DIRECTORY], self.metadata[TIMESTAMPED_EXPERIMENT_ID],
+                self.metadata[LOG_DIRECTORY],
+                self.metadata[TIMESTAMPED_EXPERIMENT_ID],
             )
             self.init_logger()
 
@@ -443,7 +444,9 @@ class ExperimentIterator:
         state_fn_name = curr_loop_block[EXPERIMENT_BLOCK_TYPE_STATE_FN]
         state_fn = getattr(experiment_state, state_fn_name)
 
-        state_fn(**curr_loop_block[PARAMS],)
+        state_fn(
+            **curr_loop_block[PARAMS],
+        )
 
     def log_model_fn(self, experiment_state, curr_loop_block, task_batch_ids):
         print(f"============LOGGING MODEL_FN============")
