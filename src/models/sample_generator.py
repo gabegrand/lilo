@@ -17,6 +17,10 @@ from dreamcoder.program import InferenceFailure, ParseFailure, Program
 from dreamcoder.task import Task
 from src.task_loaders import ALL, TRAIN
 
+if not os.getenv("OPENAI_API_KEY"):
+    raise ValueError(
+        "OPENAI_API_KEY is not set. Please set this in the shell via `export OPENAI_API_KEY=...`"
+    )
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.SAMPLE_GENERATOR]
@@ -28,8 +32,8 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
 
     query_results_file = "codex_query_results.json"
 
-    ENGINE = "davinci-codex"
-    SEP = "\n"
+    DEFAULT_ENGINE = "davinci-codex"
+    DEFAULT_SEPARATOR = "\n"
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
@@ -41,10 +45,14 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
     def generate_samples(
         self,
         experiment_state,
+        task_splits: list,
+        task_ids_in_splits: list,
         n_samples: int = 5,
         n_train_programs_per_prompt: int = 10,
         temperature: float = 0.75,
         max_tokens: int = 256,
+        separator: str = DEFAULT_SEPARATOR,
+        engine: str = DEFAULT_ENGINE,
         debug: bool = False,
     ):
         """
@@ -63,7 +71,10 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
                 the prompt may exceed the token budget and trigger an `InvalidRequestError`.
             temperature: Codex temperature sampling value in `[0., 1.]` range.
             max_tokens: Max number of tokens for a single program in the completion.
-                Codex will stop at `SEP` anyway, so this value should be generous.
+                Codex will stop at `separator` anyway, so this value should be generous.
+            engine: Codex `engine` parameter.
+            separator: String to insert between examples in the Codex query. Also
+                used as the `stop` sequence during generation.
             debug: If True, replaces live query to Codex with a random sample
                 from the training set.
 
@@ -89,7 +100,7 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
                 replace=False,
             )
         )
-        prompt_text = self.SEP.join(programs_for_prompt) + self.SEP
+        prompt_text = separator.join(programs_for_prompt) + separator
 
         print(f"Querying Codex with prompt ({len(programs_for_prompt)} examples)...")
         if debug:
@@ -100,6 +111,8 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
                 n_samples=n_samples,
                 temperature=temperature,
                 max_tokens=max_tokens,
+                engine=engine,
+                separator=separator,
             )
 
         if completion is not None:
@@ -108,7 +121,8 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
                 "programs_invalid": [],
                 "prompt_text": prompt_text,
                 "prompt_programs": programs_for_prompt,
-                "separator": self.SEP,
+                "engine": engine,
+                "separator": separator,
                 "completion": completion.to_dict_recursive(),
             }
 
@@ -175,14 +189,16 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
         n_samples: int,
         temperature: float = 0.75,
         max_tokens: int = 256,
+        engine: str = DEFAULT_ENGINE,
+        separator: str = DEFAULT_SEPARATOR,
     ):
         try:
             completion = openai.Completion.create(
-                engine=self.ENGINE,
+                engine=engine,
                 prompt=prompt,
                 temperature=temperature,
                 n=n_samples,
-                stop=self.SEP,
+                stop=separator,
                 max_tokens=max_tokens,
             )
         except InvalidRequestError as e:
