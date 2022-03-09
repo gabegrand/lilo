@@ -10,6 +10,7 @@ import src.models.model_loaders as model_loaders
 from dreamcoder.program import Program
 from src.models.laps_grammar import LAPSGrammar
 from src.models.stitch_base import StitchBase
+from src.task_loaders import TRAIN
 
 LibraryLearnerRegistry = model_loaders.ModelLoaderRegistries[
     model_loaders.LIBRARY_LEARNER
@@ -39,15 +40,19 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         Uses Stitch compressor to propose libraries.
         Uses p(library) based on the training data description length to rerank the libraries.
         """
+        assert task_splits == [TRAIN]
+        split = task_splits[0]
+
         # Write frontiers for stitch.
         frontiers_filepath = self._get_filepath_for_current_iteration(
             experiment_state.get_checkpoint_directory(),
             StitchProposerLibraryLearner.frontiers_filename,
+            split=split,
         )
         self.write_frontiers_to_file(
             experiment_state,
-            task_splits,
-            task_ids_in_splits,
+            task_splits=task_splits,
+            task_ids_in_splits=task_ids_in_splits,
             frontiers_filepath=frontiers_filepath,
         )
 

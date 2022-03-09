@@ -33,7 +33,7 @@
         }
     ],
     "experiment_iterator": {
-        "max_iterations": 1,
+        "max_iterations": 10,
         "task_batcher": "ground_truth_dynamic_buckets_task_batcher",
         "loop_blocks": [
             {
@@ -65,12 +65,12 @@
                     "train"
                 ],
                 "task_batch_sizes": [
-                    "all",
                     "all"
                 ],
                 "params": {
                     "max_arity": 2,
-                    "iterations": 1
+                    "iterations": 1,
+                    "candidates_per_iteration": 1
                 }
             },
             {
