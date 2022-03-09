@@ -8,6 +8,8 @@ Updates FRONTIERS given a grammar.
 import json
 
 import src.models.model_loaders as model_loaders
+from dreamcoder.frontier import Frontier, FrontierEntry
+from dreamcoder.program import Program
 from src.models.stitch_base import StitchBase
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.PROGRAM_REWRITER]
@@ -39,44 +41,75 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
         """
         Updates experiment_state frontiers wrt. the experiment_state.models[GRAMMAR]
         """
+        # There should be a single set of inventions for all splits
         inventions_filepath = self._get_filepath_for_current_iteration(
             experiment_state.get_checkpoint_directory(),
             StitchProgramRewriter.inventions_filename,
         )
-        programs_filepath = self._get_filepath_for_current_iteration(
-            experiment_state.get_checkpoint_directory(),
-            StitchProgramRewriter.programs_filename,
-        )
-        out_filepath = self._get_filepath_for_current_iteration(
-            experiment_state.get_checkpoint_directory(),
-            StitchProgramRewriter.out_filename,
-        )
-        self.write_frontiers_to_file(
-            experiment_state,
-            task_splits,
-            task_ids_in_splits,
-            frontiers_filepath=programs_filepath,
-        )
-        self.run_binary(
-            bin="rewrite",
-            stitch_kwargs={
-                "program-file": programs_filepath,
-                "inventions-file": inventions_filepath,
-                "out": out_filepath,
-            },
-        )
+        for split in task_splits:
+            programs_filepath = self._get_filepath_for_current_iteration(
+                experiment_state.get_checkpoint_directory(),
+                StitchProgramRewriter.programs_filename,
+                split=split,
+            )
+            out_filepath = self._get_filepath_for_current_iteration(
+                experiment_state.get_checkpoint_directory(),
+                StitchProgramRewriter.out_filename,
+                split=split,
+            )
+            self.write_frontiers_to_file(
+                experiment_state,
+                task_splits=[split],
+                task_ids_in_splits=task_ids_in_splits,
+                frontiers_filepath=programs_filepath,
+            )
+            self.run_binary(
+                bin="rewrite",
+                stitch_kwargs={
+                    "program-file": programs_filepath,
+                    "inventions-file": inventions_filepath,
+                    "out": out_filepath,
+                },
+            )
 
-        inv_name_to_dc_fmt = self.get_inventions_from_file(
-            stitch_output_filepath=inventions_filepath
+            inv_name_to_dc_fmt = self.get_inventions_from_file(
+                stitch_output_filepath=inventions_filepath
+            )
+
+            with open(out_filepath, "r") as f:
+                data = json.load(f)
+                task_to_programs = {d["task"]: d["programs"] for d in data["frontiers"]}
+
+            # Replace all frontiers for each task with rewritten frontiers
+            for task in experiment_state.task_frontiers[split].keys():
+                frontier_rewritten = Frontier(
+                    frontier=[],
+                    task=task,
+                )
+                for program_data in task_to_programs[task.name]:
+                    p_str = self._inline_inventions(
+                        program_data["program"], inv_name_to_dc_fmt
+                    )
+                    p = Program.parse(p_str)
+                    frontier_rewritten.entries.append(
+                        FrontierEntry(
+                            program=p,
+                            logPrior=0.0,
+                            logLikelihood=0.0,
+                        )
+                    )
+                # Re-score the logPrior and logLikelihood of the frontier under the current grammar
+                frontier_rewritten = experiment_state.models[
+                    model_loaders.GRAMMAR
+                ].rescoreFrontier(frontier_rewritten)
+
+                experiment_state.task_frontiers[split][task] = frontier_rewritten
+
+    def _inline_inventions(self, p_str: str, inv_name_to_dc_fmt: dict):
+        # `inv0, inv1, ...` should be in sorted order to avoid partial replacement issues
+        assert list(inv_name_to_dc_fmt.keys()) == sorted(
+            list(inv_name_to_dc_fmt.keys())
         )
-
-        with open(out_filepath, "r") as f:
-            rewritten_programs_str = json.load(f)["rewritten"]
-
-        # Replace `inv0, inv1, ...` with inlined inventions
-        rewritten_programs_str_inlined = []
-        for p_str in rewritten_programs_str:
-            p_str = p_str.replace("lam", "lambda")
-            for inv_name, inv_dc_fmt in inv_name_to_dc_fmt.items():
-                p_str = p_str.replace(inv_name, inv_dc_fmt)
-            rewritten_programs_str_inlined.append(p_str)
+        for inv_name, inv_dc_fmt in inv_name_to_dc_fmt.items():
+            p_str = p_str.replace(inv_name, inv_dc_fmt)
+        return p_str

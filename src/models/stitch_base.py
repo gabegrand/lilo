@@ -26,9 +26,7 @@ class StitchBase(object):
 
         """
         assert stitch_args or stitch_kwargs
-        stitch_base_command = (
-            f"cd stitch; cargo run --bin={bin} --release -- {' '.join(stitch_args)} "
-        )
+        stitch_base_command = f"cd stitch; cargo run --bin={bin} --release -- --dc-fmt {' '.join(stitch_args)} "
         stitch_command = stitch_base_command + " ".join(
             [f"--{k}={v}" for k, v in stitch_kwargs.items()]
         )
@@ -49,21 +47,28 @@ class StitchBase(object):
         returns:
             Path to JSON file containing a list of programs.
         """
+        if len(task_splits) != 1:
+            raise ValueError(
+                "`write_frontiers_to_file` supports only a single split at a time"
+            )
+
         frontiers = experiment_state.get_frontiers_for_ids_in_splits(
             task_splits=task_splits,
             task_ids_in_splits=task_ids_in_splits,
             include_samples=False,
         )
-        programs = []
-        for split in frontiers:
-            for frontier in frontiers[split]:
-                frontier_programs = [
-                    str(entry.program).replace("lambda", "lam") for entry in frontier
-                ]
-                programs += frontier_programs
+        frontiers_list = []
+        for frontier in frontiers[task_splits[0]]:
+            frontiers_list.append(
+                {
+                    "task": frontier.task.name,
+                    "programs": [{"program": str(entry.program)} for entry in frontier],
+                }
+            )
         # Write out the programs.
+        os.makedirs(os.path.dirname(frontiers_filepath), exist_ok=True)
         with open(frontiers_filepath, "w") as f:
-            json.dump(programs, f)
+            json.dump({"frontiers": frontiers_list}, f)
 
     def get_inventions_from_file(self, stitch_output_filepath: str):
         with open(stitch_output_filepath, "r") as f:
@@ -86,10 +91,14 @@ class StitchBase(object):
         return inv_name_to_dc_fmt
 
     def _get_filepath_for_current_iteration(
-        self, checkpoint_directory: str, filename: str
+        self,
+        checkpoint_directory: str,
+        filename: str,
+        split: str = "",
     ):
         return os.path.join(
             os.getcwd(),
             checkpoint_directory,
+            split,
             filename,
         )
