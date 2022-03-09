@@ -8,32 +8,23 @@ import json
 import os
 
 import numpy as np
-import openai
-from openai.error import InvalidRequestError
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.program import InferenceFailure, ParseFailure, Program
 from dreamcoder.task import Task
 from src.task_loaders import ALL, TRAIN
+from src.models.codex_base import *
 
-if not os.getenv("OPENAI_API_KEY"):
-    raise ValueError(
-        "OPENAI_API_KEY is not set. Please set this in the shell via `export OPENAI_API_KEY=...`"
-    )
-openai.api_key = os.environ["OPENAI_API_KEY"]
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.SAMPLE_GENERATOR]
 
 
 @ModelRegistry.register
-class CodexSampleGenerator(model_loaders.ModelLoader):
+class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     name = "codex_sample_generator"
 
     query_results_file = "codex_query_results.json"
-
-    DEFAULT_ENGINE = "davinci-codex"
-    DEFAULT_SEPARATOR = "\n"
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
@@ -51,8 +42,8 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
         n_train_programs_per_prompt: int = 10,
         temperature: float = 0.75,
         max_tokens: int = 256,
-        separator: str = DEFAULT_SEPARATOR,
-        engine: str = DEFAULT_ENGINE,
+        separator: str = CodexBase.DEFAULT_SEPARATOR,
+        engine: str = CodexBase.DEFAULT_ENGINE,
         debug: bool = False,
     ):
         """
@@ -148,19 +139,11 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
                 # A bit tricky since task-to-program mapping is many-to-many
                 program_hash = hash(program_str)
 
-                task = Task(
-                    name=f"codex_{program_hash}",
-                    request=p_type,
-                    examples=[],
-                )
+                task = Task(name=f"codex_{program_hash}", request=p_type, examples=[],)
 
                 frontier = Frontier(
                     frontier=[
-                        FrontierEntry(
-                            program=p,
-                            logPrior=0.0,
-                            logLikelihood=0.0,
-                        )
+                        FrontierEntry(program=p, logPrior=0.0, logLikelihood=0.0,)
                     ],
                     task=task,
                 )
@@ -187,30 +170,6 @@ class CodexSampleGenerator(model_loaders.ModelLoader):
         else:
             # TODO(gg): Better error handling
             print("Query to Codex encountered an error. No samples were added.")
-
-    def query_codex(
-        self,
-        prompt: str,
-        n_samples: int,
-        temperature: float = 0.75,
-        max_tokens: int = 256,
-        engine: str = DEFAULT_ENGINE,
-        separator: str = DEFAULT_SEPARATOR,
-    ):
-        try:
-            completion = openai.Completion.create(
-                engine=engine,
-                prompt=prompt,
-                temperature=temperature,
-                n=n_samples,
-                stop=separator,
-                max_tokens=max_tokens,
-            )
-        except InvalidRequestError as e:
-            print(e)
-            completion = None
-
-        return completion
 
     def query_mock(self, experiment_state, n_samples: int = 3, **kwargs):
         """Debugging query that returns a sample of programs from the task."""
