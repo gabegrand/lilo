@@ -6,6 +6,7 @@ Utility functions for loading and initializing many basic models.
 from class_registry import ClassRegistry
 
 GRAMMAR = "grammar"
+LIBRARY_NAMER = "library_namer"  # Models that assign names to grammar functions.
 LIBRARY_LEARNER = "library_learner"  # Models that update grammars.
 PROGRAM_REWRITER = "program_rewriter"  # Models that rewrite programs wrt. grammars
 SAMPLE_GENERATOR = (
@@ -19,6 +20,7 @@ AMORTIZED_SYNTHESIS = "amortized_synthesis"
 ModelLoaderRegistries = {
     GRAMMAR: ClassRegistry("name", unique=True),
     LIBRARY_LEARNER: ClassRegistry("name", unique=True),
+    LIBRARY_NAMER: ClassRegistry("name", unique=True),
     PROGRAM_REWRITER: ClassRegistry("name", unique=True),
     SAMPLE_GENERATOR: ClassRegistry("name", unique=True),
     EXAMPLES_ENCODER: ClassRegistry("name", unique=True),
