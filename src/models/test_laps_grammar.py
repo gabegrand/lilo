@@ -5,6 +5,7 @@ from src.experiment_iterator import *
 from src.task_loaders import *
 from src.models.model_loaders import GRAMMAR
 from src.test_experiment_iterator import TEST_GRAPHICS_CONFIG
+from dreamcoder.program import Program
 
 
 def test_laps_grammar_show_alternate_primitives():
@@ -31,6 +32,27 @@ def test_laps_grammar_show_alternate_primitives():
         )
         print(f"Original: {str(test_program_no_inventions)}")
         print(new_name)
+
+    # Test some programs with inventions.
+    dc_body = "#(lambda (lambda (logo_forLoop $1 (lambda (lambda (logo_FWRT (logo_MULL logo_UL $2) (logo_DIVA logo_UA $3) $0))))))"
+    stitch_name_class, stitch_name = "stitch", "inv0"
+    stitch_lam = "lam"
+    test_grammar.function_names[dc_body] = dict()
+    test_grammar.set_function_name(
+        production_key=dc_body, name_class=stitch_name_class, name=stitch_name,
+    )
+    # Should now be written as DreamCoder
+    test_program = "(lam (inv0 9 1 (logo_PT (lam (logo_FWRT (logo_MULL logo_UL 2) logo_ZA $0)) (inv0 4 2 $0))))".replace(
+        stitch_lam, "lambda"
+    ).replace(
+        stitch_name, dc_body
+    )
+    test_program = Program.parse(test_program)
+    new_name = test_grammar.show_program(
+        test_program, name_classes=[stitch_name_class], lam=stitch_lam
+    )
+    print(f"Original: {str(test_program)}")
+    print(new_name)
 
 
 def test_laps_grammar_infer_programs_for_tasks():

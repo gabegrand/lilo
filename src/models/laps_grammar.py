@@ -110,7 +110,10 @@ class LAPSGrammar(Grammar):
                 self.lam = lam
 
             def invented(self, e, isFunction):
-                return "#%s" % (e.body.visit(self, False))
+                original = "#" + str(e.body)
+                for n in self.name_classes:
+                    if n in self.function_names[original]:
+                        return self.function_names[original][n]
 
             def primitive(self, e, isFunction):
                 for n in self.name_classes:
