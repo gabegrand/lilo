@@ -3,6 +3,7 @@ laps_grammmar.py | Author : Catherine Wong
 
 Utility wrapper function around the DreamCoder Grammar. Elevates common functions to be class functions in order to support calling with an ExperimentState.
 """
+from dataclasses import replace
 from inspect import isfunction
 import numpy as np
 import subprocess
@@ -100,8 +101,53 @@ class LAPSGrammar(Grammar):
         self.function_names[production_key][name_class] = name
 
     def show_program(
-        self, program, name_classes=[DEFAULT_FUNCTION_NAMES], lam=DEFAULT_LAMBDA
+        self,
+        program,
+        name_classes=[DEFAULT_FUNCTION_NAMES],
+        lam=DEFAULT_LAMBDA,
+        input_name_class=[DEFAULT_FUNCTION_NAMES],
+        input_lam=DEFAULT_LAMBDA,
     ):
+        if type(program) == str:
+            # catwong: this is dispreferred, error-prone, and slower.
+            return self.replace_primitive_names(
+                program, name_classes, lam, input_name_class, input_lam
+            )
+        return self.show_program_from_tree(program, name_classes, lam)
+
+    def replace_primitive_names(
+        self,
+        program,
+        name_classes=[DEFAULT_FUNCTION_NAMES],
+        lam=DEFAULT_LAMBDA,
+        input_name_class=[DEFAULT_FUNCTION_NAMES],
+        input_lam=DEFAULT_LAMBDA,
+    ):
+        name_classes.append(LAPSGrammar.DEFAULT_FUNCTION_NAMES)
+        input_name_class.append(LAPSGrammar.DEFAULT_FUNCTION_NAMES)
+        # Build a replacement dict.
+        current_name_to_replacement = dict()
+
+        def get_first_replacement(primitive, name_classes):
+            for n in name_classes:
+                if n in self.function_names[primitive]:
+                    return self.function_names[primitive][n]
+
+        for primitive in self.function_names:
+            current_name = get_first_replacement(primitive, input_name_class)
+            replacement_name = get_first_replacement(primitive, name_classes)
+            current_name_to_replacement[current_name] = replacement_name
+
+        # Sort them to avoid partial replacement.
+        for current in sorted(current_name_to_replacement.keys(), reverse=True):
+            program = program.replace(current, current_name_to_replacement[current])
+
+        # Replace the lambda.
+        program = program.replace(f"({input_lam} ", f"({lam} ")
+
+        return program
+
+    def show_program_from_tree(self, program, name_classes, lam):
         # Show a program, walking the tree and printing out alternate names as we go.
         class NameVisitor(object):
             def __init__(self, function_names, name_classes, lam):

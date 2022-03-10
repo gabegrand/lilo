@@ -33,11 +33,18 @@ def test_laps_grammar_show_alternate_primitives():
         print(f"Original: {str(test_program_no_inventions)}")
         print(new_name)
 
+        new_str_name = test_grammar.show_program(
+            str(test_program_no_inventions), name_classes=[test_grammar.HUMAN_READABLE]
+        )
+        assert new_str_name == new_name
+
     # Test some programs with inventions.
     dc_body = "#(lambda (lambda (logo_forLoop $1 (lambda (lambda (logo_FWRT (logo_MULL logo_UL $2) (logo_DIVA logo_UA $3) $0))))))"
     stitch_name_class, stitch_name = "stitch", "inv0"
     stitch_lam = "lam"
-    test_grammar.function_names[dc_body] = dict()
+    test_grammar.function_names[dc_body] = dict(
+        {test_grammar.DEFAULT_FUNCTION_NAMES: dc_body}
+    )
     test_grammar.set_function_name(
         production_key=dc_body, name_class=stitch_name_class, name=stitch_name,
     )
@@ -53,6 +60,17 @@ def test_laps_grammar_show_alternate_primitives():
     )
     print(f"Original: {str(test_program)}")
     print(new_name)
+
+    new_str_name = test_grammar.show_program(
+        str(test_program), name_classes=[stitch_name_class], lam=stitch_lam
+    )
+    assert new_str_name == new_name
+
+    # Finally, test going the other way.
+    original_dc = test_grammar.show_program(
+        new_name, input_lam=stitch_lam, input_name_class=[stitch_name_class]
+    )
+    assert original_dc == str(test_program)
 
 
 def test_laps_grammar_infer_programs_for_tasks():
