@@ -3,6 +3,7 @@ laps_grammmar.py | Author : Catherine Wong
 
 Utility wrapper function around the DreamCoder Grammar. Elevates common functions to be class functions in order to support calling with an ExperimentState.
 """
+from inspect import isfunction
 import numpy as np
 import subprocess
 import os, json
@@ -67,6 +68,71 @@ class LAPSGrammar(Grammar):
     CPUS = "cpus"
     STRUCTURE_PENALTY = "structure_penalty"
     TOP_K = "top_k"  # Compress with respect to the top K frontiers.
+
+    DEFAULT_FUNCTION_NAMES = "default"
+    # Other common naming schemes.
+    HUMAN_READABLE = "human_readable"
+    DEFAULT_LAMBDA = "lambda"
+
+    def __init__(self, logVariable, productions, continuationType=None):
+        super(LAPSGrammar, self).__init__(logVariable, productions, continuationType)
+
+        # Initialize other metadata about the productions.
+        self.function_names = self._init_function_names()
+
+    def _init_function_names(self):
+        """
+        Creates a {production_key : {name_class : name}} dictionary containing alternate names for productions in the grammar.
+        """
+        return {
+            str(p): {LAPSGrammar.DEFAULT_FUNCTION_NAMES: str(p)}
+            for p in self.primitives
+        }
+
+    def set_function_name(self, production_key, name_class, name):
+        """
+        production_key: which production to provide a name to.
+        name_class: what class of names this is (eg. default, stitch_default, codex.)
+        name: what alternate name to assign
+        """
+        if production_key not in self.function_names:
+            raise Exception(f"Error: {production_key} not in grammar.")
+        self.function_names[production_key][name_class] = name
+
+    def show_program(
+        self, program, name_classes=[DEFAULT_FUNCTION_NAMES], lam=DEFAULT_LAMBDA
+    ):
+        # Show a program, walking the tree and printing out alternate names as we go.
+        class NameVisitor(object):
+            def __init__(self, function_names, name_classes, lam):
+                self.name_classes = name_classes + [LAPSGrammar.DEFAULT_FUNCTION_NAMES]
+                self.function_names = function_names
+                self.lam = lam
+
+            def invented(self, e, isFunction):
+                return "#%s" % (e.body.visit(self, False))
+
+            def primitive(self, e, isFunction):
+                for n in self.name_classes:
+                    if n in self.function_names[e.name]:
+                        return self.function_names[e.name][n]
+                return e.name
+
+            def index(self, e, isFunction):
+                return e.show(isFunction)
+
+            def application(self, e, isFunction):
+                if isFunction:
+                    return "%s %s" % (e.f.visit(self, True), e.x.visit(self, False))
+                else:
+                    return "(%s %s)" % (e.f.visit(self, True), e.x.visit(self, False),)
+
+            def abstraction(self, e, isFunction):
+                return "(%s %s)" % (self.lam, e.body.visit(self, False))
+
+        return program.visit(
+            NameVisitor(self.function_names, name_classes, lam), isFunction=False
+        )
 
     def infer_programs_for_tasks(
         self,

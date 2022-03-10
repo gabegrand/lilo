@@ -7,6 +7,32 @@ from src.models.model_loaders import GRAMMAR
 from src.test_experiment_iterator import TEST_GRAPHICS_CONFIG
 
 
+def test_laps_grammar_show_alternate_primitives():
+    test_config = TEST_GRAPHICS_CONFIG
+    test_experiment_state = ExperimentState(test_config)
+
+    test_grammar = test_experiment_state.models[GRAMMAR]
+
+    # Set the primitives to alternate human readable names.
+    for p in test_grammar.primitives:
+        test_grammar.set_function_name(
+            str(p), name_class=test_grammar.HUMAN_READABLE, name=p.alternate_names[-1]
+        )
+    # Test program.
+    test_batch_ids = ["a small triangle", "a medium triangle"]
+
+    test_tasks = test_experiment_state.get_tasks_for_ids(
+        task_split="train", task_ids=test_batch_ids
+    )
+    for t in test_tasks:
+        test_program_no_inventions = t.groundTruthProgram
+        new_name = test_grammar.show_program(
+            test_program_no_inventions, name_classes=[test_grammar.HUMAN_READABLE]
+        )
+        print(f"Original: {str(test_program_no_inventions)}")
+        print(new_name)
+
+
 def test_laps_grammar_infer_programs_for_tasks():
     """Note: this is an integration test that runs enumeration for a set time."""
     test_config = TEST_GRAPHICS_CONFIG
