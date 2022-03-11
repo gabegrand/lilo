@@ -8,6 +8,7 @@ import json
 import os
 
 import numpy as np
+from openai.api_resources.completion import Completion
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
@@ -44,6 +45,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         separator: str = CodexBase.DEFAULT_SEPARATOR,
         engine: str = CodexBase.DEFAULT_ENGINE,
         debug: bool = False,
+        use_cached: bool = False,
     ):
         """
         Queries Codex API to generate new samples based on training data.
@@ -67,8 +69,16 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 used as the `stop` sequence during generation.
             debug: If True, replaces live query to Codex with a random sample
                 from the training set.
+            use_cached: If True, replaces live query to Codex with cached query
+                stored in `query_results_filepath`.
 
         """
+        query_results_filepath = os.path.join(
+            os.getcwd(),
+            experiment_state.get_checkpoint_directory(),
+            self.query_results_file,
+        )
+
         frontiers = experiment_state.get_frontiers_for_ids(TRAIN, ALL)
 
         # TODO(gg): Extend to use language
@@ -95,6 +105,12 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         print(f"Querying Codex with prompt ({len(programs_for_prompt)} examples)...")
         if debug:
             completion = self.query_mock(experiment_state, n_samples=n_samples)
+        elif use_cached:
+            # For debugging only - does not verify that the cached completion matches the desired query parameters
+            with open(query_results_filepath, "r") as f:
+                completion_data = json.load(f)["completion"]
+            completion = Completion()
+            completion.refresh_from(completion_data)
         else:
             completion = self.query_codex(
                 prompt_text,
@@ -167,17 +183,13 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 experiment_state.sample_tasks[TRAIN].append(task)
                 experiment_state.sample_frontiers[TRAIN][task] = frontier
 
-            query_results_filepath = os.path.join(
-                os.getcwd(),
-                experiment_state.get_checkpoint_directory(),
-                self.query_results_file,
-            )
-            with open(query_results_filepath, "w") as f:
-                json.dump(query_results, f)
             print(
                 f"Codex query results:\nVALID: {len(query_results['programs_valid'])}\nINVALID: {len(query_results['programs_invalid'])}"
             )
-            print(f"Wrote results: {query_results_filepath}")
+            if not (debug or use_cached):
+                with open(query_results_filepath, "w") as f:
+                    json.dump(query_results, f)
+                print(f"Wrote results: {query_results_filepath}")
         else:
             # TODO(gg): Better error handling
             print("Query to Codex encountered an error. No samples were added.")
