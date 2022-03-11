@@ -69,7 +69,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 used as the `stop` sequence during generation.
             debug: If True, replaces live query to Codex with a random sample
                 from the training set.
-            use_cached: If True, replaces live query to Codex with cached query
+            use_cached: If True, replaces live query to Codex with a cached query
                 stored in `query_results_filepath`.
 
         """
