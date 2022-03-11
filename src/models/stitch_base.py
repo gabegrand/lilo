@@ -41,6 +41,7 @@ class StitchBase(object):
         task_splits,
         task_ids_in_splits,
         frontiers_filepath: str,
+        include_samples: bool = False,
     ):
         """Dumps programs from frontiers to a file that can be passed to Stitch.
 
@@ -55,7 +56,7 @@ class StitchBase(object):
         frontiers = experiment_state.get_frontiers_for_ids_in_splits(
             task_splits=task_splits,
             task_ids_in_splits=task_ids_in_splits,
-            include_samples=False,
+            include_samples=include_samples,
         )
         frontiers_list = []
         for frontier in frontiers[task_splits[0]]:

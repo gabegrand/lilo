@@ -36,7 +36,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
         super().__init__()
 
     def get_rewritten_frontiers_for_grammar(
-        self, experiment_state, task_splits, task_ids_in_splits
+        self, experiment_state, task_splits, task_ids_in_splits, include_samples
     ):
         """
         Updates experiment_state frontiers wrt. the experiment_state.models[GRAMMAR]
@@ -62,6 +62,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 task_splits=[split],
                 task_ids_in_splits=task_ids_in_splits,
                 frontiers_filepath=programs_filepath,
+                include_samples=include_samples,
             )
             self.run_binary(
                 bin="rewrite",

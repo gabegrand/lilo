@@ -33,7 +33,12 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         super().__init__()
 
     def get_compressed_grammar_mdl_prior_rank(
-        self, experiment_state, task_splits, task_ids_in_splits, **kwargs
+        self,
+        experiment_state,
+        task_splits,
+        task_ids_in_splits,
+        include_samples,
+        **kwargs
     ):
         """
         Updates experiment_state.models[GRAMMAR].
@@ -54,6 +59,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             task_splits=task_splits,
             task_ids_in_splits=task_ids_in_splits,
             frontiers_filepath=frontiers_filepath,
+            include_samples=include_samples,
         )
 
         # Call stitch compressor.

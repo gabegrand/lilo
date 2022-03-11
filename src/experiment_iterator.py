@@ -306,7 +306,7 @@ class ExperimentState:
             if task in self.task_frontiers[task_split]
         ]
         if include_samples:
-            frontiers += self.sample_frontiers[task_split]
+            frontiers += list(self.sample_frontiers[task_split].values())
         return frontiers
 
     def get_frontiers_for_ids_in_splits(

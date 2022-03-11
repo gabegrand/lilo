@@ -11,11 +11,10 @@ import numpy as np
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
-from dreamcoder.program import InferenceFailure, ParseFailure, Program
+from dreamcoder.program import EtaLongVisitor, InferenceFailure, ParseFailure, Program
 from dreamcoder.task import Task
-from src.task_loaders import ALL, TRAIN
 from src.models.codex_base import *
-
+from src.task_loaders import ALL, TRAIN
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.SAMPLE_GENERATOR]
 
@@ -133,17 +132,29 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     query_results["programs_invalid"].append(program_str)
                     continue
 
+                # Hack to avoid fatal error when computing likelihood summaries during rescoreFrontier
+                p = EtaLongVisitor(request=p_type).execute(p)
+                program_str = str(p)
+
                 query_results["programs_valid"].append(program_str)
 
                 # TODO(gg): avoid adding duplicate generated programs
                 # A bit tricky since task-to-program mapping is many-to-many
                 program_hash = hash(program_str)
 
-                task = Task(name=f"codex_{program_hash}", request=p_type, examples=[],)
+                task = Task(
+                    name=f"codex_{program_hash}",
+                    request=p_type,
+                    examples=[],
+                )
 
                 frontier = Frontier(
                     frontier=[
-                        FrontierEntry(program=p, logPrior=0.0, logLikelihood=0.0,)
+                        FrontierEntry(
+                            program=p,
+                            logPrior=0.0,
+                            logLikelihood=0.0,
+                        )
                     ],
                     task=task,
                 )
