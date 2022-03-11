@@ -191,8 +191,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     json.dump(query_results, f)
                 print(f"Wrote results: {query_results_filepath}")
         else:
-            # TODO(gg): Better error handling
-            print("Query to Codex encountered an error. No samples were added.")
+            raise ValueError("Query to Codex encountered an error.")
 
     def query_mock(self, experiment_state, n_samples: int = 3, **kwargs):
         """Debugging query that returns a sample of programs from the task."""

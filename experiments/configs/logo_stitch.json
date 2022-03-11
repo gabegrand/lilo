@@ -100,7 +100,9 @@
                 "task_batch_sizes": [
                     "all"
                 ],
-                "params": {}
+                "params": {
+                    "save_filename": "test_likelihoods.json"
+                }
             }
         ]
     }

@@ -3,24 +3,23 @@ laps_grammmar.py | Author : Catherine Wong
 
 Utility wrapper function around the DreamCoder Grammar. Elevates common functions to be class functions in order to support calling with an ExperimentState.
 """
-from dataclasses import replace
-from inspect import isfunction
-import numpy as np
+import json
+import os
 import subprocess
-import os, json
-from dreamcoder.type import Type
-from dreamcoder.program import Program
-from dreamcoder.grammar import Grammar
-from dreamcoder.frontier import Frontier, FrontierEntry
-from dreamcoder.program import Program
-from dreamcoder.enumeration import multicoreEnumeration
-from dreamcoder.dreaming import backgroundHelmholtzEnumeration
-from dreamcoder.compression import induceGrammar
-from dreamcoder.utilities import get_root_dir
 
-import src.task_loaders as task_loaders
-import src.models.model_loaders as model_loaders
+import numpy as np
+
 import src.experiment_iterator as experiment_iterator
+import src.models.model_loaders as model_loaders
+import src.task_loaders as task_loaders
+from dreamcoder.compression import induceGrammar
+from dreamcoder.dreaming import backgroundHelmholtzEnumeration
+from dreamcoder.enumeration import multicoreEnumeration
+from dreamcoder.frontier import Frontier, FrontierEntry
+from dreamcoder.grammar import Grammar
+from dreamcoder.program import Program
+from dreamcoder.type import Type
+from dreamcoder.utilities import get_root_dir
 
 
 class LAPSGrammar(Grammar):
@@ -174,7 +173,10 @@ class LAPSGrammar(Grammar):
                 if isFunction:
                     return "%s %s" % (e.f.visit(self, True), e.x.visit(self, False))
                 else:
-                    return "(%s %s)" % (e.f.visit(self, True), e.x.visit(self, False),)
+                    return "(%s %s)" % (
+                        e.f.visit(self, True),
+                        e.x.visit(self, False),
+                    )
 
             def abstraction(self, e, isFunction):
                 return "(%s %s)" % (self.lam, e.body.visit(self, False))
@@ -591,7 +593,6 @@ class LAPSGrammar(Grammar):
                 "compression_score": scalar score of grammar wrt. frontiers.
             }
         """
-        pass
         # NB  this could actually be done with separate threads.
 
     def _get_compressed_grammmar_and_rewritten_frontiers(
@@ -671,7 +672,12 @@ class LAPSGrammar(Grammar):
         return optimized_grammar, rewritten_train_test_frontiers
 
     def evaluate_frontier_likelihoods(
-        self, experiment_state, task_splits, task_ids_in_splits, include_samples=False
+        self,
+        experiment_state,
+        task_splits,
+        task_ids_in_splits,
+        include_samples=False,
+        save_filename: str = None,
     ):
         """
         Evaluates and reports the frontier likelihoods with respect to the current grammar.
@@ -683,15 +689,33 @@ class LAPSGrammar(Grammar):
         )
 
         # Rescore all frontiers under current grammar.
+        log_likelihoods_by_task = {}
         log_likelihoods = []
         for task_split in task_splits:
+            log_likelihoods_by_task[task_split] = {}
             for f in frontiers[task_split]:
-                log_likelihoods += [
-                    self.logLikelihood(f.task.request, e.program) for e in f
-                ]
+                lls = [self.logLikelihood(f.task.request, e.program) for e in f]
+                log_likelihoods += lls
+                log_likelihoods_by_task[task_split][f.task.name] = lls
         print(
             f"EVALUATION: evaluate_frontier_likelihoods : mean ll of {len(log_likelihoods)} programs in splits: {task_splits} is: {np.mean(log_likelihoods)}"
         )
+
+        if save_filename is not None:
+            save_filepath = os.path.join(
+                os.getcwd(),
+                experiment_state.get_checkpoint_directory(),
+                save_filename,
+            )
+            os.makedirs(os.path.dirname(save_filepath), exist_ok=True)
+            with open(save_filepath, "w") as f:
+                json.dump(
+                    {
+                        "mean_log_likelihood": np.mean(log_likelihoods),
+                        "log_likelihoods_by_task": log_likelihoods_by_task,
+                    },
+                    f,
+                )
 
     ## Elevate static methods to create correct class.
     @staticmethod
@@ -749,4 +773,3 @@ class LAPSGrammar(Grammar):
         )
         experiment_state.models[model_loaders.GRAMMAR] = grammar
         return grammar
-
