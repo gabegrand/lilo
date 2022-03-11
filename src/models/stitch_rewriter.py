@@ -9,7 +9,7 @@ import json
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
-from dreamcoder.program import Program
+from dreamcoder.program import EtaLongVisitor, Program
 from src.models.stitch_base import StitchBase
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.PROGRAM_REWRITER]
@@ -91,6 +91,8 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                         program_data["program"], inv_name_to_dc_fmt
                     )
                     p = Program.parse(p_str)
+                    # Hack to avoid fatal error when computing likelihood summaries
+                    p = EtaLongVisitor(request=task.request).execute(p)
                     frontier_rewritten.entries.append(
                         FrontierEntry(
                             program=p,
