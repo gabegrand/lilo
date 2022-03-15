@@ -34,6 +34,12 @@ compressionClean:
 	cd solvers && jbuilder clean
 	rm -f bin/compression
 
+logoDrawString:
+	cd solvers && \
+	jbuilder build logoDrawString.exe && \
+	cp _build/default/logoDrawString.exe \
+	    ../bin/logoDrawString
+
 compression:
 	cd solvers && \
 	jbuilder build compression.exe && \

@@ -12,10 +12,7 @@ import subprocess
 
 class StitchBase(object):
     def run_binary(
-        self,
-        bin: str = "compress",
-        stitch_args: list = [],
-        stitch_kwargs: dict = {},
+        self, bin: str = "compress", stitch_args: list = [], stitch_kwargs: dict = {},
     ):
         """Calls `cargo run` to invoke Stitch via subprocess call.
 
@@ -91,15 +88,22 @@ class StitchBase(object):
 
         return inv_name_to_dc_fmt
 
+    def get_inventions_and_metadata_from_file(self, stitch_output_filepath: str):
+        with open(stitch_output_filepath, "r") as f:
+            stitch_results = json.load(f)
+
+        invs_and_metadata = {
+            inv["name"]: {
+                "name": inv["name"],
+                "body": inv["body"],
+                "dreamcoder": inv["dreamcoder"],
+                "rewritten": inv["rewritten"],
+            }
+            for inv in stitch_results["invs"]
+        }
+        return invs_and_metadata
+
     def _get_filepath_for_current_iteration(
-        self,
-        checkpoint_directory: str,
-        filename: str,
-        split: str = "",
+        self, checkpoint_directory: str, filename: str, split: str = "",
     ):
-        return os.path.join(
-            os.getcwd(),
-            checkpoint_directory,
-            split,
-            filename,
-        )
+        return os.path.join(os.getcwd(), checkpoint_directory, split, filename,)
