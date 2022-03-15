@@ -4,6 +4,7 @@ library_namer.py | Author : Catherine Wong.
 Queries Codex to generate names for library functions.
 """
 import numpy as np
+from src.models.laps_grammar import LAPSGrammar
 import src.models.model_loaders as model_loaders
 from src.task_loaders import ALL
 from src.models.codex_base import *
@@ -25,6 +26,9 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
     DEFAULT_BASE_DSL_HEADER = '"""First, here are the original primitives in the programming language, commented with their functionality and verbose, human readable names."""\n'
     DEFAULT_INVENTION_HEADER = '"""Now, assign a verbose, human readable name to a new function defined using primitives in the programming language, based on the function body and how it is used in other programs."""\n'
 
+    # Which library functions to rename.
+    ALL_UNNAMED = "all_unnamed"
+
     @staticmethod
     def load_model(experiment_state, **kwargs):
         return CodexLibraryNamer(experiment_state=experiment_state, **kwargs)
@@ -38,12 +42,15 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
         task_splits: list,
         task_ids_in_splits: list,
         n_samples_per_invention: int = 5,
-        n_invention_ids=ALL,
+        inventions_to_name=ALL_UNNAMED,
         use_comment_header=DEFAULT_COMMENT_HEADER,  # Header explaining the task.
         use_example_named_inventions: bool = False,  # Include examples of named inventions.
         use_base_dsl: bool = True,  # Include base DSL. Excludes constants.
         use_task_language: bool = False,  # Include names of programs
         n_train_programs_per_prompt: int = 10,  # How many programs to show where it was used.
+        function_body_function_class=LAPSGrammar.HUMAN_READABLE,  # What class of function names to use to show the function body.
+        input_function_class=LAPSGrammar.NUMERIC_FUNCTION_NAMES,  # What class of function names to originally show.
+        output_function_class=LAPSGrammar.HUMAN_READABLE,  # What class of function names to append the new names to.
         temperature: float = 0.75,
         max_tokens: int = 256,
         separator: str = LIBRARY_DEFAULT_SEPARATOR,
@@ -55,9 +62,11 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
         Queries Codex API to generate new names for library functions.
         
         """
+        # Gets inventions we want to rename and tasks where they are used.
         invention_metadatas = self._get_invention_metadata_for_n_inventions(
-            experiment_state, n_invention_ids
+            experiment_state, inventions_to_name
         )
+        # Builds the prompt header for each invention including the Base DSL
         fixed_prompt_header = self._build_fixed_prompt_header(
             experiment_state,
             use_comment_header,
@@ -124,7 +133,7 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
                 if str(p.tp) in skip_types:
                     continue
                 prompt = "# Original function name: \n"
-                prompt += f"{p}\n"
+                prompt += f"{p}\n"  # TODO: use the human readable names.
                 prompt += f"# Functionality: {p.function_comment}\n"
                 prompt += f"# Give an alternate verbose, human-readable name for this function that describes what it does. Prefix it with {grammar.function_prefix}_ \n"
                 prompt += f"{p.alternate_names[-1]}"
@@ -166,8 +175,19 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
         return prompt
 
     def _get_invention_metadata_for_n_inventions(
-        self, experiment_state, n_invention_ids
+        self, experiment_state, inventions_to_name
     ):
+        """
+        :ret: {
+            "production_key" : Default DreamCoder name for the invention (inlined.)
+            "body" : The DreamCoder body of the function to show.
+        }
+        """
+        # Get inventions.
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        inventions = [p for p in grammar.primitives if p.isInvented]
+        # Get task examples of where each invention is used.
+
         library_learner = experiment_state.models[model_loaders.LIBRARY_LEARNER]
         try:
             inventions = library_learner.get_inventions_and_metadata_for_current_iteration(
