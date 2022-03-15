@@ -87,6 +87,14 @@ class LAPSGrammar(Grammar):
         """
         Creates a {production_key : {name_class : name}} dictionary containing alternate names for productions in the grammar.
         """
+        # Sort the function names such that the inventions are always at the end.
+        inventions = sorted(
+            [p for p in self.primitives if p.isInvented], key=lambda p: str(p)
+        )
+        original = sorted(
+            [p for p in self.primitives if not p.isInvented], key=lambda p: str(p)
+        )
+
         return {
             str(p): {
                 LAPSGrammar.DEFAULT_FUNCTION_NAMES: str(p),
@@ -96,8 +104,18 @@ class LAPSGrammar(Grammar):
                 if type(p) == Primitive
                 else str(p),
             }
-            for idx, p in enumerate(sorted(self.primitives, key=lambda p: str(p)))
+            for idx, p in enumerate(original + inventions)
         }
+
+    def has_alternate_name(self, production_key, name_class):
+        """
+        :ret: bool - whether the production has been assigned a function name for the class different from the original name.
+        """
+        production_key = str(production_key)
+        return (
+            self.function_names[production_key][name_class]
+            != self.function_names[production_key][LAPSGrammar.DEFAULT_FUNCTION_NAMES]
+        )
 
     def set_function_name(self, production_key, name_class, name):
         """

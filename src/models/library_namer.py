@@ -63,8 +63,8 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
         
         """
         # Gets inventions we want to rename and tasks where they are used.
-        invention_metadatas = self._get_invention_metadata_for_n_inventions(
-            experiment_state, inventions_to_name
+        inventions = self._get_inventions_to_name(
+            experiment_state, inventions_to_name, output_function_class
         )
         # Builds the prompt header for each invention including the Base DSL
         fixed_prompt_header = self._build_fixed_prompt_header(
@@ -73,13 +73,15 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
             use_example_named_inventions,
             use_base_dsl,
         )
-        for invention_metadata in invention_metadatas:
+        for invention in invention:
             invention_prompt = self._build_invention_prompt(
                 experiment_state,
-                invention_metadata,
+                invention,
                 use_task_language,
                 n_train_programs_per_prompt,
-                use_pretty_naming=use_pretty_naming,
+                function_body_function_class=function_body_function_class,
+                input_function_class=input_function_class,
+                output_function_class=output_function_class,
             )
             prompt = fixed_prompt_header + invention_prompt
             if debug:
@@ -145,62 +147,58 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
     def _build_invention_prompt(
         self,
         experiment_state,
-        invention_metadata,
+        invention,
         use_task_language,
         n_train_programs_per_prompt,
-        use_pretty_naming,
+        function_body_function_class,
+        input_function_class,
+        output_function_class,
     ):
         grammar = experiment_state.models[model_loaders.GRAMMAR]
         prompt = ""
         prompt += CodexLibraryNamer.DEFAULT_INVENTION_HEADER
+
+        input_function_name = grammar.function_names[str(invention)][
+            input_function_class
+        ]
         prompt += "# Original function name: \n"
-        prompt += invention_metadata["name"] + "\n"
+        prompt += input_function_name + "\n"
         prompt += "# Function body: \n"
-        if n_train_programs_per_prompt > 0:
-            prompt += (
-                f"# Here are {n_train_programs_per_prompt} examples of its usage: "
-                + "\n"
-            )
-            prompt += (
-                "\n".join(invention_metadata["rewritten"][:n_train_programs_per_prompt])
-                + "\n"
-            )
-        prompt += invention_metadata["body"] + "\n"
+        # if n_train_programs_per_prompt > 0:
+        #     prompt += (
+        #         f"# Here are {n_train_programs_per_prompt} examples of its usage: "
+        #         + "\n"
+        #     )
+        #     prompt += (
+        #         "\n".join(invention_metadata["rewritten"][:n_train_programs_per_prompt])
+        #         + "\n"
+        #     )
+
+        import pdb
+
+        pdb.st_trace()
+        # prompt += invention_metadata["body"] + "\n"
         prompt += f"# Give an alternate verbose, human-readable name for this function that describes what it does. Prefix it with {grammar.function_prefix}_ \n"
         prompt += f"{grammar.function_prefix}_"
 
-        if use_pretty_naming:
-            prompt = prompt.replace("(lam", "(lambda")
-            prompt = prompt.replace("inv", "fn_")
         return prompt
 
-    def _get_invention_metadata_for_n_inventions(
-        self, experiment_state, inventions_to_name
+    def _get_inventions_to_name(
+        self, experiment_state, inventions_to_name, output_function_class
     ):
         """
-        :ret: {
-            "production_key" : Default DreamCoder name for the invention (inlined.)
-            "body" : The DreamCoder body of the function to show.
-        }
+        :ret: [array of Invention expressions to name]
         """
         # Get inventions.
         grammar = experiment_state.models[model_loaders.GRAMMAR]
         inventions = [p for p in grammar.primitives if p.isInvented]
-        # Get task examples of where each invention is used.
-
-        library_learner = experiment_state.models[model_loaders.LIBRARY_LEARNER]
-        try:
-            inventions = library_learner.get_inventions_and_metadata_for_current_iteration(
-                experiment_state
-            )
-            invention_keys = sorted(list(inventions.keys()))
-            invention_keys = (
-                invention_keys[:n_invention_ids]
-                if n_invention_ids != ALL
-                else invention_keys
-            )
-            return [inventions[k] for k in invention_keys]
-        except:
-            print("Could not load inventions and metadata from library learning model.")
-            assert False
+        if inventions_to_name == ALL:
+            pass
+        elif inventions_to_name == self.ALL_UNNAMED:
+            inventions = [
+                i
+                for i in inventions
+                if not grammar.has_alternate_name(i, output_function_class)
+            ]
+        return inventions
 

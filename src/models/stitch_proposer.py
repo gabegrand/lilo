@@ -79,6 +79,9 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             productions=grammar.productions + new_productions,
             continuationType=grammar.continuationType,
         )
+        import pdb
+
+        pdb.set_trace()
         experiment_state.models[model_loaders.GRAMMAR] = new_grammar
 
     def get_compressed_grammar_lm_prior_rank(
