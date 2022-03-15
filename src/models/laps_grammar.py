@@ -17,7 +17,7 @@ from dreamcoder.dreaming import backgroundHelmholtzEnumeration
 from dreamcoder.enumeration import multicoreEnumeration
 from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.grammar import Grammar
-from dreamcoder.program import Program
+from dreamcoder.program import Program, Primitive
 from dreamcoder.type import Type
 from dreamcoder.utilities import get_root_dir
 
@@ -70,9 +70,12 @@ class LAPSGrammar(Grammar):
     TOP_K = "top_k"  # Compress with respect to the top K frontiers.
 
     DEFAULT_FUNCTION_NAMES = "default"
+    NUMERIC_FUNCTION_NAMES = "numeric"
     # Other common naming schemes.
     HUMAN_READABLE = "human_readable"
     DEFAULT_LAMBDA = "lambda"
+
+    NUMERIC_FUNCTION_NAMES_PREFIX = "fn_"
 
     def __init__(self, logVariable, productions, continuationType=None):
         super(LAPSGrammar, self).__init__(logVariable, productions, continuationType)
@@ -85,8 +88,15 @@ class LAPSGrammar(Grammar):
         Creates a {production_key : {name_class : name}} dictionary containing alternate names for productions in the grammar.
         """
         return {
-            str(p): {LAPSGrammar.DEFAULT_FUNCTION_NAMES: str(p)}
-            for p in self.primitives
+            str(p): {
+                LAPSGrammar.DEFAULT_FUNCTION_NAMES: str(p),
+                LAPSGrammar.NUMERIC_FUNCTION_NAMES: LAPSGrammar.NUMERIC_FUNCTION_NAMES_PREFIX
+                + str(idx),
+                LAPSGrammar.HUMAN_READABLE: p.alternate_names[-1]
+                if type(p) == Primitive
+                else str(p),
+            }
+            for idx, p in enumerate(sorted(self.primitives, key=lambda p: str(p)))
         }
 
     def set_function_name(self, production_key, name_class, name):
@@ -173,10 +183,7 @@ class LAPSGrammar(Grammar):
                 if isFunction:
                     return "%s %s" % (e.f.visit(self, True), e.x.visit(self, False))
                 else:
-                    return "(%s %s)" % (
-                        e.f.visit(self, True),
-                        e.x.visit(self, False),
-                    )
+                    return "(%s %s)" % (e.f.visit(self, True), e.x.visit(self, False),)
 
             def abstraction(self, e, isFunction):
                 return "(%s %s)" % (self.lam, e.body.visit(self, False))
@@ -703,9 +710,7 @@ class LAPSGrammar(Grammar):
 
         if save_filename is not None:
             save_filepath = os.path.join(
-                os.getcwd(),
-                experiment_state.get_checkpoint_directory(),
-                save_filename,
+                os.getcwd(), experiment_state.get_checkpoint_directory(), save_filename,
             )
             os.makedirs(os.path.dirname(save_filepath), exist_ok=True)
             with open(save_filepath, "w") as f:

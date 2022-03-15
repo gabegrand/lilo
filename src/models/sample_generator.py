@@ -6,9 +6,11 @@ Queries Codex to generate new samples based on existing samples.
 """
 import json
 import os
+from pyclbr import Function
 
 import numpy as np
 from openai.api_resources.completion import Completion
+from src.models.laps_grammar import LAPSGrammar
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
@@ -46,6 +48,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         engine: str = CodexBase.DEFAULT_ENGINE,
         debug: bool = False,
         use_cached: bool = False,
+        function_name_class=LAPSGrammar.DEFAULT_FUNCTION_NAMES,  # Which naming scheme to use for the functions.
     ):
         """
         Queries Codex API to generate new samples based on training data.
@@ -85,7 +88,15 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         # language = experiment_state.get_language_for_ids(TRAIN, ALL)
 
         # Remove frontiers with no programs
-        programs_train = [str(e.program) for f in frontiers for e in f.entries]
+        programs_train = [e.program for f in frontiers for e in f.entries]
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        if function_name_class != LAPSGrammar.DEFAULT_FUNCTION_NAMES:
+            programs_train = [
+                grammar.show_program(p, name_classes=[function_name_class])
+                for p in programs_train
+            ]
+        programs_train = [str(p) for p in programs_train]
+
         if len(programs_train) == 0:
             print("CodexSampleGenerator: No non-empty training frontiers.")
             return None
@@ -134,6 +145,11 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
             for choice in completion["choices"]:
                 program_str = choice["text"]
+                # Write the program back into the original form.
+                if function_name_class != LAPSGrammar.DEFAULT_FUNCTION_NAMES:
+                    program_str = grammar.show_program(
+                        program_str, input_name_class=[function_name_class]
+                    )
                 try:
                     p = Program.parse(program_str)
                 except (ParseFailure, IndexError, AssertionError) as e:
@@ -144,12 +160,18 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 try:
                     p_type = p.infer()
                 except InferenceFailure as e:
-                    print(e)
+                    print(f"Type inference failure for: {e}")
                     query_results["programs_invalid"].append(program_str)
                     continue
 
                 # Hack to avoid fatal error when computing likelihood summaries during rescoreFrontier
-                p = EtaLongVisitor(request=p_type).execute(p)
+                try:
+                    p = EtaLongVisitor(request=p_type).execute(p)
+                except:
+                    print(f"Error converting to ETA Long for {p}")
+                    query_results["programs_invalid"].append(program_str)
+                    continue
+
                 program_str = str(p)
 
                 query_results["programs_valid"].append(program_str)
@@ -158,19 +180,11 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 # A bit tricky since task-to-program mapping is many-to-many
                 program_hash = hash(program_str)
 
-                task = Task(
-                    name=f"codex_{program_hash}",
-                    request=p_type,
-                    examples=[],
-                )
+                task = Task(name=f"codex_{program_hash}", request=p_type, examples=[],)
 
                 frontier = Frontier(
                     frontier=[
-                        FrontierEntry(
-                            program=p,
-                            logPrior=0.0,
-                            logLikelihood=0.0,
-                        )
+                        FrontierEntry(program=p, logPrior=0.0, logLikelihood=0.0,)
                     ],
                     task=task,
                 )
