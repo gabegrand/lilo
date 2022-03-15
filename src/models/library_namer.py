@@ -6,7 +6,7 @@ Queries Codex to generate names for library functions.
 import numpy as np
 from src.models.laps_grammar import LAPSGrammar
 import src.models.model_loaders as model_loaders
-from src.task_loaders import ALL
+from src.task_loaders import ALL, TRAIN
 from src.models.codex_base import *
 
 from dreamcoder.type import *
@@ -73,7 +73,7 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
             use_example_named_inventions,
             use_base_dsl,
         )
-        for invention in invention:
+        for invention in inventions:
             invention_prompt = self._build_invention_prompt(
                 experiment_state,
                 invention,
@@ -97,6 +97,7 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
                     separator=separator,
                     logprobs=1,
                 )
+                # TODO: NEED TO INITIALIZE FROM ALTERNATE GRAMMAR ALSO
                 if completion is not None:
                     # Sort by logprobs.
                     alternate_names = [
@@ -163,25 +164,55 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
         ]
         prompt += "# Original function name: \n"
         prompt += input_function_name + "\n"
+
+        if n_train_programs_per_prompt > 0:
+            example_usages = self._get_example_usages(
+                experiment_state, invention, n_train_programs_per_prompt
+            )
+            prompt += (
+                f"# Here are {n_train_programs_per_prompt} examples of its usage: "
+                + "\n"
+            )
+            # TODO: add language.
+            # TOOD: get examples without inventions?
+            example_programs = [
+                grammar.show_program(
+                    example,
+                    name_classes=[function_body_function_class, input_function_class],
+                    debug=True,
+                )
+                for example in example_usages.values()
+            ]
+            # TODO: figure out why we're not showing the right numeric names.
+            import pdb
+
+            pdb.set_trace()
+            prompt += "\n".join(example_programs) + "\n"
         prompt += "# Function body: \n"
-        # if n_train_programs_per_prompt > 0:
-        #     prompt += (
-        #         f"# Here are {n_train_programs_per_prompt} examples of its usage: "
-        #         + "\n"
-        #     )
-        #     prompt += (
-        #         "\n".join(invention_metadata["rewritten"][:n_train_programs_per_prompt])
-        #         + "\n"
-        #     )
-
-        import pdb
-
-        pdb.st_trace()
-        # prompt += invention_metadata["body"] + "\n"
+        function_body = str(
+            grammar.show_program(
+                invention.betaNormalForm(), name_classes=[function_body_function_class]
+            )
+        )
+        prompt += function_body + "\n"
         prompt += f"# Give an alternate verbose, human-readable name for this function that describes what it does. Prefix it with {grammar.function_prefix}_ \n"
         prompt += f"{grammar.function_prefix}_"
 
         return prompt
+
+    def _get_example_usages(self, experiment_state, primitive, n_examples):
+        """
+        :ret: [(task, example) for n_examples using the primitive]
+        """
+        # TODO: find examples where its not used along with inventions.
+        example_usages = dict()
+        for task, frontier in experiment_state.task_frontiers[TRAIN].items():
+            for e in frontier.entries:
+                if str(primitive) in e.tokens and not task in example_usages:
+                    example_usages[task] = e.program
+                    if len(example_usages) == n_examples:
+                        return example_usages
+        return example_usages
 
     def _get_inventions_to_name(
         self, experiment_state, inventions_to_name, output_function_class
@@ -200,5 +231,6 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
                 for i in inventions
                 if not grammar.has_alternate_name(i, output_function_class)
             ]
+        inventions = sorted(inventions, key=lambda p: str(p))
         return inventions
 

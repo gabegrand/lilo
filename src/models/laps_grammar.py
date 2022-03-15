@@ -83,7 +83,7 @@ class LAPSGrammar(Grammar):
         # Initialize other metadata about the productions.
         self.function_names = self._init_function_names()
 
-    def _init_function_names(self):
+    def _init_function_names(self, initialize_from_grammar=None):
         """
         Creates a {production_key : {name_class : name}} dictionary containing alternate names for productions in the grammar.
         """
@@ -95,27 +95,25 @@ class LAPSGrammar(Grammar):
             [p for p in self.primitives if not p.isInvented], key=lambda p: str(p)
         )
 
-        return {
+        function_names = {
             str(p): {
                 LAPSGrammar.DEFAULT_FUNCTION_NAMES: str(p),
                 LAPSGrammar.NUMERIC_FUNCTION_NAMES: LAPSGrammar.NUMERIC_FUNCTION_NAMES_PREFIX
                 + str(idx),
-                LAPSGrammar.HUMAN_READABLE: p.alternate_names[-1]
-                if type(p) == Primitive
-                else str(p),
             }
             for idx, p in enumerate(original + inventions)
         }
+        # TODO: retain the NAMES from alternate grammars.
+        for p in original:
+            function_names[str(p)][LAPSGrammar.HUMAN_READABLE] = p.alternate_names[-1]
+        return function_names
 
     def has_alternate_name(self, production_key, name_class):
         """
         :ret: bool - whether the production has been assigned a function name for the class different from the original name.
         """
         production_key = str(production_key)
-        return (
-            self.function_names[production_key][name_class]
-            != self.function_names[production_key][LAPSGrammar.DEFAULT_FUNCTION_NAMES]
-        )
+        return name_class in self.function_names[production_key]
 
     def set_function_name(self, production_key, name_class, name):
         """
@@ -134,13 +132,14 @@ class LAPSGrammar(Grammar):
         lam=DEFAULT_LAMBDA,
         input_name_class=[DEFAULT_FUNCTION_NAMES],
         input_lam=DEFAULT_LAMBDA,
+        debug=False,
     ):
         if type(program) == str:
             # catwong: this is dispreferred, error-prone, and slower.
             return self.replace_primitive_names(
                 program, name_classes, lam, input_name_class, input_lam
             )
-        return self.show_program_from_tree(program, name_classes, lam)
+        return self.show_program_from_tree(program, name_classes, lam, debug)
 
     def replace_primitive_names(
         self,
@@ -174,7 +173,7 @@ class LAPSGrammar(Grammar):
 
         return program
 
-    def show_program_from_tree(self, program, name_classes, lam):
+    def show_program_from_tree(self, program, name_classes, lam, debug=False):
         # Show a program, walking the tree and printing out alternate names as we go.
         class NameVisitor(object):
             def __init__(self, function_names, name_classes, lam):
