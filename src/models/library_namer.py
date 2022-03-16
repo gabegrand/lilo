@@ -73,6 +73,7 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
             experiment_state, inventions_to_name, output_function_class
         )
         # Builds the prompt header for each invention including the Base DSL
+        # TODO (catwong): Update this prompt to match the style of the invention prompt.
         fixed_prompt_header = self._build_fixed_prompt_header(
             experiment_state,
             use_comment_header,
@@ -80,6 +81,7 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
             use_base_dsl,
         )
         for invention in inventions:
+            # TODO (catwong): Implement use_task_language to include task annotations.
             invention_prompt = self._build_invention_prompt(
                 experiment_state,
                 invention,
@@ -91,6 +93,7 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
             )
             prompt = fixed_prompt_header + invention_prompt
             if debug:
+                # TODO (catwong): open space for debugging.
                 pass
             else:
                 completion = self.query_codex(
@@ -109,7 +112,6 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
                         (choice["text"], np.mean(choice["logprobs"]["token_logprobs"]))
                         for choice in completion["choices"]
                     ]
-                    # TODO: don't allow it to set the same name! enforce mutual exclusivity. also do we have multiple of the same invention?
                     alternate_name, log_prob = self._select_name(
                         alternate_names, name_selection_criteria
                     )
@@ -154,7 +156,6 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
         use_base_dsl,
         skip_types=["int"],
     ):
-        # TODO: we can unify this with the new prompt format based on usage examples.
         prompt_header = ""
         if use_comment_header is not None:
             prompt_header += use_comment_header
