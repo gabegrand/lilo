@@ -29,6 +29,10 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
     # Which library functions to rename.
     ALL_UNNAMED = "all_unnamed"
 
+    # How to select names.
+    TOP_1 = "top_1"
+    SAMPLE_LOG_PROBS = "sample_log_probs"
+
     @staticmethod
     def load_model(experiment_state, **kwargs):
         return CodexLibraryNamer(experiment_state=experiment_state, **kwargs)
@@ -56,12 +60,14 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
         separator: str = LIBRARY_DEFAULT_SEPARATOR,
         engine: str = CodexBase.DEFAULT_ENGINE,
         debug: bool = False,
-        use_pretty_naming: bool = True,
+        name_selection_criteria: str = TOP_1,
+        verbose: bool = True,
     ):
         """
         Queries Codex API to generate new names for library functions.
         
         """
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
         # Gets inventions we want to rename and tasks where they are used.
         inventions = self._get_inventions_to_name(
             experiment_state, inventions_to_name, output_function_class
@@ -97,21 +103,48 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
                     separator=separator,
                     logprobs=1,
                 )
-                # TODO: NEED TO INITIALIZE FROM ALTERNATE GRAMMAR ALSO
                 if completion is not None:
                     # Sort by logprobs.
                     alternate_names = [
                         (choice["text"], np.mean(choice["logprobs"]["token_logprobs"]))
                         for choice in completion["choices"]
                     ]
-                    alternate_names = sorted(
-                        alternate_names, key=lambda c: c[-1], reverse=True
+                    # TODO: don't allow it to set the same name! enforce mutual exclusivity. also do we have multiple of the same invention?
+                    alternate_name, log_prob = self._select_name(
+                        alternate_names, name_selection_criteria
                     )
-                    import pdb
+                    alternate_name = f"{grammar.function_prefix}_{alternate_name}"
+                    alternate_name = grammar.set_function_name(
+                        str(invention),
+                        name_class=output_function_class,
+                        name=alternate_name,
+                    )
+                    if verbose:
+                        print(
+                            f"Setting function name for {str(invention)} to {alternate_name} w/ log_p = {log_prob}"
+                        )
+        if verbose:
+            # Display current grammar.
+            print("Grammar after naming is now:")
+            for p in grammar.primitives:
+                print(
+                    f"{grammar.function_names[str(p)][LAPSGrammar.NUMERIC_FUNCTION_NAMES]}: {grammar.function_names[str(p)][LAPSGrammar.DEFAULT_FUNCTION_NAMES]}"
+                )
+                print(
+                    f"\t Human readable: {grammar.function_names[str(p)].get(LAPSGrammar.HUMAN_READABLE, 'UNNAMED')}"
+                )
+                print("\n")
 
-                    pdb.set_trace()
-
-        # Later on: we'll need a way to associate them *with* anything - use the stitch name as the ID.
+    def _select_name(self, alternate_names, name_selection_criteria):
+        alternate_names = sorted(alternate_names, key=lambda c: c[-1], reverse=True)
+        if name_selection_criteria == self.TOP_1:
+            return alternate_names[0]
+        elif name_selection_criteria == self.SAMPLE_LOG_PROBS:
+            # Sample according to probability.
+            names, probabilities = zip(*alternate_names)
+            return np.random.choice(alternate_names, p=probabilities)[0]
+        else:
+            assert False
 
     def _build_fixed_prompt_header(
         self,
@@ -121,6 +154,7 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
         use_base_dsl,
         skip_types=["int"],
     ):
+        # TODO: we can unify this with the new prompt format based on usage examples.
         prompt_header = ""
         if use_comment_header is not None:
             prompt_header += use_comment_header
@@ -131,15 +165,17 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
             grammar = experiment_state.models[model_loaders.GRAMMAR]
             for p in grammar.primitives:
                 if p.isInvented:
-                    # TODO: add inventions here.
+                    # TODO: add previously named inventions here.
                     continue
                 if str(p.tp) in skip_types:
                     continue
-                prompt = "# Original function name: \n"
-                prompt += f"{p}\n"  # TODO: use the human readable names.
+                prompt = "# Original function name: \n"  # TODO: use the numeric input name here.
+                prompt += f"{p}\n"  # TODO: use the human readable names; give examples of usage - match the form.
                 prompt += f"# Functionality: {p.function_comment}\n"
                 prompt += f"# Give an alternate verbose, human-readable name for this function that describes what it does. Prefix it with {grammar.function_prefix}_ \n"
-                prompt += f"{p.alternate_names[-1]}"
+                prompt += (
+                    f"{p.alternate_names[-1]}"  # TODO: use the human readable name.
+                )
                 prompt += "\n\n"
                 prompt_header += prompt
 
@@ -173,8 +209,7 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
                 f"# Here are {n_train_programs_per_prompt} examples of its usage: "
                 + "\n"
             )
-            # TODO: add language.
-            # TOOD: get examples without inventions?
+            # TODO: add language; more intelligent example usage selection.
             example_programs = [
                 grammar.show_program(
                     example,
@@ -183,10 +218,6 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
                 )
                 for example in example_usages.values()
             ]
-            # TODO: figure out why we're not showing the right numeric names.
-            import pdb
-
-            pdb.set_trace()
             prompt += "\n".join(example_programs) + "\n"
         prompt += "# Function body: \n"
         function_body = str(

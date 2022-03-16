@@ -6,6 +6,7 @@ Utility wrapper function around the DreamCoder Grammar. Elevates common function
 import json
 import os
 import subprocess
+from typing import Counter
 
 import numpy as np
 
@@ -71,17 +72,31 @@ class LAPSGrammar(Grammar):
 
     DEFAULT_FUNCTION_NAMES = "default"
     NUMERIC_FUNCTION_NAMES = "numeric"
+    EXCLUDE_NAME_INITIALIZATION = [DEFAULT_FUNCTION_NAMES, NUMERIC_FUNCTION_NAMES]
     # Other common naming schemes.
     HUMAN_READABLE = "human_readable"
     DEFAULT_LAMBDA = "lambda"
 
     NUMERIC_FUNCTION_NAMES_PREFIX = "fn_"
+    ALT_NAME = "_alt_"
 
-    def __init__(self, logVariable, productions, continuationType=None):
+    def __init__(
+        self,
+        logVariable,
+        productions,
+        continuationType=None,
+        initialize_parameters_from_grammar=None,
+    ):
+        self.function_prefix = ""  # String prefix for all functions in the grammar
         super(LAPSGrammar, self).__init__(logVariable, productions, continuationType)
-
+        if initialize_parameters_from_grammar:
+            self.function_prefix = initialize_parameters_from_grammar.function_prefix
         # Initialize other metadata about the productions.
-        self.function_names = self._init_function_names()
+        self.all_function_names_counts = Counter()
+        self.all_function_names_to_productions = dict()
+        self.function_names = self._init_function_names(
+            initialize_parameters_from_grammar
+        )
 
     def _init_function_names(self, initialize_from_grammar=None):
         """
@@ -91,7 +106,7 @@ class LAPSGrammar(Grammar):
         inventions = sorted(
             [p for p in self.primitives if p.isInvented], key=lambda p: str(p)
         )
-        original = sorted(
+        base_dsl = sorted(
             [p for p in self.primitives if not p.isInvented], key=lambda p: str(p)
         )
 
@@ -101,11 +116,37 @@ class LAPSGrammar(Grammar):
                 LAPSGrammar.NUMERIC_FUNCTION_NAMES: LAPSGrammar.NUMERIC_FUNCTION_NAMES_PREFIX
                 + str(idx),
             }
-            for idx, p in enumerate(original + inventions)
+            for idx, p in enumerate(base_dsl + inventions)
         }
-        # TODO: retain the NAMES from alternate grammars.
-        for p in original:
+        for p in base_dsl:
+            # Set any alternate names that exist.
             function_names[str(p)][LAPSGrammar.HUMAN_READABLE] = p.alternate_names[-1]
+
+        # Retain any new names from the previous grammar.
+        if initialize_from_grammar is not None:
+            for p in initialize_from_grammar.function_names:
+                for name_class in initialize_from_grammar.function_names[p]:
+                    if name_class not in self.EXCLUDE_NAME_INITIALIZATION:
+                        function_names[p][
+                            name_class
+                        ] = initialize_from_grammar.function_names[p][name_class]
+
+        # Initialize counter to avoid function name duplication
+        for p in function_names:
+            for name_class in function_names[p]:
+                function_name = function_names[p][name_class]
+                if not (
+                    self.all_function_names_counts[function_name] == 0
+                    or self.all_function_names_to_productions[function_name] == p
+                ):
+                    assert False
+                base_name = self._get_base_name(function_name)
+                self.all_function_names_counts[function_name] += 1
+
+                # Count the existing base names.
+                if function_name != base_name:
+                    self.all_function_names_counts[base_name] += 1
+                self.all_function_names_to_productions[function_name] = p
         return function_names
 
     def has_alternate_name(self, production_key, name_class):
@@ -115,15 +156,35 @@ class LAPSGrammar(Grammar):
         production_key = str(production_key)
         return name_class in self.function_names[production_key]
 
-    def set_function_name(self, production_key, name_class, name):
+    def _get_base_name(self, name):
+        base_name = name.split(self.ALT_NAME)[0]
+        return base_name
+
+    def set_function_name(self, production_key, name_class, name, verbose=False):
         """
         production_key: which production to provide a name to.
         name_class: what class of names this is (eg. default, stitch_default, codex.)
         name: what alternate name to assign
         """
+        base_name = self._get_base_name(name)
+
         if production_key not in self.function_names:
             raise Exception(f"Error: {production_key} not in grammar.")
+
+        # Disallow duplicate names
+        if (
+            self.all_function_names_counts[base_name] > 0
+            and not self.all_function_names_to_productions.get(base_name, "")
+            == production_key
+        ):
+            name = f"{base_name}_alt_{self.all_function_names_counts[base_name]}"
+
         self.function_names[production_key][name_class] = name
+        self.all_function_names_counts[name] += 1
+        if name != base_name:
+            self.all_function_names_counts[base_name] += 1
+        self.all_function_names_to_productions[name] = production_key
+        return name
 
     def show_program(
         self,

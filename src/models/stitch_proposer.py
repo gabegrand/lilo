@@ -78,8 +78,8 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
             productions=grammar.productions + new_productions,
             continuationType=grammar.continuationType,
+            initialize_parameters_from_grammar=grammar,
         )
-        new_grammar.function_prefix = grammar.function_prefix
 
         experiment_state.models[model_loaders.GRAMMAR] = new_grammar
 
