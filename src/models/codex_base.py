@@ -6,14 +6,9 @@ Base class containing utilities for working with the Codex language model.
 
 import os
 import time
+
 import openai
 from openai.error import InvalidRequestError, RateLimitError
-
-if not os.getenv("OPENAI_API_KEY"):
-    raise ValueError(
-        "OPENAI_API_KEY is not set. Please set this in the shell via `export OPENAI_API_KEY=...`"
-    )
-openai.api_key = os.environ["OPENAI_API_KEY"]
 
 
 class CodexBase(object):
@@ -22,6 +17,11 @@ class CodexBase(object):
 
     def __init__(self, experiment_state=None):
         super().__init__()
+        if not os.getenv("OPENAI_API_KEY"):
+            raise ValueError(
+                "OPENAI_API_KEY is not set. Please set this in the shell via `export OPENAI_API_KEY=...`"
+            )
+        openai.api_key = os.environ["OPENAI_API_KEY"]
 
     def query_codex(
         self,
