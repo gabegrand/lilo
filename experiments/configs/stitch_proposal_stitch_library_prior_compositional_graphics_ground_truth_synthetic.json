@@ -33,8 +33,14 @@
         }
     ],
     "experiment_iterator": {
-        "max_iterations": 1,
-        "task_batcher": "ground_truth_dynamic_buckets_task_batcher",
+        "max_iterations": 2,
+        "task_batcher": {
+            "model_type": "ground_truth_ordered_task_batcher",
+            "params": {
+                "base_batch_size": 10,
+                "verbose": true
+            }
+        },
         "loop_blocks": [
             {
                 "experiment_block_type": "state_fn",
@@ -65,12 +71,13 @@
                     "train"
                 ],
                 "task_batch_sizes": [
-                    "all"
+                    "all_batch"
                 ],
                 "params": {
                     "max_arity": 2,
                     "iterations": 10,
-                    "candidates_per_iteration": 1
+                    "candidates_per_iteration": 1,
+                    "include_samples": false
                 }
             },
             {
@@ -82,10 +89,12 @@
                     "test"
                 ],
                 "task_batch_sizes": [
-                    "all",
-                    "all"
+                    "all_batch",
+                    "all_batch"
                 ],
-                "params": {}
+                "params": {
+                    "include_samples": false
+                }
             },
             {
                 "experiment_block_type": "model_fn",

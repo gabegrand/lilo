@@ -33,7 +33,13 @@
   ],
   "experiment_iterator": {
     "max_iterations": 2,
-    "task_batcher": "ordered_task_batcher",
+    "task_batcher": {
+      "model_type": "ordered_task_batcher",
+      "params": {
+        "base_batch_size": 10,
+        "verbose": true
+      }
+    },
     "loop_blocks": [
       {
         "experiment_block_type": "state_fn",

@@ -20,6 +20,7 @@ TASK_SPLIT, TASK_BATCH_SIZE = "task_split", "task_batch_size"
 TASK_SPLITS, TASK_BATCH_SIZES = "task_splits", "task_batch_sizes"
 
 ALL = "all"
+ALL_BATCH = "all_batch"
 
 
 class TaskDataLoader:
@@ -68,31 +69,55 @@ class OrderedTaskBatcher(TaskBatcher):
 
     name = "ordered_task_batcher"
 
-    def __init__(self, experiment_state, curr_iteration, max_iterations):
+    def __init__(
+        self,
+        experiment_state,
+        curr_iteration,
+        max_iterations,
+        base_batch_size,
+        verbose=False,
+    ):
+        self.base_batch_size = base_batch_size
         self.task_id_orderings = {
             split: [t.name for t in experiment_state.tasks[split]]
             for split in experiment_state.tasks
         }
-        self.batch_pointers = {split: 0 for split in experiment_state.tasks}
+
+        if verbose:
+            print(f"============LOGGING TASK_BATCHER============")
+            print(f"Task batcher: {self.name}")
+            print(f"Initializing batcher over tasks: ")
+            for split in self.task_id_orderings:
+                print(f"{split} tasks: {len(self.task_id_orderings[split])}")
+            print(f"base_batch_size: {self.base_batch_size}")
+            print(f"====================================")
 
     def get_task_batch_ids(
         self, experiment_state, curr_iteration, task_split, batch_size
     ):
+        """
+        Gets a batch of tasks relative to a global pointer.
+        batch_size: {ALL, ALL_BATCH, scalar}: 
+        if ALL, returns all tasks for a split. 
+        if ALL_BATCH, returns base_batch_size tasks from the global pointer.
+        Else, returns n tasks from the global pointer.
+        """
         all_tasks_for_split = self.task_id_orderings[task_split]
-
         if batch_size == ALL:
             return all_tasks_for_split
 
-        start = self.batch_pointers[task_split] % len(all_tasks_for_split)
+        # Calculate batching wrt. a global pointer.
+        batch_size = batch_size if batch_size != ALL_BATCH else self.base_batch_size
+        batch_size = int(batch_size)
+
+        global_batch_start = self.base_batch_size * curr_iteration
+        start = global_batch_start % len(all_tasks_for_split)
 
         end = start + batch_size
 
         task_batch = (all_tasks_for_split + all_tasks_for_split.copy())[
             start:end
         ]  # Wraparound nicely.
-
-        self.batch_pointers[task_split] += batch_size
-
         return task_batch
 
 
@@ -102,82 +127,39 @@ class GroundTruthOrderedTaskBatcher(OrderedTaskBatcher):
 
     name = "ground_truth_ordered_task_batcher"
 
-    def __init__(self, experiment_state, curr_iteration, max_iterations):
-        from dreamcoder.frontier import Frontier
-
-        gt_frontiers = {
-            task_split: {
-                task: Frontier.makeFrontierFromSupervised(task)
-                for task in experiment_state.task_frontiers[task_split]
-            }
-            for task_split in experiment_state.task_frontiers
-        }
-
-        def best_log_prior(task, task_split):
-            frontier = gt_frontiers[task_split][task]
-            return min([e.logPrior for e in frontier.entries])
-
-        def sorted_log_prior(task_split):
-            sorted(
-                gt_frontiers[task_split],
-                key=lambda task: best_log_prior(task),
-                reverse=True,
-            )
-
-        self.task_id_orderings = {
-            split: [t.name for t in gt_frontiers[split]] for split in gt_frontiers
-        }
-        self.batch_pointers = {split: 0 for split in gt_frontiers}
-
-
-@TaskBatcherRegistry.register
-class GroundTruthDynamicBucketsTaskBatcher(TaskBatcher):
-    """GroundTruthDynamicBucketsTaskBatcher: orders tasks according to the log prior for a reference ground truth. Returns ALL tasks up to the current bucket, and saturates at the max bucket."""
-
-    name = "ground_truth_dynamic_buckets_task_batcher"
-
-    def __init__(self, experiment_state, curr_iteration, max_iterations):
-        from dreamcoder.frontier import Frontier
-
-        gt_frontiers = {
-            task_split: {
-                task: Frontier.makeFrontierFromSupervised(task)
-                for task in experiment_state.task_frontiers[task_split]
-            }
-            for task_split in experiment_state.task_frontiers
-        }
-
-        def best_log_prior(task, task_split):
-            frontier = gt_frontiers[task_split][task]
-            return min([e.logPrior for e in frontier.entries])
-
-        def sorted_log_prior(task_split):
-            sorted(
-                gt_frontiers[task_split],
-                key=lambda task: best_log_prior(task),
-                reverse=True,
-            )
-
-        self.task_id_orderings = {
-            split: [t.name for t in gt_frontiers[split]] for split in gt_frontiers
-        }
-
-        self.batch_pointers = {split: 0 for split in gt_frontiers}
-
-    def get_task_batch_ids(
-        self, experiment_state, curr_iteration, task_split, batch_size
+    def __init__(
+        self,
+        experiment_state,
+        curr_iteration,
+        max_iterations,
+        base_batch_size,
+        verbose=False,
     ):
-        all_tasks_for_split = self.task_id_orderings[task_split]
+        super(GroundTruthOrderedTaskBatcher, self).__init__(
+            experiment_state, curr_iteration, max_iterations, base_batch_size, verbose
+        )
+        from dreamcoder.frontier import Frontier
 
-        if batch_size == ALL:
-            return all_tasks_for_split
+        gt_frontiers = {
+            task_split: {
+                task: Frontier.makeFrontierFromSupervised(task)
+                for task in experiment_state.task_frontiers[task_split]
+            }
+            for task_split in experiment_state.task_frontiers
+        }
 
-        start = self.batch_pointers[task_split] % len(all_tasks_for_split)
+        def best_log_prior(task, task_split):
+            frontier = gt_frontiers[task_split][task]
+            return min([e.logPrior for e in frontier.entries])
 
-        end = start + batch_size
+        def sorted_log_prior(task_split):
+            sorted(
+                gt_frontiers[task_split],
+                key=lambda task: best_log_prior(task),
+                reverse=True,
+            )
 
-        task_batch = all_tasks_for_split[:end]  # Wraparound nicely.
+        self.task_id_orderings = {
+            split: [t.name for t in gt_frontiers[split]] for split in gt_frontiers
+        }
 
-        self.batch_pointers[task_split] += batch_size
-
-        return task_batch

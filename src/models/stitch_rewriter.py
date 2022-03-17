@@ -83,10 +83,10 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
 
             # Replace all frontiers for each task with rewritten frontiers
             for task in experiment_state.task_frontiers[split].keys():
-                frontier_rewritten = Frontier(
-                    frontier=[],
-                    task=task,
-                )
+                if task.name not in task_to_programs:
+                    continue
+
+                frontier_rewritten = Frontier(frontier=[], task=task,)
                 for program_data in task_to_programs[task.name]:
                     p_str = self._inline_inventions(
                         program_data["program"], inv_name_to_dc_fmt
@@ -95,11 +95,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                     # Hack to avoid fatal error when computing likelihood summaries
                     p = EtaLongVisitor(request=task.request).execute(p)
                     frontier_rewritten.entries.append(
-                        FrontierEntry(
-                            program=p,
-                            logPrior=0.0,
-                            logLikelihood=0.0,
-                        )
+                        FrontierEntry(program=p, logPrior=0.0, logLikelihood=0.0,)
                     )
                 # Re-score the logPrior and logLikelihood of the frontier under the current grammar
                 frontier_rewritten = experiment_state.models[
