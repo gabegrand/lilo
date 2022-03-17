@@ -34,7 +34,13 @@
     ],
     "experiment_iterator": {
         "max_iterations": 1,
-        "task_batcher": "ground_truth_dynamic_buckets_task_batcher",
+        "task_batcher": {
+            "model_type": "ground_truth_ordered_task_batcher",
+            "params": {
+                "global_batch_size": 10,
+                "verbose": true
+            }
+        },
         "loop_blocks": [
             {
                 "experiment_block_type": "state_fn",

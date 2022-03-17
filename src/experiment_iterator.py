@@ -132,8 +132,7 @@ class ExperimentState:
             utils.mkdir_if_necessary(self.metadata[LOG_DIRECTORY])
             # Set log directory to the timestamped output file
             self.metadata[LOG_DIRECTORY] = os.path.join(
-                self.metadata[LOG_DIRECTORY],
-                self.metadata[TIMESTAMPED_EXPERIMENT_ID],
+                self.metadata[LOG_DIRECTORY], self.metadata[TIMESTAMPED_EXPERIMENT_ID],
             )
             self.init_logger()
 
@@ -346,9 +345,12 @@ class ExperimentState:
                         .topK(maximum_frontier)
                     )
 
-    def initialize_ground_truth_task_frontiers(self, task_split):
+    def initialize_ground_truth_task_frontiers(self, task_split, exclude_nonempty=True):
         """Updates frontiers to ground truth programs. Expects the ground truth programs to be under task.supervision"""
         for task in self.task_frontiers[task_split]:
+            if exclude_nonempty:
+                if not self.task_frontiers[task_split][task].empty:
+                    continue
             self.task_frontiers[task_split][task] = self.task_frontiers[task_split][
                 task
             ].replaceWithSupervised(g=self.models[model_loaders.GRAMMAR])
@@ -399,10 +401,11 @@ class ExperimentIterator:
             curr_iteration = experiment_state.curr_iteration
 
         task_batcher = task_loaders.TaskBatcherRegistry.get(
-            config[EXPERIMENT_ITERATOR][TASK_BATCHER],
+            config[EXPERIMENT_ITERATOR][TASK_BATCHER][MODEL_TYPE],
             experiment_state=experiment_state,
             curr_iteration=curr_iteration,
             max_iterations=max_iterations,
+            **config[EXPERIMENT_ITERATOR][TASK_BATCHER][PARAMS],
         )
 
         loop_pointer = 0
@@ -444,9 +447,7 @@ class ExperimentIterator:
         state_fn_name = curr_loop_block[EXPERIMENT_BLOCK_TYPE_STATE_FN]
         state_fn = getattr(experiment_state, state_fn_name)
 
-        state_fn(
-            **curr_loop_block[PARAMS],
-        )
+        state_fn(**curr_loop_block[PARAMS],)
 
     def log_model_fn(self, experiment_state, curr_loop_block, task_batch_ids):
         print(f"============LOGGING MODEL_FN============")
@@ -463,7 +464,7 @@ class ExperimentIterator:
         else:
             for split in task_batch_ids:
                 print(
-                    f"task_ids {split}: {len(task_batch_ids)} tasks: {task_batch_ids[split][0]} -- {task_batch_ids[split][-1]}"
+                    f"task_ids {split}: {len(task_batch_ids[split])} tasks: {task_batch_ids[split][0]} -- {task_batch_ids[split][-1]}"
                 )
         print(f"====================================")
 
