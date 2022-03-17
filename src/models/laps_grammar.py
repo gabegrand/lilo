@@ -100,6 +100,9 @@ class LAPSGrammar(Grammar):
                 LAPSGrammar.DEFAULT_FUNCTION_NAMES: str(p),
                 LAPSGrammar.NUMERIC_FUNCTION_NAMES: LAPSGrammar.NUMERIC_FUNCTION_NAMES_PREFIX
                 + str(idx),
+                # Primitives allow specification of a list of alternate verbose names at definition time.
+                # This list starts with the default DC name and contains any other names in order;
+                # We take the last one by our own convention (they are ordered from least to most verbose.)
                 LAPSGrammar.HUMAN_READABLE: p.alternate_names[-1]
                 if type(p) == Primitive
                 else str(p),

@@ -6,7 +6,6 @@ Queries Codex to generate new samples based on existing samples.
 """
 import json
 import os
-from pyclbr import Function
 
 import numpy as np
 from openai.api_resources.completion import Completion
@@ -48,7 +47,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         engine: str = CodexBase.DEFAULT_ENGINE,
         debug: bool = False,
         use_cached: bool = False,
-        function_name_class=LAPSGrammar.DEFAULT_FUNCTION_NAMES,  # Which naming scheme to use for the functions.
+        function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
     ):
         """
         Queries Codex API to generate new samples based on training data.
@@ -74,6 +73,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 from the training set.
             use_cached: If True, replaces live query to Codex with a cached query
                 stored in `query_results_filepath`.
+            function_name_classes: An array of 'name_classes' specifying what naming scheme to use for functions
+                programs used for the inductive prompt. Name classes will be applied in order as they are avaialble for each 
+                function, falling back on DEFAULT (the DreamCoder parseable function names).
 
         """
         query_results_filepath = os.path.join(
@@ -90,11 +92,13 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         # Remove frontiers with no programs
         programs_train = [e.program for f in frontiers for e in f.entries]
         grammar = experiment_state.models[model_loaders.GRAMMAR]
-        if function_name_class != LAPSGrammar.DEFAULT_FUNCTION_NAMES:
-            programs_train = [
-                grammar.show_program(p, name_classes=[function_name_class])
-                for p in programs_train
-            ]
+        programs_train = [
+            grammar.show_program(p, name_classes=function_name_classes)
+            for p in programs_train
+        ]
+        import pdb
+
+        pdb.set_trace()
         programs_train = [str(p) for p in programs_train]
 
         if len(programs_train) == 0:
@@ -146,10 +150,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             for choice in completion["choices"]:
                 program_str = choice["text"]
                 # Write the program back into the original form.
-                if function_name_class != LAPSGrammar.DEFAULT_FUNCTION_NAMES:
-                    program_str = grammar.show_program(
-                        program_str, input_name_class=[function_name_class]
-                    )
+                program_str = grammar.show_program(
+                    program_str, input_name_class=function_name_classes
+                )
                 try:
                     p = Program.parse(program_str)
                 except (ParseFailure, IndexError, AssertionError) as e:

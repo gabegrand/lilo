@@ -57,7 +57,10 @@ def test_generate_samples_alternate_naming():
         task_splits=None,
         task_ids_in_splits=None,
         n_samples=n_samples,
-        function_name_class=LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+        function_name_classes=[
+            LAPSGrammar.HUMAN_READABLE,
+            LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+        ],
     )
     assert len(experiment_state.sample_tasks[TRAIN]) > 0
     for sample_task in experiment_state.sample_tasks[TRAIN]:
