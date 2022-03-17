@@ -20,7 +20,7 @@ TASK_SPLIT, TASK_BATCH_SIZE = "task_split", "task_batch_size"
 TASK_SPLITS, TASK_BATCH_SIZES = "task_splits", "task_batch_sizes"
 
 ALL = "all"
-ALL_BATCH = "all_batch"
+GLOBAL_BATCH_SIZE = "global_batch_size"
 
 
 class TaskDataLoader:
@@ -74,10 +74,10 @@ class OrderedTaskBatcher(TaskBatcher):
         experiment_state,
         curr_iteration,
         max_iterations,
-        base_batch_size,
+        global_batch_size,
         verbose=False,
     ):
-        self.base_batch_size = base_batch_size
+        self.global_batch_size = global_batch_size
         self.task_id_orderings = {
             split: [t.name for t in experiment_state.tasks[split]]
             for split in experiment_state.tasks
@@ -89,7 +89,7 @@ class OrderedTaskBatcher(TaskBatcher):
             print(f"Initializing batcher over tasks: ")
             for split in self.task_id_orderings:
                 print(f"{split} tasks: {len(self.task_id_orderings[split])}")
-            print(f"base_batch_size: {self.base_batch_size}")
+            print(f"global_batch_size: {self.global_batch_size}")
             print(f"====================================")
 
     def get_task_batch_ids(
@@ -97,9 +97,9 @@ class OrderedTaskBatcher(TaskBatcher):
     ):
         """
         Gets a batch of tasks relative to a global pointer.
-        batch_size: {ALL, ALL_BATCH, scalar}: 
+        batch_size: {ALL, GLOBAL_BATCH_SIZE, scalar}: 
         if ALL, returns all tasks for a split. 
-        if ALL_BATCH, returns base_batch_size tasks from the global pointer.
+        if GLOBAL_BATCH_SIZE, returns global_batch_size tasks from the global pointer.
         Else, returns n tasks from the global pointer.
         """
         all_tasks_for_split = self.task_id_orderings[task_split]
@@ -107,10 +107,12 @@ class OrderedTaskBatcher(TaskBatcher):
             return all_tasks_for_split
 
         # Calculate batching wrt. a global pointer.
-        batch_size = batch_size if batch_size != ALL_BATCH else self.base_batch_size
+        batch_size = (
+            batch_size if batch_size != GLOBAL_BATCH_SIZE else self.global_batch_size
+        )
         batch_size = int(batch_size)
 
-        global_batch_start = self.base_batch_size * curr_iteration
+        global_batch_start = self.global_batch_size * curr_iteration
         start = global_batch_start % len(all_tasks_for_split)
 
         end = start + batch_size
@@ -132,11 +134,11 @@ class GroundTruthOrderedTaskBatcher(OrderedTaskBatcher):
         experiment_state,
         curr_iteration,
         max_iterations,
-        base_batch_size,
+        global_batch_size,
         verbose=False,
     ):
         super(GroundTruthOrderedTaskBatcher, self).__init__(
-            experiment_state, curr_iteration, max_iterations, base_batch_size, verbose
+            experiment_state, curr_iteration, max_iterations, global_batch_size, verbose
         )
         from dreamcoder.frontier import Frontier
 

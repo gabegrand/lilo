@@ -34,9 +34,9 @@
   "experiment_iterator": {
     "max_iterations": 2,
     "task_batcher": {
-      "model_type": "ordered_task_batcher",
+      "model_type": "ground_truth_ordered_task_batcher",
       "params": {
-        "base_batch_size": 10,
+        "global_batch_size": 10,
         "verbose": true
       }
     },

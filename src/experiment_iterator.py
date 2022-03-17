@@ -345,9 +345,12 @@ class ExperimentState:
                         .topK(maximum_frontier)
                     )
 
-    def initialize_ground_truth_task_frontiers(self, task_split):
+    def initialize_ground_truth_task_frontiers(self, task_split, exclude_nonempty=True):
         """Updates frontiers to ground truth programs. Expects the ground truth programs to be under task.supervision"""
         for task in self.task_frontiers[task_split]:
+            if exclude_nonempty:
+                if not self.task_frontiers[task_split][task].empty:
+                    continue
             self.task_frontiers[task_split][task] = self.task_frontiers[task_split][
                 task
             ].replaceWithSupervised(g=self.models[model_loaders.GRAMMAR])

@@ -28,7 +28,7 @@ def test_ground_truth_ordered_task_batcher():
         test_experiment_state,
         curr_iteration=None,
         max_iterations=None,
-        base_batch_size=TEST_BATCH_SIZE,
+        global_batch_size=TEST_BATCH_SIZE,
     )
 
     for split in task_batcher.task_id_orderings:
@@ -45,7 +45,7 @@ def test_ground_truth_ordered_task_batcher():
         test_experiment_state,
         curr_iteration=0,
         task_split="train",
-        batch_size=ALL_BATCH,
+        batch_size=GLOBAL_BATCH_SIZE,
     )
     assert len(tasks) == TEST_BATCH_SIZE
 
@@ -53,7 +53,7 @@ def test_ground_truth_ordered_task_batcher():
         test_experiment_state,
         curr_iteration=0,
         task_split="train",
-        batch_size=ALL_BATCH,
+        batch_size=GLOBAL_BATCH_SIZE,
     )
     assert tasks[0] == tasks_2[0]
 
