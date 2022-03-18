@@ -37,6 +37,7 @@ class CodexBase(object):
         rate_limit_seconds=60,
     ):
         pause_for_rate_limit = False
+        completion = None
         for idx in range(max_attempts_rate_limit):
             if pause_for_rate_limit:
                 print(
@@ -62,4 +63,6 @@ class CodexBase(object):
             except RateLimitError as e:
                 print(e)
                 pause_for_rate_limit = True
+                completion = None
+
         return completion

@@ -96,9 +96,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             grammar.show_program(p, name_classes=function_name_classes)
             for p in programs_train
         ]
-        import pdb
 
-        pdb.set_trace()
         programs_train = [str(p) for p in programs_train]
 
         if len(programs_train) == 0:
@@ -163,7 +161,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 try:
                     p_type = p.infer()
                 except InferenceFailure as e:
-                    print(f"Type inference failure for: {e}")
+                    print(f"Type inference failure for: {str(p)}")
                     query_results["programs_invalid"].append(program_str)
                     continue
 

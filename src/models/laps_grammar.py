@@ -149,6 +149,13 @@ class LAPSGrammar(Grammar):
                 self.all_function_names_to_productions[function_name] = p
         return function_names
 
+    def get_name(self, production_key, name_classes):
+        name_classes += [LAPSGrammar.DEFAULT_FUNCTION_NAMES]
+        for n in name_classes:
+            if n in self.function_names[production_key]:
+                return self.function_names[production_key][n]
+        assert False
+
     def has_alternate_name(self, production_key, name_class):
         """
         :ret: bool - whether the production has been assigned a function name for the class different from the original name.
