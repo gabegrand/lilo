@@ -23,10 +23,12 @@ class StitchBase(object):
 
         """
         assert stitch_args or stitch_kwargs
-        stitch_base_command = f"cd stitch; cargo run --bin={bin} --release -- --dc-fmt {' '.join(stitch_args)} "
-        stitch_command = stitch_base_command + " ".join(
-            [f"--{k}={v}" for k, v in stitch_kwargs.items()]
+        if "fmt" not in stitch_kwargs:
+            stitch_kwargs["fmt"] = "dreamcoder"
+        stitch_command = (
+            f"cd stitch; cargo run --bin={bin} --release -- {' '.join(stitch_args)} "
         )
+        stitch_command += " ".join([f"--{k}={v}" for k, v in stitch_kwargs.items()])
         print("Running Stitch with the following command:")
         print(stitch_command)
 
