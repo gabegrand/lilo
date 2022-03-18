@@ -203,9 +203,7 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
         prompt = ""
         prompt += CodexLibraryNamer.DEFAULT_INVENTION_HEADER
 
-        input_function_name = grammar.function_names[str(invention)].get_name(
-            input_name_classes
-        )
+        input_function_name = grammar.get_name(str(invention), input_name_classes)
         prompt += "# Original function name: \n"
         prompt += input_function_name + "\n"
 
@@ -221,7 +219,7 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
             example_programs = [
                 grammar.show_program(
                     example,
-                    name_classes=body_name_class + input_name_classes,
+                    name_classes=[body_name_class] + input_name_classes,
                     debug=True,
                 )
                 for example in example_usages.values()
