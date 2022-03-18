@@ -1,11 +1,11 @@
 B ../_build/default/geomLib/.geomLib.objs
-B /Users/catwong/.opam/4.06.1+flambda/lib/cairo2
-B /Users/catwong/.opam/4.06.1+flambda/lib/gg
-B /Users/catwong/.opam/4.06.1+flambda/lib/ocaml
-B /Users/catwong/.opam/4.06.1+flambda/lib/vg
+B /Users/catwong/.opam/default/lib/cairo2
+B /Users/catwong/.opam/default/lib/gg
+B /Users/catwong/.opam/default/lib/vg
+B /opt/homebrew/lib/ocaml
 FLG -open GeomLib -w -40
 S .
-S /Users/catwong/.opam/4.06.1+flambda/lib/cairo2
-S /Users/catwong/.opam/4.06.1+flambda/lib/gg
-S /Users/catwong/.opam/4.06.1+flambda/lib/ocaml
-S /Users/catwong/.opam/4.06.1+flambda/lib/vg
+S /Users/catwong/.opam/default/lib/cairo2
+S /Users/catwong/.opam/default/lib/gg
+S /Users/catwong/.opam/default/lib/vg
+S /opt/homebrew/lib/ocaml

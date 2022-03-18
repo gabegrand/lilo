@@ -72,7 +72,10 @@
                     "n_samples": 10,
                     "n_train_programs_per_prompt": 20,
                     "temperature": 0.75,
-                    "max_tokens": 256
+                    "max_tokens": 256,
+                    "function_name_classes": [
+                        "numeric"
+                    ]
                 }
             },
             {

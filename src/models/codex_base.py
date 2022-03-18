@@ -5,9 +5,10 @@ Base class containing utilities for working with the Codex language model.
 """
 
 import os
+import time
 
 import openai
-from openai.error import InvalidRequestError
+from openai.error import InvalidRequestError, RateLimitError
 
 
 class CodexBase(object):
@@ -30,18 +31,38 @@ class CodexBase(object):
         max_tokens: int = 256,
         engine: str = DEFAULT_ENGINE,
         separator: str = DEFAULT_SEPARATOR,
+        top_p=None,
+        logprobs=None,
+        max_attempts_rate_limit=2,
+        rate_limit_seconds=60,
     ):
-        try:
-            completion = openai.Completion.create(
-                engine=engine,
-                prompt=prompt,
-                temperature=temperature,
-                n=n_samples,
-                stop=separator,
-                max_tokens=max_tokens,
-            )
-        except InvalidRequestError as e:
-            print(e)
-            completion = None
+        pause_for_rate_limit = False
+        completion = None
+        for idx in range(max_attempts_rate_limit):
+            if pause_for_rate_limit:
+                print(
+                    f"ERR: Codex rate limit. On attempt {idx}/{max_attempts_rate_limit} after waiting {rate_limit_seconds}s."
+                )
+                time.sleep(rate_limit_seconds)
+            try:
+                completion = openai.Completion.create(
+                    engine=engine,
+                    prompt=prompt,
+                    temperature=temperature if top_p is None else 1.0,
+                    top_p=top_p if temperature is None else 1.0,
+                    n=n_samples,
+                    stop=separator,
+                    max_tokens=max_tokens,
+                    logprobs=logprobs,
+                )
+                return completion
+            except InvalidRequestError as e:
+                print(e)
+                completion = None
+                return completion
+            except RateLimitError as e:
+                print(e)
+                pause_for_rate_limit = True
+                completion = None
 
         return completion

@@ -78,7 +78,9 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
             productions=grammar.productions + new_productions,
             continuationType=grammar.continuationType,
+            initialize_parameters_from_grammar=grammar,
         )
+
         experiment_state.models[model_loaders.GRAMMAR] = new_grammar
 
     def get_compressed_grammar_lm_prior_rank(
@@ -129,3 +131,11 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         )
         inv_programs = [Program.parse(p) for p in inv_name_to_dc_fmt.values()]
         return inv_programs
+
+    def get_inventions_and_metadata_for_current_iteration(self, experiment_state):
+        inventions_filepath = self._get_filepath_for_current_iteration(
+            experiment_state.get_checkpoint_directory(),
+            StitchProposerLibraryLearner.inventions_filename,
+        )
+        return self.get_inventions_and_metadata_from_file(inventions_filepath)
+
