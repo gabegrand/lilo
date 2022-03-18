@@ -160,7 +160,17 @@ class LAPSGrammar(Grammar):
         base_name = name.split(self.ALT_NAME)[0]
         return base_name
 
-    def set_function_name(self, production_key, name_class, name, verbose=False):
+    def has_alternate_name(self, production_key, name_class):
+        """
+        :ret: bool - whether the production has been assigned a function name for the class different from the original name.
+        """
+        production_key = str(production_key)
+        return (
+            self.function_names[production_key][name_class]
+            != self.function_names[production_key][LAPSGrammar.DEFAULT_FUNCTION_NAMES]
+        )
+
+    def set_function_name(self, production_key, name_class, name):
         """
         production_key: which production to provide a name to.
         name_class: what class of names this is (eg. default, stitch_default, codex.)
