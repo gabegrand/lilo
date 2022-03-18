@@ -73,16 +73,23 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 stored in `query_results_filepath`.
 
         """
+        if task_splits != [TRAIN]:
+            raise ValueError(
+                f"CodexSampleGenerator expected task_splits=[{TRAIN}], got task_splits={task_splits}"
+            )
+
         query_results_filepath = os.path.join(
             os.getcwd(),
             experiment_state.get_checkpoint_directory(),
             self.query_results_file,
         )
 
-        frontiers = experiment_state.get_frontiers_for_ids(TRAIN, ALL)
+        frontiers = experiment_state.get_frontiers_for_ids(
+            task_split=TRAIN, task_ids=task_ids_in_splits[TRAIN]
+        )
 
         # TODO(gg): Extend to use language
-        # language = experiment_state.get_language_for_ids(TRAIN, ALL)
+        # language = experiment_state.get_language_for_ids(task_split=TRAIN, task_ids=task_ids_in_splits[TRAIN])
 
         # Remove frontiers with no programs
         programs_train = [str(e.program) for f in frontiers for e in f.entries]
@@ -92,11 +99,14 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
         # TODO(gg): Prevent generation of duplicate programs
         # programs_train_hashes = set(map(hash, programs_train))
+        n_train_programs_per_prompt = min(
+            n_train_programs_per_prompt, len(programs_train)
+        )
 
         programs_for_prompt = list(
             np.random.choice(
                 programs_train,
-                size=min(n_train_programs_per_prompt, len(programs_train)),
+                size=n_train_programs_per_prompt,
                 replace=False,
             )
         )

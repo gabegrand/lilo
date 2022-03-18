@@ -81,8 +81,9 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 data = json.load(f)
                 task_to_programs = {d["task"]: d["programs"] for d in data["frontiers"]}
 
-            # Replace all frontiers for each task with rewritten frontiers
-            for task in experiment_state.task_frontiers[split].keys():
+            for task in experiment_state.get_tasks_for_ids(
+                task_split=split, task_ids=task_ids_in_splits[split]
+            ):
                 frontier_rewritten = Frontier(
                     frontier=[],
                     task=task,
