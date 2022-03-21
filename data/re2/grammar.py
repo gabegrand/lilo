@@ -31,6 +31,7 @@ class Re2GrammarLoader(ModelLoader):
 
     def load_model(self, experiment_state):
         grammar = LAPSGrammar.uniform(RE2_PRIMITIVES)
+        grammar.function_prefix = "_r"
         return grammar
 
 
