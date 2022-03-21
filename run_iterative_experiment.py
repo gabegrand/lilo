@@ -1,4 +1,8 @@
+import json
+import os
+
 from run_experiment import *
+from src.experiment_iterator import EXPORT_DIRECTORY
 
 
 def main(args):
@@ -12,6 +16,13 @@ def main(args):
         experiment_state, experiment_iterator = init_experiment_state_and_iterator(
             args, config
         )
+
+        config_write_path = os.path.join(
+            experiment_state.metadata[EXPORT_DIRECTORY], "config.json"
+        )
+        with open(config_write_path, "w") as f:
+            json.dump(config, f)
+
         run_experiment(args, experiment_state, experiment_iterator)
 
 
