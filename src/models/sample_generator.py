@@ -135,6 +135,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             completion = Completion()
             completion.refresh_from(completion_data)
         else:
+            use_cached = False
             completion = self.query_codex(
                 prompt_text,
                 n_samples=n_samples,
