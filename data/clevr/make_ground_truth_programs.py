@@ -2,6 +2,7 @@
 make_ground_truth_programs.py | Author : Catherine Wong.
 """
 
+from ctypes import sizeof
 import re
 from dreamcoder.program import EtaLongVisitor, Program
 import dreamcoder.domains.clevr.clevrPrimitives as clevrPrimitives
@@ -129,9 +130,6 @@ def get_filter_value_type_from_string(filter_str_condition):
     for types in types_to_values:
         if value in types_to_values[types]:
             return value, types
-    import pdb
-
-    pdb.set_trace()
     assert False
 
 
@@ -162,12 +160,50 @@ def make_count_program(filter_conditions, with_respect_to="$0", is_terminal=Fals
 
 @register(LOCALIZATION)
 def make_evaluate_ground_truth_program_localization(task_language, task):
-    """Tasks of the form Find the XXX things."""
     prefix = "Find the "
     filter_string = task_language.replace(prefix, "").replace(".", "")
 
     filter_conditions = get_filter_conditions_from_string(filter_string)
     return make_filter_program(filter_conditions, is_terminal=True)
+
+
+@register(ZERO_HOP)
+def make_evaluate_ground_truth_program_zero_hop(task_language, task):
+    COUNT = "count"
+    SHAPE, MATERIAL, COLOR, SIZE = "shape", "material", "color", "size"
+    task_language = task_language.replace(" the ", " ")
+    regexes = [
+        (r"How many (?P<first_filter>.+) are there\?", COUNT),
+        (r"What number of (?P<first_filter>.+) are there\?", COUNT),
+        (r"What is (?P<first_filter>.+) made of\?", MATERIAL),
+        (r"How big is (?P<first_filter>.+)\?", SIZE),
+    ]
+    for query in [SHAPE, MATERIAL, COLOR, SIZE]:
+        for base_query in [
+            r"There is a (?P<first_filter>.+); what QUERY is it\?",
+            r"What is QUERY of (?P<first_filter>.+)\?",
+            r"What QUERY is (?P<first_filter>.+)\?",
+            r"The (?P<first_filter>.+) is what QUERY\?",
+            r"The (?P<first_filter>.+) has what QUERY\?",
+            r"What QUERY is (?P<first_filter>.+)\?",
+        ]:
+            regexes.append((base_query.replace("QUERY", query), query))
+    for regex, question_type in regexes:
+        match = re.match(regex, task_language)
+        if match is not None:
+            if question_type == COUNT:
+                first_filter = match.group("first_filter")
+                return make_count_program(
+                    get_filter_conditions_from_string(first_filter), is_terminal=True
+                )
+            else:
+                first_filter = match.group("first_filter")
+                filter_str = make_filter_program(
+                    get_filter_conditions_from_string(first_filter)
+                )
+                get_single_object = f"(clevr_car {filter_str})"
+                return f"(lambda (clevr_query_{question_type} {get_single_object}))"
+    assert False
 
 
 @register(TRANSFORM)

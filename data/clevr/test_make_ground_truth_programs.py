@@ -63,6 +63,13 @@ def test_ground_truth_single_or():
             make_ground_truth_program_for_task(task)
 
 
+def test_ground_truth_zero_hop():
+    tasks = get_clevr_tasks(task_datasets=["1_zero_hop"])
+    for k in tasks.keys():
+        for task in tasks[k]:
+            make_ground_truth_program_for_task(task)
+
+
 def test_ground_truth_transform():
     # NOT WORKING
     tasks = get_clevr_tasks(task_datasets=["2_transform",])
