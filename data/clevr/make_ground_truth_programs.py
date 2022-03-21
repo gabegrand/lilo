@@ -15,6 +15,8 @@ LOCALIZATION = "2_localization"
 COMPARE_INTEGER = "1_compare_integer"
 ZERO_HOP = "1_zero_hop"
 REMOVE = "2_remove"
+TRANSFORM = "2_transform"
+SINGLE_OR = "1_single_or"
 
 
 def register(name):
@@ -46,6 +48,7 @@ def get_task_type_language(t):
 
 def check_task_evaluation(test_task, raw_program, should_succeed=True):
     clevrPrimitives.clevr_original_v1_primitives()
+    clevrPrimitives.clevr_map_transform_primitives()
     print(f"Testing program: {raw_program}")
     p = Program.parse(raw_program)
     test_pass = test_task.check(p, timeout=1000)
@@ -72,6 +75,24 @@ def get_filter_conditions_from_string(filter_string):
             f"(clevr_eq_{filter_type} clevr_{filter_value} (clevr_query_{filter_type} $1))"
         )
     return filter_conditions
+
+
+def get_map_transform_from_string(initial_filter, map_transform_string):
+    map_string = None
+    filter_strings = map_transform_string.split()
+
+    for filter_str_condition in filter_strings:
+        if "thing" in filter_str_condition or "object" in filter_str_condition:
+            continue
+        filter_value, filter_type = get_filter_value_type_from_string(
+            filter_str_condition
+        )
+        if map_string is None:
+            map_string = initial_filter
+
+        map_string = f"(clevr_map (clevr_transform_{filter_value} clevr_{filter_type}) {map_string})"
+
+    return map_string
 
 
 def get_filter_value_type_from_string(filter_str_condition):
@@ -108,15 +129,18 @@ def get_filter_value_type_from_string(filter_str_condition):
     for types in types_to_values:
         if value in types_to_values[types]:
             return value, types
+    import pdb
+
+    pdb.set_trace()
     assert False
 
 
-def make_filter_program(filter_conditions, is_terminal=False):
+def make_filter_program(filter_conditions, with_respect_to="$0", is_terminal=False):
     filter_str = None
     for condition in filter_conditions:
         fold_fn = f"(lambda (lambda (clevr_if {condition} (clevr_add $1 $0) $0)))"
         if filter_str is None:
-            filter_str = f"(clevr_fold $0 clevr_empty {fold_fn})"
+            filter_str = f"(clevr_fold {with_respect_to} clevr_empty {fold_fn})"
         else:
             filter_str = f"(clevr_fold {filter_str} clevr_empty {fold_fn})"
     if is_terminal:
@@ -124,8 +148,12 @@ def make_filter_program(filter_conditions, is_terminal=False):
     return filter_str
 
 
-def make_count_program(filter_conditions, is_terminal=False):
-    filter_str = make_filter_program(filter_conditions, is_terminal=False)
+def make_count_program(filter_conditions, with_respect_to="$0", is_terminal=False):
+    filter_str = make_filter_program(
+        filter_conditions, with_respect_to, is_terminal=False
+    )
+    if filter_str is None:
+        filter_str = with_respect_to
     count_str = f"(clevr_count {filter_str})"
     if is_terminal:
         count_str = f"(lambda {count_str} )"
@@ -140,6 +168,55 @@ def make_evaluate_ground_truth_program_localization(task_language, task):
 
     filter_conditions = get_filter_conditions_from_string(filter_string)
     return make_filter_program(filter_conditions, is_terminal=True)
+
+
+@register(TRANSFORM)
+def make_evaluate_ground_truth_program_transform(task_language, task):
+    # TODO: under construction
+    TRANSFORM_ONLY, COUNT = "transform_only", "count"
+    regexes = [
+        (
+            r"What if all the (?P<first_filter>.+) became (?P<second_filter>.+)\?",
+            TRANSFORM_ONLY,
+        ),
+        (
+            r"What if the (?P<first_filter>.+) became a (?P<second_filter>.+)\?",
+            TRANSFORM_ONLY,
+        ),
+        (
+            r"If all of the (?P<first_filter>.+) became (?P<second_filter>.+), how many (?P<third_filter>.+) would there be\?",
+            COUNT,
+        ),
+    ]
+    for regex, question_type in regexes:
+        match = re.match(regex, task_language)
+        if match is not None:
+            first_filter, second_filter = (
+                match.group("first_filter"),
+                match.group("second_filter"),
+            )
+
+            first_filter_str = make_filter_program(
+                get_filter_conditions_from_string(first_filter)
+            )
+            map_transform_str = get_map_transform_from_string(
+                first_filter_str, second_filter
+            )
+            if question_type == TRANSFORM_ONLY:
+                first_filter = match.group("first_filter")
+                return f"(lambda (clevr_union {map_transform_str} $0))"
+            elif question_type == COUNT:
+                third_filter = (match.group("third_filter"),)
+                union = f"(clevr_union {map_transform_str} $0)"
+                final_filter = make_filter_program(
+                    get_filter_conditions_from_string(third_filter),
+                    with_respect_to=union,
+                    is_terminal=False,
+                )
+                return f"(lambda (clevr_count {final_filter}))"
+            else:
+                assert False
+    assert False
 
 
 @register(REMOVE)
@@ -224,3 +301,33 @@ def make_evaluate_ground_truth_program_compare_integer(task_language, task):
             )
             return raw_program
     assert False
+
+
+@register(SINGLE_OR)
+def make_evaluate_ground_truth_program_single_or(task_language, task):
+    task_language = task_language.replace(" either", "")
+    regexes = [
+        r"What number of (?P<first_count>.+) are (?P<first_or>.+) or (?P<second_or>.+)\?",
+        r"How many (?P<first_count>.+) are (?P<first_or>.+) or (?P<second_or>.+)\?",
+    ]
+    for regex in regexes:
+        match = re.match(regex, task_language)
+        if match is not None:
+            first_count, first_or, second_or = (
+                match.group("first_count"),
+                match.group("first_or"),
+                match.group("second_or"),
+            )
+            first_or, second_or = (
+                make_filter_program(get_filter_conditions_from_string(first_or)),
+                make_filter_program(get_filter_conditions_from_string(second_or)),
+            )
+
+            union = f"(clevr_union {first_or} {second_or})"
+            return make_count_program(
+                get_filter_conditions_from_string(first_count),
+                with_respect_to=union,
+                is_terminal=True,
+            )
+    assert False
+
