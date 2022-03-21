@@ -47,3 +47,10 @@ def test_ground_truth_compare_integer():
     for k in tasks.keys():
         for task in tasks[k]:
             make_ground_truth_program_for_task(task)
+
+
+def test_ground_truth_remove():
+    tasks = get_clevr_tasks(task_datasets=["2_remove",])
+    for k in tasks.keys():
+        for task in tasks[k]:
+            make_ground_truth_program_for_task(task)

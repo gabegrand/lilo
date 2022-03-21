@@ -3,7 +3,7 @@ make_ground_truth_programs.py | Author : Catherine Wong.
 """
 
 import re
-from dreamcoder.program import Primitive, Program
+from dreamcoder.program import EtaLongVisitor, Program
 import dreamcoder.domains.clevr.clevrPrimitives as clevrPrimitives
 
 from re import *
@@ -14,6 +14,7 @@ MAKE_GT_PROGRAMS_REGISTRY = dict()
 LOCALIZATION = "2_localization"
 COMPARE_INTEGER = "1_compare_integer"
 ZERO_HOP = "1_zero_hop"
+REMOVE = "2_remove"
 
 
 def register(name):
@@ -29,7 +30,11 @@ def make_ground_truth_program_for_task(t):
     ground_truth_program_fn = MAKE_GT_PROGRAMS_REGISTRY[task_type]
     ground_truth_program = ground_truth_program_fn(task_language, t)
     check_task_evaluation(t, ground_truth_program, should_succeed=True)
-    # TODO: make them canonical Eta-Long form?
+    ground_truth_program = Program.parse(ground_truth_program)
+    assert ground_truth_program.infer() == t.request
+    ground_truth_program = EtaLongVisitor(request=t.request).execute(
+        ground_truth_program
+    )
     return ground_truth_program
 
 
@@ -135,6 +140,52 @@ def make_evaluate_ground_truth_program_localization(task_language, task):
 
     filter_conditions = get_filter_conditions_from_string(filter_string)
     return make_filter_program(filter_conditions, is_terminal=True)
+
+
+@register(REMOVE)
+def make_evaluate_ground_truth_program_remove(task_language, task):
+    REMOVE_ONLY, COUNT = "remove_only", "count"
+    regexes = [
+        (r"What if you removed all of the (?P<first_filter>.+)\?", REMOVE_ONLY),
+        (
+            r"If you removed the (?P<first_filter>.+), how many (?P<second_filter>.+) would be left\?",
+            COUNT,
+        ),
+    ]
+    for regex, question_type in regexes:
+        match = re.match(regex, task_language)
+        if match is not None:
+            if question_type == REMOVE_ONLY:
+                first_filter = match.group("first_filter")
+                filter_str = make_filter_program(
+                    get_filter_conditions_from_string(first_filter)
+                )
+                raw_program = f"(lambda (clevr_difference $0 {filter_str}))"
+            elif question_type == COUNT:
+
+                first_filter, second_filter = (
+                    match.group("first_filter"),
+                    match.group("second_filter"),
+                )
+                first_filter_str, second_filter_str = (
+                    make_filter_program(
+                        get_filter_conditions_from_string(first_filter)
+                    ),
+                    make_filter_program(
+                        get_filter_conditions_from_string(second_filter)
+                    ),
+                )
+                if second_filter_str is None:
+                    second_filter_str = "$0"
+                raw_program = (
+                    f"(clevr_difference {second_filter_str} {first_filter_str})"
+                )
+
+                raw_program = f"(lambda (clevr_count {raw_program}))"
+            else:
+                assert False
+            return raw_program
+    assert False
 
 
 @register(COMPARE_INTEGER)
