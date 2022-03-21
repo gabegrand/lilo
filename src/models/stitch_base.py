@@ -12,7 +12,10 @@ import subprocess
 
 class StitchBase(object):
     def run_binary(
-        self, bin: str = "compress", stitch_args: list = [], stitch_kwargs: dict = {},
+        self,
+        bin: str = "compress",
+        stitch_args: list = [],
+        stitch_kwargs: dict = {},
     ):
         """Calls `cargo run` to invoke Stitch via subprocess call.
 
@@ -65,10 +68,17 @@ class StitchBase(object):
                     "programs": [{"program": str(entry.program)} for entry in frontier],
                 }
             )
+
         # Write out the programs.
         os.makedirs(os.path.dirname(frontiers_filepath), exist_ok=True)
         with open(frontiers_filepath, "w") as f:
-            json.dump({"frontiers": frontiers_list}, f)
+            json.dump(
+                {
+                    "DSL": experiment_state.models["grammar"].json(),
+                    "frontiers": frontiers_list,
+                },
+                f,
+            )
 
     def get_inventions_from_file(self, stitch_output_filepath: str):
         with open(stitch_output_filepath, "r") as f:
@@ -106,6 +116,14 @@ class StitchBase(object):
         return invs_and_metadata
 
     def _get_filepath_for_current_iteration(
-        self, checkpoint_directory: str, filename: str, split: str = "",
+        self,
+        checkpoint_directory: str,
+        filename: str,
+        split: str = "",
     ):
-        return os.path.join(os.getcwd(), checkpoint_directory, split, filename,)
+        return os.path.join(
+            os.getcwd(),
+            checkpoint_directory,
+            split,
+            filename,
+        )
