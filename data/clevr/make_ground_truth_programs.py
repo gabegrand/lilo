@@ -15,6 +15,7 @@ MAKE_GT_PROGRAMS_REGISTRY = dict()
 LOCALIZATION = "2_localization"
 COMPARE_INTEGER = "1_compare_integer"
 ZERO_HOP = "1_zero_hop"
+ONE_HOP = "1_one_hop"
 REMOVE = "2_remove"
 TRANSFORM = "2_transform"
 SINGLE_OR = "1_single_or"
@@ -165,6 +166,94 @@ def make_evaluate_ground_truth_program_localization(task_language, task):
 
     filter_conditions = get_filter_conditions_from_string(filter_string)
     return make_filter_program(filter_conditions, is_terminal=True)
+
+
+@register(ONE_HOP)
+def make_evaluate_ground_truth_program_one_hop(task_language, task):
+    COUNT = "count"
+    SHAPE, MATERIAL, COLOR, SIZE = "shape", "material", "color", "size"
+    task_language = task_language.replace(" the ", " ")
+    regexes = [
+        (
+            r"How many (?P<second_filter>.+) are (?P<relation>right|left|behind|front) (?P<first_filter>.+)\?",
+            COUNT,
+        ),
+        (
+            r"What number of (?P<second_filter>.+) are (?P<relation>right|left|behind|front) (?P<first_filter>.+)\?",
+            COUNT,
+        ),
+        (
+            r"There is a (?P<first_filter>.+); what number of (?P<second_filter>.+) are (?P<relation>right|left|behind|front) it\?",
+            COUNT,
+        ),
+        (
+            r"What is (?P<second_filter>.+) that is (?P<relation>right|left|behind|front) (?P<first_filter>.+) made of\?",
+            MATERIAL,
+        ),
+        (
+            r"What is (?P<second_filter>.+) (?P<relation>right|left|behind|front) (?P<first_filter>.+) made of\?",
+            MATERIAL,
+        ),
+        (
+            r"There is a (?P<second_filter>.+) that is (?P<relation>right|left|behind|front) (?P<first_filter>.+); how big is it\?",
+            SIZE,
+        ),
+        (
+            r"There is a (?P<second_filter>.+) (?P<relation>right|left|behind|front) (?P<first_filter>.+); how big is it\?",
+            SIZE,
+        ),
+    ]
+    for query in [SHAPE, MATERIAL, COLOR, SIZE]:
+        for base_query in [
+            r"There is a (?P<second_filter>.+) that is (?P<relation>right|left|behind|front) (?P<first_filter>.+); what QUERY is it\?",
+            r"There is a (?P<second_filter>.+) that is (?P<relation>right|left|behind|front) (?P<first_filter>.+); what is its QUERY\?",
+            r"There is a (?P<second_filter>.+) (?P<relation>right|left|behind|front) (?P<first_filter>.+); what QUERY is it\?",
+            r"There is a (?P<second_filter>.+) (?P<relation>right|left|behind|front) (?P<first_filter>.+); what is its QUERY\?",
+            r"What is QUERY of (?P<second_filter>.+) that is (?P<relation>right|left|behind|front) (?P<first_filter>.+)\?",
+            r"What QUERY is (?P<second_filter>.+) that is (?P<relation>right|left|behind|front) (?P<first_filter>.+)\?",
+            r"The (?P<second_filter>.+) that is (?P<relation>right|left|behind|front) (?P<first_filter>.+) is what QUERY\?",
+            r"The (?P<second_filter>.+) (?P<relation>right|left|behind|front) (?P<first_filter>.+) is what QUERY\?",
+            r"The (?P<second_filter>.+) that is (?P<relation>right|left|behind|front) (?P<first_filter>.+) has what QUERY\?",
+            r"What QUERY is (?P<second_filter>.+) that is (?P<relation>right|left|behind|front) (?P<first_filter>.+)\?",
+            r"What is QUERY of (?P<second_filter>.+) (?P<relation>right|left|behind|front) (?P<first_filter>.+)\?",
+            r"The (?P<second_filter>.+) (?P<relation>right|left|behind|front) (?P<first_filter>.+) has what QUERY\?",
+            r"What QUERY is (?P<second_filter>.+) (?P<relation>right|left|behind|front) (?P<first_filter>.+)\?",
+        ]:
+            regexes.append((base_query.replace("QUERY", query), query))
+    for regex, question_type in regexes:
+        try:
+            match = re.match(regex, task_language)
+            if match is not None:
+                first_filter = match.group("first_filter")
+                second_filter = match.group("second_filter")
+                relation = match.group("relation")
+                first_filter = make_filter_program(
+                    get_filter_conditions_from_string(first_filter)
+                )
+                single_object = f"(clevr_unique {first_filter})"
+                relate = f"(clevr_relate {single_object} clevr_{relation} $0)"
+                if question_type == COUNT:
+                    return make_count_program(
+                        get_filter_conditions_from_string(second_filter),
+                        with_respect_to=relate,
+                        is_terminal=True,
+                    )
+                else:
+                    second_filter = get_filter_conditions_from_string(second_filter)
+                    filter_program = make_filter_program(
+                        second_filter, with_respect_to=relate
+                    )
+                    if filter_program is None:
+                        filter_program = relate
+
+                    get_single_object = f"(clevr_car {filter_program})"
+
+                    return f"(lambda (clevr_query_{question_type} {get_single_object}))"
+        except:
+            import pdb
+
+            pdb.set_trace()
+    assert False
 
 
 @register(ZERO_HOP)
