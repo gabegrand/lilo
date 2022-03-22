@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 
 from run_experiment import *
 from src.experiment_iterator import EXPORT_DIRECTORY
@@ -10,18 +11,58 @@ parser.add_argument(
     default=False,
 )
 
+parser.add_argument(
+    "--overwrite",
+    default=False,
+)
 
-GLOBAL_BATCH_SIZES = [5, 15, 25, 50, 100, 150, 200]
+GLOBAL_BATCH_SIZES = [5, 10, 15]
+# GLOBAL_BATCH_SIZES = [5, 15, 25, 50, 100, 150, 200]
 
 
 def main(args):
+    config = load_config_from_file(args)
+
+    # Clear the experiment_id_base directory
+    if args.overwrite:
+        shutil.rmtree(
+            os.path.join(
+                os.getcwd(),
+                config["metadata"]["export_directory"],
+                config["metadata"]["experiment_id"],
+            ),
+            ignore_errors=True,
+        )
+        shutil.rmtree(
+            os.path.join(
+                os.getcwd(),
+                config["metadata"]["log_directory"],
+                config["metadata"]["experiment_id"],
+            ),
+            ignore_errors=True,
+        )
+
     for global_batch_size in GLOBAL_BATCH_SIZES:
         config = load_config_from_file(args)
+
+        # Create a dedicated directory for all iterations of this experiment
+        experiment_id_base = config["metadata"]["experiment_id"]
+        config["metadata"]["export_directory"] = os.path.join(
+            config["metadata"]["export_directory"], experiment_id_base
+        )
+        config["metadata"]["log_directory"] = os.path.join(
+            config["metadata"]["log_directory"], experiment_id_base
+        )
+        config["metadata"][
+            "experiment_id"
+        ] = f"{experiment_id_base}_{global_batch_size}"
+
+        # Update the batch_size
         config["experiment_iterator"]["task_batcher"]["params"][
             "global_batch_size"
         ] = global_batch_size
-        config["metadata"]["experiment_id"] += f"_{global_batch_size}"
 
+        # Update any necessary model params in the loop blocks
         loop_blocks = []
         for block in config["experiment_iterator"]["loop_blocks"]:
             if block.get("model_type") == SAMPLE_GENERATOR:
@@ -33,6 +74,7 @@ def main(args):
             args, config
         )
 
+        # Write a copy of config.json to the experiment directory
         config_write_path = os.path.join(
             experiment_state.metadata[EXPORT_DIRECTORY], "config.json"
         )
