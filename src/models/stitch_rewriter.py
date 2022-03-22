@@ -113,10 +113,8 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 experiment_state.task_frontiers[split][task] = frontier_rewritten
 
     def _inline_inventions(self, p_str: str, inv_name_to_dc_fmt: dict):
-        # `inv0, inv1, ...` should be in sorted order to avoid partial replacement issues
-        assert list(inv_name_to_dc_fmt.keys()) == sorted(
-            list(inv_name_to_dc_fmt.keys())
-        )
-        for inv_name, inv_dc_fmt in inv_name_to_dc_fmt.items():
+        # `inv0, inv1, ...` should be in reverse sorted order to avoid partial replacement issues
+        for inv_name in sorted(inv_name_to_dc_fmt.keys(), reverse=True):
+            inv_dc_fmt = inv_name_to_dc_fmt[inv_name]
             p_str = p_str.replace(inv_name, inv_dc_fmt)
         return p_str
