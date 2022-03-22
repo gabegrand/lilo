@@ -6,18 +6,25 @@ from run_experiment import *
 from src.experiment_iterator import EXPORT_DIRECTORY
 from src.models.model_loaders import SAMPLE_GENERATOR
 
+# GLOBAL_BATCH_SIZES = [5, 15, 25, 50, 100, 150, 200]
+parser.add_argument(
+    "--global_batch_sizes",
+    nargs="+",
+    default=[5, 10, 15],
+    type=int,
+)
+
 parser.add_argument(
     "--use_cached",
     default=False,
+    action="store_true",
 )
 
 parser.add_argument(
     "--overwrite",
     default=False,
+    action="store_true",
 )
-
-GLOBAL_BATCH_SIZES = [5, 10, 15]
-# GLOBAL_BATCH_SIZES = [5, 15, 25, 50, 100, 150, 200]
 
 
 def main(args):
@@ -42,7 +49,7 @@ def main(args):
             ignore_errors=True,
         )
 
-    for global_batch_size in GLOBAL_BATCH_SIZES:
+    for global_batch_size in args.global_batch_sizes:
         config = load_config_from_file(args)
 
         # Create a dedicated directory for all iterations of this experiment
