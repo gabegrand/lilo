@@ -88,15 +88,15 @@ class StitchBase(object):
             inv["name"]: inv["dreamcoder"] for inv in stitch_results["invs"]
         }
 
-        # Replace `inv0` with inlined definitions in dreamcoder format
-        for inv_name, inv_dc_fmt in inv_name_to_dc_fmt.items():
-            for prior_inv_name, prior_inv_dc_fmt in inv_name_to_dc_fmt.items():
-                # Assume ordered dict with inventions inv0, inv1, ...
-                # inv_i only includes prior inventions inv0, ..., inv_i-1
-                if prior_inv_name == inv_name:
-                    break
-                inv_dc_fmt.replace(prior_inv_name, prior_inv_dc_fmt)
-            inv_name_to_dc_fmt[inv_name] = inv_dc_fmt
+        # # Replace `inv0` with inlined definitions in dreamcoder format
+        # for inv_name, inv_dc_fmt in inv_name_to_dc_fmt.items():
+        #     for prior_inv_name, prior_inv_dc_fmt in inv_name_to_dc_fmt.items():
+        #         # Assume ordered dict with inventions inv0, inv1, ...
+        #         # inv_i only includes prior inventions inv0, ..., inv_i-1
+        #         if prior_inv_name == inv_name:
+        #             break
+        #         inv_dc_fmt.replace(prior_inv_name, prior_inv_dc_fmt)
+        #     inv_name_to_dc_fmt[inv_name] = inv_dc_fmt
 
         return inv_name_to_dc_fmt
 
