@@ -19,6 +19,7 @@ ONE_HOP = "1_one_hop"
 REMOVE = "2_remove"
 TRANSFORM = "2_transform"
 SINGLE_OR = "1_single_or"
+SAME_RELATE = "1_same_relate_restricted"
 
 
 def register(name):
@@ -51,7 +52,7 @@ def get_task_type_language(t):
 def check_task_evaluation(test_task, raw_program, should_succeed=True):
     clevrPrimitives.clevr_original_v1_primitives()
     clevrPrimitives.clevr_map_transform_primitives()
-    print(f"Testing program: {raw_program}")
+    print(f"Testing program: {raw_program} for {test_task.name}")
     p = Program.parse(raw_program)
     test_pass = test_task.check(p, timeout=1000)
     print(f"{test_task.name} | pass: {test_pass}")
@@ -92,7 +93,7 @@ def get_map_transform_from_string(initial_filter, map_transform_string):
         if map_string is None:
             map_string = initial_filter
 
-        map_string = f"(clevr_map (clevr_transform_{filter_value} clevr_{filter_type}) {map_string})"
+        map_string = f"(clevr_map (clevr_transform_{filter_type} clevr_{filter_value}) {map_string})"
 
     return map_string
 
@@ -297,50 +298,55 @@ def make_evaluate_ground_truth_program_zero_hop(task_language, task):
 
 @register(TRANSFORM)
 def make_evaluate_ground_truth_program_transform(task_language, task):
-    # TODO: under construction
     TRANSFORM_ONLY, COUNT = "transform_only", "count"
+    task_language = task_language.replace(" the ", " ")
     regexes = [
         (
-            r"What if all the (?P<first_filter>.+) became (?P<second_filter>.+)\?",
+            r"What if (?P<first_filter>.+) became a (?P<second_filter>.+)\?",
             TRANSFORM_ONLY,
         ),
         (
-            r"What if the (?P<first_filter>.+) became a (?P<second_filter>.+)\?",
+            r"What if all (?P<first_filter>.+) became (?P<second_filter>.+)\?",
             TRANSFORM_ONLY,
         ),
         (
-            r"If all of the (?P<first_filter>.+) became (?P<second_filter>.+), how many (?P<third_filter>.+) would there be\?",
+            r"If all of (?P<first_filter>.+) became (?P<second_filter>.+), how many (?P<third_filter>.+) would there be\?",
             COUNT,
         ),
     ]
     for regex, question_type in regexes:
-        match = re.match(regex, task_language)
-        if match is not None:
-            first_filter, second_filter = (
-                match.group("first_filter"),
-                match.group("second_filter"),
-            )
-
-            first_filter_str = make_filter_program(
-                get_filter_conditions_from_string(first_filter)
-            )
-            map_transform_str = get_map_transform_from_string(
-                first_filter_str, second_filter
-            )
-            if question_type == TRANSFORM_ONLY:
-                first_filter = match.group("first_filter")
-                return f"(lambda (clevr_union {map_transform_str} $0))"
-            elif question_type == COUNT:
-                third_filter = (match.group("third_filter"),)
-                union = f"(clevr_union {map_transform_str} $0)"
-                final_filter = make_filter_program(
-                    get_filter_conditions_from_string(third_filter),
-                    with_respect_to=union,
-                    is_terminal=False,
+        try:
+            match = re.match(regex, task_language)
+            if match is not None:
+                first_filter, second_filter = (
+                    match.group("first_filter"),
+                    match.group("second_filter"),
                 )
-                return f"(lambda (clevr_count {final_filter}))"
-            else:
-                assert False
+
+                first_filter_str = make_filter_program(
+                    get_filter_conditions_from_string(first_filter)
+                )
+                map_transform_str = get_map_transform_from_string(
+                    first_filter_str, second_filter
+                )
+                if question_type == TRANSFORM_ONLY:
+                    return f"(lambda (clevr_union {map_transform_str} $0))"
+                elif question_type == COUNT:
+                    third_filter = match.group("third_filter")
+                    union = f"(clevr_union {map_transform_str} $0)"
+                    final_filter = make_filter_program(
+                        get_filter_conditions_from_string(third_filter),
+                        with_respect_to=union,
+                        is_terminal=False,
+                    )
+                    final_program = f"(lambda (clevr_count {final_filter}))"
+                    return final_program
+                else:
+                    assert False
+        except:
+            import pdb
+
+            pdb.set_trace()
     assert False
 
 
