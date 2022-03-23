@@ -74,10 +74,6 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 },
             )
 
-            inv_name_to_dc_fmt = self.get_inventions_from_file(
-                stitch_output_filepath=inventions_filepath
-            )
-
             with open(out_filepath, "r") as f:
                 data = json.load(f)
                 task_to_programs = {d["task"]: d["programs"] for d in data["frontiers"]}

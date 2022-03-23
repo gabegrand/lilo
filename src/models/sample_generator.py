@@ -157,23 +157,23 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             }
 
             for choice in completion["choices"]:
-                program_str = choice["text"]
-                # Write the program back into the original form.
+                program_str_codex = choice["text"]
+                # Write the program back into the DreamCoder form.
                 program_str = grammar.show_program(
-                    program_str, input_name_class=function_name_classes
+                    program_str_codex, input_name_class=function_name_classes
                 )
                 try:
                     p = Program.parse(program_str)
                 except (ParseFailure, IndexError, AssertionError, ValueError) as e:
                     print(f"Failed to parse ({type(e)}): {program_str}")
-                    query_results["programs_invalid"].append(program_str)
+                    query_results["programs_invalid"].append(program_str_codex)
                     continue
 
                 try:
                     p_type = p.infer()
                 except InferenceFailure:
                     print(f"Type inference failure for: {str(p)}")
-                    query_results["programs_invalid"].append(program_str)
+                    query_results["programs_invalid"].append(program_str_codex)
                     continue
 
                 # Hack to avoid fatal error when computing likelihood summaries during rescoreFrontier
@@ -181,12 +181,12 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     p = EtaLongVisitor(request=p_type).execute(p)
                 except:
                     print(f"Error converting to ETA Long for {p}")
-                    query_results["programs_invalid"].append(program_str)
+                    query_results["programs_invalid"].append(program_str_codex)
                     continue
 
                 program_str = str(p)
 
-                query_results["programs_valid"].append(program_str)
+                query_results["programs_valid"].append(program_str_codex)
 
                 # NOTE(gg): Hashing for task naming avoids adding duplicate programs to the `experiment_state`
                 program_hash = abs(hash(program_str))
