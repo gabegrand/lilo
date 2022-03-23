@@ -66,6 +66,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
             )
             self.run_binary(
                 bin="rewrite",
+                stitch_args=["--dreamcoder-output"],
                 stitch_kwargs={
                     "program-file": programs_filepath,
                     "inventions-file": inventions_filepath,
@@ -89,9 +90,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                     task=task,
                 )
                 for program_data in task_to_programs[task.name]:
-                    p_str = self._inline_inventions(
-                        program_data["program"], inv_name_to_dc_fmt
-                    )
+                    p_str = program_data["program"]
                     p = Program.parse(p_str)
                     # Hack to avoid fatal error when computing likelihood summaries
                     try:
@@ -111,10 +110,3 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 ].rescoreFrontier(frontier_rewritten)
 
                 experiment_state.task_frontiers[split][task] = frontier_rewritten
-
-    def _inline_inventions(self, p_str: str, inv_name_to_dc_fmt: dict):
-        # `inv0, inv1, ...` should be in reverse sorted order to avoid partial replacement issues
-        for inv_name in sorted(inv_name_to_dc_fmt.keys(), reverse=True):
-            inv_dc_fmt = inv_name_to_dc_fmt[inv_name]
-            p_str = p_str.replace(inv_name, inv_dc_fmt)
-        return p_str
