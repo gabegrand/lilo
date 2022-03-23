@@ -188,9 +188,8 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
                 query_results["programs_valid"].append(program_str)
 
-                # TODO(gg): avoid adding duplicate generated programs
-                # A bit tricky since task-to-program mapping is many-to-many
-                program_hash = hash(program_str)
+                # NOTE(gg): Hashing for task naming avoids adding duplicate programs to the `experiment_state`
+                program_hash = abs(hash(program_str))
 
                 task = Task(
                     name=f"codex_{program_hash}",

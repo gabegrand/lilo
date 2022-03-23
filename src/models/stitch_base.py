@@ -43,7 +43,7 @@ class StitchBase(object):
         task_splits,
         task_ids_in_splits,
         frontiers_filepath: str,
-        include_samples: bool = False,
+        include_samples: bool = True,
     ):
         """Dumps programs from frontiers to a file that can be passed to Stitch.
 

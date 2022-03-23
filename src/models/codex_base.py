@@ -34,7 +34,7 @@ class CodexBase(object):
         top_p=None,
         logprobs=None,
         max_attempts_rate_limit=5,
-        rate_limit_seconds=20,
+        rate_limit_seconds=30,
     ):
         pause_for_rate_limit = False
         completion = None
@@ -44,7 +44,7 @@ class CodexBase(object):
                     f"ERR: Codex rate limit. On attempt {idx}/{max_attempts_rate_limit} after waiting {rate_limit_seconds}s."
                 )
                 time.sleep(rate_limit_seconds)
-                rate_limit_seconds *= 2
+                rate_limit_seconds *= 2  # Exponential backoff
             try:
                 completion = openai.Completion.create(
                     engine=engine,
