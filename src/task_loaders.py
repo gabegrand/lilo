@@ -5,6 +5,7 @@ Utility classes for loading and batching datasets of tasks and language.
 
 import os
 import json
+import random
 from class_registry import ClassRegistry
 
 TaskLoaderRegistry = ClassRegistry("name", unique=True)
@@ -21,6 +22,7 @@ TASK_SPLITS, TASK_BATCH_SIZES = "task_splits", "task_batch_sizes"
 
 ALL = "all"
 GLOBAL_BATCH_SIZE = "global_batch_size"
+RANDOM_SEED = "random_seed"
 
 
 class TaskDataLoader:
@@ -82,15 +84,20 @@ class OrderedTaskBatcher(TaskBatcher):
             split: [t.name for t in experiment_state.tasks[split]]
             for split in experiment_state.tasks
         }
-
         if verbose:
-            print(f"============LOGGING TASK_BATCHER============")
-            print(f"Task batcher: {self.name}")
-            print(f"Initializing batcher over tasks: ")
-            for split in self.task_id_orderings:
-                print(f"{split} tasks: {len(self.task_id_orderings[split])}")
-            print(f"global_batch_size: {self.global_batch_size}")
-            print(f"====================================")
+            self.initial_log()
+
+    def _subclass_initialization():
+        pass
+
+    def initial_log(self):
+        print(f"============LOGGING TASK_BATCHER============")
+        print(f"Task batcher: {self.name}")
+        print(f"Initializing batcher over tasks: ")
+        for split in self.task_id_orderings:
+            print(f"{split} tasks: {len(self.task_id_orderings[split])}")
+        print(f"global_batch_size: {self.global_batch_size}")
+        print(f"====================================")
 
     def get_task_batch_ids(
         self, experiment_state, curr_iteration, task_split, batch_size
@@ -121,6 +128,32 @@ class OrderedTaskBatcher(TaskBatcher):
             start:end
         ]  # Wraparound nicely.
         return task_batch
+
+
+@TaskBatcherRegistry.register
+class RandomShuffleOrderedTaskBatcher(OrderedTaskBatcher):
+    """RandomShuffleOrderedTaskBatcher: shuffles tasks but maintains a shuffled ordered over epochs"""
+
+    name = "random_shuffle_ordered_task_batcher"
+
+    def __init__(
+        self,
+        experiment_state,
+        curr_iteration,
+        max_iterations,
+        global_batch_size,
+        verbose=False,
+    ):
+        super(RandomShuffleOrderedTaskBatcher, self).__init__(
+            experiment_state, curr_iteration, max_iterations, global_batch_size, verbose
+        )
+        self.seed = experiment_state.metadata[RANDOM_SEED]
+
+        random.seed(self.seed)
+        for split in self.task_id_orderings:
+            if split != TEST:
+                random.shuffle(self.task_id_orderings[split])
+        print(f"random_seed: {self.seed}")
 
 
 @TaskBatcherRegistry.register
