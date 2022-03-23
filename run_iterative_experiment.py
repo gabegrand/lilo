@@ -1,3 +1,21 @@
+"""
+run_iterative_experiment.py | Author: Gabe Grand.
+
+Like run_experiment.py, but runs multiple experiments with different global
+batch sizes.
+
+Each iteration of the experiment is written to a subdirectory:
+
+`{export_directory}/experiment_id/experiment_id_{batch_size}/`
+
+Usage:
+
+python run_iterative_experiment.py
+    --config_file logo_stitch_iterative.json
+    --global_batch_sizes 5 10 15 25 50 100 150 200
+
+"""
+
 import json
 import os
 import shutil
@@ -6,24 +24,26 @@ from run_experiment import *
 from src.experiment_iterator import EXPORT_DIRECTORY
 from src.models.model_loaders import SAMPLE_GENERATOR
 
-# GLOBAL_BATCH_SIZES = [5, 15, 25, 50, 100, 150, 200]
 parser.add_argument(
     "--global_batch_sizes",
     nargs="+",
     default=[5, 10, 15],
     type=int,
+    help="List of global_batch_size values, one per iteration.",
 )
 
 parser.add_argument(
     "--use_cached",
     default=False,
     action="store_true",
+    help="CodexSampleGenerator `use_cached` parameter.",
 )
 
 parser.add_argument(
     "--overwrite",
     default=False,
     action="store_true",
+    help="Delete the `experiment_id` directory before running the experiment.",
 )
 
 
