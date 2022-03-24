@@ -9,7 +9,7 @@ import json
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
-from dreamcoder.program import EtaLongVisitor, Program
+from dreamcoder.program import EtaExpandFailure, EtaLongVisitor, Program
 from src.models.stitch_base import StitchBase
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.PROGRAM_REWRITER]
@@ -66,15 +66,12 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
             )
             self.run_binary(
                 bin="rewrite",
+                stitch_args=["--dreamcoder-output"],
                 stitch_kwargs={
                     "program-file": programs_filepath,
                     "inventions-file": inventions_filepath,
                     "out": out_filepath,
                 },
-            )
-
-            inv_name_to_dc_fmt = self.get_inventions_from_file(
-                stitch_output_filepath=inventions_filepath
             )
 
             with open(out_filepath, "r") as f:
@@ -89,12 +86,13 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                     task=task,
                 )
                 for program_data in task_to_programs[task.name]:
-                    p_str = self._inline_inventions(
-                        program_data["program"], inv_name_to_dc_fmt
-                    )
+                    p_str = program_data["program"]
                     p = Program.parse(p_str)
                     # Hack to avoid fatal error when computing likelihood summaries
-                    p = EtaLongVisitor(request=task.request).execute(p)
+                    try:
+                        p = EtaLongVisitor(request=task.request).execute(p)
+                    except EtaExpandFailure:
+                        raise EtaExpandFailure(p_str)
                     frontier_rewritten.entries.append(
                         FrontierEntry(
                             program=p,
@@ -108,12 +106,3 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 ].rescoreFrontier(frontier_rewritten)
 
                 experiment_state.task_frontiers[split][task] = frontier_rewritten
-
-    def _inline_inventions(self, p_str: str, inv_name_to_dc_fmt: dict):
-        # `inv0, inv1, ...` should be in sorted order to avoid partial replacement issues
-        assert list(inv_name_to_dc_fmt.keys()) == sorted(
-            list(inv_name_to_dc_fmt.keys())
-        )
-        for inv_name, inv_dc_fmt in inv_name_to_dc_fmt.items():
-            p_str = p_str.replace(inv_name, inv_dc_fmt)
-        return p_str

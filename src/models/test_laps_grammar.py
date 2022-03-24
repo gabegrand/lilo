@@ -32,6 +32,30 @@ def test_laps_grammar_show_alternate_primitives_default():
             assert invert_alternate_naming == str(p)
 
 
+def test_laps_grammar_ast_primitives():
+    test_config = TEST_GRAPHICS_CONFIG
+    test_experiment_state = ExperimentState(test_config)
+
+    test_grammar = test_experiment_state.models[GRAMMAR]
+    test_tasks = test_experiment_state.get_tasks_for_ids(
+        task_split="train", task_ids="all"
+    )
+    for t in test_tasks:
+        p = t.groundTruthProgram
+        for name_class in [
+            test_grammar.NUMERIC_FUNCTION_NAMES,
+            test_grammar.HUMAN_READABLE,
+        ]:
+            alternate_name = test_grammar.show_program(p, name_classes=[name_class])
+            print(name_class)
+            print(alternate_name)
+            invert_alternate_naming = test_grammar.show_program(
+                alternate_name, input_name_class=[name_class]
+            )
+            assert alternate_name != str(p)
+            assert invert_alternate_naming == str(p)
+
+
 def test_laps_grammar_show_alternate_primitives():
     test_config = TEST_GRAPHICS_CONFIG
     test_experiment_state = ExperimentState(test_config)

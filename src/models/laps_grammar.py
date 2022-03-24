@@ -18,9 +18,9 @@ from dreamcoder.dreaming import backgroundHelmholtzEnumeration
 from dreamcoder.enumeration import multicoreEnumeration
 from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.grammar import Grammar
-from dreamcoder.program import Program, Primitive
+from dreamcoder.program import Program
 from dreamcoder.type import Type
-from dreamcoder.utilities import get_root_dir
+from dreamcoder.utilities import ParseFailure, get_root_dir
 
 
 class LAPSGrammar(Grammar):
@@ -202,50 +202,24 @@ class LAPSGrammar(Grammar):
         input_lam=DEFAULT_LAMBDA,
         debug=False,
     ):
+        if input_name_class == name_classes:
+            unchanged = str(program)
+
+            return unchanged
+
         if type(program) == str:
-            # catwong: this is dispreferred, error-prone, and slower.
-            return self.replace_primitive_names(
-                program, name_classes, lam, input_name_class, input_lam
-            )
+            program = Program.parse(program, allow_unknown_primitives=True)
         return self.show_program_from_tree(program, name_classes, lam, debug)
 
-    def replace_primitive_names(
-        self,
-        program,
-        name_classes=[DEFAULT_FUNCTION_NAMES],
-        lam=DEFAULT_LAMBDA,
-        input_name_class=[DEFAULT_FUNCTION_NAMES],
-        input_lam=DEFAULT_LAMBDA,
+    def show_program_from_tree(
+        self, program, name_classes, lam, debug=False,
     ):
-        name_classes.append(LAPSGrammar.DEFAULT_FUNCTION_NAMES)
-        input_name_class.append(LAPSGrammar.DEFAULT_FUNCTION_NAMES)
-        # Build a replacement dict.
-        current_name_to_replacement = dict()
-
-        def get_first_replacement(primitive, name_classes):
-            for n in name_classes:
-                if n in self.function_names[primitive]:
-                    return self.function_names[primitive][n]
-
-        for primitive in self.function_names:
-            current_name = get_first_replacement(primitive, input_name_class)
-            replacement_name = get_first_replacement(primitive, name_classes)
-            current_name_to_replacement[current_name] = replacement_name
-
-        # Sort them to avoid partial replacement.
-        for current in sorted(current_name_to_replacement.keys(), reverse=True):
-            program = program.replace(current, current_name_to_replacement[current])
-
-        # Replace the lambda.
-        program = program.replace(f"({input_lam} ", f"({lam} ")
-
-        return program
-
-    def show_program_from_tree(self, program, name_classes, lam, debug=False):
         # Show a program, walking the tree and printing out alternate names as we go.
         class NameVisitor(object):
-            def __init__(self, function_names, name_classes, lam):
+            def __init__(self, function_names, name_classes, lam, grammar):
+                self.grammar = grammar
                 self.name_classes = name_classes + [LAPSGrammar.DEFAULT_FUNCTION_NAMES]
+
                 self.function_names = function_names
                 self.lam = lam
 
@@ -256,9 +230,14 @@ class LAPSGrammar(Grammar):
                         return self.function_names[original][n]
 
             def primitive(self, e, isFunction):
+                # First, find out what primitive we're talking about here.
+                if not e.name in self.grammar.all_function_names_to_productions:
+                    raise ParseFailure((str(e), e))
+
+                original_name = self.grammar.all_function_names_to_productions[e.name]
                 for n in self.name_classes:
-                    if n in self.function_names[e.name]:
-                        return self.function_names[e.name][n]
+                    if n in self.function_names[original_name]:
+                        return self.function_names[original_name][n]
                 return e.name
 
             def index(self, e, isFunction):
@@ -274,7 +253,7 @@ class LAPSGrammar(Grammar):
                 return "(%s %s)" % (self.lam, e.body.visit(self, False))
 
         return program.visit(
-            NameVisitor(self.function_names, name_classes, lam), isFunction=False
+            NameVisitor(self.function_names, name_classes, lam, self), isFunction=False,
         )
 
     def infer_programs_for_tasks(
@@ -781,14 +760,24 @@ class LAPSGrammar(Grammar):
         )
 
         # Rescore all frontiers under current grammar.
-        log_likelihoods_by_task = {}
-        log_likelihoods = []
+        log_likelihoods_by_task, description_lengths_by_task = {}, {}
+        log_likelihoods, description_lengths = [], []
         for task_split in task_splits:
             log_likelihoods_by_task[task_split] = {}
+            description_lengths_by_task[task_split] = {}
             for f in frontiers[task_split]:
+                # Compute log likelihood of each program
                 lls = [self.logLikelihood(f.task.request, e.program) for e in f]
                 log_likelihoods += lls
                 log_likelihoods_by_task[task_split][f.task.name] = lls
+
+                # Additionally, compute description length of each program
+                dls = [
+                    len(Program.left_order_tokens(e.program, show_vars=True)) for e in f
+                ]
+                description_lengths += dls
+                description_lengths_by_task[task_split][f.task.name] = dls
+
         print(
             f"EVALUATION: evaluate_frontier_likelihoods : mean ll of {len(log_likelihoods)} programs in splits: {task_splits} is: {np.mean(log_likelihoods)}"
         )
@@ -802,7 +791,9 @@ class LAPSGrammar(Grammar):
                 json.dump(
                     {
                         "mean_log_likelihood": np.mean(log_likelihoods),
+                        "mean_description_length": np.mean(description_lengths),
                         "log_likelihoods_by_task": log_likelihoods_by_task,
+                        "description_lengths_by_task": description_lengths_by_task,
                     },
                     f,
                 )

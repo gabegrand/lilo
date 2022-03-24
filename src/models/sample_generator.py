@@ -9,13 +9,13 @@ import os
 
 import numpy as np
 from openai.api_resources.completion import Completion
-from src.models.laps_grammar import LAPSGrammar
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.program import EtaLongVisitor, InferenceFailure, ParseFailure, Program
 from dreamcoder.task import Task
 from src.models.codex_base import *
+from src.models.laps_grammar import LAPSGrammar
 from src.task_loaders import ALL, TRAIN
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.SAMPLE_GENERATOR]
@@ -74,7 +74,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             use_cached: If True, replaces live query to Codex with a cached query
                 stored in `query_results_filepath`.
             function_name_classes: An array of 'name_classes' specifying what naming scheme to use for functions
-                programs used for the inductive prompt. Name classes will be applied in order as they are avaialble for each 
+                programs used for the inductive prompt. Name classes will be applied in order as they are avaialble for each
                 function, falling back on DEFAULT (the DreamCoder parseable function names).
 
         """
@@ -118,9 +118,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
         programs_for_prompt = list(
             np.random.choice(
-                programs_train,
-                size=n_train_programs_per_prompt,
-                replace=False,
+                programs_train, size=n_train_programs_per_prompt, replace=False,
             )
         )
         prompt_text = separator.join(programs_for_prompt) + separator
@@ -128,13 +126,14 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         print(f"Querying Codex with prompt ({len(programs_for_prompt)} examples)...")
         if debug:
             completion = self.query_mock(experiment_state, n_samples=n_samples)
-        elif use_cached:
+        elif use_cached and os.path.exists(query_results_filepath):
             # For debugging only - does not verify that the cached completion matches the desired query parameters
             with open(query_results_filepath, "r") as f:
                 completion_data = json.load(f)["completion"]
             completion = Completion()
             completion.refresh_from(completion_data)
         else:
+            use_cached = False
             completion = self.query_codex(
                 prompt_text,
                 n_samples=n_samples,
@@ -156,23 +155,23 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             }
 
             for choice in completion["choices"]:
-                program_str = choice["text"]
-                # Write the program back into the original form.
-                program_str = grammar.show_program(
-                    program_str, input_name_class=function_name_classes
-                )
+                program_str_codex = choice["text"]
                 try:
+                    # Write the program back into the DreamCoder form.
+                    program_str = grammar.show_program(
+                        program_str_codex, input_name_class=function_name_classes
+                    )
                     p = Program.parse(program_str)
-                except (ParseFailure, IndexError, AssertionError) as e:
-                    print(f"Failed to parse ({type(e)}): {program_str}")
-                    query_results["programs_invalid"].append(program_str)
+                except (ParseFailure, IndexError, AssertionError, ValueError) as e:
+                    print(f"Failed to parse ({type(e)}): {program_str_codex}")
+                    query_results["programs_invalid"].append(program_str_codex)
                     continue
 
                 try:
                     p_type = p.infer()
-                except InferenceFailure as e:
+                except InferenceFailure:
                     print(f"Type inference failure for: {str(p)}")
-                    query_results["programs_invalid"].append(program_str)
+                    query_results["programs_invalid"].append(program_str_codex)
                     continue
 
                 # Hack to avoid fatal error when computing likelihood summaries during rescoreFrontier
@@ -180,16 +179,15 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     p = EtaLongVisitor(request=p_type).execute(p)
                 except:
                     print(f"Error converting to ETA Long for {p}")
-                    query_results["programs_invalid"].append(program_str)
+                    query_results["programs_invalid"].append(program_str_codex)
                     continue
 
                 program_str = str(p)
 
-                query_results["programs_valid"].append(program_str)
+                query_results["programs_valid"].append(program_str_codex)
 
-                # TODO(gg): avoid adding duplicate generated programs
-                # A bit tricky since task-to-program mapping is many-to-many
-                program_hash = hash(program_str)
+                # NOTE(gg): Hashing for task naming avoids adding duplicate programs to the `experiment_state`
+                program_hash = abs(hash(program_str))
 
                 task = Task(name=f"codex_{program_hash}", request=p_type, examples=[],)
 
