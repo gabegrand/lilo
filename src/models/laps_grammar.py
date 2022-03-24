@@ -18,7 +18,7 @@ from dreamcoder.dreaming import backgroundHelmholtzEnumeration
 from dreamcoder.enumeration import multicoreEnumeration
 from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.grammar import Grammar
-from dreamcoder.program import Program, Primitive
+from dreamcoder.program import Program
 from dreamcoder.type import Type
 from dreamcoder.utilities import get_root_dir
 
@@ -274,7 +274,10 @@ class LAPSGrammar(Grammar):
                 if isFunction:
                     return "%s %s" % (e.f.visit(self, True), e.x.visit(self, False))
                 else:
-                    return "(%s %s)" % (e.f.visit(self, True), e.x.visit(self, False),)
+                    return "(%s %s)" % (
+                        e.f.visit(self, True),
+                        e.x.visit(self, False),
+                    )
 
             def abstraction(self, e, isFunction):
                 return "(%s %s)" % (self.lam, e.body.visit(self, False))
@@ -787,28 +790,42 @@ class LAPSGrammar(Grammar):
         )
 
         # Rescore all frontiers under current grammar.
-        log_likelihoods_by_task = {}
-        log_likelihoods = []
+        log_likelihoods_by_task, description_lengths_by_task = {}, {}
+        log_likelihoods, description_lengths = [], []
         for task_split in task_splits:
             log_likelihoods_by_task[task_split] = {}
+            description_lengths_by_task[task_split] = {}
             for f in frontiers[task_split]:
+                # Compute log likelihood of each program
                 lls = [self.logLikelihood(f.task.request, e.program) for e in f]
                 log_likelihoods += lls
                 log_likelihoods_by_task[task_split][f.task.name] = lls
+
+                # Additionally, compute description length of each program
+                dls = [
+                    len(Program.left_order_tokens(e.program, show_vars=True)) for e in f
+                ]
+                description_lengths += dls
+                description_lengths_by_task[task_split][f.task.name] = dls
+
         print(
             f"EVALUATION: evaluate_frontier_likelihoods : mean ll of {len(log_likelihoods)} programs in splits: {task_splits} is: {np.mean(log_likelihoods)}"
         )
 
         if save_filename is not None:
             save_filepath = os.path.join(
-                os.getcwd(), experiment_state.get_checkpoint_directory(), save_filename,
+                os.getcwd(),
+                experiment_state.get_checkpoint_directory(),
+                save_filename,
             )
             os.makedirs(os.path.dirname(save_filepath), exist_ok=True)
             with open(save_filepath, "w") as f:
                 json.dump(
                     {
                         "mean_log_likelihood": np.mean(log_likelihoods),
+                        "mean_description_length": np.mean(description_lengths),
                         "log_likelihoods_by_task": log_likelihoods_by_task,
+                        "description_lengths_by_task": description_lengths_by_task,
                     },
                     f,
                 )
