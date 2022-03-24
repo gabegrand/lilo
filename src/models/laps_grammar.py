@@ -202,6 +202,11 @@ class LAPSGrammar(Grammar):
         input_lam=DEFAULT_LAMBDA,
         debug=False,
     ):
+        if input_name_class == name_classes:
+            unchanged = str(program)
+
+            return unchanged
+
         if type(program) == str:
             # catwong: this is dispreferred, error-prone, and slower.
             return self.replace_primitive_names(
@@ -234,6 +239,7 @@ class LAPSGrammar(Grammar):
 
         # Sort them to avoid partial replacement.
         for current in sorted(current_name_to_replacement.keys(), reverse=True):
+            # Only replace splits
             program = program.replace(current, current_name_to_replacement[current])
 
         # Replace the lambda.
