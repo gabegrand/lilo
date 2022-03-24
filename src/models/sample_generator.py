@@ -118,9 +118,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
         programs_for_prompt = list(
             np.random.choice(
-                programs_train,
-                size=n_train_programs_per_prompt,
-                replace=False,
+                programs_train, size=n_train_programs_per_prompt, replace=False,
             )
         )
         prompt_text = separator.join(programs_for_prompt) + separator
@@ -158,14 +156,17 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
             for choice in completion["choices"]:
                 program_str_codex = choice["text"]
-                # Write the program back into the DreamCoder form.
-                program_str = grammar.show_program(
-                    program_str_codex, input_name_class=function_name_classes
-                )
                 try:
+                    # Write the program back into the DreamCoder form.
+                    program_str = grammar.show_program(
+                        program_str_codex, input_name_class=function_name_classes
+                    )
                     p = Program.parse(program_str)
                 except (ParseFailure, IndexError, AssertionError, ValueError) as e:
-                    print(f"Failed to parse ({type(e)}): {program_str}")
+                    print(f"Failed to parse ({type(e)}): {program_str_codex}")
+                    import pdb
+
+                    pdb.set_trace()
                     query_results["programs_invalid"].append(program_str_codex)
                     continue
 
@@ -191,19 +192,11 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 # NOTE(gg): Hashing for task naming avoids adding duplicate programs to the `experiment_state`
                 program_hash = abs(hash(program_str))
 
-                task = Task(
-                    name=f"codex_{program_hash}",
-                    request=p_type,
-                    examples=[],
-                )
+                task = Task(name=f"codex_{program_hash}", request=p_type, examples=[],)
 
                 frontier = Frontier(
                     frontier=[
-                        FrontierEntry(
-                            program=p,
-                            logPrior=0.0,
-                            logLikelihood=0.0,
-                        )
+                        FrontierEntry(program=p, logPrior=0.0, logLikelihood=0.0,)
                     ],
                     task=task,
                 )
