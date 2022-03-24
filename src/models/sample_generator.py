@@ -164,9 +164,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     p = Program.parse(program_str)
                 except (ParseFailure, IndexError, AssertionError, ValueError) as e:
                     print(f"Failed to parse ({type(e)}): {program_str_codex}")
-                    import pdb
-
-                    pdb.set_trace()
                     query_results["programs_invalid"].append(program_str_codex)
                     continue
 
