@@ -1,0 +1,115 @@
+{
+    "metadata": {
+        "experiment_id": "re2_stitch_iterative",
+        "human_readable": "Candidate library generator. Checkpoints out the original ground truth DSL frontiers only.",
+        "export_directory": "experiments/outputs/re2",
+        "log_directory": "experiments/logs/re2",
+        "tasks_loader": "re2",
+        "task_language_loader": "re2_synthetic",
+        "export_with_timestamp": false,
+        "resume_checkpoint_directory": null,
+        "init_frontiers_from_checkpoint": false,
+        "ocaml_special_handler": "re2",
+        "random_seed": 0
+    },
+    "model_initializers": [
+        {
+            "model_type": "grammar",
+            "model_loader": "re2",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "library_learner",
+            "model_loader": "stitch_proposer",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "program_rewriter",
+            "model_loader": "stitch_rewriter",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        }
+    ],
+    "experiment_iterator": {
+        "max_iterations": 1,
+        "task_batcher": {
+            "model_type": "ground_truth_ordered_task_batcher",
+            "params": {
+                "global_batch_size": 10,
+                "verbose": true
+            }
+        },
+        "loop_blocks": [
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_metadata",
+                "params": {
+                    "verbosity": 3
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "initialize_ground_truth_task_frontiers",
+                "params": {
+                    "task_split": "train"
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "initialize_ground_truth_task_frontiers",
+                "params": {
+                    "task_split": "test"
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "library_learner",
+                "model_fn": "get_compressed_grammar_mdl_prior_rank",
+                "task_splits": [
+                    "train"
+                ],
+                "task_batch_sizes": [
+                    "global_batch_size"
+                ],
+                "params": {
+                    "max_arity": 2,
+                    "iterations": 10,
+                    "candidates_per_iteration": 1,
+                    "include_samples": true
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "program_rewriter",
+                "model_fn": "get_rewritten_frontiers_for_grammar",
+                "task_splits": [
+                    "train",
+                    "test"
+                ],
+                "task_batch_sizes": [
+                    "global_batch_size",
+                    "all"
+                ],
+                "params": {
+                    "include_samples": true
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "grammar",
+                "model_fn": "evaluate_frontier_likelihoods",
+                "task_splits": [
+                    "test"
+                ],
+                "task_batch_sizes": [
+                    "all"
+                ],
+                "params": {
+                    "save_filename": "test_likelihoods.json"
+                }
+            }
+        ]
+    }
+}
