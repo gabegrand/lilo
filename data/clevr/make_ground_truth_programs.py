@@ -9,6 +9,8 @@ import dreamcoder.domains.clevr.clevrPrimitives as clevrPrimitives
 
 from re import *
 
+from src.models.laps_grammar import LAPSGrammar
+
 MAKE_GT_PROGRAMS_REGISTRY = dict()
 
 # Types of CLEVR questions
@@ -30,16 +32,24 @@ def register(name):
     return wrapper
 
 
-def make_ground_truth_program_for_task(t):
+def make_ground_truth_program_for_task(t, debug=False):
     task_type, task_language = get_task_type_language(t)
     ground_truth_program_fn = MAKE_GT_PROGRAMS_REGISTRY[task_type]
     ground_truth_program = ground_truth_program_fn(task_language, t)
-    check_task_evaluation(t, ground_truth_program, should_succeed=True)
+    check_task_evaluation(t, ground_truth_program, should_succeed=True, debug=debug)
     ground_truth_program = Program.parse(ground_truth_program)
+
+    # Assert that it works
     assert ground_truth_program.infer() == t.request
     ground_truth_program = EtaLongVisitor(request=t.request).execute(
         ground_truth_program
     )
+    CLEVR_PRIMITIVES = clevrPrimitives.load_clevr_primitives(
+        ["clevr_bootstrap", "clevr_map_transform"]
+    )
+    grammar = LAPSGrammar.uniform(CLEVR_PRIMITIVES)
+    grammar.logLikelihood(t.request, ground_truth_program)
+
     return ground_truth_program
 
 
@@ -49,13 +59,16 @@ def get_task_type_language(t):
     return task_type, task_language
 
 
-def check_task_evaluation(test_task, raw_program, should_succeed=True):
+def check_task_evaluation(test_task, raw_program, should_succeed=True, debug=False):
     clevrPrimitives.clevr_original_v1_primitives()
     clevrPrimitives.clevr_map_transform_primitives()
-    print(f"Testing program: {raw_program} for {test_task.name}")
+    if debug:
+        print(f"Testing program: {raw_program} for {test_task.name}")
     p = Program.parse(raw_program)
+
     test_pass = test_task.check(p, timeout=1000)
-    print(f"{test_task.name} | pass: {test_pass}")
+    if debug:
+        print(f"{test_task.name} | pass: {test_pass}")
     assert test_pass == should_succeed
 
 
@@ -231,7 +244,7 @@ def make_evaluate_ground_truth_program_one_hop(task_language, task):
                 first_filter = make_filter_program(
                     get_filter_conditions_from_string(first_filter)
                 )
-                single_object = f"(clevr_unique {first_filter})"
+                single_object = f"(clevr_car {first_filter})"
                 relate = f"(clevr_relate {single_object} clevr_{relation} $0)"
                 if question_type == COUNT:
                     return make_count_program(
