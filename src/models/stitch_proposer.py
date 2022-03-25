@@ -119,7 +119,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         )
         self.run_binary(
             bin="compress",
-            stitch_args=[frontiers_filepath],
+            stitch_args=[frontiers_filepath, "--no-top-lambda"],
             stitch_kwargs={
                 "out": inventions_filepath,
                 "max-arity": max_arity,
