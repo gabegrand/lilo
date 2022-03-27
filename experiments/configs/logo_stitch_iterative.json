@@ -82,6 +82,24 @@
             },
             {
                 "experiment_block_type": "model_fn",
+                "model_type": "library_learner",
+                "model_fn": "get_compressed_grammar_mdl_prior_rank",
+                "task_splits": [
+                    "test"
+                ],
+                "task_batch_sizes": [
+                    "all"
+                ],
+                "params": {
+                    "max_arity": 2,
+                    "iterations": 10,
+                    "candidates_per_iteration": 1,
+                    "include_samples": true,
+                    "update_grammar": false
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
                 "model_type": "program_rewriter",
                 "model_fn": "get_rewritten_frontiers_for_grammar",
                 "task_splits": [

@@ -36,15 +36,25 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
         super().__init__()
 
     def get_rewritten_frontiers_for_grammar(
-        self, experiment_state, task_splits, task_ids_in_splits, include_samples
+        self,
+        experiment_state,
+        task_splits,
+        task_ids_in_splits,
+        include_samples,
+        load_inventions_from_split: str = "train",
     ):
         """
         Updates experiment_state frontiers wrt. the experiment_state.models[GRAMMAR]
+
+        params:
+            `load_inventions_from_split`: Name of split associated with Stitch inventions.
+                Allows rewriting to be performed w/r/t inventions from any split.
+
         """
-        # There should be a single set of inventions for all splits
         inventions_filepath = self._get_filepath_for_current_iteration(
             experiment_state.get_checkpoint_directory(),
             StitchProgramRewriter.inventions_filename,
+            split=load_inventions_from_split,
         )
         for split in task_splits:
             programs_filepath = self._get_filepath_for_current_iteration(
