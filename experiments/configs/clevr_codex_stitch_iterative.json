@@ -83,7 +83,7 @@
                     "debug": false,
                     "use_cached": false,
                     "n_samples": 100,
-                    "n_train_programs_per_prompt": 25,
+                    "n_train_programs_per_prompt": 20,
                     "temperature": 0.75,
                     "max_tokens": 256,
                     "function_name_classes": [
@@ -127,7 +127,7 @@
             {
                 "experiment_block_type": "model_fn",
                 "model_type": "grammar",
-                "model_fn": "evaluate_frontier_likelihoods",
+                "model_fn": "evaluate_frontiers",
                 "task_splits": [
                     "test"
                 ],
