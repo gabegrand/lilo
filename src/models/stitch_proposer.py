@@ -10,7 +10,6 @@ import src.models.model_loaders as model_loaders
 from dreamcoder.program import Program
 from src.models.laps_grammar import LAPSGrammar
 from src.models.stitch_base import StitchBase
-from src.task_loaders import TRAIN
 
 LibraryLearnerRegistry = model_loaders.ModelLoaderRegistries[
     model_loaders.LIBRARY_LEARNER
@@ -45,7 +44,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         Uses Stitch compressor to propose libraries.
         Uses p(library) based on the training data description length to rerank the libraries.
         """
-        assert task_splits == [TRAIN]
+        assert len(task_splits) == 1
         split = task_splits[0]
 
         # Write frontiers for stitch.
@@ -66,6 +65,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         inv_programs = self._get_stitch_libraries(
             experiment_state,
             frontiers_filepath,
+            split,
             max_arity=kwargs["max_arity"],
             iterations=kwargs["iterations"],
             candidates_per_iteration=kwargs["candidates_per_iteration"],
@@ -109,6 +109,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         self,
         experiment_state,
         frontiers_filepath,
+        split,
         max_arity,
         iterations,
         candidates_per_iteration,
@@ -116,6 +117,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         inventions_filepath = self._get_filepath_for_current_iteration(
             experiment_state.get_checkpoint_directory(),
             StitchProposerLibraryLearner.inventions_filename,
+            split=split,
         )
         self.run_binary(
             bin="compress",
@@ -138,4 +140,3 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             StitchProposerLibraryLearner.inventions_filename,
         )
         return self.get_inventions_and_metadata_from_file(inventions_filepath)
-
