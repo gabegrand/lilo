@@ -212,7 +212,11 @@ class LAPSGrammar(Grammar):
         return self.show_program_from_tree(program, name_classes, lam, debug)
 
     def show_program_from_tree(
-        self, program, name_classes, lam, debug=False,
+        self,
+        program,
+        name_classes,
+        lam,
+        debug=False,
     ):
         # Show a program, walking the tree and printing out alternate names as we go.
         class NameVisitor(object):
@@ -247,13 +251,17 @@ class LAPSGrammar(Grammar):
                 if isFunction:
                     return "%s %s" % (e.f.visit(self, True), e.x.visit(self, False))
                 else:
-                    return "(%s %s)" % (e.f.visit(self, True), e.x.visit(self, False),)
+                    return "(%s %s)" % (
+                        e.f.visit(self, True),
+                        e.x.visit(self, False),
+                    )
 
             def abstraction(self, e, isFunction):
                 return "(%s %s)" % (self.lam, e.body.visit(self, False))
 
         return program.visit(
-            NameVisitor(self.function_names, name_classes, lam, self), isFunction=False,
+            NameVisitor(self.function_names, name_classes, lam, self),
+            isFunction=False,
         )
 
     def infer_programs_for_tasks(
@@ -742,6 +750,92 @@ class LAPSGrammar(Grammar):
 
         return optimized_grammar, rewritten_train_test_frontiers
 
+    def evaluate_frontiers(
+        self,
+        experiment_state,
+        task_splits,
+        task_ids_in_splits,
+        compute_likelihoods: bool = True,
+        compute_description_lengths: bool = True,
+        include_samples: bool = False,
+        save_filename: str = None,
+    ):
+        """
+        Evaluates frontier likelihoods and/or description lengths with respect to the current grammar.
+        """
+        assert compute_likelihoods or compute_description_lengths
+
+        frontiers = experiment_state.get_frontiers_for_ids_in_splits(
+            task_splits=task_splits,
+            task_ids_in_splits=task_ids_in_splits,
+            include_samples=include_samples,
+        )
+
+        if compute_likelihoods:
+            log_likelihoods_by_task = {}
+            log_likelihoods = []
+        if compute_description_lengths:
+            description_lengths_by_task = {}
+            description_lengths = []
+
+        # Rescore all frontiers under current grammar.
+        for task_split in task_splits:
+
+            if compute_likelihoods:
+                log_likelihoods_by_task[task_split] = {}
+            if compute_description_lengths:
+                description_lengths_by_task[task_split] = {}
+
+            for f in frontiers[task_split]:
+                # Compute log likelihood of each program
+                if compute_likelihoods:
+                    lls = [self.logLikelihood(f.task.request, e.program) for e in f]
+                    log_likelihoods += lls
+                    log_likelihoods_by_task[task_split][f.task.name] = lls
+
+                # Additionally, compute description length of each program
+                if compute_description_lengths:
+                    dls = [
+                        len(Program.left_order_tokens(e.program, show_vars=True))
+                        for e in f
+                    ]
+                    description_lengths += dls
+                    description_lengths_by_task[task_split][f.task.name] = dls
+
+        if compute_likelihoods:
+            print(
+                f"EVALUATION: evaluate_frontiers : mean log likelihood of {len(log_likelihoods)} programs in splits: {task_splits} is: {np.mean(log_likelihoods)}"
+            )
+        if compute_description_lengths:
+            print(
+                f"EVALUATION: evaluate_frontiers : mean description length of {len(description_lengths)} programs in splits: {task_splits} is: {np.mean(description_lengths)}"
+            )
+
+        if save_filename is not None:
+            save_filepath = os.path.join(
+                os.getcwd(),
+                experiment_state.get_checkpoint_directory(),
+                save_filename,
+            )
+            os.makedirs(os.path.dirname(save_filepath), exist_ok=True)
+            with open(save_filepath, "w") as f:
+                data = {}
+                if compute_likelihoods:
+                    data.update(
+                        {
+                            "mean_log_likelihood": np.mean(log_likelihoods),
+                            "log_likelihoods_by_task": log_likelihoods_by_task,
+                        }
+                    )
+                if compute_description_lengths:
+                    data.update(
+                        {
+                            "mean_description_length": np.mean(description_lengths),
+                            "description_lengths_by_task": description_lengths_by_task,
+                        }
+                    )
+                json.dump(data, f)
+
     def evaluate_frontier_likelihoods(
         self,
         experiment_state,
@@ -753,50 +847,15 @@ class LAPSGrammar(Grammar):
         """
         Evaluates and reports the frontier likelihoods with respect to the current grammar.
         """
-        frontiers = experiment_state.get_frontiers_for_ids_in_splits(
-            task_splits=task_splits,
-            task_ids_in_splits=task_ids_in_splits,
+        return self.evaluate_frontiers(
+            experiment_state,
+            task_splits,
+            task_ids_in_splits,
+            compute_likelihoods=True,
+            compute_description_lengths=False,
             include_samples=include_samples,
+            save_filename=save_filename,
         )
-
-        # Rescore all frontiers under current grammar.
-        log_likelihoods_by_task, description_lengths_by_task = {}, {}
-        log_likelihoods, description_lengths = [], []
-        for task_split in task_splits:
-            log_likelihoods_by_task[task_split] = {}
-            description_lengths_by_task[task_split] = {}
-            for f in frontiers[task_split]:
-                # Compute log likelihood of each program
-                lls = [self.logLikelihood(f.task.request, e.program) for e in f]
-                log_likelihoods += lls
-                log_likelihoods_by_task[task_split][f.task.name] = lls
-
-                # Additionally, compute description length of each program
-                dls = [
-                    len(Program.left_order_tokens(e.program, show_vars=True)) for e in f
-                ]
-                description_lengths += dls
-                description_lengths_by_task[task_split][f.task.name] = dls
-
-        print(
-            f"EVALUATION: evaluate_frontier_likelihoods : mean ll of {len(log_likelihoods)} programs in splits: {task_splits} is: {np.mean(log_likelihoods)}"
-        )
-
-        if save_filename is not None:
-            save_filepath = os.path.join(
-                os.getcwd(), experiment_state.get_checkpoint_directory(), save_filename,
-            )
-            os.makedirs(os.path.dirname(save_filepath), exist_ok=True)
-            with open(save_filepath, "w") as f:
-                json.dump(
-                    {
-                        "mean_log_likelihood": np.mean(log_likelihoods),
-                        "mean_description_length": np.mean(description_lengths),
-                        "log_likelihoods_by_task": log_likelihoods_by_task,
-                        "description_lengths_by_task": description_lengths_by_task,
-                    },
-                    f,
-                )
 
     ## Elevate static methods to create correct class.
     @staticmethod

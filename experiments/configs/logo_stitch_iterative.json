@@ -99,7 +99,7 @@
             {
                 "experiment_block_type": "model_fn",
                 "model_type": "grammar",
-                "model_fn": "evaluate_frontier_likelihoods",
+                "model_fn": "evaluate_frontiers",
                 "task_splits": [
                     "test"
                 ],
@@ -107,6 +107,8 @@
                     "all"
                 ],
                 "params": {
+                    "compute_likelihoods": true,
+                    "compute_description_lengths": true,
                     "save_filename": "test_likelihoods.json"
                 }
             }
