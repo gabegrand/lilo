@@ -37,12 +37,18 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         task_splits,
         task_ids_in_splits,
         include_samples,
+        update_grammar: bool = True,
         **kwargs
     ):
         """
         Updates experiment_state.models[GRAMMAR].
         Uses Stitch compressor to propose libraries.
         Uses p(library) based on the training data description length to rerank the libraries.
+
+        params:
+            `update_grammar`: If True, updates the grammar in the experiment_state
+                with the new inventions from compression. If False, runs compression
+                and writes an inventions file, but leaves the grammar unaltered.
         """
         assert len(task_splits) == 1
         split = task_splits[0]
@@ -72,16 +78,17 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         )
 
         # Update the grammar with the new inventions.
-        grammar = experiment_state.models[model_loaders.GRAMMAR]
-        new_productions = [(0.0, p.infer(), p) for p in inv_programs]
-        new_grammar = LAPSGrammar(
-            logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
-            productions=grammar.productions + new_productions,
-            continuationType=grammar.continuationType,
-            initialize_parameters_from_grammar=grammar,
-        )
+        if update_grammar:
+            grammar = experiment_state.models[model_loaders.GRAMMAR]
+            new_productions = [(0.0, p.infer(), p) for p in inv_programs]
+            new_grammar = LAPSGrammar(
+                logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
+                productions=grammar.productions + new_productions,
+                continuationType=grammar.continuationType,
+                initialize_parameters_from_grammar=grammar,
+            )
 
-        experiment_state.models[model_loaders.GRAMMAR] = new_grammar
+            experiment_state.models[model_loaders.GRAMMAR] = new_grammar
 
     def get_compressed_grammar_lm_prior_rank(
         self, experiment_state, task_splits, task_ids_in_splits, max_arity, iterations
