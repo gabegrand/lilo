@@ -15,7 +15,13 @@ TaskBatcherRegistry = ClassRegistry("name", unique=True)
 # Task and dataset constants
 TRAIN, TEST = "train", "test"
 HUMAN, SYNTHETIC = "human", "synthetic"
-TASKS, LANGUAGE, VOCAB = "tasks", "language", "vocab"
+TASKS, PROGRAMS, LIBRARY, LANGUAGE, VOCAB = (
+    "tasks",
+    "programs",
+    "library",
+    "language",
+    "vocab",
+)
 
 TASK_SPLIT, TASK_BATCH_SIZE = "task_split", "task_batch_size"
 TASK_SPLITS, TASK_BATCH_SIZES = "task_splits", "task_batch_sizes"

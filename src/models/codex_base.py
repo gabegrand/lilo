@@ -14,6 +14,7 @@ from openai.error import InvalidRequestError, RateLimitError
 class CodexBase(object):
     DEFAULT_ENGINE = "davinci-codex"
     DEFAULT_SEPARATOR = "\n"
+    DEFAULT_LANGUAGE_SEPARATOR = "# "
 
     def __init__(self, experiment_state=None):
         super().__init__()

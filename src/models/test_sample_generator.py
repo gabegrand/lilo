@@ -1,6 +1,7 @@
 """
 test_sample_generator.py.
 """
+from random import sample
 import src.models.sample_generator as to_test
 from src.experiment_iterator import *
 from src.task_loaders import *
@@ -15,11 +16,104 @@ def get_initial_ground_truth_experiment_state(config):
     return experiment_state
 
 
+def get_train_task_ids(experiment_state, n_task_ids=20):
+    return {
+        TRAIN: [
+            t.name for t in list(experiment_state.task_frontiers[TRAIN])[:n_task_ids]
+        ]
+    }
+
+
 def get_sample_generator_and_state():
     config = TEST_GRAPHICS_CONFIG
     experiment_state = get_initial_ground_truth_experiment_state(config)
     sample_generator = to_test.CodexSampleGenerator()
     return sample_generator, experiment_state
+
+
+def test_sample_prompt_training_examples_programs():
+    sample_generator, experiment_state = get_sample_generator_and_state()
+
+    # Test when we have more than enough possible tasks.
+    task_ids = get_train_task_ids(experiment_state, n_task_ids=20)
+    n_train_examples_per_prompt = 10
+
+    sample_examples = sample_generator.sample_prompt_training_examples(
+        experiment_state,
+        n_train_examples_per_prompt=n_train_examples_per_prompt,
+        task_splits=[TRAIN],
+        task_ids_in_splits=task_ids,
+        prompt_example_types=[PROGRAMS],
+    )
+    assert len(sample_examples) == n_train_examples_per_prompt
+    assert len(sample_examples[0]) == 1
+
+    # Test when we have  enough possible tasks.
+    max_task_ids = 5
+    task_ids = get_train_task_ids(experiment_state, n_task_ids=max_task_ids)
+    n_train_examples_per_prompt = 10
+
+    sample_examples = sample_generator.sample_prompt_training_examples(
+        experiment_state,
+        n_train_examples_per_prompt=n_train_examples_per_prompt,
+        task_splits=[TRAIN],
+        task_ids_in_splits=task_ids,
+        prompt_example_types=[PROGRAMS],
+    )
+    assert len(sample_examples) == max_task_ids
+    assert len(sample_examples[0]) == 1
+
+
+def test_sample_prompt_training_examples_language():
+    sample_generator, experiment_state = get_sample_generator_and_state()
+    # Test when we have more than enough possible tasks.
+    task_ids = get_train_task_ids(experiment_state, n_task_ids=20)
+    n_train_examples_per_prompt = 10
+
+    sample_examples = sample_generator.sample_prompt_training_examples(
+        experiment_state,
+        n_train_examples_per_prompt=n_train_examples_per_prompt,
+        task_splits=[TRAIN],
+        task_ids_in_splits=task_ids,
+        prompt_example_types=[LANGUAGE, PROGRAMS],
+        allow_duplicate_examples_per_task=False,
+        allow_language_for_disjoint_tasks=False,
+    )
+    assert len(sample_examples) == n_train_examples_per_prompt + 1
+    assert len(sample_examples[0]) == 2
+    assert len(sample_examples[-1]) == 1
+
+
+def test_generate_codex_prompt_programs_only():
+    sample_generator, experiment_state = get_sample_generator_and_state()
+    # Test when we have more than enough possible tasks.
+    task_ids = get_train_task_ids(experiment_state, n_task_ids=20)
+    n_train_examples_per_prompt = 10
+    prompt_text = sample_generator.generate_codex_prompt_text(
+        experiment_state,
+        n_train_examples_per_prompt=n_train_examples_per_prompt,
+        task_splits=[TRAIN],
+        task_ids_in_splits=task_ids,
+        prompt_example_types=[PROGRAMS],
+        allow_duplicate_examples_per_task=False,
+        allow_language_for_disjoint_tasks=False,
+    )
+
+
+def test_generate_codex_prompt_programs_language():
+    sample_generator, experiment_state = get_sample_generator_and_state()
+    # Test when we have more than enough possible tasks.
+    task_ids = get_train_task_ids(experiment_state, n_task_ids=20)
+    n_train_examples_per_prompt = 10
+    prompt_text = sample_generator.generate_codex_prompt_text(
+        experiment_state,
+        n_train_examples_per_prompt=n_train_examples_per_prompt,
+        task_splits=[TRAIN],
+        task_ids_in_splits=task_ids,
+        prompt_example_types=[PROGRAMS, LANGUAGE],
+        allow_duplicate_examples_per_task=False,
+        allow_language_for_disjoint_tasks=False,
+    )
 
 
 def test_query_codex():
