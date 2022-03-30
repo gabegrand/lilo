@@ -8,6 +8,7 @@ import itertools
 import json
 import os
 from re import L
+from sre_constants import MAX_UNTIL
 
 
 import numpy as np
@@ -46,8 +47,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         task_splits: list,
         task_ids_in_splits: list,
         n_samples: int = 5,
-        n_samples_per_prompt: int = 1,
+        n_samples_per_prompt=None,
         n_train_programs_per_prompt: int = 10,
+        max_additional_prompt_attempts: int = 0,
         temperature: float = 0.75,
         max_tokens: int = 256,
         separator: str = CodexBase.DEFAULT_SEPARATOR,
@@ -61,6 +63,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         sample_type: str = PROGRAMS,
         allow_duplicate_examples_per_task: bool = False,
         allow_language_for_disjoint_tasks: bool = True,
+        print_every_prompt_idx=1,
     ):
         """
         Queries Codex API to generate new samples based on training data.
@@ -74,10 +77,12 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                         Some of these programs may be invalid; only valid programs are added to the
                         experiment_state.
             n_samples_per_prompt: Number of samples to take from Codex per each generated prompt, which may
-                                    contain a random subset of the training examples.
+                                    contain a random subset of the training examples. If None, will be set equal to n_samples.
             n_train_programs_per_prompt: Number of training programs to include
                 in the Codex prompt. If `n_train_programs_per_prompt` is too high,
                 the prompt may exceed the token budget and trigger an `InvalidRequestError`.
+            
+            max_additional_prompt_attempts: How many additional attempts to sample prompts if we don't get n_samples valid programs with n_samples / n_samples_per_prompt.
             temperature: Codex temperature sampling value in `[0., 1.]` range.
             max_tokens: Max number of tokens for a single program in the completion.
                 Codex will stop at `separator` anyway, so this value should be generous.
@@ -110,72 +115,104 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             self.query_results_file,
         )
 
-        # Sample training examples to construct a Codex prompt.
-        prompt_examples, prompt_text = self.generate_codex_prompt_text(
-            experiment_state,
-            task_splits=task_splits,
-            task_ids_in_splits=task_ids_in_splits,
-            n_train_examples_per_prompt=n_train_programs_per_prompt,
-            separator=separator,
-            language_separator=language_separator,
-            function_name_classes=function_name_classes,
-            prompt_example_types=prompt_example_types,
-            sample_type=sample_type,
-            allow_duplicate_examples_per_task=allow_duplicate_examples_per_task,
-            allow_language_for_disjoint_tasks=allow_language_for_disjoint_tasks,
-        )
+        if n_samples_per_prompt is None:
+            n_samples_per_prompt = n_samples
 
-        if len(prompt_examples) == 0:
-            print("CodexSampleGenerator: skipping sampling without prompt examples.")
-            return None
-
-        print(
-            f"Querying Codex with prompt ({len(prompt_examples)} examples) for {n_samples_per_prompt} samples..."
-        )
-        if verbose_prompt:
-            print(prompt_text)
-
-        completion = self.get_completion_for_prompt(
-            experiment_state=experiment_state,
-            prompt_text=prompt_text,
-            query_results_filepath=query_results_filepath,
-            n_samples_per_prompt=n_samples_per_prompt,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            engine=engine,
-            separator=separator,
-            use_cached=use_cached,
-            debug=debug,
-        )
-
-        if completion is not None:
-            query_results = {
-                "programs_valid": [],
-                "programs_invalid": [],
-                "prompt_text": prompt_text,
-                "prompt_example_types": prompt_example_types,
-                "prompt_programs": prompt_examples,
-                "engine": engine,
-                "separator": separator,
-                "completion": completion.to_dict_recursive(),
-            }
-            programs_valid, programs_invalid = self.maybe_get_frontiers_from_completion(
-                experiment_state=experiment_state,
-                codex_completion=completion,
-                completion_name_classes=function_name_classes,
+        max_num_prompts = int(
+            (
+                np.ceil(n_samples / float(n_samples_per_prompt))
+                + max_additional_prompt_attempts
             )
-            query_results["programs_valid"], query_results["programs_invalid"] = (
-                list(programs_valid),
-                list(programs_invalid),
+        )
+
+        query_results = {
+            "curr_prompt_idx": 0,
+            "max_num_prompts": max_num_prompts,
+            "programs_valid": [],
+            "programs_invalid": [],
+            "prompt_text": [],
+            "prompt_example_types": prompt_example_types,
+            "prompt_programs": [],
+            "engine": engine,
+            "separator": separator,
+            "completion": [],
+        }
+        all_programs_valid, all_programs_invalid = set(), set()
+        for curr_prompt_idx in range(max_num_prompts):
+            if len(all_programs_valid) >= n_samples:
+                print(f"Sampled all {n_samples} samples, concluding.")
+                return
+
+            # Sample training examples to construct a Codex prompt.
+            prompt_examples, prompt_text = self.generate_codex_prompt_text(
+                experiment_state,
+                task_splits=task_splits,
+                task_ids_in_splits=task_ids_in_splits,
+                n_train_examples_per_prompt=n_train_programs_per_prompt,
+                separator=separator,
+                language_separator=language_separator,
+                function_name_classes=function_name_classes,
+                prompt_example_types=prompt_example_types,
+                sample_type=sample_type,
+                allow_duplicate_examples_per_task=allow_duplicate_examples_per_task,
+                allow_language_for_disjoint_tasks=allow_language_for_disjoint_tasks,
             )
+
+            if len(prompt_examples) == 0:
+                print(
+                    "CodexSampleGenerator: skipping sampling without prompt examples."
+                )
+                return None
+
+            if curr_prompt_idx % print_every_prompt_idx == 0:
+                print(
+                    f"Now on prompt {curr_prompt_idx}/{max_num_prompts}: with {len(all_programs_valid)} / {n_samples} total samples. Querying Codex with prompt ({len(prompt_examples)} examples) for {n_samples_per_prompt} samples..."
+                )
             if verbose_prompt:
-                print(separator.join(programs_invalid))
-            if not (debug or use_cached):
-                with open(query_results_filepath, "w") as f:
-                    json.dump(query_results, f)
-                print(f"Wrote results: {query_results_filepath}")
-        else:
-            raise ValueError("Query to Codex encountered an error.")
+                print(prompt_text)
+
+            completion = self.get_completion_for_prompt(
+                experiment_state=experiment_state,
+                prompt_text=prompt_text,
+                query_results_filepath=query_results_filepath,
+                n_samples_per_prompt=n_samples_per_prompt,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                engine=engine,
+                separator=separator,
+                use_cached=use_cached,
+                debug=debug,
+            )
+
+            # Append to a global query results.
+            query_results["curr_prompt_idx"] = curr_prompt_idx
+            query_results["prompt_text"].append(prompt_text)
+            query_results["prompt_programs"].append(prompt_examples)
+            query_results["completion"].append(completion.to_dict_recursive())
+
+            if completion is not None:
+                (
+                    programs_valid,
+                    programs_invalid,
+                ) = self.maybe_get_frontiers_from_completion(
+                    experiment_state=experiment_state,
+                    codex_completion=completion,
+                    completion_name_classes=function_name_classes,
+                )
+                all_programs_invalid.update(programs_invalid)
+                all_programs_valid.update(programs_valid)
+                query_results["programs_valid"], query_results["programs_invalid"] = (
+                    list(all_programs_invalid),
+                    list(all_programs_invalid),
+                )
+                if verbose_prompt:
+                    print(separator.join(programs_invalid))
+                if not (debug or use_cached):
+                    with open(query_results_filepath, "w") as f:
+                        json.dump(query_results, f)
+                    print(f"Wrote results: {query_results_filepath}")
+            else:
+                raise ValueError("Query to Codex encountered an error.")
 
     def get_completion_for_prompt(
         self,

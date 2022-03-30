@@ -83,10 +83,13 @@
                     "debug": false,
                     "use_cached": false,
                     "n_samples": 100,
+                    "n_samples_per_prompt": 50,
                     "n_train_programs_per_prompt": 25,
                     "temperature": 0.75,
                     "max_tokens": 256,
-                    "function_name_classes": ["numeric"]
+                    "function_name_classes": [
+                        "human_readable"
+                    ]
                 }
             },
             {

@@ -82,6 +82,7 @@
                 "params": {
                     "debug": false,
                     "n_samples": 100,
+                    "n_samples_per_prompt": 50,
                     "n_train_programs_per_prompt": 30,
                     "temperature": 0.75,
                     "max_tokens": 256
