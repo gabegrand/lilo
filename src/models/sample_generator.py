@@ -7,6 +7,7 @@ Queries Codex to generate new samples based on existing samples.
 import itertools
 import json
 import os
+from re import L
 
 
 import numpy as np
@@ -53,6 +54,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         language_separator: str = CodexBase.DEFAULT_LANGUAGE_SEPARATOR,
         engine: str = CodexBase.DEFAULT_ENGINE,
         debug: bool = False,
+        verbose_prompt: bool = False,
         use_cached: bool = False,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
         prompt_example_types: list = [PROGRAMS],
@@ -108,44 +110,92 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             self.query_results_file,
         )
 
-        frontiers = experiment_state.get_frontiers_for_ids(
-            task_split=TRAIN, task_ids=task_ids_in_splits[TRAIN]
+        # Sample training examples to construct a Codex prompt.
+        prompt_examples, prompt_text = self.generate_codex_prompt_text(
+            experiment_state,
+            task_splits=task_splits,
+            task_ids_in_splits=task_ids_in_splits,
+            n_train_examples_per_prompt=n_train_programs_per_prompt,
+            separator=separator,
+            language_separator=language_separator,
+            function_name_classes=function_name_classes,
+            prompt_example_types=prompt_example_types,
+            sample_type=sample_type,
+            allow_duplicate_examples_per_task=allow_duplicate_examples_per_task,
+            allow_language_for_disjoint_tasks=allow_language_for_disjoint_tasks,
         )
 
-        # TODO(gg): Extend to use language
-        # language = experiment_state.get_language_for_ids(task_split=TRAIN, task_ids=task_ids_in_splits[TRAIN])
-
-        # Remove frontiers with no programs
-        programs_train = [e.program for f in frontiers for e in f.entries]
-        grammar = experiment_state.models[model_loaders.GRAMMAR]
-        programs_train = [
-            grammar.show_program(p, name_classes=function_name_classes)
-            for p in programs_train
-        ]
-
-        programs_train = [str(p) for p in programs_train]
-
-        if len(programs_train) == 0:
-            print("CodexSampleGenerator: No non-empty training frontiers.")
+        if len(prompt_examples) == 0:
+            print("CodexSampleGenerator: skipping sampling without prompt examples.")
             return None
 
-        # TODO(gg): Prevent generation of duplicate programs
-        # programs_train_hashes = set(map(hash, programs_train))
-        n_train_programs_per_prompt = min(
-            n_train_programs_per_prompt, len(programs_train)
+        print(
+            f"Querying Codex with prompt ({len(prompt_examples)} examples) for {n_samples_per_prompt} samples..."
+        )
+        if verbose_prompt:
+            print(prompt_text)
+        completion = self.get_completion_for_prompt(
+            experiment_state=experiment_state,
+            prompt_text=prompt_text,
+            query_results_filepath=query_results_filepath,
+            n_samples_per_prompt=n_samples_per_prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            engine=engine,
+            separator=separator,
+            use_cached=use_cached,
+            debug=debug,
         )
 
-        programs_for_prompt = list(
-            np.random.choice(
-                programs_train, size=n_train_programs_per_prompt, replace=False,
+        if completion is not None:
+            query_results = {
+                "programs_valid": [],
+                "programs_invalid": [],
+                "prompt_text": prompt_text,
+                "prompt_example_types": prompt_example_types,
+                "prompt_programs": prompt_examples,
+                "engine": engine,
+                "separator": separator,
+                "completion": completion.to_dict_recursive(),
+            }
+            programs_valid, programs_invalid = self.maybe_get_frontiers_from_completion(
+                experiment_state=experiment_state,
+                codex_completion=completion,
+                completion_name_classes=function_name_classes,
             )
-        )
-        prompt_text = separator.join(programs_for_prompt) + separator
+            query_results["programs_valid"], query_results["programs_invalid"] = (
+                list(programs_valid),
+                list(programs_invalid),
+            )
+            if verbose_prompt:
+                print(separator.join(programs_invalid))
+            if not (debug or use_cached):
+                with open(query_results_filepath, "w") as f:
+                    json.dump(query_results, f)
+                print(f"Wrote results: {query_results_filepath}")
+        else:
+            raise ValueError("Query to Codex encountered an error.")
 
-        print(f"Querying Codex with prompt ({len(programs_for_prompt)} examples)...")
+    def get_completion_for_prompt(
+        self,
+        experiment_state,
+        prompt_text,
+        query_results_filepath,
+        n_samples_per_prompt,
+        temperature,
+        max_tokens,
+        engine,
+        separator,
+        use_cached,
+        debug,
+    ):
         if debug:
-            completion = self.query_mock(experiment_state, n_samples=n_samples)
+            # Debugging query that returns programs.
+            completion = self.query_mock(
+                experiment_state, n_samples=n_samples_per_prompt
+            )
         elif use_cached and os.path.exists(query_results_filepath):
+            print("Using cached examples....")
             # For debugging only - does not verify that the cached completion matches the desired query parameters
             with open(query_results_filepath, "r") as f:
                 completion_data = json.load(f)["completion"]
@@ -155,85 +205,80 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             use_cached = False
             completion = self.query_codex(
                 prompt_text,
-                n_samples=n_samples,
+                n_samples=n_samples_per_prompt,
                 temperature=temperature,
                 max_tokens=max_tokens,
                 engine=engine,
                 separator=separator,
             )
+        return completion
 
-        if completion is not None:
-            query_results = {
-                "programs_valid": [],
-                "programs_invalid": [],
-                "prompt_text": prompt_text,
-                "prompt_programs": programs_for_prompt,
-                "engine": engine,
-                "separator": separator,
-                "completion": completion.to_dict_recursive(),
-            }
+    def maybe_get_frontiers_from_completion(
+        self,
+        experiment_state,
+        codex_completion,
+        completion_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+    ):
+        """Extract valid sampled programs from a Codex completion.
+        :ret: number of frontiers.
+        """
+        valid_programs, invalid_programs = set(), set()
 
-            for choice in completion["choices"]:
-                program_str_codex = choice["text"]
-                try:
-                    # Write the program back into the DreamCoder form.
-                    program_str = grammar.show_program(
-                        program_str_codex, input_name_class=function_name_classes
-                    )
-                    p = Program.parse(program_str)
-                except (ParseFailure, IndexError, AssertionError, ValueError) as e:
-                    print(f"Failed to parse ({type(e)}): {program_str_codex}")
-                    query_results["programs_invalid"].append(program_str_codex)
-                    continue
-
-                try:
-                    p_type = p.infer()
-                except InferenceFailure:
-                    print(f"Type inference failure for: {str(p)}")
-                    query_results["programs_invalid"].append(program_str_codex)
-                    continue
-
-                # Hack to avoid fatal error when computing likelihood summaries during rescoreFrontier
-                try:
-                    p = EtaLongVisitor(request=p_type).execute(p)
-                except:
-                    print(f"Error converting to ETA Long for {p}")
-                    query_results["programs_invalid"].append(program_str_codex)
-                    continue
-
-                program_str = str(p)
-
-                query_results["programs_valid"].append(program_str_codex)
-
-                # NOTE(gg): Hashing for task naming avoids adding duplicate programs to the `experiment_state`
-                program_hash = abs(hash(program_str))
-
-                task = Task(name=f"codex_{program_hash}", request=p_type, examples=[],)
-
-                frontier = Frontier(
-                    frontier=[
-                        FrontierEntry(program=p, logPrior=0.0, logLikelihood=0.0,)
-                    ],
-                    task=task,
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        for choice in codex_completion["choices"]:
+            program_str_codex = choice["text"]
+            try:
+                # Write the program back into the DreamCoder form from whatever it was initially in.
+                program_str = grammar.show_program(
+                    program_str_codex, input_name_class=completion_name_classes
                 )
+                p = Program.parse(program_str)
+            except (ParseFailure, IndexError, AssertionError, ValueError) as e:
+                print(f"Failed to parse ({type(e)}): {program_str_codex}")
+                invalid_programs.add(program_str_codex)
+                continue
 
-                # Re-score the logPrior and logLikelihood of the frontier under the current grammar
-                frontier = experiment_state.models[
-                    model_loaders.GRAMMAR
-                ].rescoreFrontier(frontier)
+            try:
+                p_type = p.infer()
+            except InferenceFailure:
+                print(f"Type inference failure for: {str(p)}")
+                invalid_programs.add(program_str_codex)
+                continue
 
-                experiment_state.sample_tasks[TRAIN].append(task)
-                experiment_state.sample_frontiers[TRAIN][task] = frontier
+            # Hack to avoid fatal error when computing likelihood summaries during rescoreFrontier
+            try:
+                p = EtaLongVisitor(request=p_type).execute(p)
+            except:
+                print(f"Error converting to ETA Long for {p}")
+                invalid_programs.add(program_str_codex)
+                continue
 
-            print(
-                f"Codex query results:\nVALID: {len(query_results['programs_valid'])}\nINVALID: {len(query_results['programs_invalid'])}"
+            program_str = str(p)
+
+            valid_programs.add(program_str_codex)
+
+            # NOTE(gg): Hashing for task naming avoids adding duplicate programs to the `experiment_state`
+            program_hash = abs(hash(program_str))
+
+            task = Task(name=f"codex_{program_hash}", request=p_type, examples=[],)
+
+            frontier = Frontier(
+                frontier=[FrontierEntry(program=p, logPrior=0.0, logLikelihood=0.0,)],
+                task=task,
             )
-            if not (debug or use_cached):
-                with open(query_results_filepath, "w") as f:
-                    json.dump(query_results, f)
-                print(f"Wrote results: {query_results_filepath}")
-        else:
-            raise ValueError("Query to Codex encountered an error.")
+
+            # Re-score the logPrior and logLikelihood of the frontier under the current grammar
+            frontier = experiment_state.models[model_loaders.GRAMMAR].rescoreFrontier(
+                frontier
+            )
+
+            experiment_state.sample_tasks[TRAIN].append(task)
+            experiment_state.sample_frontiers[TRAIN][task] = frontier
+
+        print(
+            f"Codex query results:\nVALID: {len(valid_programs)}\nINVALID: {len(invalid_programs)}"
+        )
+        return valid_programs, invalid_programs
 
     def sample_prompt_training_examples(
         self,
@@ -313,18 +358,23 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 replace=False,
             )
         )
+        examples_for_prompt = [list(e) for e in examples_for_prompt]
+
+        if len(examples_for_prompt) == 0:
+            print("CodexSampleGenerator: No training frontiers to sample prompts.")
+            return []
 
         # If prompting with language in order to sample programs from Codex, modify the last example tuple to only include language so we can sample programs as a continuation.
         if prompt_example_types == [LANGUAGE, PROGRAMS] and sample_type == PROGRAMS:
             examples_for_prompt[-1] = [
                 examples_for_prompt[-1][0]
             ]  # Don't include the last program
-        if allow_language_for_disjoint_tasks:
-            final_language_example = self.get_language_for_disjoint_tasks(
-                experiment_state, task_ids_in_splits
-            )
-            # Randomly select one and randomly select its language
-            examples_for_prompt[-1] = language_separator + final_language_example
+            if allow_language_for_disjoint_tasks:
+                final_language_example = self.get_language_for_disjoint_tasks(
+                    experiment_state, task_ids_in_splits
+                )
+                # Randomly select one and randomly select its language
+                examples_for_prompt[-1] = [language_separator + final_language_example]
 
         return examples_for_prompt
 
@@ -381,7 +431,15 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             separator.join([separator.join(e) for e in training_examples]) + separator
         )
 
-        return prompt_text
+        print(
+            f"Constructed prompt containing: {len(training_examples)} {prompt_example_types} examples..."
+        )
+
+        # Flatten the training examples so that they're easier to unpack later.
+        if len(prompt_example_types) == 1:
+            training_examples = [t[0] for t in training_examples]
+
+        return training_examples, prompt_text
 
     def query_mock(self, experiment_state, n_samples: int = 3, **kwargs):
         """Debugging query that returns a sample of programs from the task."""

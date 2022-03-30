@@ -89,7 +89,7 @@ def test_generate_codex_prompt_programs_only():
     # Test when we have more than enough possible tasks.
     task_ids = get_train_task_ids(experiment_state, n_task_ids=20)
     n_train_examples_per_prompt = 10
-    prompt_text = sample_generator.generate_codex_prompt_text(
+    _, prompt_text = sample_generator.generate_codex_prompt_text(
         experiment_state,
         n_train_examples_per_prompt=n_train_examples_per_prompt,
         task_splits=[TRAIN],
@@ -105,7 +105,7 @@ def test_generate_codex_prompt_programs_language():
     # Test when we have more than enough possible tasks.
     task_ids = get_train_task_ids(experiment_state, n_task_ids=20)
     n_train_examples_per_prompt = 10
-    prompt_text = sample_generator.generate_codex_prompt_text(
+    _, prompt_text = sample_generator.generate_codex_prompt_text(
         experiment_state,
         n_train_examples_per_prompt=n_train_examples_per_prompt,
         task_splits=[TRAIN],
@@ -130,12 +130,61 @@ def test_query_codex():
     assert len(completion) > 0
 
 
-def test_generate_samples():
+def test_maybe_get_frontiers_from_completion():
     sample_generator, experiment_state = get_sample_generator_and_state()
+    assert len(experiment_state.sample_tasks[TRAIN]) == 0
+
+    # Test the mock query.
+    n_samples = 5
+    mock_completion = sample_generator.query_mock(experiment_state, n_samples=n_samples)
+    (
+        valid_programs,
+        invalid_programs,
+    ) = sample_generator.maybe_get_frontiers_from_completion(
+        experiment_state, mock_completion
+    )
+    assert len(valid_programs) == n_samples
+    assert len(invalid_programs) == 0
+    assert len(experiment_state.sample_tasks[TRAIN]) > 0
+    for sample_task in experiment_state.sample_tasks[TRAIN]:
+        assert not experiment_state.sample_frontiers[TRAIN][sample_task].empty
+
+
+def test_generate_samples_programs():
+    # Test mock sample generation
+    sample_generator, experiment_state = get_sample_generator_and_state()
+    example_task_ids = get_train_task_ids(experiment_state, n_task_ids=20)
     assert len(experiment_state.sample_tasks[TRAIN]) == 0
     n_samples = 5
     sample_generator.generate_samples(
-        experiment_state, task_splits=None, task_ids_in_splits=None, n_samples=n_samples
+        experiment_state,
+        task_splits=[TRAIN],
+        task_ids_in_splits=example_task_ids,
+        n_samples=n_samples,
+        n_samples_per_prompt=n_samples,
+        prompt_example_types=[PROGRAMS],
+        debug=False,
+    )
+    assert len(experiment_state.sample_tasks[TRAIN]) > 0
+    for sample_task in experiment_state.sample_tasks[TRAIN]:
+        assert not experiment_state.sample_frontiers[TRAIN][sample_task].empty
+
+
+def test_generate_samples_programs_language():
+    # Test mock sample generation
+    sample_generator, experiment_state = get_sample_generator_and_state()
+    example_task_ids = get_train_task_ids(experiment_state, n_task_ids=20)
+    assert len(experiment_state.sample_tasks[TRAIN]) == 0
+    n_samples = 5
+    sample_generator.generate_samples(
+        experiment_state,
+        task_splits=[TRAIN],
+        task_ids_in_splits=example_task_ids,
+        n_samples=n_samples,
+        n_samples_per_prompt=n_samples,
+        prompt_example_types=[PROGRAMS, LANGUAGE],
+        debug=False,
+        verbose_prompt=True,
     )
     assert len(experiment_state.sample_tasks[TRAIN]) > 0
     for sample_task in experiment_state.sample_tasks[TRAIN]:
