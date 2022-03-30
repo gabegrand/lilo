@@ -7,9 +7,6 @@ Queries Codex to generate new samples based on existing samples.
 import itertools
 import json
 import os
-from re import L
-from sre_constants import MAX_UNTIL
-
 
 import numpy as np
 from openai.api_resources.completion import Completion
