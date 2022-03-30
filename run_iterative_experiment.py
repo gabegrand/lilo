@@ -16,13 +16,23 @@ python run_iterative_experiment.py
 
 """
 
+import argparse
 import json
 import os
 import shutil
 
-from run_experiment import *
+from config_builder import (
+    build_config,
+    init_experiment_state_and_iterator,
+    run_experiment,
+)
 from src.experiment_iterator import EXPORT_DIRECTORY
-from src.models.model_loaders import SAMPLE_GENERATOR
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--experiment_type", required=True)
+
+parser.add_argument("--domain", required=True)
 
 parser.add_argument(
     "--global_batch_sizes",
@@ -30,13 +40,6 @@ parser.add_argument(
     default=[5, 10, 15],
     type=int,
     help="List of global_batch_size values, one per iteration.",
-)
-
-parser.add_argument(
-    "--use_cached",
-    default=False,
-    action="store_true",
-    help="CodexSampleGenerator `use_cached` parameter.",
 )
 
 parser.add_argument(
@@ -48,7 +51,18 @@ parser.add_argument(
 
 
 def main(args):
-    config = load_config_from_file(args)
+
+    config = build_config(
+        experiment_type=args.experiment_type,
+        domain=args.domain,
+    )
+
+    # Write a copy of config.json to the experiment directory
+    config_write_path = os.path.join(
+        config["metadata"]["export_directory"], "config.json"
+    )
+    with open(config_write_path, "w") as f:
+        json.dump(config, f, indent=4)
 
     # Clear the experiment_id_base directory
     if args.overwrite:
@@ -56,7 +70,6 @@ def main(args):
             os.path.join(
                 os.getcwd(),
                 config["metadata"]["export_directory"],
-                config["metadata"]["experiment_id"],
             ),
             ignore_errors=True,
         )
@@ -64,38 +77,25 @@ def main(args):
             os.path.join(
                 os.getcwd(),
                 config["metadata"]["log_directory"],
-                config["metadata"]["experiment_id"],
             ),
             ignore_errors=True,
         )
 
     for global_batch_size in args.global_batch_sizes:
-        config = load_config_from_file(args)
+        config = build_config(
+            experiment_type=args.experiment_type,
+            domain=args.domain,
+        )
 
         # Create a dedicated directory for all iterations of this experiment
-        experiment_id_base = config["metadata"]["experiment_id"]
-        config["metadata"]["export_directory"] = os.path.join(
-            config["metadata"]["export_directory"], experiment_id_base
-        )
-        config["metadata"]["log_directory"] = os.path.join(
-            config["metadata"]["log_directory"], experiment_id_base
-        )
         config["metadata"][
             "experiment_id"
-        ] = f"{experiment_id_base}_{global_batch_size}"
+        ] = f'{config["metadata"]["experiment_id"]}_{global_batch_size}'
 
         # Update the batch_size
         config["experiment_iterator"]["task_batcher"]["params"][
             "global_batch_size"
         ] = global_batch_size
-
-        # Update any necessary model params in the loop blocks
-        loop_blocks = []
-        for block in config["experiment_iterator"]["loop_blocks"]:
-            if block.get("model_type") == SAMPLE_GENERATOR:
-                block["params"]["use_cached"] = args.use_cached
-            loop_blocks.append(block)
-        config["loop_blocks"] = loop_blocks
 
         experiment_state, experiment_iterator = init_experiment_state_and_iterator(
             args, config
@@ -106,7 +106,7 @@ def main(args):
             experiment_state.metadata[EXPORT_DIRECTORY], "config.json"
         )
         with open(config_write_path, "w") as f:
-            json.dump(config, f)
+            json.dump(config, f, indent=4)
 
         run_experiment(args, experiment_state, experiment_iterator)
 
