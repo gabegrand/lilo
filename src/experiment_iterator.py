@@ -2,6 +2,7 @@
 experiment_iterator.py | Author : Catherine Wong.
 Utility classes for initializing and running iterated experiments from configs.
 """
+import copy
 import json
 import os
 
@@ -110,7 +111,7 @@ class ExperimentState:
             self.models[model_type] = model
 
     def init_metadata_from_config(self, config):
-        metadata = config[METADATA]
+        metadata = copy.copy(config[METADATA])
         metadata[TIMESTAMP] = (
             utils.escaped_timestamp() if metadata[EXPORT_WITH_TIMESTAMP] else ""
         )

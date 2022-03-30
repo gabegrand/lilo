@@ -18,7 +18,7 @@ from dreamcoder.program import EtaLongVisitor, InferenceFailure, ParseFailure, P
 from dreamcoder.task import Task
 from src.models.codex_base import *
 from src.models.laps_grammar import LAPSGrammar
-from src.task_loaders import ALL, LIBRARY, TRAIN, PROGRAMS, LANGUAGE
+from src.task_loaders import ALL, TRAIN, PROGRAMS, LANGUAGE
 from src.experiment_iterator import RANDOM_GENERATOR
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.SAMPLE_GENERATOR]
@@ -30,7 +30,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
     query_results_file = "codex_query_results.json"
 
-    PROMPT_EXAMPLE_TYPES = [LIBRARY, LANGUAGE, PROGRAMS]
+    PROMPT_EXAMPLE_TYPES = [LANGUAGE, PROGRAMS]
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
@@ -361,8 +361,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         allow_duplicate_examples_per_task: bool = False,
         allow_language_for_disjoint_tasks: bool = True,
     ):
-        if LIBRARY in prompt_example_types or sample_type == LIBRARY:
-            raise NotImplementedError
 
         training_examples = self.sample_prompt_training_examples(
             experiment_state,
@@ -377,13 +375,12 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             allow_duplicate_examples_per_task,
             allow_language_for_disjoint_tasks,
         )
-        if sample_type == PROGRAMS:
-            prompt_text = (
-                separator.join([separator.join(e) for e in training_examples])
-                + separator
-            )
-        else:
-            raise NotImplementedError
+
+        # For now, assume we only want to sample programs.
+        prompt_text = (
+            separator.join([separator.join(e) for e in training_examples]) + separator
+        )
+
         return prompt_text
 
     def query_mock(self, experiment_state, n_samples: int = 3, **kwargs):

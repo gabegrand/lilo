@@ -15,10 +15,9 @@ TaskBatcherRegistry = ClassRegistry("name", unique=True)
 # Task and dataset constants
 TRAIN, TEST = "train", "test"
 HUMAN, SYNTHETIC = "human", "synthetic"
-TASKS, PROGRAMS, LIBRARY, LANGUAGE, VOCAB = (
+TASKS, PROGRAMS, LANGUAGE, VOCAB = (
     "tasks",
     "programs",
-    "library",
     "language",
     "vocab",
 )
