@@ -2,9 +2,11 @@
 experiment_iterator.py | Author : Catherine Wong.
 Utility classes for initializing and running iterated experiments from configs.
 """
+import copy
 import json
 import os
 
+import numpy as np
 import src.models.model_loaders as model_loaders
 import src.task_loaders as task_loaders
 import src.utils as utils
@@ -34,6 +36,7 @@ TIMESTAMP = "timestamp"
 TIMESTAMPED_EXPERIMENT_ID = "timestamped_experiment_id"
 OCAML_SPECIAL_HANDLER = "ocaml_special_handler"
 RANDOM_SEED = "random_seed"
+RANDOM_GENERATOR = "random_generator"
 
 
 LOG_DEBUG, LOG_WARNING, LOG_INFO = 3, 2, 1
@@ -108,7 +111,7 @@ class ExperimentState:
             self.models[model_type] = model
 
     def init_metadata_from_config(self, config):
-        metadata = config[METADATA]
+        metadata = copy.copy(config[METADATA])
         metadata[TIMESTAMP] = (
             utils.escaped_timestamp() if metadata[EXPORT_WITH_TIMESTAMP] else ""
         )
@@ -117,6 +120,11 @@ class ExperimentState:
             if metadata[EXPORT_WITH_TIMESTAMP]
             else metadata[EXPERIMENT_ID]
         )
+
+        if RANDOM_SEED in metadata:
+            metadata[RANDOM_GENERATOR] = np.random.default_rng(metadata[RANDOM_SEED])
+        else:
+            metadata[RANDOM_GENERATOR] = np.random.default_rng()
         return metadata
 
     def init_curr_iteration(self):
@@ -262,7 +270,7 @@ class ExperimentState:
         language = [
             self.task_language[task_split][task.name]
             for task in self.get_tasks_for_ids(
-                task_split, task_ids, include_samples, include_ground_truth_tasks
+                task_split, task_ids, include_samples, include_ground_truth_tasks,
             )
             if task.name in self.task_language[task_split]
         ]
@@ -300,7 +308,7 @@ class ExperimentState:
         frontiers = [
             self.task_frontiers[task_split][task]
             for task in self.get_tasks_for_ids(
-                task_split, task_ids, include_samples, include_ground_truth_tasks
+                task_split, task_ids, include_samples, include_ground_truth_tasks,
             )
             if task in self.task_frontiers[task_split]
         ]
