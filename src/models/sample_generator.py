@@ -134,6 +134,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         )
         if verbose_prompt:
             print(prompt_text)
+
         completion = self.get_completion_for_prompt(
             experiment_state=experiment_state,
             prompt_text=prompt_text,
