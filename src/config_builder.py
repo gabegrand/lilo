@@ -1,3 +1,9 @@
+"""
+task_loaders.py | Author : Gabe Grand
+Utilities for autogenerating configs for experiments based on templates.
+
+"""
+
 import json
 import os
 

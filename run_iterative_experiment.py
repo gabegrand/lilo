@@ -4,16 +4,25 @@ run_iterative_experiment.py | Author: Gabe Grand.
 Like run_experiment.py, but runs multiple experiments with different global
 batch sizes.
 
-Each iteration of the experiment is written to a subdirectory:
-
-`{export_directory}/experiment_id/experiment_id_{batch_size}/`
+Writes results to experiments_iterative directory.
 
 Usage:
 
 python run_iterative_experiment.py \
-    --experiment_type stitch \
-    --domain logo
-    --global_batch_sizes 5 10 15 25 50 100 150 200
+	--experiment_type stitch \
+	--domain logo \
+	--stitch_params '{"iterations": 10}'
+
+python run_iterative_experiment.py \
+	--experiment_type stitch_codex \
+	--domain logo \
+	--stitch_params '{"iterations": 10}' \
+	--codex_params '{"use_cached": true}'
+
+python run_iterative_experiment.py \
+	--experiment_type oracle \
+	--domain logo \
+	--stitch_params '{"iterations": 10}'
 
 """
 
@@ -28,13 +37,17 @@ from src.experiment_iterator import EXPORT_DIRECTORY
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--experiment_type", required=True)
+parser.add_argument(
+    "--experiment_type", required=True, help="[stitch, stitch_codex, oracle]"
+)
 
-parser.add_argument("--domain", required=True)
+parser.add_argument("--domain", required=True, help="[logo, clevr, re2]")
 
-parser.add_argument("--stitch_params", default="{}")
+parser.add_argument(
+    "--stitch_params", default="{}", help="JSON string of stitch params"
+)
 
-parser.add_argument("--codex_params", default="{}")
+parser.add_argument("--codex_params", default="{}", help="JSON string of codex params")
 
 parser.add_argument(
     "--no_likelihoods",
