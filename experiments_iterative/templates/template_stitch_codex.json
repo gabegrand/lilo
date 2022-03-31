@@ -7,7 +7,12 @@
             "model_initializer_fn": "load_model",
             "params": {}
         },
-
+        {
+            "model_type": "sample_generator",
+            "model_loader": "codex_sample_generator",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
         {
             "model_type": "library_learner",
             "model_loader": "stitch_proposer",

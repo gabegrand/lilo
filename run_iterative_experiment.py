@@ -22,8 +22,8 @@ import json
 import os
 import shutil
 
-from config_builder import build_config
 from run_experiment import init_experiment_state_and_iterator, run_experiment
+from src.config_builder import build_config
 from src.experiment_iterator import EXPORT_DIRECTORY
 
 parser = argparse.ArgumentParser()
@@ -37,9 +37,15 @@ parser.add_argument("--stitch_params", default="{}")
 parser.add_argument("--codex_params", default="{}")
 
 parser.add_argument(
+    "--no_likelihoods",
+    action="store_true",
+    help="Do not compute likelihoods",
+)
+
+parser.add_argument(
     "--global_batch_sizes",
     nargs="+",
-    default=[5, 10, 15],
+    default=[],
     type=int,
     help="List of global_batch_size values, one per iteration.",
 )
@@ -59,7 +65,14 @@ def main(args):
         domain=args.domain,
         codex_params=json.loads(args.codex_params),
         stitch_params=json.loads(args.stitch_params),
+        compute_likelihoods=(not args.no_likelihoods),
+        compute_description_lengths=True,
     )
+
+    # If --global_batch_sizes is not specified, use the domain-specific default.
+    if not args.global_batch_sizes:
+        args.global_batch_sizes = config_base["metadata"]["global_batch_sizes"]
+    config_base["metadata"]["global_batch_sizes"] = args.global_batch_sizes
 
     # Write a copy of config.json to the experiment directory
     config_base_write_path = os.path.join(
@@ -93,6 +106,8 @@ def main(args):
             global_batch_size=global_batch_size,
             codex_params=json.loads(args.codex_params),
             stitch_params=json.loads(args.stitch_params),
+            compute_likelihoods=(not args.no_likelihoods),
+            compute_description_lengths=True,
         )
 
         experiment_state, experiment_iterator = init_experiment_state_and_iterator(
