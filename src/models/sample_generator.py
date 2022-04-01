@@ -43,7 +43,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         experiment_state,
         task_splits: list,
         task_ids_in_splits: list,
-        n_samples: int = 5,
+        n_samples=None,
         n_samples_per_prompt=None,
         n_train_programs_per_prompt: int = 10,
         max_additional_prompt_attempts: int = 0,

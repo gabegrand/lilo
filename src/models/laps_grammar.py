@@ -212,11 +212,7 @@ class LAPSGrammar(Grammar):
         return self.show_program_from_tree(program, name_classes, lam, debug)
 
     def show_program_from_tree(
-        self,
-        program,
-        name_classes,
-        lam,
-        debug=False,
+        self, program, name_classes, lam, debug=False,
     ):
         # Show a program, walking the tree and printing out alternate names as we go.
         class NameVisitor(object):
@@ -251,17 +247,13 @@ class LAPSGrammar(Grammar):
                 if isFunction:
                     return "%s %s" % (e.f.visit(self, True), e.x.visit(self, False))
                 else:
-                    return "(%s %s)" % (
-                        e.f.visit(self, True),
-                        e.x.visit(self, False),
-                    )
+                    return "(%s %s)" % (e.f.visit(self, True), e.x.visit(self, False),)
 
             def abstraction(self, e, isFunction):
                 return "(%s %s)" % (self.lam, e.body.visit(self, False))
 
         return program.visit(
-            NameVisitor(self.function_names, name_classes, lam, self),
-            isFunction=False,
+            NameVisitor(self.function_names, name_classes, lam, self), isFunction=False,
         )
 
     def infer_programs_for_tasks(
@@ -813,9 +805,7 @@ class LAPSGrammar(Grammar):
 
         if save_filename is not None:
             save_filepath = os.path.join(
-                os.getcwd(),
-                experiment_state.get_checkpoint_directory(),
-                save_filename,
+                os.getcwd(), experiment_state.get_checkpoint_directory(), save_filename,
             )
             os.makedirs(os.path.dirname(save_filepath), exist_ok=True)
             with open(save_filepath, "w") as f:
