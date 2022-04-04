@@ -8,7 +8,7 @@ import json
 import os
 
 from src.models.laps_grammar import LAPSGrammar
-from src.models.model_loaders import LIBRARY_LEARNER, SAMPLE_GENERATOR
+from src.models.model_loaders import LIBRARY_LEARNER, PROGRAM_REWRITER, SAMPLE_GENERATOR
 from src.task_loaders import ALL, GroundTruthOrderedTaskBatcher
 
 DEFAULT_EXPERIMENT_DIR = "experiments_iterative"
@@ -178,14 +178,14 @@ def build_config_body(
             block["params"].update(_codex_params)
         if block.get("model_type") == LIBRARY_LEARNER:
             block["params"].update(_stitch_params)
-        if (
-            block.get("model_type") == LAPSGrammar.GRAMMAR
-            and block.get("model_fn") == "evaluate_frontiers"
-        ):
+        if block.get("model_type") in [
+            LAPSGrammar.GRAMMAR,
+            SAMPLE_GENERATOR,
+            PROGRAM_REWRITER,
+        ]:
             block["params"].update(
                 {
                     "compute_likelihoods": compute_likelihoods,
-                    "compute_description_lengths": compute_description_lengths,
                 }
             )
         loop_blocks.append(block)

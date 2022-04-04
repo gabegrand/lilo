@@ -50,9 +50,9 @@ parser.add_argument(
 parser.add_argument("--codex_params", default="{}", help="JSON string of codex params")
 
 parser.add_argument(
-    "--no_likelihoods",
+    "--compute_likelihoods",
     action="store_true",
-    help="Do not compute likelihoods",
+    help="Compute program log likelihoods",
 )
 
 parser.add_argument(
@@ -78,7 +78,7 @@ def main(args):
         domain=args.domain,
         codex_params=json.loads(args.codex_params),
         stitch_params=json.loads(args.stitch_params),
-        compute_likelihoods=(not args.no_likelihoods),
+        compute_likelihoods=args.compute_likelihoods,
         compute_description_lengths=True,
     )
 
@@ -119,7 +119,7 @@ def main(args):
             global_batch_size=global_batch_size,
             codex_params=json.loads(args.codex_params),
             stitch_params=json.loads(args.stitch_params),
-            compute_likelihoods=(not args.no_likelihoods),
+            compute_likelihoods=args.compute_likelihoods,
             compute_description_lengths=True,
         )
 

@@ -42,6 +42,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
         task_ids_in_splits,
         include_samples,
         load_inventions_from_split: str = "train",
+        compute_likelihoods: bool = False,
     ):
         """
         Updates experiment_state frontiers wrt. the experiment_state.models[GRAMMAR]
@@ -49,6 +50,9 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
         params:
             `load_inventions_from_split`: Name of split associated with Stitch inventions.
                 Allows rewriting to be performed w/r/t inventions from any split.
+            `compute_likelihoods`: Whether to compute log likelihoods of each program
+                under the grammar. This requires converting the programs to eta-long form,
+                which is error-prone, so we don't do it by default.
 
         """
         inventions_filepath = self._get_filepath_for_current_iteration(
@@ -99,10 +103,11 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                     p_str = program_data["program"]
                     p = Program.parse(p_str)
                     # Hack to avoid fatal error when computing likelihood summaries
-                    try:
-                        p = EtaLongVisitor(request=task.request).execute(p)
-                    except EtaExpandFailure:
-                        raise EtaExpandFailure(p_str)
+                    if compute_likelihoods:
+                        try:
+                            p = EtaLongVisitor(request=task.request).execute(p)
+                        except EtaExpandFailure:
+                            raise EtaExpandFailure(p_str)
                     frontier_rewritten.entries.append(
                         FrontierEntry(
                             program=p,
@@ -111,8 +116,9 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                         )
                     )
                 # Re-score the logPrior and logLikelihood of the frontier under the current grammar
-                frontier_rewritten = experiment_state.models[
-                    model_loaders.GRAMMAR
-                ].rescoreFrontier(frontier_rewritten)
+                if compute_likelihoods:
+                    frontier_rewritten = experiment_state.models[
+                        model_loaders.GRAMMAR
+                    ].rescoreFrontier(frontier_rewritten)
 
                 experiment_state.task_frontiers[split][task] = frontier_rewritten
