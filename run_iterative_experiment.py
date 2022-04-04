@@ -24,6 +24,9 @@ python run_iterative_experiment.py \
 	--domain logo \
 	--stitch_params '{"iterations": 10}'
 
+By default, runs a single replication of the experiment. To run multiple
+replications with different random seeds, use the `--random_seeds` flag.
+
 """
 
 import argparse
