@@ -111,10 +111,20 @@ def build_config_metadata(
         experiment_id = experiment_type
 
     export_directory = os.path.join(
-        output_directory, "outputs", "domains", domain, experiment_id
+        output_directory,
+        "outputs",
+        "domains",
+        domain,
+        experiment_id,
+        f"seed_{random_seed}",
     )
     log_directory = os.path.join(
-        output_directory, "logs", "domains", domain, experiment_id
+        output_directory,
+        "logs",
+        "domains",
+        domain,
+        experiment_id,
+        f"seed_{random_seed}",
     )
 
     experiment_id = f"{experiment_id}_{global_batch_size}"
