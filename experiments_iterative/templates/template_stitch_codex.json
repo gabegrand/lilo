@@ -1,21 +1,15 @@
 {
-    "metadata": {
-        "experiment_id": "logo_stitch_iterative",
-        "human_readable": "Candidate library generator. Checkpoints out the original ground truth DSL frontiers only.",
-        "export_directory": "experiments/outputs/compositional_graphics",
-        "log_directory": "experiments/logs/compositional_graphics",
-        "tasks_loader": "compositional_graphics_200",
-        "task_language_loader": "compositional_graphics_200_synthetic",
-        "export_with_timestamp": false,
-        "resume_checkpoint_directory": null,
-        "init_frontiers_from_checkpoint": false,
-        "ocaml_special_handler": "LOGO",
-        "random_seed": 0
-    },
+    "metadata": {},
     "model_initializers": [
         {
             "model_type": "grammar",
-            "model_loader": "LOGO",
+            "model_loader": "NONE",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "sample_generator",
+            "model_loader": "codex_sample_generator",
             "model_initializer_fn": "load_model",
             "params": {}
         },
@@ -33,11 +27,11 @@
         }
     ],
     "experiment_iterator": {
-        "max_iterations": 1,
+        "max_iterations": "NONE",
         "task_batcher": {
             "model_type": "ground_truth_ordered_task_batcher",
             "params": {
-                "global_batch_size": 10,
+                "global_batch_size": "NONE",
                 "verbose": true
             }
         },
@@ -65,6 +59,26 @@
             },
             {
                 "experiment_block_type": "model_fn",
+                "model_type": "sample_generator",
+                "model_fn": "generate_samples",
+                "task_splits": [
+                    "train"
+                ],
+                "task_batch_sizes": [
+                    "global_batch_size"
+                ],
+                "params": {
+                    "debug": false,
+                    "use_cached": false,
+                    "n_samples": 100,
+                    "n_train_programs_per_prompt": 25,
+                    "temperature": 0.75,
+                    "max_tokens": 256,
+                    "function_name_classes": ["default"]
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
                 "model_type": "library_learner",
                 "model_fn": "get_compressed_grammar_mdl_prior_rank",
                 "task_splits": [
@@ -74,8 +88,8 @@
                     "global_batch_size"
                 ],
                 "params": {
-                    "max_arity": 2,
-                    "iterations": 10,
+                    "max_arity": "NONE",
+                    "iterations": "NONE",
                     "candidates_per_iteration": 1,
                     "include_samples": true
                 }

@@ -1,21 +1,9 @@
 {
-    "metadata": {
-        "experiment_id": "logo_stitch_iterative",
-        "human_readable": "Candidate library generator. Checkpoints out the original ground truth DSL frontiers only.",
-        "export_directory": "experiments/outputs/compositional_graphics",
-        "log_directory": "experiments/logs/compositional_graphics",
-        "tasks_loader": "compositional_graphics_200",
-        "task_language_loader": "compositional_graphics_200_synthetic",
-        "export_with_timestamp": false,
-        "resume_checkpoint_directory": null,
-        "init_frontiers_from_checkpoint": false,
-        "ocaml_special_handler": "LOGO",
-        "random_seed": 0
-    },
+    "metadata": {},
     "model_initializers": [
         {
             "model_type": "grammar",
-            "model_loader": "LOGO",
+            "model_loader": "NONE",
             "model_initializer_fn": "load_model",
             "params": {}
         },
@@ -33,11 +21,11 @@
         }
     ],
     "experiment_iterator": {
-        "max_iterations": 1,
+        "max_iterations": "NONE",
         "task_batcher": {
             "model_type": "ground_truth_ordered_task_batcher",
             "params": {
-                "global_batch_size": 10,
+                "global_batch_size": "NONE",
                 "verbose": true
             }
         },
@@ -74,8 +62,8 @@
                     "global_batch_size"
                 ],
                 "params": {
-                    "max_arity": 2,
-                    "iterations": 10,
+                    "max-arity": "NONE",
+                    "iterations": "NONE",
                     "candidates_per_iteration": 1,
                     "include_samples": true
                 }

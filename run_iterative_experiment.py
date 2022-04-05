@@ -4,39 +4,63 @@ run_iterative_experiment.py | Author: Gabe Grand.
 Like run_experiment.py, but runs multiple experiments with different global
 batch sizes.
 
-Each iteration of the experiment is written to a subdirectory:
-
-`{export_directory}/experiment_id/experiment_id_{batch_size}/`
+Writes results to experiments_iterative directory.
 
 Usage:
 
-python run_iterative_experiment.py
-    --config_file logo_stitch_iterative.json
-    --global_batch_sizes 5 10 15 25 50 100 150 200
+python run_iterative_experiment.py \
+	--experiment_type stitch \
+	--domain logo \
+	--stitch_params '{"iterations": 10}'
+
+python run_iterative_experiment.py \
+	--experiment_type stitch_codex \
+	--domain logo \
+	--stitch_params '{"iterations": 10}' \
+	--codex_params '{"use_cached": true}'
+
+python run_iterative_experiment.py \
+	--experiment_type oracle \
+	--domain logo \
+	--stitch_params '{"iterations": 10}'
 
 """
 
+import argparse
 import json
 import os
 import shutil
 
-from run_experiment import *
+from run_experiment import init_experiment_state_and_iterator, run_experiment
+from src.config_builder import build_config
 from src.experiment_iterator import EXPORT_DIRECTORY
-from src.models.model_loaders import SAMPLE_GENERATOR
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument(
+    "--experiment_type", required=True, help="[stitch, stitch_codex, oracle]"
+)
+
+parser.add_argument("--domain", required=True, help="[logo, clevr, re2]")
+
+parser.add_argument(
+    "--stitch_params", default="{}", help="JSON string of stitch params"
+)
+
+parser.add_argument("--codex_params", default="{}", help="JSON string of codex params")
+
+parser.add_argument(
+    "--compute_likelihoods",
+    action="store_true",
+    help="Compute program log likelihoods",
+)
 
 parser.add_argument(
     "--global_batch_sizes",
     nargs="+",
-    default=[5, 10, 15],
+    default=[],
     type=int,
     help="List of global_batch_size values, one per iteration.",
-)
-
-parser.add_argument(
-    "--use_cached",
-    default=False,
-    action="store_true",
-    help="CodexSampleGenerator `use_cached` parameter.",
 )
 
 parser.add_argument(
@@ -48,54 +72,56 @@ parser.add_argument(
 
 
 def main(args):
-    config = load_config_from_file(args)
+
+    config_base = build_config(
+        experiment_type=args.experiment_type,
+        domain=args.domain,
+        codex_params=json.loads(args.codex_params),
+        stitch_params=json.loads(args.stitch_params),
+        compute_likelihoods=args.compute_likelihoods,
+        compute_description_lengths=True,
+    )
+
+    # If --global_batch_sizes is not specified, use the domain-specific default.
+    if not args.global_batch_sizes:
+        args.global_batch_sizes = config_base["metadata"]["global_batch_sizes"]
+    config_base["metadata"]["global_batch_sizes"] = args.global_batch_sizes
+
+    # Write a copy of config.json to the experiment directory
+    config_base_write_path = os.path.join(
+        config_base["metadata"]["export_directory"], "config_base.json"
+    )
+    os.makedirs(os.path.dirname(config_base_write_path), exist_ok=True)
+    with open(config_base_write_path, "w") as f:
+        json.dump(config_base, f, indent=4)
 
     # Clear the experiment_id_base directory
     if args.overwrite:
         shutil.rmtree(
             os.path.join(
                 os.getcwd(),
-                config["metadata"]["export_directory"],
-                config["metadata"]["experiment_id"],
+                config_base["metadata"]["export_directory"],
             ),
             ignore_errors=True,
         )
         shutil.rmtree(
             os.path.join(
                 os.getcwd(),
-                config["metadata"]["log_directory"],
-                config["metadata"]["experiment_id"],
+                config_base["metadata"]["log_directory"],
             ),
             ignore_errors=True,
         )
 
     for global_batch_size in args.global_batch_sizes:
-        config = load_config_from_file(args)
-
-        # Create a dedicated directory for all iterations of this experiment
-        experiment_id_base = config["metadata"]["experiment_id"]
-        config["metadata"]["export_directory"] = os.path.join(
-            config["metadata"]["export_directory"], experiment_id_base
+        config = build_config(
+            experiment_type=args.experiment_type,
+            domain=args.domain,
+            global_batch_size=global_batch_size,
+            codex_params=json.loads(args.codex_params),
+            stitch_params=json.loads(args.stitch_params),
+            compute_likelihoods=args.compute_likelihoods,
+            compute_description_lengths=True,
         )
-        config["metadata"]["log_directory"] = os.path.join(
-            config["metadata"]["log_directory"], experiment_id_base
-        )
-        config["metadata"][
-            "experiment_id"
-        ] = f"{experiment_id_base}_{global_batch_size}"
-
-        # Update the batch_size
-        config["experiment_iterator"]["task_batcher"]["params"][
-            "global_batch_size"
-        ] = global_batch_size
-
-        # Update any necessary model params in the loop blocks
-        loop_blocks = []
-        for block in config["experiment_iterator"]["loop_blocks"]:
-            if block.get("model_type") == SAMPLE_GENERATOR:
-                block["params"]["use_cached"] = args.use_cached
-            loop_blocks.append(block)
-        config["loop_blocks"] = loop_blocks
 
         experiment_state, experiment_iterator = init_experiment_state_and_iterator(
             args, config
@@ -106,7 +132,7 @@ def main(args):
             experiment_state.metadata[EXPORT_DIRECTORY], "config.json"
         )
         with open(config_write_path, "w") as f:
-            json.dump(config, f)
+            json.dump(config, f, indent=4)
 
         run_experiment(args, experiment_state, experiment_iterator)
 

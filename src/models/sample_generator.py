@@ -15,10 +15,10 @@ import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.program import EtaLongVisitor, InferenceFailure, ParseFailure, Program
 from dreamcoder.task import Task
+from src.experiment_iterator import RANDOM_GENERATOR
 from src.models.codex_base import *
 from src.models.laps_grammar import LAPSGrammar
-from src.task_loaders import ALL, TRAIN, PROGRAMS, LANGUAGE
-from src.experiment_iterator import RANDOM_GENERATOR
+from src.task_loaders import ALL, LANGUAGE, PROGRAMS, TRAIN
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.SAMPLE_GENERATOR]
 
@@ -61,6 +61,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         allow_duplicate_examples_per_task: bool = False,
         allow_language_for_disjoint_tasks: bool = True,
         print_every_prompt_idx=1,
+        compute_likelihoods: bool = False,
     ):
         """
         Queries Codex API to generate new samples based on training data.
@@ -78,7 +79,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             n_train_programs_per_prompt: Number of training programs to include
                 in the Codex prompt. If `n_train_programs_per_prompt` is too high,
                 the prompt may exceed the token budget and trigger an `InvalidRequestError`.
-            
+
             max_additional_prompt_attempts: How many additional attempts to sample prompts if we don't get n_samples valid programs with n_samples / n_samples_per_prompt.
             temperature: Codex temperature sampling value in `[0., 1.]` range.
             max_tokens: Max number of tokens for a single program in the completion.
@@ -94,12 +95,13 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             function_name_classes: An array of 'name_classes' specifying what naming scheme to use for functions
                 programs used for the inductive prompt. Name classes will be applied in order as they are avaialble for each
                 function, falling back on DEFAULT (the DreamCoder parseable function names).
-
-            prompt_example_types: An array of example types from {LIBRARY,LANGUAGE, PROGRAMS} that will be included in the prompt for Codex to condition on. 
-            sample_type: A type in {PROGRAMS, LIBRARY, LANGUAGE} to sample from Codex. 
-
+            prompt_example_types: An array of example types from {LIBRARY,LANGUAGE, PROGRAMS} that will be included in the prompt for Codex to condition on.
+            sample_type: A type in {PROGRAMS, LIBRARY, LANGUAGE} to sample from Codex.
             allow_duplicate_examples_per_task: If True, allow multiple examples for a given task.
             allow_language_for_disjoint_tasks: If True, and including language in the prompt example type, prefix the final sample using language disjoint from what we are otherwise training on.
+            compute_likelihoods: Whether to compute log likelihoods of each program
+                under the grammar. This requires converting the programs to eta-long form,
+                which is error-prone, so we don't do it by default.
         """
         if task_splits != [TRAIN]:
             raise ValueError(
@@ -195,6 +197,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     experiment_state=experiment_state,
                     codex_completion=completion,
                     completion_name_classes=function_name_classes,
+                    compute_likelihoods=compute_likelihoods,
                 )
                 all_programs_invalid.update(programs_invalid)
                 all_programs_valid.update(programs_valid)
@@ -253,6 +256,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         experiment_state,
         codex_completion,
         completion_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+        compute_likelihoods: bool = False,
     ):
         """Extract valid sampled programs from a Codex completion.
         :ret: number of frontiers.
@@ -281,12 +285,13 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 continue
 
             # Hack to avoid fatal error when computing likelihood summaries during rescoreFrontier
-            try:
-                p = EtaLongVisitor(request=p_type).execute(p)
-            except:
-                print(f"Error converting to ETA Long for {p}")
-                invalid_programs.add(program_str_codex)
-                continue
+            if compute_likelihoods:
+                try:
+                    p = EtaLongVisitor(request=p_type).execute(p)
+                except:
+                    print(f"Error converting to ETA Long for {p}")
+                    invalid_programs.add(program_str_codex)
+                    continue
 
             program_str = str(p)
 
@@ -295,17 +300,28 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             # NOTE(gg): Hashing for task naming avoids adding duplicate programs to the `experiment_state`
             program_hash = abs(hash(program_str))
 
-            task = Task(name=f"codex_{program_hash}", request=p_type, examples=[],)
+            task = Task(
+                name=f"codex_{program_hash}",
+                request=p_type,
+                examples=[],
+            )
 
             frontier = Frontier(
-                frontier=[FrontierEntry(program=p, logPrior=0.0, logLikelihood=0.0,)],
+                frontier=[
+                    FrontierEntry(
+                        program=p,
+                        logPrior=0.0,
+                        logLikelihood=0.0,
+                    )
+                ],
                 task=task,
             )
 
             # Re-score the logPrior and logLikelihood of the frontier under the current grammar
-            frontier = experiment_state.models[model_loaders.GRAMMAR].rescoreFrontier(
-                frontier
-            )
+            if compute_likelihoods:
+                frontier = experiment_state.models[
+                    model_loaders.GRAMMAR
+                ].rescoreFrontier(frontier)
 
             experiment_state.sample_tasks[TRAIN].append(task)
             experiment_state.sample_frontiers[TRAIN][task] = frontier
@@ -414,8 +430,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         return examples_for_prompt
 
     def get_language_for_disjoint_tasks(self, experiment_state, task_ids_in_splits):
-        """Samples language for tasks that are NOT in task_ids_in_splits.
-        """
+        """Samples language for tasks that are NOT in task_ids_in_splits."""
         rng = experiment_state.metadata[RANDOM_GENERATOR]
         # Randomly select language from disjoint set of tasks that have non-empty annotations
         disjoint_task_ids = [
