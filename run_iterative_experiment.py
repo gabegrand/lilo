@@ -37,6 +37,7 @@ import shutil
 from run_experiment import init_experiment_state_and_iterator, run_experiment
 from src.config_builder import build_config
 from src.experiment_iterator import EXPORT_DIRECTORY
+from src.task_loaders import GroundTruthOrderedTaskBatcher
 
 parser = argparse.ArgumentParser()
 
@@ -45,6 +46,12 @@ parser.add_argument(
 )
 
 parser.add_argument("--domain", required=True, help="[logo, clevr, re2]")
+
+parser.add_argument(
+    "--task_batcher",
+    default=GroundTruthOrderedTaskBatcher.name,
+    help="[ground_truth_ordered_task_batcher, random_shuffle_ordered_task_batcher]",
+)
 
 parser.add_argument(
     "--stitch_params", default="{}", help="JSON string of stitch params"
@@ -88,6 +95,7 @@ def main(args):
         config_base = build_config(
             experiment_type=args.experiment_type,
             domain=args.domain,
+            task_batcher=args.task_batcher,
             random_seed=random_seed,
             codex_params=json.loads(args.codex_params),
             stitch_params=json.loads(args.stitch_params),
@@ -129,6 +137,7 @@ def main(args):
             config = build_config(
                 experiment_type=args.experiment_type,
                 domain=args.domain,
+                task_batcher=args.task_batcher,
                 random_seed=random_seed,
                 global_batch_size=global_batch_size,
                 codex_params=json.loads(args.codex_params),
