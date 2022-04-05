@@ -107,6 +107,8 @@
                     "all"
                 ],
                 "params": {
+                    "compute_likelihoods": true,
+                    "compute_description_lengths": true,
                     "save_filename": "test_likelihoods.json"
                 }
             }

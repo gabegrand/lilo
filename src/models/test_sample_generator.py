@@ -150,7 +150,7 @@ def test_maybe_get_frontiers_from_completion():
         assert not experiment_state.sample_frontiers[TRAIN][sample_task].empty
 
 
-def test_generate_samples_programs():
+def test_generate_samples_programs_only():
     # Test mock sample generation
     sample_generator, experiment_state = get_sample_generator_and_state()
     example_task_ids = get_train_task_ids(experiment_state, n_task_ids=20)
@@ -161,7 +161,7 @@ def test_generate_samples_programs():
         task_splits=[TRAIN],
         task_ids_in_splits=example_task_ids,
         n_samples=n_samples,
-        n_samples_per_prompt=n_samples,
+        n_samples_per_prompt=1,
         prompt_example_types=[PROGRAMS],
         debug=False,
     )
@@ -181,7 +181,7 @@ def test_generate_samples_programs_language():
         task_splits=[TRAIN],
         task_ids_in_splits=example_task_ids,
         n_samples=n_samples,
-        n_samples_per_prompt=n_samples,
+        n_samples_per_prompt=1,
         prompt_example_types=[PROGRAMS, LANGUAGE],
         debug=False,
         verbose_prompt=True,
