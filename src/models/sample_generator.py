@@ -199,7 +199,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 all_programs_invalid.update(programs_invalid)
                 all_programs_valid.update(programs_valid)
                 query_results["programs_valid"], query_results["programs_invalid"] = (
-                    list(all_programs_invalid),
+                    list(all_programs_valid),
                     list(all_programs_invalid),
                 )
                 if verbose_prompt:
