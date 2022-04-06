@@ -170,7 +170,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             if verbose_prompt:
                 print(prompt_text)
 
-            completion = self.get_completion_for_prompt(
+            completion, cache_used = self.get_completion_for_prompt(
                 experiment_state=experiment_state,
                 prompt_text=prompt_text,
                 query_results_filepath=query_results_filepath,
@@ -207,7 +207,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 )
                 if verbose_prompt:
                     print(separator.join(programs_invalid))
-                if not (debug or use_cached):
+                if not cache_used:
                     with open(query_results_filepath, "w") as f:
                         json.dump(query_results, f)
                     print(f"Wrote results: {query_results_filepath}")
@@ -229,10 +229,12 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     ):
         if debug:
             # Debugging query that returns programs.
+            cache_used = True
             completion = self.query_mock(
                 experiment_state, n_samples=n_samples_per_prompt
             )
         elif use_cached and os.path.exists(query_results_filepath):
+            cache_used = True
             print("Using cached examples....")
             # For debugging only - does not verify that the cached completion matches the desired query parameters
             with open(query_results_filepath, "r") as f:
@@ -240,7 +242,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             completion = Completion()
             completion.refresh_from(completion_data)
         else:
-            use_cached = False
+            cache_used = False
             completion = self.query_codex(
                 prompt_text,
                 n_samples=n_samples_per_prompt,
@@ -249,7 +251,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 engine=engine,
                 separator=separator,
             )
-        return completion
+        return completion, cache_used
 
     def maybe_get_frontiers_from_completion(
         self,
