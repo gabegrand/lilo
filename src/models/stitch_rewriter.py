@@ -6,6 +6,7 @@ Updates FRONTIERS given a grammar.
 """
 
 import json
+import os
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
@@ -60,6 +61,9 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
             StitchProgramRewriter.inventions_filename,
             split=load_inventions_from_split,
         )
+        if not os.path.exists(inventions_filepath):
+            raise FileNotFoundError(inventions_filepath)
+
         for split in task_splits:
             programs_filepath = self._get_filepath_for_current_iteration(
                 experiment_state.get_checkpoint_directory(),

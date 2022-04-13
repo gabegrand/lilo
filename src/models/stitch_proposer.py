@@ -50,8 +50,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
                 with the new inventions from compression. If False, runs compression
                 and writes an inventions file, but leaves the grammar unaltered.
         """
-        assert len(task_splits) == 1
-        split = task_splits[0]
+        split = "_".join(task_splits)
 
         # Write frontiers for stitch.
         frontiers_filepath = self._get_filepath_for_current_iteration(

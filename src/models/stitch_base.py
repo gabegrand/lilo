@@ -50,10 +50,6 @@ class StitchBase(object):
         returns:
             Path to JSON file containing a list of programs.
         """
-        if len(task_splits) != 1:
-            raise ValueError(
-                "`write_frontiers_to_file` supports only a single split at a time"
-            )
 
         frontiers = experiment_state.get_frontiers_for_ids_in_splits(
             task_splits=task_splits,
@@ -61,13 +57,16 @@ class StitchBase(object):
             include_samples=include_samples,
         )
         frontiers_list = []
-        for frontier in frontiers[task_splits[0]]:
-            frontiers_list.append(
-                {
-                    "task": frontier.task.name,
-                    "programs": [{"program": str(entry.program)} for entry in frontier],
-                }
-            )
+        for split in task_splits:
+            for frontier in frontiers[split]:
+                frontiers_list.append(
+                    {
+                        "task": frontier.task.name,
+                        "programs": [
+                            {"program": str(entry.program)} for entry in frontier
+                        ],
+                    }
+                )
 
         # Write out the programs.
         os.makedirs(os.path.dirname(frontiers_filepath), exist_ok=True)
