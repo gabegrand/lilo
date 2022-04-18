@@ -6,6 +6,7 @@ Utility functions for loading and initializing many basic models.
 from class_registry import ClassRegistry
 
 GRAMMAR = "grammar"
+INITIALIZE_GROUND_TRUTH = "initialize_ground_truth_task_frontiers"
 LIBRARY_NAMER = "library_namer"  # Models that assign names to grammar functions.
 LIBRARY_LEARNER = "library_learner"  # Models that update grammars.
 PROGRAM_REWRITER = "program_rewriter"  # Models that rewrite programs wrt. grammars

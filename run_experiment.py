@@ -25,6 +25,9 @@ from data.re2.grammar import *
 from data.clevr.make_tasks import *
 from data.clevr.grammar import *
 
+from data.drawings.make_tasks import *
+from data.drawings.grammar import *
+
 from data.structures.make_tasks import *
 from data.structures.grammar import *
 

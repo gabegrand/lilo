@@ -8,8 +8,14 @@ import json
 import os
 
 from src.models.laps_grammar import LAPSGrammar
-from src.models.model_loaders import LIBRARY_LEARNER, PROGRAM_REWRITER, SAMPLE_GENERATOR
+from src.models.model_loaders import (
+    LIBRARY_LEARNER,
+    PROGRAM_REWRITER,
+    SAMPLE_GENERATOR,
+    INITIALIZE_GROUND_TRUTH,
+)
 from src.task_loaders import ALL, GroundTruthOrderedTaskBatcher
+import data.drawings.make_tasks as drawing_tasks
 
 DEFAULT_EXPERIMENT_DIR = "experiments_iterative"
 DEFAULT_TEMPLATE_DIR = os.path.join(DEFAULT_EXPERIMENT_DIR, "templates")
@@ -53,6 +59,38 @@ def get_domain_metadata(domain: str):
             "global_batch_sizes": [5, 10, 15, 25, 50, 100, 200, 300, 400, 491],
         },
     }
+
+    # Metadata for each drawing task domain
+    METADATA["drawings"] = {
+        "tasks_loader": "drawings",
+        "task_language_loader": f"drawings_human",
+        "ocaml_special_handler": "drawings",
+        "global_batch_sizes": [
+            5,
+            10,
+            15,
+            25,
+            50,
+            100,
+            200,
+            300,
+            400,
+            500,
+            600,
+            700,
+            800,
+        ],
+    }
+    for drawing_domain in drawing_tasks.TASK_DOMAINS:
+        drawing_domain_name = "drawings_" + drawing_domain
+        drawing_domain_metadata = {
+            "tasks_loader": drawing_domain_name,
+            "task_language_loader": f"drawings_human_{drawing_domain}",
+            "ocaml_special_handler": "drawings",
+            "global_batch_sizes": [5, 10, 15, 25, 50, 100, 200, 250],
+        }
+        METADATA[drawing_domain_name] = drawing_domain_metadata
+
     return METADATA[domain]
 
 
@@ -188,15 +226,13 @@ def build_config_body(
             block["params"].update(_codex_params)
         if block.get("model_type") == LIBRARY_LEARNER:
             block["params"].update(_stitch_params)
-        if block.get("model_type") in [
-            LAPSGrammar.GRAMMAR,
-            SAMPLE_GENERATOR,
-            PROGRAM_REWRITER,
-        ]:
+        if (
+            block.get("model_type")
+            in [LAPSGrammar.GRAMMAR, SAMPLE_GENERATOR, PROGRAM_REWRITER,]
+            or block.get("state_fn") == INITIALIZE_GROUND_TRUTH
+        ):
             block["params"].update(
-                {
-                    "compute_likelihoods": compute_likelihoods,
-                }
+                {"compute_likelihoods": compute_likelihoods,}
             )
         loop_blocks.append(block)
     config["experiment_iterator"]["loop_blocks"] = loop_blocks
