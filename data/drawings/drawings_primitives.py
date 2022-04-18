@@ -328,6 +328,7 @@ LANG_GON_NAMES = {
 
 
 # Utilities for rendering.
+# Utilities for rendering.
 def render_stroke_arrays_to_canvas(
     stroke_arrays,
     stroke_width_height=8 * XYLIM,
@@ -357,12 +358,18 @@ def render_parsed_program(
     program,
     stroke_width_height=8 * XYLIM,
     canvas_width_height=SYNTHESIS_TASK_CANVAS_WIDTH_HEIGHT,
+    allow_partial_rendering=False,
 ):
     if type(program) == str:
         program = Program.parse(program)
     if not hasattr(program, "rendering"):
+        evaluated_program = program.evaluate([])
+        # If program is a Curried object, render the arguments
+        if allow_partial_rendering and isinstance(evaluated_program, Curried):
+            assert len(evaluated_program.arguments) == 1
+            evaluated_program = evaluated_program.arguments[0]
         program.rendering = render_stroke_arrays_to_canvas(
-            program.evaluate([]), stroke_width_height, canvas_width_height
+            evaluated_program, stroke_width_height, canvas_width_height
         )
     return program.rendering
 

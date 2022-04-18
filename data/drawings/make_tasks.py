@@ -40,11 +40,17 @@ class DrawingsLoader(TaskDataLoader):
         name = s3_stimuli.split("/")[-1]
         program = Program.parse(program)
         assert program.infer() == tstroke
-        drawing_task = Task(name=name, request=tstroke)
+        # Add the rendered image.
+        rendered_image = DrawingGrammar.render_program(program)
+        drawing_task = Task(
+            name=name, request=tstroke, examples=[(([0]), rendered_image)]
+        )
 
         drawing_task.supervisedSolution = program
         drawing_task.groundTruthProgram = program
+        # Source image for reference.
         drawing_task.image_url = s3_stimuli
+        drawing_task.highresolution = rendered_image
 
         return split, drawing_task
 
@@ -58,7 +64,12 @@ class DrawingsLoader(TaskDataLoader):
             for row in reader:
                 split, task = self.make_drawing_task(row)
                 tasks[split].append(task)
+        return tasks
 
-    def load_tasks(self):
+    def load_tasks(self, domains=TASK_DOMAINS):
         tasks = {TRAIN: [], TEST: []}
-
+        for domain in domains:
+            domain_tasks = self.load_tasks_for_domain(domain)
+            for split in domain_tasks:
+                tasks[split] += domain_tasks[split]
+        return tasks
