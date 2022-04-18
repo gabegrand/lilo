@@ -192,7 +192,7 @@ class DrawingsDialsLoader(DrawingsLoader):
     name = DOMAIN_NAME + "_" + domain_name
 
     def load_tasks(self):
-        return self.load_task_language_domain(self.domain_name)
+        return self.load_tasks_for_domain(self.domain_name)
 
 
 @TaskLanguageLoaderRegistry.register

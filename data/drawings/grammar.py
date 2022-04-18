@@ -14,7 +14,7 @@ import data.drawings.drawings_primitives as drawing_primitives
 
 GrammarRegistry = ModelLoaderRegistries[GRAMMAR]
 
-DOMAIN_PREFIX = "drawing"
+DOMAIN_PREFIX = "drawings"
 
 
 class DrawingGrammar(LAPSGrammar):
@@ -50,4 +50,3 @@ class DrawingsGrammarLoader(ModelLoader):
 
     def load_model(self, experiment_state):
         return DrawingGrammar.new_uniform()
-
