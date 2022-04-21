@@ -7,15 +7,15 @@ Utilities for autogenerating configs for experiments based on templates.
 import json
 import os
 
+import data.drawings.make_tasks as drawing_tasks
 from src.models.laps_grammar import LAPSGrammar
 from src.models.model_loaders import (
+    INITIALIZE_GROUND_TRUTH,
     LIBRARY_LEARNER,
     PROGRAM_REWRITER,
     SAMPLE_GENERATOR,
-    INITIALIZE_GROUND_TRUTH,
 )
 from src.task_loaders import ALL, GroundTruthOrderedTaskBatcher
-import data.drawings.make_tasks as drawing_tasks
 
 DEFAULT_EXPERIMENT_DIR = "experiments_iterative"
 DEFAULT_TEMPLATE_DIR = os.path.join(DEFAULT_EXPERIMENT_DIR, "templates")
@@ -87,7 +87,7 @@ def get_domain_metadata(domain: str):
             "tasks_loader": drawing_domain_name,
             "task_language_loader": f"drawings_human_{drawing_domain}",
             "ocaml_special_handler": "drawings",
-            "global_batch_sizes": [5, 10, 15, 25, 50, 100, 200, 250],
+            "global_batch_sizes": [5, 10, 15, 25, 50, 100, 150, 200],
         }
         METADATA[drawing_domain_name] = drawing_domain_metadata
 
@@ -228,11 +228,17 @@ def build_config_body(
             block["params"].update(_stitch_params)
         if (
             block.get("model_type")
-            in [LAPSGrammar.GRAMMAR, SAMPLE_GENERATOR, PROGRAM_REWRITER,]
+            in [
+                LAPSGrammar.GRAMMAR,
+                SAMPLE_GENERATOR,
+                PROGRAM_REWRITER,
+            ]
             or block.get("state_fn") == INITIALIZE_GROUND_TRUTH
         ):
             block["params"].update(
-                {"compute_likelihoods": compute_likelihoods,}
+                {
+                    "compute_likelihoods": compute_likelihoods,
+                }
             )
         loop_blocks.append(block)
     config["experiment_iterator"]["loop_blocks"] = loop_blocks
