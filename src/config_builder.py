@@ -30,8 +30,9 @@ DEFAULT_STITCH_PARAMS = {
 DEFAULT_CODEX_PARAMS = {
     "debug": False,
     "use_cached": False,
-    "n_samples": 100,
-    "n_train_programs_per_prompt": 25,
+    "n_samples": 3,
+    "n_samples_per_query": 2,
+    "n_tasks_per_prompt": 20,
     "temperature": 0.75,
     "max_tokens": 256,
     "function_name_classes": ["default"],

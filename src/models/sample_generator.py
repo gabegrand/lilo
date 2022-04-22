@@ -145,13 +145,17 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         parse_results_valid, parse_results_invalid = [], []
 
         for query_id in range(max_queries):
-            body_task_ids = rng.choice(
-                task_ids_in_splits[TRAIN], size=n_tasks_per_prompt, replace=False
+            body_task_ids = list(
+                rng.choice(
+                    task_ids_in_splits[TRAIN], size=n_tasks_per_prompt, replace=False
+                )
             )
 
-            if final_task_origin == Prompt.FINAL_TASK_ORIGIN_DEFAULT:
+            if final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_DEFAULT:
                 final_task_id = None
-            elif final_task_origin == Prompt.FINAL_TASK_ORIGIN_RANDOM_TRAIN:
+            elif (
+                final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TRAIN
+            ):
                 final_task_id = rng.choice(
                     [
                         t.name
@@ -159,7 +163,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                         if t.name not in task_ids_in_splits[TRAIN]
                     ]
                 )
-            elif final_task_origin == Prompt.FINAL_TASK_ORIGIN_RANDOM_TEST:
+            elif (
+                final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TEST
+            ):
                 final_task_id = rng.choice(
                     [t.name for t in experiment_state.tasks[TEST]]
                 )
@@ -199,7 +205,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             if completion is not None:
                 parse_results = self.parse_completion(
                     completion,
-                    prompt,
                     grammar,
                     function_name_classes,
                     compute_likelihoods,
@@ -259,11 +264,15 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         }
         if not cache_used:
             with open(query_results_filepath, "w") as f:
-                json.dump(query_results, f)
+                json.dump(query_results, f, indent=4)
             print(f"Wrote results: {query_results_filepath}")
 
         # Update experiment_state.
-        self.add_samples_to_experiment_state()
+        self.add_samples_to_experiment_state(
+            experiment_state=experiment_state,
+            parse_results_valid=parse_results_valid,
+            compute_likelihoods=compute_likelihoods,
+        )
 
     def get_completion_for_prompt(
         self,
@@ -307,7 +316,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     def parse_completion(
         self,
         completion,
-        prompt,
         grammar,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
         compute_likelihoods: bool = False,
@@ -327,6 +335,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 parse_results.append(
                     {
                         "text": program_str_codex,
+                        "text_after_show_program": program_str,
                         "valid": False,
                         "error": CodexSampleGenerator.ERROR_PARSE,
                     }
@@ -337,9 +346,13 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 p_type = p.infer()
             except InferenceFailure:
                 print(f"Type inference failure for: {str(p)}")
+                import pdb
+
+                pdb.set_trace()
                 parse_results.append(
                     {
                         "text": program_str_codex,
+                        "text_after_show_program": program_str,
                         "valid": False,
                         "error": CodexSampleGenerator.ERROR_INFER,
                     }
@@ -355,6 +368,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     parse_results.append(
                         {
                             "text": program_str_codex,
+                            "text_after_show_program": program_str,
                             "valid": False,
                             "error": CodexSampleGenerator.ERROR_ETA_LONG,
                         }
