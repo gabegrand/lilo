@@ -155,6 +155,10 @@ class Prompt(object):
             "final_task_data": self.final_task_data,
         }
 
+    def from_dict(self, d):
+        self.body_task_data = d["body_task_data"]
+        self.final_task_data = d["final_task_data"]
+
     def json(self):
         return json.dumps(self.to_dict(), indent=4)
 

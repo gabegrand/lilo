@@ -37,6 +37,11 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     # Final task is drawn randomly from test tasks
     FINAL_TASK_ORIGIN_RANDOM_TEST = "random_test"
 
+    # Parse error codes
+    ERROR_PARSE = "parse"
+    ERROR_INFER = "infer"
+    ERROR_ETA_LONG = "eta_long"
+
     @staticmethod
     def load_model(experiment_state, **kwargs):
         return CodexSampleGenerator(experiment_state=experiment_state, **kwargs)
@@ -77,7 +82,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         generation of programs conditioned on language are both forthcoming.
 
         params:
-            TODO(gg): Update params.
+            TODO(gg): Update params docs.
             experiment_state: experiment_state
             n_samples: Total number of sample examples to attempt to generate with Codex.
                         Some of these programs may be invalid; only valid programs are added to the
@@ -109,6 +114,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 which is error-prone, so we don't do it by default.
         """
         rng = experiment_state.metadata[RANDOM_GENERATOR]
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
 
         if task_splits != [TRAIN]:
             raise ValueError(
@@ -128,32 +134,17 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         # Set the number of prompt attempts to something reasonable
         min_queries = np.ceil(n_samples / n_samples_per_query)
         if max_queries is None:
-            max_queries = 2 * min_queries
+            max_queries = int(2 * min_queries)
         elif max_queries < min_queries:
             raise ValueError(
                 f"max_queries={max_queries} must be >= min_queries={min_queries}"
             )
 
-        # query_results = {
-        #     "query_i": 0,
-        #     "max_queries": max_queries,
-        #     "programs_valid": [],
-        #     "programs_invalid": [],
-        #     "prompt_json": [],
-        #     "prompt_text": [],
-        #     "prompt_example_types": prompt_example_types,
-        #     "prompt_programs": [],
-        #     "engine": engine,
-        #     "line_separator": line_separator,
-        #     "completion": [],
-        # }
+        results_by_query = []
+        unique_hashes_valid = set()
+        parse_results_valid, parse_results_invalid = [], []
 
-        all_programs_valid, all_programs_invalid = set(), set()
-        for query_i in range(max_queries):
-            if len(all_programs_valid) >= n_samples:
-                print(f"Sampled all {n_samples} samples, concluding.")
-                return
-
+        for query_id in range(max_queries):
             body_task_ids = rng.choice(
                 task_ids_in_splits[TRAIN], size=n_tasks_per_prompt, replace=False
             )
@@ -186,10 +177,10 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 # TODO(gg): Support for configuring prompt prefixes.
             )
 
-            if query_i % query_print_frequency == 0:
+            if query_id % query_print_frequency == 0:
                 print(
-                    f"Now on prompt {query_i}/{max_queries}: with {len(all_programs_valid)} / {n_samples} total samples. "
-                    f"Querying Codex with prompt ({len(prompt)} examples) for {n_samples_per_query} samples..."
+                    f"Now on query {query_id}/{max_queries}: with {len(unique_hashes_valid)} / {n_samples} total samples. "
+                    f"Querying Codex with prompt ({len(prompt)} tasks) for {n_samples_per_query} samples..."
                 )
 
             completion, cache_used = self.get_completion_for_prompt(
@@ -205,36 +196,74 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 debug=debug,
             )
 
-            # Append to a global query results.
-            query_results["query_i"] = query_i
-            query_results["prompt_text"].append(prompt_text)
-            query_results["prompt_programs"].append(prompt_examples)
-            query_results["completion"].append(completion.to_dict_recursive())
-
             if completion is not None:
-                (
-                    programs_valid,
-                    programs_invalid,
-                ) = self.maybe_get_frontiers_from_completion(
-                    experiment_state=experiment_state,
-                    codex_completion=completion,
-                    completion_name_classes=function_name_classes,
-                    compute_likelihoods=compute_likelihoods,
+                parse_results = self.parse_completion(
+                    completion,
+                    prompt,
+                    grammar,
+                    function_name_classes,
+                    compute_likelihoods,
                 )
-                all_programs_invalid.update(programs_invalid)
-                all_programs_valid.update(programs_valid)
-                query_results["programs_valid"], query_results["programs_invalid"] = (
-                    list(all_programs_valid),
-                    list(all_programs_invalid),
+                results_by_query.append(
+                    {
+                        "query_id": query_id,
+                        "prompt": prompt.to_dict(),
+                        "completion": completion.to_dict_recursive(),
+                        "parse_results": parse_results,
+                    }
                 )
-                if verbose_prompt:
-                    print(separator.join(programs_invalid))
-                if not cache_used:
-                    with open(query_results_filepath, "w") as f:
-                        json.dump(query_results, f)
-                    print(f"Wrote results: {query_results_filepath}")
+                for result_data in parse_results:
+                    result_data["query_id"] = query_id
+                    if result_data["valid"]:
+                        # Only allow one unique parse per program (even if the original text is different).
+                        if result_data["hash"] not in unique_hashes_valid:
+                            unique_hashes_valid.add(result_data["hash"])
+                            parse_results_valid.append(result_data)
+                    else:
+                        parse_results_invalid.append(result_data)
+
+                    # Stop as soon as target n_samples is reached, even if there are more valid programs in the results.
+                    if len(unique_hashes_valid) >= n_samples:
+                        break
             else:
+                # TODO(gg): More graceful handling of API query failures.
                 raise ValueError("Query to Codex encountered an error.")
+
+        # Save results to file.
+        query_results = {
+            "params": {
+                "n_samples": n_samples,
+                "n_samples_per_query": n_samples_per_query,
+                "max_queries": max_queries,
+                "n_tasks_per_prompt": n_tasks_per_prompt,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "engine": engine,
+                "line_separator": line_separator,
+                "use_cached": use_cached,
+                "debug": debug,
+                "body_task_types": body_task_types,
+                "final_task_types": final_task_types,
+                "final_task_origin": final_task_origin,
+                "function_name_classes": function_name_classes,
+                "compute_likelihoods": compute_likelihoods,
+            },
+            "results": {
+                "n_queries": query_id + 1,
+                "n_programs_valid": len(unique_hashes_valid),
+                "n_programs_invalid": len(parse_results_invalid),
+                "programs_valid": parse_results_valid,
+                "programs_invalid": parse_results_invalid,
+            },
+            "results_by_query": results_by_query,
+        }
+        if not cache_used:
+            with open(query_results_filepath, "w") as f:
+                json.dump(query_results, f)
+            print(f"Wrote results: {query_results_filepath}")
+
+        # Update experiment_state.
+        self.add_samples_to_experiment_state()
 
     def get_completion_for_prompt(
         self,
@@ -275,65 +304,92 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             )
         return completion, cache_used
 
-    def maybe_get_frontiers_from_completion(
+    def parse_completion(
         self,
-        experiment_state,
-        codex_completion,
-        completion_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+        completion,
+        prompt,
+        grammar,
+        function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
         compute_likelihoods: bool = False,
     ):
-        """Extract valid sampled programs from a Codex completion.
-        :ret: number of frontiers.
-        """
-        valid_programs, invalid_programs = set(), set()
-
-        grammar = experiment_state.models[model_loaders.GRAMMAR]
-        for choice in codex_completion["choices"]:
+        parse_results = []
+        for choice in completion["choices"]:
             program_str_codex = choice["text"]
+            # CHECK 1: Does the program parse?
             try:
                 # Write the program back into the DreamCoder form from whatever it was initially in.
                 program_str = grammar.show_program(
-                    program_str_codex, input_name_class=completion_name_classes
+                    program_str_codex, input_name_class=function_name_classes
                 )
                 p = Program.parse(program_str)
             except (ParseFailure, IndexError, AssertionError, ValueError) as e:
                 print(f"Failed to parse ({type(e)}): {program_str_codex}")
-                invalid_programs.add(program_str_codex)
+                parse_results.append(
+                    {
+                        "text": program_str_codex,
+                        "valid": False,
+                        "error": CodexSampleGenerator.ERROR_PARSE,
+                    }
+                )
                 continue
-
+            # CHECK 2: Does the program typecheck?
             try:
                 p_type = p.infer()
             except InferenceFailure:
                 print(f"Type inference failure for: {str(p)}")
-                invalid_programs.add(program_str_codex)
+                parse_results.append(
+                    {
+                        "text": program_str_codex,
+                        "valid": False,
+                        "error": CodexSampleGenerator.ERROR_INFER,
+                    }
+                )
                 continue
-
-            # Hack to avoid fatal error when computing likelihood summaries during rescoreFrontier
+            # CHECK 3: Can we convert the program to eta long form?
             if compute_likelihoods:
                 try:
+                    # Hack to avoid fatal error when computing likelihood summaries during rescoreFrontier
                     p = EtaLongVisitor(request=p_type).execute(p)
                 except:
                     print(f"Error converting to ETA Long for {p}")
-                    invalid_programs.add(program_str_codex)
+                    parse_results.append(
+                        {
+                            "text": program_str_codex,
+                            "valid": False,
+                            "error": CodexSampleGenerator.ERROR_ETA_LONG,
+                        }
+                    )
                     continue
 
-            program_str = str(p)
+            parse_results.append(
+                {
+                    "text": program_str_codex,
+                    "valid": True,
+                    "program": str(p),
+                    "type": p_type,
+                    "hash": abs(hash(str(p))),
+                }
+            )
 
-            valid_programs.add(program_str_codex)
+        return parse_results
 
-            # NOTE(gg): Hashing for task naming avoids adding duplicate programs to the `experiment_state`
-            program_hash = abs(hash(program_str))
-
+    def add_samples_to_experiment_state(
+        self,
+        experiment_state,
+        parse_results_valid: list,
+        compute_likelihoods: bool = False,
+    ):
+        for result_data in parse_results_valid:
             task = Task(
-                name=f"codex_{program_hash}",
-                request=p_type,
+                name=f"codex_{result_data['hash']}",
+                request=result_data["type"],
                 examples=[],
             )
 
             frontier = Frontier(
                 frontier=[
                     FrontierEntry(
-                        program=p,
+                        program=Program.parse(result_data["program"]),
                         logPrior=0.0,
                         logLikelihood=0.0,
                     )
@@ -349,11 +405,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
             experiment_state.sample_tasks[TRAIN].append(task)
             experiment_state.sample_frontiers[TRAIN][task] = frontier
-
-        print(
-            f"Codex query results:\nVALID: {len(valid_programs)}\nINVALID: {len(invalid_programs)}"
-        )
-        return valid_programs, invalid_programs
 
     def query_mock(self, experiment_state, n_samples: int = 3, **kwargs):
         """Debugging query that returns a sample of programs from the task."""
