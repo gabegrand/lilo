@@ -16,11 +16,11 @@ from src.models.laps_grammar import LAPSGrammar
 from src.models.model_loaders import GRAMMAR
 from src.task_loaders import LANGUAGE, PROGRAMS, TRAIN
 
+DEFAULT_LINE_SEPARATOR = "\n"
+
 
 class CodexBase(object):
     DEFAULT_ENGINE = "davinci-codex"
-    DEFAULT_SEPARATOR = "\n"
-    DEFAULT_LANGUAGE_SEPARATOR = "# "
 
     def __init__(self, experiment_state=None):
         super().__init__()
@@ -37,7 +37,7 @@ class CodexBase(object):
         temperature: float = 0.75,
         max_tokens: int = 256,
         engine: str = DEFAULT_ENGINE,
-        separator: str = DEFAULT_SEPARATOR,
+        separator: str = DEFAULT_LINE_SEPARATOR,
         top_p=None,
         logprobs=None,
         max_attempts_rate_limit=5,
@@ -77,15 +77,16 @@ class CodexBase(object):
 
 
 class Prompt(object):
+    TASK_TYPES = [LANGUAGE, PROGRAMS]
+
     DEFAULT_PREFIX_PROGRAM = ""
     DEFAULT_PREFIX_LANGUAGE = "# "
-    DEFAULT_LINE_SEPARATOR = "\n"
 
     def __init__(
         self,
         experiment_state,
         body_task_ids: list,
-        final_task_id: str,
+        final_task_id: str = None,
         body_task_types: list = [LANGUAGE, PROGRAMS],
         final_task_types: list = [LANGUAGE],
         line_separator: str = DEFAULT_LINE_SEPARATOR,
@@ -93,8 +94,15 @@ class Prompt(object):
         prefix_program: str = DEFAULT_PREFIX_PROGRAM,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
     ):
+        # Default final_task_id is the last task in body_task_ids
         if final_task_id is None:
             final_task_id = body_task_ids.pop(-1)
+
+        # Enforce canonical ordering of task_types
+        body_task_types = [t for t in body_task_types if t in self.TASK_TYPES]
+        final_task_types = [t for t in final_task_types if t in self.TASK_TYPES]
+        assert len(body_task_types) > 0
+        assert len(final_task_types) > 0
 
         self.experiment_state = experiment_state
         self.grammar = experiment_state.models[GRAMMAR]
@@ -114,6 +122,9 @@ class Prompt(object):
         self.final_task_data = self._get_task_data(
             task_id=final_task_id, task_types=final_task_types
         )
+
+    def __len__(self):
+        return len(self.body_task_data) + 1
 
     def __repr__(self):
         return self.json()
@@ -138,14 +149,14 @@ class Prompt(object):
     def serialize(self):
         return self.__str__()
 
+    def to_dict(self):
+        return {
+            "body_task_data": self.body_task_data,
+            "final_task_data": self.final_task_data,
+        }
+
     def json(self):
-        return json.dumps(
-            {
-                "body_task_data": self.body_task_data,
-                "final_task_data": self.final_task_data,
-            },
-            indent=4,
-        )
+        return json.dumps(self.to_dict(), indent=4)
 
     def _get_task_data(self, task_id: str, task_types: list):
         frontier = self.experiment_state.get_frontiers_for_ids(TRAIN, [task_id])[0]

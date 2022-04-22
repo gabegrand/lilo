@@ -4,7 +4,6 @@ sample_generator.py | Author: Gabe Grand.
 Queries Codex to generate new samples based on existing samples.
 
 """
-import itertools
 import json
 import os
 
@@ -16,9 +15,9 @@ from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.program import EtaLongVisitor, InferenceFailure, ParseFailure, Program
 from dreamcoder.task import Task
 from src.experiment_iterator import RANDOM_GENERATOR
-from src.models.codex_base import *
+from src.models.codex_base import DEFAULT_LINE_SEPARATOR, CodexBase, Prompt
 from src.models.laps_grammar import LAPSGrammar
-from src.task_loaders import ALL, LANGUAGE, PROGRAMS, TRAIN
+from src.task_loaders import ALL, LANGUAGE, PROGRAMS, TEST, TRAIN
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.SAMPLE_GENERATOR]
 
@@ -30,6 +29,13 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     query_results_file = "codex_query_results.json"
 
     PROMPT_EXAMPLE_TYPES = [LANGUAGE, PROGRAMS]
+
+    # Final task is the last task in body_tasks
+    FINAL_TASK_ORIGIN_DEFAULT = "default"
+    # Final task is drawn randomly from unused train tasks
+    FINAL_TASK_ORIGIN_RANDOM_TRAIN = "random_train"
+    # Final task is drawn randomly from test tasks
+    FINAL_TASK_ORIGIN_RANDOM_TEST = "random_test"
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
@@ -43,24 +49,25 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         experiment_state,
         task_splits: list,
         task_ids_in_splits: list,
-        n_samples=None,
-        n_samples_per_prompt=None,
-        n_train_programs_per_prompt: int = 10,
-        max_additional_prompt_attempts: int = 0,
+        # Sampling
+        n_samples: int,
+        n_samples_per_query: int = None,
+        max_queries: int = None,
+        # Prompt construction
+        n_tasks_per_prompt: int = 10,
+        body_task_types: list = [PROGRAMS],
+        final_task_types: list = [PROGRAMS],
+        final_task_origin: str = FINAL_TASK_ORIGIN_DEFAULT,
+        function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+        line_separator: str = DEFAULT_LINE_SEPARATOR,
+        # Codex parameters
         temperature: float = 0.75,
         max_tokens: int = 256,
-        separator: str = CodexBase.DEFAULT_SEPARATOR,
-        language_separator: str = CodexBase.DEFAULT_LANGUAGE_SEPARATOR,
         engine: str = CodexBase.DEFAULT_ENGINE,
+        # Utility
         debug: bool = False,
-        verbose_prompt: bool = False,
         use_cached: bool = False,
-        function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
-        prompt_example_types: list = [PROGRAMS],
-        sample_type: str = PROGRAMS,
-        allow_duplicate_examples_per_task: bool = False,
-        allow_language_for_disjoint_tasks: bool = True,
-        print_every_prompt_idx=1,
+        query_print_frequency=1,
         compute_likelihoods: bool = False,
     ):
         """
@@ -70,24 +77,22 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         generation of programs conditioned on language are both forthcoming.
 
         params:
+            TODO(gg): Update params.
             experiment_state: experiment_state
             n_samples: Total number of sample examples to attempt to generate with Codex.
                         Some of these programs may be invalid; only valid programs are added to the
                         experiment_state.
-            n_samples_per_prompt: Number of samples to take from Codex per each generated prompt, which may
+            n_samples_per_query: Number of samples to take from Codex per each generated prompt, which may
                                     contain a random subset of the training examples. If None, will be set equal to n_samples.
             n_train_programs_per_prompt: Number of training programs to include
                 in the Codex prompt. If `n_train_programs_per_prompt` is too high,
                 the prompt may exceed the token budget and trigger an `InvalidRequestError`.
 
-            max_additional_prompt_attempts: How many additional attempts to sample prompts if we don't get n_samples valid programs with n_samples / n_samples_per_prompt.
             temperature: Codex temperature sampling value in `[0., 1.]` range.
             max_tokens: Max number of tokens for a single program in the completion.
                 Codex will stop at `separator` anyway, so this value should be generous.
             engine: Codex `engine` parameter.
-            separator: String to insert between examples in the Codex query. Also
-                used as the `stop` sequence during generation.
-            language_separator: String to insert before language examples in the Codex query.
+
             debug: If True, replaces live query to Codex with a random sample
                 from the training set.
             use_cached: If True, replaces live query to Codex with a cached query
@@ -103,6 +108,8 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 under the grammar. This requires converting the programs to eta-long form,
                 which is error-prone, so we don't do it by default.
         """
+        rng = experiment_state.metadata[RANDOM_GENERATOR]
+
         if task_splits != [TRAIN]:
             raise ValueError(
                 f"CodexSampleGenerator expected task_splits=[{TRAIN}], got task_splits={task_splits}"
@@ -114,77 +121,92 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             self.query_results_file,
         )
 
-        if n_samples_per_prompt is None:
-            n_samples_per_prompt = n_samples
+        # Default to drawing all samples from the same prompt
+        if n_samples_per_query is None:
+            n_samples_per_query = n_samples
 
-        max_num_prompts = int(
-            (
-                np.ceil(n_samples / float(n_samples_per_prompt))
-                + max_additional_prompt_attempts
+        # Set the number of prompt attempts to something reasonable
+        min_queries = np.ceil(n_samples / n_samples_per_query)
+        if max_queries is None:
+            max_queries = 2 * min_queries
+        elif max_queries < min_queries:
+            raise ValueError(
+                f"max_queries={max_queries} must be >= min_queries={min_queries}"
             )
-        )
 
-        query_results = {
-            "curr_prompt_idx": 0,
-            "max_num_prompts": max_num_prompts,
-            "programs_valid": [],
-            "programs_invalid": [],
-            "prompt_text": [],
-            "prompt_example_types": prompt_example_types,
-            "prompt_programs": [],
-            "engine": engine,
-            "separator": separator,
-            "completion": [],
-        }
+        # query_results = {
+        #     "query_i": 0,
+        #     "max_queries": max_queries,
+        #     "programs_valid": [],
+        #     "programs_invalid": [],
+        #     "prompt_json": [],
+        #     "prompt_text": [],
+        #     "prompt_example_types": prompt_example_types,
+        #     "prompt_programs": [],
+        #     "engine": engine,
+        #     "line_separator": line_separator,
+        #     "completion": [],
+        # }
+
         all_programs_valid, all_programs_invalid = set(), set()
-        for curr_prompt_idx in range(max_num_prompts):
+        for query_i in range(max_queries):
             if len(all_programs_valid) >= n_samples:
                 print(f"Sampled all {n_samples} samples, concluding.")
                 return
 
-            # Sample training examples to construct a Codex prompt.
-            prompt_examples, prompt_text = self.generate_codex_prompt_text(
-                experiment_state,
-                task_splits=task_splits,
-                task_ids_in_splits=task_ids_in_splits,
-                n_train_examples_per_prompt=n_train_programs_per_prompt,
-                separator=separator,
-                language_separator=language_separator,
-                function_name_classes=function_name_classes,
-                prompt_example_types=prompt_example_types,
-                sample_type=sample_type,
-                allow_duplicate_examples_per_task=allow_duplicate_examples_per_task,
-                allow_language_for_disjoint_tasks=allow_language_for_disjoint_tasks,
+            body_task_ids = rng.choice(
+                task_ids_in_splits[TRAIN], size=n_tasks_per_prompt, replace=False
             )
 
-            if len(prompt_examples) == 0:
-                print(
-                    "CodexSampleGenerator: skipping sampling without prompt examples."
+            if final_task_origin == Prompt.FINAL_TASK_ORIGIN_DEFAULT:
+                final_task_id = None
+            elif final_task_origin == Prompt.FINAL_TASK_ORIGIN_RANDOM_TRAIN:
+                final_task_id = rng.choice(
+                    [
+                        t.name
+                        for t in experiment_state.tasks[TRAIN]
+                        if t.name not in task_ids_in_splits[TRAIN]
+                    ]
                 )
-                return None
+            elif final_task_origin == Prompt.FINAL_TASK_ORIGIN_RANDOM_TEST:
+                final_task_id = rng.choice(
+                    [t.name for t in experiment_state.tasks[TEST]]
+                )
+            else:
+                raise ValueError(f"Unknown final_task_origin={final_task_origin}")
 
-            if curr_prompt_idx % print_every_prompt_idx == 0:
+            prompt = Prompt(
+                experiment_state=experiment_state,
+                body_task_ids=body_task_ids,
+                final_task_id=final_task_id,
+                body_task_types=body_task_types,
+                final_task_types=final_task_types,
+                function_name_classes=function_name_classes,
+                line_separator=line_separator,
+                # TODO(gg): Support for configuring prompt prefixes.
+            )
+
+            if query_i % query_print_frequency == 0:
                 print(
-                    f"Now on prompt {curr_prompt_idx}/{max_num_prompts}: with {len(all_programs_valid)} / {n_samples} total samples. Querying Codex with prompt ({len(prompt_examples)} examples) for {n_samples_per_prompt} samples..."
+                    f"Now on prompt {query_i}/{max_queries}: with {len(all_programs_valid)} / {n_samples} total samples. "
+                    f"Querying Codex with prompt ({len(prompt)} examples) for {n_samples_per_query} samples..."
                 )
-            if verbose_prompt:
-                print(prompt_text)
 
             completion, cache_used = self.get_completion_for_prompt(
                 experiment_state=experiment_state,
-                prompt_text=prompt_text,
+                prompt_text=prompt.serialize(),
                 query_results_filepath=query_results_filepath,
-                n_samples_per_prompt=n_samples_per_prompt,
+                n_samples_per_query=n_samples_per_query,
                 temperature=temperature,
                 max_tokens=max_tokens,
                 engine=engine,
-                separator=separator,
+                separator=line_separator,
                 use_cached=use_cached,
                 debug=debug,
             )
 
             # Append to a global query results.
-            query_results["curr_prompt_idx"] = curr_prompt_idx
+            query_results["query_i"] = query_i
             query_results["prompt_text"].append(prompt_text)
             query_results["prompt_programs"].append(prompt_examples)
             query_results["completion"].append(completion.to_dict_recursive())
@@ -219,7 +241,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         experiment_state,
         prompt_text,
         query_results_filepath,
-        n_samples_per_prompt,
+        n_samples_per_query,
         temperature,
         max_tokens,
         engine,
@@ -231,7 +253,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             # Debugging query that returns programs.
             cache_used = True
             completion = self.query_mock(
-                experiment_state, n_samples=n_samples_per_prompt
+                experiment_state, n_samples=n_samples_per_query
             )
         elif use_cached and os.path.exists(query_results_filepath):
             cache_used = True
@@ -245,7 +267,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             cache_used = False
             completion = self.query_codex(
                 prompt_text,
-                n_samples=n_samples_per_prompt,
+                n_samples=n_samples_per_query,
                 temperature=temperature,
                 max_tokens=max_tokens,
                 engine=engine,
@@ -332,166 +354,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             f"Codex query results:\nVALID: {len(valid_programs)}\nINVALID: {len(invalid_programs)}"
         )
         return valid_programs, invalid_programs
-
-    def sample_prompt_training_examples(
-        self,
-        experiment_state,
-        task_splits: list,
-        task_ids_in_splits: list,
-        n_train_examples_per_prompt: int = 10,
-        separator: str = CodexBase.DEFAULT_SEPARATOR,
-        language_separator: str = CodexBase.DEFAULT_LANGUAGE_SEPARATOR,
-        function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
-        prompt_example_types: list = [PROGRAMS],
-        sample_type: str = PROGRAMS,
-        allow_duplicate_examples_per_task: bool = False,
-        allow_language_for_disjoint_tasks: bool = True,
-    ):
-        """
-        Samples a list of up to n_train_examples_per_prompt example tuples, consisting of the example information in prompt_example_types.
-
-        These can be concatenated to form a prompt.
-
-        :ret: List of (example) tuples.
-        """
-        if LANGUAGE in prompt_example_types and sample_type == PROGRAMS:
-            # If language, get an extra annotation to precede the program.
-            n_train_examples_per_prompt = n_train_examples_per_prompt + 1
-
-        # Sort into the canonical order.
-        prompt_example_types = [
-            p for p in self.PROMPT_EXAMPLE_TYPES if p in prompt_example_types
-        ]
-
-        # Build a list of candidate example tuples.
-        candidate_prompt_examples = []
-        grammar = experiment_state.models[model_loaders.GRAMMAR]
-        rng = experiment_state.metadata[RANDOM_GENERATOR]
-
-        for task_id in task_ids_in_splits[TRAIN]:
-            example_types_for_task = []
-            for example_type in prompt_example_types:
-                # Add any natural language specifications for the task
-                if example_type == LANGUAGE:
-                    examples_for_task = experiment_state.get_language_for_ids(
-                        TRAIN, [task_id]
-                    )[0]
-                    examples_for_task = [
-                        language_separator + e for e in examples_for_task
-                    ]
-                # Add any programs for the task
-                elif example_type == PROGRAMS:
-                    frontier = experiment_state.get_frontiers_for_ids(TRAIN, [task_id])[
-                        0
-                    ]
-                    examples_for_task = [e.program for e in frontier.entries]
-                    examples_for_task = [
-                        grammar.show_program(p, name_classes=function_name_classes)
-                        for p in examples_for_task
-                    ]
-                example_types_for_task.append(examples_for_task)
-            if len(example_types_for_task) < 1:
-                continue
-            # Create cross-product of {spec, program} examples.
-            example_tuples = itertools.product(*example_types_for_task)
-            if allow_duplicate_examples_per_task:
-                candidate_prompt_examples += list(example_tuples)
-            else:
-                task_example = rng.choice(list(example_tuples))
-                candidate_prompt_examples.append(task_example)
-
-        # Sample examples from the candidates
-        n_train_examples_per_prompt = min(
-            n_train_examples_per_prompt, len(candidate_prompt_examples)
-        )
-        examples_for_prompt = list(
-            rng.choice(
-                candidate_prompt_examples,
-                size=n_train_examples_per_prompt,
-                replace=False,
-            )
-        )
-        examples_for_prompt = [list(e) for e in examples_for_prompt]
-
-        if len(examples_for_prompt) == 0:
-            print("CodexSampleGenerator: No training frontiers to sample prompts.")
-            return []
-
-        # If prompting with language in order to sample programs from Codex, modify the last example tuple to only include language so we can sample programs as a continuation.
-        if prompt_example_types == [LANGUAGE, PROGRAMS] and sample_type == PROGRAMS:
-            examples_for_prompt[-1] = [
-                examples_for_prompt[-1][0]
-            ]  # Don't include the last program
-            if allow_language_for_disjoint_tasks:
-                final_language_example = self.get_language_for_disjoint_tasks(
-                    experiment_state, task_ids_in_splits
-                )
-                # Randomly select one and randomly select its language
-                examples_for_prompt[-1] = [language_separator + final_language_example]
-
-        return examples_for_prompt
-
-    def get_language_for_disjoint_tasks(self, experiment_state, task_ids_in_splits):
-        """Samples language for tasks that are NOT in task_ids_in_splits."""
-        rng = experiment_state.metadata[RANDOM_GENERATOR]
-        # Randomly select language from disjoint set of tasks that have non-empty annotations
-        disjoint_task_ids = [
-            t.name
-            for t in experiment_state.tasks[TRAIN]
-            if t.name not in task_ids_in_splits[TRAIN]
-        ]
-        final_language_examples = experiment_state.get_language_for_ids(
-            TRAIN, task_ids=disjoint_task_ids
-        )
-        final_language_examples = [
-            rng.choice(l) for l in final_language_examples if len(l) > 0
-        ]
-        final_language_example = rng.choice(final_language_examples)
-        return final_language_example
-
-    def generate_codex_prompt_text(
-        self,
-        experiment_state,
-        task_splits: list,
-        task_ids_in_splits: list,
-        n_train_examples_per_prompt: int = 10,
-        separator: str = CodexBase.DEFAULT_SEPARATOR,
-        language_separator: str = CodexBase.DEFAULT_LANGUAGE_SEPARATOR,
-        function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
-        prompt_example_types: list = [PROGRAMS],
-        sample_type: str = PROGRAMS,
-        allow_duplicate_examples_per_task: bool = False,
-        allow_language_for_disjoint_tasks: bool = True,
-    ):
-
-        training_examples = self.sample_prompt_training_examples(
-            experiment_state,
-            task_splits,
-            task_ids_in_splits,
-            n_train_examples_per_prompt,
-            separator,
-            language_separator,
-            function_name_classes,
-            prompt_example_types,
-            sample_type,
-            allow_duplicate_examples_per_task,
-            allow_language_for_disjoint_tasks,
-        )
-
-        # For now, assume we only want to sample programs.
-        prompt_text = (
-            separator.join([separator.join(e) for e in training_examples]) + separator
-        )
-
-        print(
-            f"Constructed prompt containing: {len(training_examples)} {prompt_example_types} examples..."
-        )
-
-        # Flatten the training examples so that they're easier to unpack later.
-        if len(prompt_example_types) == 1:
-            training_examples = [t[0] for t in training_examples]
-
-        return training_examples, prompt_text
 
     def query_mock(self, experiment_state, n_samples: int = 3, **kwargs):
         """Debugging query that returns a sample of programs from the task."""
