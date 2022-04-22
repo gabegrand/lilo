@@ -4,11 +4,17 @@ codex_base.py | Author: Catherine Wong, Gabe Grand.
 Base class containing utilities for working with the Codex language model.
 """
 
+import json
 import os
 import time
 
 import openai
 from openai.error import InvalidRequestError, RateLimitError
+
+from src.experiment_iterator import RANDOM_GENERATOR
+from src.models.laps_grammar import LAPSGrammar
+from src.models.model_loaders import GRAMMAR
+from src.task_loaders import LANGUAGE, PROGRAMS, TRAIN
 
 
 class CodexBase(object):
@@ -68,3 +74,101 @@ class CodexBase(object):
                 completion = None
 
         return completion
+
+
+class Prompt(object):
+    DEFAULT_PREFIX_PROGRAM = ""
+    DEFAULT_PREFIX_LANGUAGE = "# "
+    DEFAULT_LINE_SEPARATOR = "\n"
+
+    def __init__(
+        self,
+        experiment_state,
+        body_task_ids: list,
+        final_task_id: str,
+        body_task_types: list = [LANGUAGE, PROGRAMS],
+        final_task_types: list = [LANGUAGE],
+        line_separator: str = DEFAULT_LINE_SEPARATOR,
+        prefix_language: str = DEFAULT_PREFIX_LANGUAGE,
+        prefix_program: str = DEFAULT_PREFIX_PROGRAM,
+        function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+    ):
+        if final_task_id is None:
+            final_task_id = body_task_ids.pop(-1)
+
+        self.experiment_state = experiment_state
+        self.grammar = experiment_state.models[GRAMMAR]
+        self.rng = experiment_state.metadata[RANDOM_GENERATOR]
+
+        self.body_task_types = body_task_types
+        self.final_task_types = final_task_types
+        self.line_separator = line_separator
+        self.prefix_language = prefix_language
+        self.prefix_program = prefix_program
+        self.function_name_classes = function_name_classes
+
+        self.body_task_data = [
+            self._get_task_data(task_id=task_id, task_types=body_task_types)
+            for task_id in body_task_ids
+        ]
+        self.final_task_data = self._get_task_data(
+            task_id=final_task_id, task_types=final_task_types
+        )
+
+    def __repr__(self):
+        return self.json()
+
+    def __str__(self):
+        prompt_text = ""
+        for task_data in self.body_task_data + [self.final_task_data]:
+            if task_data["task_language"] is not None:
+                prompt_text += (
+                    self.prefix_language
+                    + task_data["task_language"]
+                    + self.line_separator
+                )
+            if task_data["task_program"] is not None:
+                prompt_text += (
+                    self.prefix_program
+                    + task_data["task_program"]
+                    + self.line_separator
+                )
+        return prompt_text
+
+    def serialize(self):
+        return self.__str__()
+
+    def json(self):
+        return json.dumps(
+            {
+                "body_task_data": self.body_task_data,
+                "final_task_data": self.final_task_data,
+            },
+            indent=4,
+        )
+
+    def _get_task_data(self, task_id: str, task_types: list):
+        frontier = self.experiment_state.get_frontiers_for_ids(TRAIN, [task_id])[0]
+        if PROGRAMS in task_types:
+            task_program = self.rng.choice(
+                [
+                    self.grammar.show_program(
+                        e.program, name_classes=self.function_name_classes
+                    )
+                    for e in frontier.entries
+                ]
+            )
+        else:
+            task_program = None
+        if LANGUAGE in task_types:
+            task_language = self.rng.choice(
+                self.experiment_state.get_language_for_ids(TRAIN, [task_id])[0]
+            )
+        else:
+            task_language = None
+
+        return {
+            "task_id": task_id,
+            "task_program": task_program,
+            "task_language": task_language,
+        }
