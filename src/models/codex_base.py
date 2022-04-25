@@ -37,7 +37,7 @@ class CodexBase(object):
         temperature: float = 0.75,
         max_tokens: int = 256,
         engine: str = DEFAULT_ENGINE,
-        separator: str = DEFAULT_LINE_SEPARATOR,
+        line_separator: str = DEFAULT_LINE_SEPARATOR,
         top_p=None,
         logprobs=None,
         max_attempts_rate_limit=5,
@@ -59,7 +59,7 @@ class CodexBase(object):
                     temperature=temperature if top_p is None else 1.0,
                     top_p=top_p if temperature is None else 1.0,
                     n=n_samples,
-                    stop=separator,
+                    stop=line_separator,
                     max_tokens=max_tokens,
                     logprobs=logprobs,
                 )
