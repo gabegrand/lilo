@@ -95,7 +95,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
             temperature: Codex temperature sampling value in `[0., 1.]` range.
             max_tokens: Max number of tokens for a single program in the completion.
-                Codex will stop at `separator` anyway, so this value should be generous.
+                Codex will stop at `line_separator` anyway, so this value should be generous.
             engine: Codex `engine` parameter.
 
             debug: If True, replaces live query to Codex with a random sample
@@ -190,6 +190,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 )
 
             completion, cache_used = self.get_completion_for_prompt(
+                query_id=query_id,
                 experiment_state=experiment_state,
                 prompt_text=prompt.serialize(),
                 query_results_filepath=query_results_filepath,
@@ -197,7 +198,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 temperature=temperature,
                 max_tokens=max_tokens,
                 engine=engine,
-                separator=line_separator,
+                line_separator=line_separator,
                 use_cached=use_cached,
                 debug=debug,
             )
@@ -276,6 +277,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
     def get_completion_for_prompt(
         self,
+        query_id,
         experiment_state,
         prompt_text,
         query_results_filepath,
@@ -283,7 +285,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         temperature,
         max_tokens,
         engine,
-        separator,
+        line_separator,
         use_cached,
         debug,
     ):
@@ -296,9 +298,27 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         elif use_cached and os.path.exists(query_results_filepath):
             cache_used = True
             print("Using cached examples....")
+
+            # TODO(gg): Update cache loading behavior!!!!
+
             # For debugging only - does not verify that the cached completion matches the desired query parameters
             with open(query_results_filepath, "r") as f:
-                completion_data = json.load(f)["completion"]
+                query_results = json.load(f)
+                # Ensure that the cached query matches the desired query parameters.
+                assert (
+                    query_results["params"]["n_samples_per_query"]
+                    == n_samples_per_query
+                )
+                assert query_results["params"]["temperature"] == temperature
+                assert query_results["params"]["engine"] == engine
+                assert query_results["params"]["line_separator"] == line_separator
+                # Get the cached completion for the particular query_id.
+                assert (
+                    query_results["results_by_query"][query_id]["query_id"] == query_id
+                )
+                completion_data = query_results["results_by_query"][query_id][
+                    "completion"
+                ]
             completion = Completion()
             completion.refresh_from(completion_data)
         else:
@@ -309,7 +329,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 temperature=temperature,
                 max_tokens=max_tokens,
                 engine=engine,
-                separator=separator,
+                line_separator=line_separator,
             )
         return completion, cache_used
 
@@ -346,9 +366,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 p_type = p.infer()
             except InferenceFailure:
                 print(f"Type inference failure for: {str(p)}")
-                import pdb
-
-                pdb.set_trace()
                 parse_results.append(
                     {
                         "text": program_str_codex,
@@ -380,7 +397,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     "text": program_str_codex,
                     "valid": True,
                     "program": str(p),
-                    "type": p_type,
+                    "type": str(p_type),
                     "hash": abs(hash(str(p))),
                 }
             )
