@@ -44,7 +44,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         self,
         experiment_state,
         task_splits: list,
-        task_ids_in_splits: list,
+        task_ids_in_splits: dict,
         # Sampling
         n_samples: int,
         n_samples_per_query: int = None,
@@ -63,46 +63,51 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         # Utility
         debug: bool = False,
         use_cached: bool = False,
-        query_print_frequency=1,
+        query_print_frequency: int = 1,
         compute_likelihoods: bool = False,
+        verbose: bool = False,
     ):
         """
         Queries Codex API to generate new samples based on training data.
 
-        Currently supports only program generation. Generation of language and
-        generation of programs conditioned on language are both forthcoming.
-
         params:
-            TODO(gg): Update params docs.
+            # LAPS parameters
             experiment_state: experiment_state
-            n_samples: Total number of sample examples to attempt to generate with Codex.
-                        Some of these programs may be invalid; only valid programs are added to the
-                        experiment_state.
-            n_samples_per_query: Number of samples to take from Codex per each generated prompt, which may
-                                    contain a random subset of the training examples. If None, will be set equal to n_samples.
-            n_train_programs_per_prompt: Number of training programs to include
-                in the Codex prompt. If `n_train_programs_per_prompt` is too high,
-                the prompt may exceed the token budget and trigger an `InvalidRequestError`.
+            task_splits: list of task splits
+            task_ids_in_splits: dict of task_ids_in_splits
 
+            # Sampling parameters
+            n_samples: Total number of unique, valid samples to generate from Codex.
+                Prompting will continue until this number is reached or max_queries is exceeded.
+            n_samples_per_query: Number of samples to take from Codex per query. Each query uses a new, random prompt.
+                Defaults to a single query with n_samples.
+            max_queries: Maximum number of queries to make to Codex. Defaults to 2 * min_queries, where min_queries is
+                the minimum number of queries required to generate n_samples.
+
+            # Prompt construction parameters
+            n_tasks_per_prompt: Number of training programs to include in each Codex prompt.
+                If `n_train_programs_per_prompt` is too high, the prompt may exceed the token budget and trigger an `InvalidRequestError`.
+            body_task_types: List of task types in [LANGUAGE, PROGRAMS] to include in the body of the prompt.
+            final_task_types: List of task types in [LANGUAGE, PROGRAMS] to include in the final task of the prompt.
+            final_task_origin: Origin of the final task in the prompt. See the `Prompt.FINAL_TASK_ORIGIN_*` constants.
+            function_name_classes: List of 'name_classes' specifying what naming scheme to use for functions
+                programs used for the inductive prompt. Name classes will be applied in order as they are avaialble for each
+                function, falling back on DEFAULT (the DreamCoder parseable function names).
+
+            # Codex-specific parameters
             temperature: Codex temperature sampling value in `[0., 1.]` range.
             max_tokens: Max number of tokens for a single program in the completion.
                 Codex will stop at `line_separator` anyway, so this value should be generous.
             engine: Codex `engine` parameter.
 
+            # Utility parameters
             debug: If True, replaces live query to Codex with a random sample
                 from the training set.
             use_cached: If True, replaces live query to Codex with a cached query
                 stored in `query_results_filepath`.
-            function_name_classes: An array of 'name_classes' specifying what naming scheme to use for functions
-                programs used for the inductive prompt. Name classes will be applied in order as they are avaialble for each
-                function, falling back on DEFAULT (the DreamCoder parseable function names).
-            prompt_example_types: An array of example types from {LIBRARY,LANGUAGE, PROGRAMS} that will be included in the prompt for Codex to condition on.
-            sample_type: A type in {PROGRAMS, LIBRARY, LANGUAGE} to sample from Codex.
-            allow_duplicate_examples_per_task: If True, allow multiple examples for a given task.
-            allow_language_for_disjoint_tasks: If True, and including language in the prompt example type, prefix the final sample using language disjoint from what we are otherwise training on.
-            compute_likelihoods: Whether to compute log likelihoods of each program
-                under the grammar. This requires converting the programs to eta-long form,
-                which is error-prone, so we don't do it by default.
+            query_print_frequency: Number of queries to make before printing a status update.
+            compute_likelihoods: If True, compute likelihoods for each sample.
+            verbose: If True, print extra status updates including parse errors.
         """
         rng = experiment_state.metadata[RANDOM_GENERATOR]
         grammar = experiment_state.models[model_loaders.GRAMMAR]
@@ -173,8 +178,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
             if query_id % query_print_frequency == 0:
                 print(
-                    f"Now on query {query_id}/{max_queries}: with {len(unique_hashes_valid)} / {n_samples} total samples. "
-                    f"Querying Codex with prompt ({len(prompt)} tasks) for {n_samples_per_query} samples..."
+                    f"[QUERY {query_id}/{max_queries}]: Querying Codex ({len(prompt)} prompt tasks) for {n_samples_per_query} samples..."
                 )
 
             completion, cache_used = self.get_completion_for_prompt(
@@ -191,43 +195,53 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 debug=debug,
             )
 
-            if completion is not None:
-                parse_results = self.parse_completion(
-                    completion,
-                    grammar,
-                    function_name_classes,
-                    compute_likelihoods,
-                )
-                results_by_query.append(
-                    {
-                        "query_id": query_id,
-                        "prompt": prompt.to_dict(),
-                        "completion": completion.to_dict_recursive()
-                        if not debug
-                        else completion,
-                        "parse_results": parse_results,
-                    }
-                )
-                for result_data in parse_results:
-                    result_data["query_id"] = query_id
-                    if result_data["valid"]:
-                        # Only allow one unique parse per program (even if the original text is different).
-                        if result_data["hash"] not in unique_hashes_valid:
-                            unique_hashes_valid.add(result_data["hash"])
-                            parse_results_valid.append(result_data)
-                    else:
-                        parse_results_invalid.append(result_data)
-
-                    # Stop as soon as target n_samples is reached, even if there are more valid programs in the results.
-                    if len(unique_hashes_valid) >= n_samples:
-                        break
-
-                # Stop making queries target n_samples is reached.
-                if len(unique_hashes_valid) >= n_samples:
-                    break
-            else:
+            if completion is None:
                 # TODO(gg): More graceful handling of API query failures.
                 raise ValueError("Query to Codex encountered an error.")
+
+            parse_results = self.parse_completion(
+                completion,
+                grammar,
+                function_name_classes,
+                compute_likelihoods,
+                verbose,
+            )
+            results_by_query.append(
+                {
+                    "query_id": query_id,
+                    "prompt": prompt.to_dict(),
+                    "completion": completion.to_dict_recursive()
+                    if not debug
+                    else completion,
+                    "parse_results": parse_results,
+                }
+            )
+            for result_data in parse_results:
+                result_data["query_id"] = query_id
+                if result_data["valid"]:
+                    # Only allow one unique parse per program (even if the original text is different).
+                    if result_data["hash"] not in unique_hashes_valid:
+                        unique_hashes_valid.add(result_data["hash"])
+                        parse_results_valid.append(result_data)
+                else:
+                    parse_results_invalid.append(result_data)
+
+                # Stop as soon as target n_samples is reached, even if there are more valid programs in the results.
+                if len(unique_hashes_valid) >= n_samples:
+                    break
+
+            if query_id % query_print_frequency == 0:
+                print(
+                    f"[QUERY {query_id}/{max_queries}]: Returned {len(list(filter(lambda x: x['valid'], parse_results)))}/{n_samples_per_query} valid samples."
+                )
+
+            print(
+                f"[STATUS]: Sampled {len(unique_hashes_valid)}/{n_samples} unique, valid samples."
+            )
+
+            # Stop making queries target n_samples is reached.
+            if len(unique_hashes_valid) >= n_samples:
+                break
 
         # Save results to file.
         query_results = {
@@ -332,6 +346,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         grammar,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
         compute_likelihoods: bool = False,
+        verbose: bool = False,
     ):
         parse_results = []
         for choice in completion["choices"]:
@@ -344,7 +359,8 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 )
                 p = Program.parse(program_str)
             except (ParseFailure, IndexError, AssertionError, ValueError) as e:
-                print(f"Failed to parse ({type(e)}): {program_str_codex}")
+                if verbose:
+                    print(f"Failed to parse ({type(e)}): {program_str_codex}")
                 parse_results.append(
                     {
                         "text": program_str_codex,
@@ -358,7 +374,8 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             try:
                 p_type = p.infer()
             except InferenceFailure:
-                print(f"Type inference failure for: {str(p)}")
+                if verbose:
+                    print(f"Type inference failure for: {str(p)}")
                 parse_results.append(
                     {
                         "text": program_str_codex,
@@ -374,7 +391,8 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     # Hack to avoid fatal error when computing likelihood summaries during rescoreFrontier
                     p = EtaLongVisitor(request=p_type).execute(p)
                 except:
-                    print(f"Error converting to ETA Long for {p}")
+                    if verbose:
+                        print(f"Error converting to ETA Long for {p}")
                     parse_results.append(
                         {
                             "text": program_str_codex,
