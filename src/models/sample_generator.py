@@ -17,7 +17,7 @@ from dreamcoder.task import Task
 from src.experiment_iterator import RANDOM_GENERATOR
 from src.models.codex_base import DEFAULT_LINE_SEPARATOR, CodexBase, Prompt
 from src.models.laps_grammar import LAPSGrammar
-from src.task_loaders import ALL, LANGUAGE, PROGRAMS, TEST, TRAIN
+from src.task_loaders import ALL, PROGRAMS, TEST, TRAIN
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.SAMPLE_GENERATOR]
 
@@ -27,15 +27,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     name = "codex_sample_generator"
 
     query_results_file = "codex_query_results.json"
-
-    PROMPT_EXAMPLE_TYPES = [LANGUAGE, PROGRAMS]
-
-    # Final task is the last task in body_tasks
-    FINAL_TASK_ORIGIN_DEFAULT = "default"
-    # Final task is drawn randomly from unused train tasks
-    FINAL_TASK_ORIGIN_RANDOM_TRAIN = "random_train"
-    # Final task is drawn randomly from test tasks
-    FINAL_TASK_ORIGIN_RANDOM_TEST = "random_test"
 
     # Parse error codes
     ERROR_PARSE = "parse"
@@ -62,7 +53,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         n_tasks_per_prompt: int = 10,
         body_task_types: list = [PROGRAMS],
         final_task_types: list = [PROGRAMS],
-        final_task_origin: str = FINAL_TASK_ORIGIN_DEFAULT,
+        final_task_origin: str = Prompt.FINAL_TASK_ORIGIN_DEFAULT,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
         line_separator: str = DEFAULT_LINE_SEPARATOR,
         # Codex parameters
@@ -151,11 +142,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 )
             )
 
-            if final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_DEFAULT:
+            if final_task_origin == Prompt.FINAL_TASK_ORIGIN_DEFAULT:
                 final_task_id = None
-            elif (
-                final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TRAIN
-            ):
+            elif final_task_origin == Prompt.FINAL_TASK_ORIGIN_RANDOM_TRAIN:
                 final_task_id = rng.choice(
                     [
                         t.name
@@ -163,9 +152,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                         if t.name not in task_ids_in_splits[TRAIN]
                     ]
                 )
-            elif (
-                final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TEST
-            ):
+            elif final_task_origin == Prompt.FINAL_TASK_ORIGIN_RANDOM_TEST:
                 final_task_id = rng.choice(
                     [t.name for t in experiment_state.tasks[TEST]]
                 )
@@ -178,6 +165,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 final_task_id=final_task_id,
                 body_task_types=body_task_types,
                 final_task_types=final_task_types,
+                final_task_origin=final_task_origin,
                 function_name_classes=function_name_classes,
                 line_separator=line_separator,
                 # TODO(gg): Support for configuring prompt prefixes.
@@ -214,7 +202,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     {
                         "query_id": query_id,
                         "prompt": prompt.to_dict(),
-                        "completion": completion.to_dict_recursive(),
+                        "completion": completion.to_dict_recursive()
+                        if not debug
+                        else completion,
                         "parse_results": parse_results,
                     }
                 )
@@ -231,6 +221,10 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     # Stop as soon as target n_samples is reached, even if there are more valid programs in the results.
                     if len(unique_hashes_valid) >= n_samples:
                         break
+
+                # Stop making queries target n_samples is reached.
+                if len(unique_hashes_valid) >= n_samples:
+                    break
             else:
                 # TODO(gg): More graceful handling of API query failures.
                 raise ValueError("Query to Codex encountered an error.")
@@ -263,7 +257,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             },
             "results_by_query": results_by_query,
         }
-        if not cache_used:
+        if not debug and not cache_used:
             with open(query_results_filepath, "w") as f:
                 json.dump(query_results, f, indent=4)
             print(f"Wrote results: {query_results_filepath}")
@@ -274,6 +268,8 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             parse_results_valid=parse_results_valid,
             compute_likelihoods=compute_likelihoods,
         )
+
+        return query_results
 
     def get_completion_for_prompt(
         self,
@@ -295,13 +291,10 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             completion = self.query_mock(
                 experiment_state, n_samples=n_samples_per_query
             )
+        # For debugging only - does not verify that the cached completion matches the desired query parameters
         elif use_cached and os.path.exists(query_results_filepath):
             cache_used = True
             print("Using cached examples....")
-
-            # TODO(gg): Update cache loading behavior!!!!
-
-            # For debugging only - does not verify that the cached completion matches the desired query parameters
             with open(query_results_filepath, "r") as f:
                 query_results = json.load(f)
                 # Ensure that the cached query matches the desired query parameters.
@@ -439,10 +432,11 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
     def query_mock(self, experiment_state, n_samples: int = 3, **kwargs):
         """Debugging query that returns a sample of programs from the task."""
+        rng = experiment_state.metadata[RANDOM_GENERATOR]
         frontiers = experiment_state.get_frontiers_for_ids(
             task_split=TRAIN, task_ids=ALL
         )
-        frontiers = np.random.choice(frontiers, size=n_samples)
-        program_str_list = [str(e.program) for f in frontiers for e in f.entries]
+        frontiers = rng.choice(frontiers, size=n_samples, replace=True)
+        program_str_list = [str(f.entries[0].program) for f in frontiers]
         completion = dict(choices=[dict(text=p_str) for p_str in program_str_list])
         return completion

@@ -14,7 +14,7 @@ from openai.error import InvalidRequestError, RateLimitError
 from src.experiment_iterator import RANDOM_GENERATOR
 from src.models.laps_grammar import LAPSGrammar
 from src.models.model_loaders import GRAMMAR
-from src.task_loaders import LANGUAGE, PROGRAMS, TRAIN
+from src.task_loaders import LANGUAGE, PROGRAMS, TEST, TRAIN
 
 DEFAULT_LINE_SEPARATOR = "\n"
 
@@ -82,6 +82,13 @@ class Prompt(object):
     DEFAULT_PREFIX_PROGRAM = ""
     DEFAULT_PREFIX_LANGUAGE = "# "
 
+    # Final task is the last task in body_tasks
+    FINAL_TASK_ORIGIN_DEFAULT = "default"
+    # Final task is drawn randomly from unused train tasks
+    FINAL_TASK_ORIGIN_RANDOM_TRAIN = "random_train"
+    # Final task is drawn randomly from test tasks
+    FINAL_TASK_ORIGIN_RANDOM_TEST = "random_test"
+
     def __init__(
         self,
         experiment_state,
@@ -89,6 +96,7 @@ class Prompt(object):
         final_task_id: str = None,
         body_task_types: list = [LANGUAGE, PROGRAMS],
         final_task_types: list = [LANGUAGE],
+        final_task_origin: str = FINAL_TASK_ORIGIN_DEFAULT,
         line_separator: str = DEFAULT_LINE_SEPARATOR,
         prefix_language: str = DEFAULT_PREFIX_LANGUAGE,
         prefix_program: str = DEFAULT_PREFIX_PROGRAM,
@@ -110,9 +118,12 @@ class Prompt(object):
 
         self.body_task_types = body_task_types
         self.final_task_types = final_task_types
+        self.final_task_origin = final_task_origin
+
         self.line_separator = line_separator
         self.prefix_language = prefix_language
         self.prefix_program = prefix_program
+
         self.function_name_classes = function_name_classes
 
         self.body_task_data = [
@@ -120,7 +131,11 @@ class Prompt(object):
             for task_id in body_task_ids
         ]
         self.final_task_data = self._get_task_data(
-            task_id=final_task_id, task_types=final_task_types
+            task_id=final_task_id,
+            task_types=final_task_types,
+            task_split=TEST
+            if final_task_origin is Prompt.FINAL_TASK_ORIGIN_RANDOM_TEST
+            else TRAIN,
         )
 
     def __len__(self):
@@ -162,8 +177,8 @@ class Prompt(object):
     def json(self):
         return json.dumps(self.to_dict(), indent=4)
 
-    def _get_task_data(self, task_id: str, task_types: list):
-        frontier = self.experiment_state.get_frontiers_for_ids(TRAIN, [task_id])[0]
+    def _get_task_data(self, task_id: str, task_types: list, task_split: str = TRAIN):
+        frontier = self.experiment_state.get_frontiers_for_ids(task_split, [task_id])[0]
         if PROGRAMS in task_types:
             task_program = self.rng.choice(
                 [
@@ -177,7 +192,7 @@ class Prompt(object):
             task_program = None
         if LANGUAGE in task_types:
             task_language = self.rng.choice(
-                self.experiment_state.get_language_for_ids(TRAIN, [task_id])[0]
+                self.experiment_state.get_language_for_ids(task_split, [task_id])[0]
             )
         else:
             task_language = None
