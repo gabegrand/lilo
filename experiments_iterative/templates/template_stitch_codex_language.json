@@ -72,6 +72,9 @@
                     "use_cached": false,
                     "n_samples": 10,
                     "n_tasks_per_prompt": 20,
+                    "body_task_types": ["language", "programs"],
+                    "final_task_types": ["language"],
+                    "final_task_origin": "default",
                     "temperature": 0.75,
                     "max_tokens": 256,
                     "function_name_classes": ["default"]
