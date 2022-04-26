@@ -122,6 +122,11 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             experiment_state.get_checkpoint_directory(),
             self.query_results_file,
         )
+        if use_cached and not os.path.exists(query_results_filepath):
+            print(
+                f"WARNING: No query results found at {query_results_filepath}. Disabling use_cached."
+            )
+            use_cached = False
 
         # Default to drawing all samples from the same prompt
         if n_samples_per_query is None:
@@ -178,6 +183,11 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 line_separator=line_separator,
                 # TODO(gg): Support for configuring prompt prefixes.
             )
+            if use_cached:
+                # Load cached prompt for query_id
+                with open(query_results_filepath, "r") as f:
+                    prompt_json = json.load(f)["results_by_query"][query_id]["prompt"]
+                prompt.load_from_dict(prompt_json)
 
             if query_id % query_print_frequency == 0:
                 print(
@@ -242,7 +252,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 f"[STATUS]: Sampled {len(unique_hashes_valid)}/{n_samples} unique, valid samples."
             )
 
-            # Stop making queries target n_samples is reached.
+            # Stop making queries once target n_samples is reached.
             if len(unique_hashes_valid) >= n_samples:
                 break
 

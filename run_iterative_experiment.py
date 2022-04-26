@@ -82,6 +82,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--use_cached",
+    default=False,
+    action="store_true",
+    help="Use cached versions of Codex queries.",
+)
+
+parser.add_argument(
     "--overwrite",
     default=False,
     action="store_true",
@@ -91,14 +98,19 @@ parser.add_argument(
 
 def main(args):
 
+    codex_params = json.loads(args.codex_params)
+    stitch_params = json.loads(args.stitch_params)
+    if args.use_cached:
+        codex_params["use_cached"] = True
+
     for random_seed in args.random_seeds:
         config_base = build_config(
             experiment_type=args.experiment_type,
             domain=args.domain,
             task_batcher=args.task_batcher,
             random_seed=random_seed,
-            codex_params=json.loads(args.codex_params),
-            stitch_params=json.loads(args.stitch_params),
+            codex_params=codex_params,
+            stitch_params=stitch_params,
             compute_likelihoods=args.compute_likelihoods,
             compute_description_lengths=True,
         )
@@ -140,8 +152,8 @@ def main(args):
                 task_batcher=args.task_batcher,
                 random_seed=random_seed,
                 global_batch_size=global_batch_size,
-                codex_params=json.loads(args.codex_params),
-                stitch_params=json.loads(args.stitch_params),
+                codex_params=codex_params,
+                stitch_params=stitch_params,
                 compute_likelihoods=args.compute_likelihoods,
                 compute_description_lengths=True,
             )
