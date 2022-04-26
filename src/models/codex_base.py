@@ -66,12 +66,11 @@ class CodexBase(object):
                 return completion
             except InvalidRequestError as e:
                 print(e)
-                completion = None
-                return completion
+                return e
             except RateLimitError as e:
                 print(e)
                 pause_for_rate_limit = True
-                completion = None
+                completion = e
 
         return completion
 
@@ -104,7 +103,8 @@ class Prompt(object):
     ):
         # Default final_task_id is the last task in body_task_ids
         if final_task_id is None:
-            final_task_id = body_task_ids.pop(-1)
+            final_task_id = body_task_ids[-1]
+            body_task_ids = body_task_ids[:-1]
 
         # Enforce canonical ordering of task_types
         body_task_types = [t for t in self.TASK_TYPES if t in body_task_types]

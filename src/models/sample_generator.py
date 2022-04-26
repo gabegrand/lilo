@@ -9,6 +9,8 @@ import os
 
 import numpy as np
 from openai.api_resources.completion import Completion
+from openai.error import InvalidRequestError, RateLimitError
+from openai.openai_object import OpenAIObject
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
@@ -49,6 +51,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         n_samples: int,
         n_samples_per_query: int = None,
         max_queries: int = None,
+        max_retries: int = 10,
         # Prompt construction
         n_tasks_per_prompt: int = 10,
         body_task_types: list = [PROGRAMS],
@@ -172,87 +175,107 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             else:
                 raise ValueError(f"Unknown final_task_origin={final_task_origin}")
 
-            prompt = Prompt(
-                experiment_state=experiment_state,
-                body_task_ids=body_task_ids,
-                final_task_id=final_task_id,
-                body_task_types=body_task_types,
-                final_task_types=final_task_types,
-                final_task_origin=final_task_origin,
-                function_name_classes=function_name_classes,
-                line_separator=line_separator,
-                # TODO(gg): Support for configuring prompt prefixes.
-            )
-            if use_cached:
-                # Load cached prompt for query_id
-                with open(query_results_filepath, "r") as f:
-                    prompt_json = json.load(f)["results_by_query"][query_id]["prompt"]
-                prompt.load_from_dict(prompt_json)
-
-            if query_id % query_print_frequency == 0:
-                print(
-                    f"[QUERY {query_id}/{max_queries}]: Querying Codex ({len(prompt)} prompt tasks) for {n_samples_per_query} samples..."
-                )
-
-            completion, cache_used = self.get_completion_for_prompt(
-                query_id=query_id,
-                experiment_state=experiment_state,
-                prompt_text=prompt.serialize(),
-                query_results_filepath=query_results_filepath,
-                n_samples_per_query=n_samples_per_query,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                engine=engine,
-                line_separator=line_separator,
-                use_cached=use_cached,
-                debug=debug,
-            )
-
-            if completion is None:
-                # TODO(gg): More graceful handling of API query failures.
-                raise ValueError("Query to Codex encountered an error.")
-
-            parse_results = self.parse_completion(
-                completion,
-                grammar,
-                function_name_classes,
-                compute_likelihoods,
-                verbose,
-            )
-            results_by_query.append(
-                {
-                    "query_id": query_id,
-                    "prompt": prompt.to_dict(),
-                    "completion": completion.to_dict_recursive()
-                    if not debug
-                    else completion,
-                    "parse_results": parse_results,
-                }
-            )
-            for result_data in parse_results:
-                result_data["query_id"] = query_id
-                if result_data["valid"]:
-                    # Only allow one unique parse per program (even if the original text is different).
-                    if result_data["hash"] not in unique_hashes_valid:
-                        unique_hashes_valid.add(result_data["hash"])
-                        parse_results_valid.append(result_data)
+            for retry_i in range(max_retries):
+                if retry_i > 0:
+                    body_task_ids_for_prompt = body_task_ids[:-retry_i]
+                    print(
+                        f"Retrying prompt with {len(body_task_ids_for_prompt)} body tasks"
+                    )
                 else:
-                    parse_results_invalid.append(result_data)
+                    body_task_ids_for_prompt = body_task_ids
 
-                # Stop as soon as target n_samples is reached, even if there are more valid programs in the results.
-                if len(unique_hashes_valid) >= n_samples:
-                    break
+                prompt = Prompt(
+                    experiment_state=experiment_state,
+                    body_task_ids=body_task_ids_for_prompt,
+                    final_task_id=final_task_id,
+                    body_task_types=body_task_types,
+                    final_task_types=final_task_types,
+                    final_task_origin=final_task_origin,
+                    function_name_classes=function_name_classes,
+                    line_separator=line_separator,
+                    # TODO(gg): Support for configuring prompt prefixes.
+                )
+                if use_cached:
+                    # Load cached prompt for query_id
+                    with open(query_results_filepath, "r") as f:
+                        prompt_json = json.load(f)["results_by_query"][query_id][
+                            "prompt"
+                        ]
+                    prompt.load_from_dict(prompt_json)
 
-            if query_id % query_print_frequency == 0:
-                print(
-                    f"[QUERY {query_id}/{max_queries}]: Returned {len(list(filter(lambda x: x['valid'], parse_results)))}/{n_samples_per_query} valid samples."
+                if query_id % query_print_frequency == 0:
+                    print(
+                        f"[QUERY {query_id}/{max_queries}]: Querying Codex ({len(prompt)} prompt tasks) for {n_samples_per_query} samples..."
+                    )
+
+                completion, cache_used = self.get_completion_for_prompt(
+                    query_id=query_id,
+                    experiment_state=experiment_state,
+                    prompt_text=prompt.serialize(),
+                    query_results_filepath=query_results_filepath,
+                    n_samples_per_query=n_samples_per_query,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    engine=engine,
+                    line_separator=line_separator,
+                    use_cached=use_cached,
+                    debug=debug,
                 )
 
-            print(
-                f"[STATUS]: Sampled {len(unique_hashes_valid)}/{n_samples} unique, valid samples."
-            )
+                if not isinstance(completion, OpenAIObject):
+                    if isinstance(completion, InvalidRequestError):
+                        if retry_i >= max_retries - 1:
+                            raise ValueError(f"Max retries {max_retries} exceeded.")
+                        continue
+                    elif isinstance(completion, RateLimitError):
+                        raise ValueError(f"Rate limit exceeded. Retry later.")
+                    else:
+                        raise ValueError(
+                            f"Unexpected completion type: {type(completion)}"
+                        )
 
-            # Stop making queries once target n_samples is reached.
+                parse_results = self.parse_completion(
+                    completion,
+                    grammar,
+                    function_name_classes,
+                    compute_likelihoods,
+                    verbose,
+                )
+                results_by_query.append(
+                    {
+                        "query_id": query_id,
+                        "prompt": prompt.to_dict(),
+                        "completion": completion.to_dict_recursive()
+                        if not debug
+                        else completion,
+                        "parse_results": parse_results,
+                    }
+                )
+                for result_data in parse_results:
+                    result_data["query_id"] = query_id
+                    if result_data["valid"]:
+                        # Only allow one unique parse per program (even if the original text is different).
+                        if result_data["hash"] not in unique_hashes_valid:
+                            unique_hashes_valid.add(result_data["hash"])
+                            parse_results_valid.append(result_data)
+                    else:
+                        parse_results_invalid.append(result_data)
+
+                    # Stop as soon as target n_samples is reached, even if there are more valid programs in the results.
+                    if len(unique_hashes_valid) >= n_samples:
+                        break
+
+                if query_id % query_print_frequency == 0:
+                    print(
+                        f"[QUERY {query_id}/{max_queries}]: Returned {len(list(filter(lambda x: x['valid'], parse_results)))}/{n_samples_per_query} valid samples."
+                    )
+
+                print(
+                    f"[STATUS]: Sampled {len(unique_hashes_valid)}/{n_samples} unique, valid samples."
+                )
+
+                break
+
             if len(unique_hashes_valid) >= n_samples:
                 break
 
