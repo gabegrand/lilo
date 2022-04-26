@@ -127,6 +127,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         if n_samples_per_query is None:
             n_samples_per_query = n_samples
 
+        # We sample without replacement
+        n_tasks_per_prompt = min(n_tasks_per_prompt, len(task_ids_in_splits[TRAIN]))
+
         # Set the number of prompt attempts to something reasonable
         min_queries = np.ceil(n_samples / n_samples_per_query)
         if max_queries is None:
