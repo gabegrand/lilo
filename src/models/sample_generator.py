@@ -353,7 +353,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     ):
         parse_results = []
         for choice in completion["choices"]:
-            program_str_codex = choice["text"]
+            program_str_codex, program_str = choice["text"], ""
             # CHECK 1: Does the program parse?
             try:
                 # Write the program back into the DreamCoder form from whatever it was initially in.

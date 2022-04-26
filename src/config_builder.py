@@ -4,8 +4,10 @@ Utilities for autogenerating configs for experiments based on templates.
 
 """
 
+import copy
 import json
 import os
+import hashlib
 
 import data.drawings.make_tasks as drawing_tasks
 from src.models.laps_grammar import LAPSGrammar
@@ -131,9 +133,18 @@ def build_config(
             global_batch_size=global_batch_size,
             output_directory=output_directory,
             random_seed=random_seed,
+            config_experiment_iterator=config["experiment_iterator"],
         )
     )
     return config
+
+
+def get_batch_agnostic_experiment_iterator_hash(config_experiment_iterator):
+    # Hash all other iterator parameters except batch size.
+    batch_agnostic_config = copy.deepcopy(config_experiment_iterator)
+    batch_agnostic_config["task_batcher"]["params"]["global_batch_size"] = None
+    hashed = hashlib.md5(str(batch_agnostic_config).encode()).hexdigest()
+    return str(hashed)
 
 
 def build_config_metadata(
@@ -143,11 +154,16 @@ def build_config_metadata(
     global_batch_size: int = ALL,
     output_directory: str = DEFAULT_EXPERIMENT_DIR,
     random_seed: int = 0,
+    config_experiment_iterator=None,
 ):
     domain_meta = get_domain_metadata(domain)
 
     if experiment_id is None:
         experiment_id = experiment_type
+
+    experiment_config_body_hash = get_batch_agnostic_experiment_iterator_hash(
+        config_experiment_iterator
+    )
 
     export_directory = os.path.join(
         output_directory,
@@ -155,6 +171,7 @@ def build_config_metadata(
         "domains",
         domain,
         experiment_id,
+        experiment_config_body_hash,
         f"seed_{random_seed}",
     )
     log_directory = os.path.join(
@@ -229,17 +246,11 @@ def build_config_body(
             block["params"].update(_stitch_params)
         if (
             block.get("model_type")
-            in [
-                LAPSGrammar.GRAMMAR,
-                SAMPLE_GENERATOR,
-                PROGRAM_REWRITER,
-            ]
+            in [LAPSGrammar.GRAMMAR, SAMPLE_GENERATOR, PROGRAM_REWRITER,]
             or block.get("state_fn") == INITIALIZE_GROUND_TRUTH
         ):
             block["params"].update(
-                {
-                    "compute_likelihoods": compute_likelihoods,
-                }
+                {"compute_likelihoods": compute_likelihoods,}
             )
         loop_blocks.append(block)
     config["experiment_iterator"]["loop_blocks"] = loop_blocks
