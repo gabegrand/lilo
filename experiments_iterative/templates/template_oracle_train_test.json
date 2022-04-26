@@ -3,7 +3,7 @@
     "model_initializers": [
         {
             "model_type": "grammar",
-            "model_loader": "NONE",
+            "model_loader": null,
             "model_initializer_fn": "load_model",
             "params": {}
         },
@@ -21,7 +21,7 @@
         }
     ],
     "experiment_iterator": {
-        "max_iterations": "NONE",
+        "max_iterations": null,
         "task_batcher": {
             "model_type": "ground_truth_ordered_task_batcher",
             "params": {
@@ -64,9 +64,9 @@
                     "all"
                 ],
                 "params": {
-                    "max_arity": "NONE",
-                    "iterations": "NONE",
-                    "candidates_per_iteration": "NONE",
+                    "max_arity": null,
+                    "iterations": null,
+                    "candidates_per_iteration": null,
                     "include_samples": false,
                     "update_grammar": true
                 }
