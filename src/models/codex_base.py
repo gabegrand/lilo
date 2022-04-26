@@ -107,8 +107,8 @@ class Prompt(object):
             final_task_id = body_task_ids.pop(-1)
 
         # Enforce canonical ordering of task_types
-        body_task_types = [t for t in body_task_types if t in self.TASK_TYPES]
-        final_task_types = [t for t in final_task_types if t in self.TASK_TYPES]
+        body_task_types = [t for t in self.TASK_TYPES if t in body_task_types]
+        final_task_types = [t for t in self.TASK_TYPES if t in final_task_types]
         assert len(body_task_types) > 0
         assert len(final_task_types) > 0
 
