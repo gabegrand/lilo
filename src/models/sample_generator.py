@@ -86,7 +86,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 Defaults to a single query with n_samples.
             max_queries: Maximum number of queries to make to Codex. Defaults to 2 * min_queries, where min_queries is
                 the minimum number of queries required to generate n_samples.
-            max_retries: Max number of retries per query. 
+            max_retries: Max number of retries per query.
                 Intention is to more gracefully handle `InvalidRequestError` when max tokens is exceeded via iterative backoff.
                 Iteratively removes last item from body_tasks until query success or max_retries is exceeded.
                 Defaults to a very permissive behavior where the query will retry until reduced to a single task before failing.
@@ -408,7 +408,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 parse_results.append(
                     {
                         "text": program_str_codex,
-                        "text_after_show_program": program_str,
                         "valid": False,
                         "error": CodexSampleGenerator.ERROR_PARSE,
                     }
@@ -423,7 +422,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 parse_results.append(
                     {
                         "text": program_str_codex,
-                        "text_after_show_program": program_str,
                         "valid": False,
                         "error": CodexSampleGenerator.ERROR_INFER,
                     }
@@ -440,7 +438,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     parse_results.append(
                         {
                             "text": program_str_codex,
-                            "text_after_show_program": program_str,
                             "valid": False,
                             "error": CodexSampleGenerator.ERROR_ETA_LONG,
                         }
