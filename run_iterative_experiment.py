@@ -42,6 +42,10 @@ from src.task_loaders import GroundTruthOrderedTaskBatcher
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
+    "--experiment_name", required=True, help="Unique name for this experiment."
+)
+
+parser.add_argument(
     "--experiment_type", required=True, help="[stitch, stitch_codex, oracle]"
 )
 
@@ -105,6 +109,7 @@ def main(args):
 
     for random_seed in args.random_seeds:
         config_base = build_config(
+            experiment_name=args.experiment_name,
             experiment_type=args.experiment_type,
             domain=args.domain,
             task_batcher=args.task_batcher,
@@ -147,6 +152,7 @@ def main(args):
 
         for global_batch_size in args.global_batch_sizes:
             config = build_config(
+                experiment_name=args.experiment_name,
                 experiment_type=args.experiment_type,
                 domain=args.domain,
                 task_batcher=args.task_batcher,
