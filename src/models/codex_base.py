@@ -66,12 +66,11 @@ class CodexBase(object):
                 return completion
             except InvalidRequestError as e:
                 print(e)
-                completion = None
-                return completion
+                return e
             except RateLimitError as e:
                 print(e)
                 pause_for_rate_limit = True
-                completion = None
+                completion = e
 
         return completion
 
@@ -80,7 +79,7 @@ class Prompt(object):
     TASK_TYPES = [LANGUAGE, PROGRAMS]
 
     DEFAULT_PREFIX_PROGRAM = ""
-    DEFAULT_PREFIX_LANGUAGE = "# "
+    DEFAULT_PREFIX_LANGUAGE = "-- "  # Haskell-style comment
 
     # Final task is the last task in body_tasks
     FINAL_TASK_ORIGIN_DEFAULT = "default"
@@ -104,7 +103,8 @@ class Prompt(object):
     ):
         # Default final_task_id is the last task in body_task_ids
         if final_task_id is None:
-            final_task_id = body_task_ids.pop(-1)
+            final_task_id = body_task_ids[-1]
+            body_task_ids = body_task_ids[:-1]
 
         # Enforce canonical ordering of task_types
         body_task_types = [t for t in self.TASK_TYPES if t in body_task_types]
@@ -170,7 +170,7 @@ class Prompt(object):
             "final_task_data": self.final_task_data,
         }
 
-    def from_dict(self, d):
+    def load_from_dict(self, d):
         self.body_task_data = d["body_task_data"]
         self.final_task_data = d["final_task_data"]
 
@@ -194,6 +194,8 @@ class Prompt(object):
             task_language = self.rng.choice(
                 self.experiment_state.get_language_for_ids(task_split, [task_id])[0]
             )
+            # Remove any line separators from the language
+            task_language = task_language.replace(self.line_separator, " ")
         else:
             task_language = None
 
