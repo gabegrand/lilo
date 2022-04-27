@@ -194,6 +194,8 @@ class Prompt(object):
             task_language = self.rng.choice(
                 self.experiment_state.get_language_for_ids(task_split, [task_id])[0]
             )
+            # Remove any line separators from the language
+            task_language = task_language.replace(self.line_separator, " ")
         else:
             task_language = None
 
