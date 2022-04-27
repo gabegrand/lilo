@@ -79,7 +79,7 @@ class Prompt(object):
     TASK_TYPES = [LANGUAGE, PROGRAMS]
 
     DEFAULT_PREFIX_PROGRAM = ""
-    DEFAULT_PREFIX_LANGUAGE = "# "
+    DEFAULT_PREFIX_LANGUAGE = "-- "  # Haskell-style comment
 
     # Final task is the last task in body_tasks
     FINAL_TASK_ORIGIN_DEFAULT = "default"
