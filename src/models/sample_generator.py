@@ -51,7 +51,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         n_samples: int,
         n_samples_per_query: int = None,
         max_queries: int = None,
-        max_retries: int = 10,
+        max_retries: int = None,
         # Prompt construction
         n_tasks_per_prompt: int = 10,
         body_task_types: list = [PROGRAMS],
@@ -86,6 +86,10 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 Defaults to a single query with n_samples.
             max_queries: Maximum number of queries to make to Codex. Defaults to 2 * min_queries, where min_queries is
                 the minimum number of queries required to generate n_samples.
+            max_retries: Max number of retries per query. 
+                Intention is to more gracefully handle `InvalidRequestError` when max tokens is exceeded via iterative backoff.
+                Iteratively removes last item from body_tasks until query success or max_retries is exceeded.
+                Defaults to a very permissive behavior where the query will retry until reduced to a single task before failing.
 
             # Prompt construction parameters
             n_tasks_per_prompt: Number of training programs to include in each Codex prompt.
@@ -137,6 +141,10 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
         # We sample without replacement
         n_tasks_per_prompt = min(n_tasks_per_prompt, len(task_ids_in_splits[TRAIN]))
+
+        # Default to retrying until reduced to a single task before failing.
+        if max_retries is None:
+            max_retries = n_tasks_per_prompt
 
         # Set the number of prompt attempts to something reasonable
         min_queries = np.ceil(n_samples / n_samples_per_query)
