@@ -6,6 +6,7 @@ Utilities for autogenerating configs for experiments based on templates.
 
 import json
 import os
+from enum import Enum
 
 import data.drawings.make_tasks as drawing_tasks
 from src.models.laps_grammar import LAPSGrammar
@@ -37,6 +38,17 @@ DEFAULT_CODEX_PARAMS = {
     "max_tokens": 256,
     "function_name_classes": ["default"],
 }
+
+
+class ExperimentType(str, Enum):
+    ORACLE = "oracle"
+    ORACLE_TRAIN_TEST = "oracle_train_test"
+    STITCH = "stitch"
+    STITCH_CODEX = "stitch_codex"
+    STITCH_CODEX_LANGUAGE = "stitch_codex_language"
+    STITCH_CODEX_LANGUAGE_ORIGIN_RANDOM_TEST = (
+        "stitch_codex_language_origin_random_test"
+    )
 
 
 def get_domain_metadata(domain: str):
