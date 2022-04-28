@@ -22,6 +22,9 @@ import numpy as np
 from dreamcoder.utilities import Curried
 from dreamcoder.program import *
 from dreamcoder.type import baseType, arrow, tmaybe, t0, t1, t2
+from matplotlib import pyplot as plt
+from mpl_toolkits.axes_grid1 import ImageGrid
+import PIL
 
 from data.drawings.tian_primitives import (
     tstroke,
@@ -326,23 +329,23 @@ LANG_GON_NAMES = {
     9: "nonagon",
 }
 
-
-# Utilities for rendering.
 # Utilities for rendering.
 def render_stroke_arrays_to_canvas(
     stroke_arrays,
     stroke_width_height=8 * XYLIM,
     canvas_width_height=SYNTHESIS_TASK_CANVAS_WIDTH_HEIGHT,
+    color=None,
 ):
+
     """See original source: prog2pxl https://github.com/ellisk42/ec/blob/draw/dreamcoder/domains/draw/primitives.py"""
     scale = canvas_width_height / stroke_width_height
 
     canvas_array = np.zeros((canvas_width_height, canvas_width_height), dtype=np.uint8)
     surface = cairo.ImageSurface.create_for_data(
-        canvas_array, cairo.Format.A8, canvas_width_height - 2, canvas_width_height - 2
+        canvas_array, cairo.Format.A8, canvas_width_height - 2, canvas_width_height - 2,
     )
+
     context = cairo.Context(surface)
-    context.set_source_rgb(512, 512, 512)
 
     for stroke_array in stroke_arrays:
         renderable_stroke = np.copy(stroke_array)
@@ -351,14 +354,27 @@ def render_stroke_arrays_to_canvas(
         for pixel in renderable_stroke:
             context.line_to(pixel[0], pixel[1])
         context.stroke()
-    return np.flip(canvas_array, 0) / (canvas_width_height * 2)
+    canvas = np.flip(canvas_array, 0) / (canvas_width_height * 2)
+
+    if color:
+        # Convert to rgb.
+        canvas[canvas != 0] = 1
+        rgb_canvas = np.stack((canvas,) * 3, axis=-1)
+        WHITE = (255, 255, 255)
+        rgb_canvas[np.all(rgb_canvas != (1, 1, 1), axis=-1)] = WHITE
+
+        rgb_canvas[np.all(rgb_canvas == (1, 1, 1), axis=-1)] = color
+        return rgb_canvas
+
+    return canvas
 
 
 def render_parsed_program(
     program,
-    stroke_width_height=8 * XYLIM,
+    stroke_width_height=4 * XYLIM,
     canvas_width_height=SYNTHESIS_TASK_CANVAS_WIDTH_HEIGHT,
     allow_partial_rendering=False,
+    color=None,
 ):
     if type(program) == str:
         program = Program.parse(program)
@@ -369,14 +385,85 @@ def render_parsed_program(
             assert len(evaluated_program.arguments) == 1
             evaluated_program = evaluated_program.arguments[0]
         program.rendering = render_stroke_arrays_to_canvas(
-            evaluated_program, stroke_width_height, canvas_width_height
+            evaluated_program, stroke_width_height, canvas_width_height, color,
         )
+
     return program.rendering
 
 
-def export_rendered_program(rendered_array, export_id, export_dir):
+def export_rendered_program(rendered_array, export_id, export_dir, color=None):
     filename = os.path.join(export_dir, f"{export_id}.png")
-    b_w_array = np.array((rendered_array > 0)).astype(int)  # Make black and white.
-    inverted_array = 1 - b_w_array  # Invert B/W image for aesthetics.
-    imageio.imwrite(filename, inverted_array)
+    if color == None:
+        b_w_array = np.array((rendered_array > 0)).astype(int)  # Make black and white.
+        rendered_array = 1 - b_w_array  # Invert B/W image for aesthetics.
+
+    imageio.imwrite(filename, rendered_array)
     return filename
+
+
+# Utilities for visualizing programs
+def display_programs_as_grid(programs, max_programs=16, color=None, **kwargs):
+    rendered_arrays = []
+    for p in programs:
+        try:
+            A = render_parsed_program(p, color=color)
+            rendered_arrays.append(A)
+        except:
+            pass
+        if len(rendered_arrays) == max_programs:
+            break
+    if len(rendered_arrays) > 0:
+        return display_arrays_as_grid(rendered_arrays, **kwargs)
+    else:
+        print("No valid arrays to display.")
+        return None
+
+
+def fig2img(fig):
+    """Convert a Matplotlib figure to a PIL Image and return it"""
+    import io
+
+    buf = io.BytesIO()
+    fig.savefig(buf)
+    buf.seek(0)
+    img = PIL.Image.open(buf)
+    return img
+
+
+def display_arrays_as_grid(
+    rendered_arrays, suptitle=None, titles=None, ncols=4, transparent_background=True,
+):
+    N = len(rendered_arrays)
+    ncols = min(N, ncols)
+    nrows = math.ceil(N / ncols)
+
+    # fig = plt.figure(figsize=(20, 20))
+    fig = plt.figure(figsize=(4 * ncols, 4 * nrows))
+
+    grid = ImageGrid(
+        fig,
+        111,
+        nrows_ncols=(nrows, ncols),
+        axes_pad=0.4,  # pad between axes
+        # share_all=True
+    )
+
+    for i, A in enumerate(rendered_arrays):
+        ax = grid[i]
+        if len(A.shape) == 2:
+            ax.imshow(A, cmap="Greys")
+        else:
+            ax.imshow(A)
+
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+    if not transparent_background:
+        fig.patch.set_facecolor("white")
+
+    if suptitle is not None:
+        plt.suptitle(suptitle, fontsize=24, fontweight="bold", va="top")
+    fig.tight_layout()
+    image = fig2img(fig)
+    return image
+
