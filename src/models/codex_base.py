@@ -9,7 +9,7 @@ import os
 import time
 
 import openai
-from openai.error import InvalidRequestError, RateLimitError
+from openai.error import APIConnectionError, InvalidRequestError, RateLimitError
 
 from src.experiment_iterator import RANDOM_GENERATOR
 from src.models.laps_grammar import LAPSGrammar
@@ -68,6 +68,10 @@ class CodexBase(object):
                 print(e)
                 return e
             except RateLimitError as e:
+                print(e)
+                pause_for_rate_limit = True
+                completion = e
+            except APIConnectionError as e:
                 print(e)
                 pause_for_rate_limit = True
                 completion = e

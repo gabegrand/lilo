@@ -9,7 +9,7 @@ import os
 
 import numpy as np
 from openai.api_resources.completion import Completion
-from openai.error import InvalidRequestError, RateLimitError
+from openai.error import APIConnectionError, InvalidRequestError, RateLimitError
 from openai.openai_object import OpenAIObject
 
 import src.models.model_loaders as model_loaders
@@ -236,7 +236,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                             raise ValueError(f"Max retries {max_retries} exceeded.")
                         continue
                     elif isinstance(completion, RateLimitError):
-                        raise ValueError(f"Rate limit exceeded. Retry later.")
+                        raise completion
+                    elif isinstance(completion, APIConnectionError):
+                        raise completion
                     else:
                         raise ValueError(
                             f"Unexpected completion type: {type(completion)}"
