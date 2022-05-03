@@ -6,6 +6,7 @@ Queries Codex to generate new samples based on existing samples.
 """
 import json
 import os
+from typing import Set
 
 import numpy as np
 from openai.api_resources.completion import Completion
@@ -16,6 +17,7 @@ import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.program import EtaLongVisitor, InferenceFailure, ParseFailure, Program
 from dreamcoder.task import Task
+from dreamcoder.type import TypeConstructor
 from src.experiment_iterator import RANDOM_GENERATOR
 from src.models.codex_base import DEFAULT_LINE_SEPARATOR, CodexBase, Prompt
 from src.models.laps_grammar import LAPSGrammar
@@ -33,6 +35,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     # Parse error codes
     ERROR_PARSE = "parse"
     ERROR_INFER = "infer"
+    ERROR_INVALID_TYPE = "invalid_type"
     ERROR_ETA_LONG = "eta_long"
 
     @staticmethod
@@ -123,6 +126,16 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             raise ValueError(
                 f"CodexSampleGenerator expected task_splits=[{TRAIN}], got task_splits={task_splits}"
             )
+
+        # Codex-generated programs must type-infer to a request type in this set
+        train_task_request_types = set(
+            [
+                t.request
+                for t in experiment_state.get_tasks_for_ids(
+                    TRAIN, task_ids_in_splits[TRAIN]
+                )
+            ]
+        )
 
         query_results_filepath = os.path.join(
             os.getcwd(),
@@ -247,9 +260,10 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 parse_results = self.parse_completion(
                     completion,
                     grammar,
-                    function_name_classes,
-                    compute_likelihoods,
-                    verbose,
+                    valid_request_types=train_task_request_types,
+                    function_name_classes=function_name_classes,
+                    compute_likelihoods=compute_likelihoods,
+                    verbose=verbose,
                 )
                 results_by_query.append(
                     {
@@ -390,6 +404,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         self,
         completion,
         grammar,
+        valid_request_types: Set[TypeConstructor] = None,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
         compute_likelihoods: bool = False,
         verbose: bool = False,
@@ -429,7 +444,22 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     }
                 )
                 continue
-            # CHECK 3: Can we convert the program to eta long form?
+            # CHECK 3: Is the inferred type in the set of valid request types?
+            if valid_request_types is not None:
+                if p_type not in valid_request_types:
+                    if verbose:
+                        print(
+                            f"Inferred type {str(p_type)} not in `valid_request_types` {valid_request_types} for program: {str(p)}"
+                        )
+                    parse_results.append(
+                        {
+                            "text": program_str_codex,
+                            "valid": False,
+                            "error": CodexSampleGenerator.ERROR_INVALID_TYPE,
+                        }
+                    )
+                    continue
+            # CHECK 4: Can we convert the program to eta long form?
             if compute_likelihoods:
                 try:
                     # Hack to avoid fatal error when computing likelihood summaries during rescoreFrontier

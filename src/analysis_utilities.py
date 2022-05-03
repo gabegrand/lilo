@@ -93,8 +93,9 @@ class IterativeExperimentAnalyzer:
             f"{experiment_type}_{batch_size}",
         )
 
-    def get_results_for_domain(self, domain):
-        experiment_types = self.get_available_experiment_types(domain)
+    def get_results_for_domain(self, domain, experiment_types: list = None):
+        if experiment_types is None:
+            experiment_types = self.get_available_experiment_types(domain)
         df_list = []
         for experiment_type in experiment_types:
             df_experiment_type = self.get_results_for_experiment_type(
