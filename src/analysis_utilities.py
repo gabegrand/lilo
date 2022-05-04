@@ -228,7 +228,22 @@ class IterativeExperimentAnalyzer:
         df = pd.DataFrame(data)
         return df
 
-    def get_codex_programs(
+    def get_codex_programs(self, domain):
+        df_list = []
+        for experiment_type in self.get_available_experiment_types(domain):
+            if experiment_type in [
+                ExperimentType.STITCH_CODEX,
+                ExperimentType.STITCH_CODEX_LANGUAGE,
+                ExperimentType.STITCH_CODEX_LANGUAGE_ORIGIN_RANDOM_TEST,
+            ]:
+                df = self.get_codex_programs_for_experiment_type(
+                    domain, experiment_type
+                )
+                df["experiment_type"] = experiment_type
+                df_list.append(df)
+        return pd.concat(df_list, axis=0).reset_index(drop=True)
+
+    def get_codex_programs_for_experiment_type(
         self, domain, experiment_type: ExperimentType = ExperimentType.STITCH_CODEX
     ):
         seeds = self.get_available_seeds(domain, experiment_type)
