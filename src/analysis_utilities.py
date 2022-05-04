@@ -17,6 +17,32 @@ from src.config_builder import DEFAULT_EXPERIMENT_DIR, ExperimentType
 
 
 class IterativeExperimentAnalyzer:
+
+    COL_NAMES_CAMERA = {
+        "batch_size": "Number of training tasks",
+        "description_length": "Test program description length",
+        "experiment_type": "Model",
+        "n_frontiers": "Number of training programs (including samples)",
+    }
+    EXPERIMENT_TYPES_CAMERA = {
+        ExperimentType.ORACLE: "oracle (test)",
+        ExperimentType.ORACLE_TRAIN_TEST: "oracle (train + test)",
+        ExperimentType.STITCH: "stitch",
+        ExperimentType.STITCH_CODEX: "stitch + codex [programs]",
+        ExperimentType.STITCH_CODEX_LANGUAGE: "stitch + codex [programs, language (train)]",
+        ExperimentType.STITCH_CODEX_LANGUAGE_ORIGIN_RANDOM_TEST: "stitch + codex [programs, language (test)]",
+    }
+    EXPERIMENT_TYPES_PALETTE = {
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.ORACLE]: "#3F553A",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.ORACLE_TRAIN_TEST]: "#8FAD88",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.STITCH]: "#306BAC",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.STITCH_CODEX]: "#B56576",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.STITCH_CODEX_LANGUAGE]: "#E56B6F",
+        EXPERIMENT_TYPES_CAMERA[
+            ExperimentType.STITCH_CODEX_LANGUAGE_ORIGIN_RANDOM_TEST
+        ]: "#EAAC8B",
+    }
+
     def __init__(
         self,
         experiment_name,
@@ -274,6 +300,13 @@ class IterativeExperimentAnalyzer:
 
         return pd.concat(df_list).reset_index(drop=True)
 
+    def format_dataframe_camera(self, df):
+        df = df.rename(mapper=self.COL_NAMES_CAMERA, axis="columns")
+        df[self.COL_NAMES_CAMERA["experiment_type"]] = df[
+            self.COL_NAMES_CAMERA["experiment_type"]
+        ].replace({k.value: v for k, v in self.EXPERIMENT_TYPES_CAMERA.items()})
+        return df
+
     def plot_description_length(
         self,
         domain: str,
@@ -281,15 +314,25 @@ class IterativeExperimentAnalyzer:
         plot_type: str = "pointplot",
         logscale: bool = False,
     ):
+        df = self.format_dataframe_camera(df)
+
         plt.figure(figsize=(12, 6))
 
         if plot_type == "pointplot":
             fig = sns.pointplot(
-                data=df, x="batch_size", y="description_length", hue="experiment_type"
+                data=df,
+                x=self.COL_NAMES_CAMERA["batch_size"],
+                y=self.COL_NAMES_CAMERA["description_length"],
+                hue=self.COL_NAMES_CAMERA["experiment_type"],
+                palette=self.EXPERIMENT_TYPES_PALETTE,
             )
         elif plot_type == "lineplot":
             fig = sns.lineplot(
-                data=df, x="batch_size", y="description_length", hue="experiment_type"
+                data=df,
+                x=self.COL_NAMES_CAMERA["batch_size"],
+                y=self.COL_NAMES_CAMERA["description_length"],
+                hue=self.COL_NAMES_CAMERA["experiment_type"],
+                palette=self.EXPERIMENT_TYPES_PALETTE,
             )
         else:
             raise ValueError(f"Unknown plot_type: {plot_type}")
@@ -301,9 +344,14 @@ class IterativeExperimentAnalyzer:
         return fig
 
     def plot_n_frontiers(self, domain: str, df: pd.DataFrame):
+        df = self.format_dataframe_camera(df)
         plt.figure(figsize=(12, 6))
         fig = sns.barplot(
-            data=df, x="batch_size", y="n_frontiers", hue="experiment_type"
+            data=df,
+            x=self.COL_NAMES_CAMERA["batch_size"],
+            y=self.COL_NAMES_CAMERA["n_frontiers"],
+            hue=self.COL_NAMES_CAMERA["experiment_type"],
+            palette=self.EXPERIMENT_TYPES_PALETTE,
         )
         plt.title(domain)
         return fig
