@@ -8,6 +8,7 @@ Usage examples in analysis/analyze_experiment.ipynb.
 import glob
 import json
 import os
+from typing import List
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -28,9 +29,9 @@ class IterativeExperimentAnalyzer:
         ExperimentType.ORACLE: "oracle (test)",
         ExperimentType.ORACLE_TRAIN_TEST: "oracle (train + test)",
         ExperimentType.STITCH: "stitch",
-        ExperimentType.STITCH_CODEX: "stitch + lilo [programs]",
-        ExperimentType.STITCH_CODEX_LANGUAGE: "stitch + lilo [programs, language (train)]",
-        ExperimentType.STITCH_CODEX_LANGUAGE_ORIGIN_RANDOM_TEST: "stitch + lilo [programs, language (test)]",
+        ExperimentType.STITCH_CODEX: "stitch + codex [programs]",
+        ExperimentType.STITCH_CODEX_LANGUAGE: "stitch + codex [programs, language (train)]",
+        ExperimentType.STITCH_CODEX_LANGUAGE_ORIGIN_RANDOM_TEST: "stitch + codex [programs, language (test)]",
     }
     EXPERIMENT_TYPES_PALETTE = {
         EXPERIMENT_TYPES_CAMERA[ExperimentType.ORACLE]: "#3F553A",
@@ -119,7 +120,18 @@ class IterativeExperimentAnalyzer:
             f"{experiment_type}_{batch_size}",
         )
 
-    def get_results_for_domain(self, domain, experiment_types: list = None):
+    def get_default_split(self, experiment_type):
+        if experiment_type == ExperimentType.ORACLE:
+            split = "test"
+        elif experiment_type == ExperimentType.ORACLE_TRAIN_TEST:
+            split = "train_test"
+        else:
+            split = "train"
+        return split
+
+    def get_results_for_domain(
+        self, domain, experiment_types: List[ExperimentType] = None
+    ):
         if experiment_types is None:
             experiment_types = self.get_available_experiment_types(domain)
         df_list = []
@@ -156,12 +168,7 @@ class IterativeExperimentAnalyzer:
         return df_out
 
     def get_results_for_run(self, domain, experiment_type, random_seed):
-        if experiment_type == ExperimentType.ORACLE:
-            split = "test"
-        elif experiment_type == ExperimentType.ORACLE_TRAIN_TEST:
-            split = "train_test"
-        else:
-            split = "train"
+        split = self.get_default_split(experiment_type)
 
         data = []
 
@@ -314,6 +321,44 @@ class IterativeExperimentAnalyzer:
                 df_list.append(df)
 
         return pd.concat(df_list).reset_index(drop=True)
+
+    def get_library_inventions(
+        self, domain, experiment_types: List[ExperimentType] = None
+    ):
+        if experiment_types is None:
+            experiment_types = self.get_available_experiment_types(domain)
+
+        df_list = []
+        for experiment_type in experiment_types:
+            split = self.get_default_split(experiment_type)
+
+            for seed in self.get_available_seeds(domain, experiment_type):
+                config_base = self.get_config(domain, experiment_type, seed)
+                global_batch_sizes = config_base["metadata"]["global_batch_sizes"]
+                for batch_size in global_batch_sizes:
+                    path = os.path.join(
+                        self.dir_domains,
+                        domain,
+                        experiment_type,
+                        f"seed_{seed}",
+                        f"{experiment_type}_{batch_size}",
+                        "0",
+                        split,
+                        "stitch_output.json",
+                    )
+
+                    with open(path, "r") as f:
+                        stitch_output_data = json.load(f)
+
+                    df = pd.DataFrame(stitch_output_data["invs"])[
+                        ["name", "arity", "utility", "multiplier", "body", "dreamcoder"]
+                    ]
+                    df["experiment_type"] = experiment_type
+                    df["random_seed"] = seed
+                    df["batch_size"] = batch_size
+                    df_list.append(df)
+
+        return pd.concat(df_list, axis=0).reset_index(drop=True)
 
     def format_dataframe_camera(self, df):
         df = df.rename(mapper=self.COL_NAMES_CAMERA, axis="columns")
