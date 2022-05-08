@@ -29,9 +29,9 @@ class IterativeExperimentAnalyzer:
         ExperimentType.ORACLE: "oracle (test)",
         ExperimentType.ORACLE_TRAIN_TEST: "oracle (train + test)",
         ExperimentType.STITCH: "stitch",
-        ExperimentType.STITCH_CODEX: "stitch + codex [programs]",
-        ExperimentType.STITCH_CODEX_LANGUAGE: "stitch + codex [programs, language (train)]",
-        ExperimentType.STITCH_CODEX_LANGUAGE_ORIGIN_RANDOM_TEST: "stitch + codex [programs, language (test)]",
+        ExperimentType.STITCH_CODEX: "stitch + lilo [programs]",
+        ExperimentType.STITCH_CODEX_LANGUAGE: "stitch + lilo [programs, language (train)]",
+        ExperimentType.STITCH_CODEX_LANGUAGE_ORIGIN_RANDOM_TEST: "stitch + lilo [programs, language (test)]",
     }
     EXPERIMENT_TYPES_PALETTE = {
         EXPERIMENT_TYPES_CAMERA[ExperimentType.ORACLE]: "#3F553A",
