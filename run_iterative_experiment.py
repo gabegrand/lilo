@@ -32,7 +32,6 @@ replications with different random seeds, use the `--random_seeds` flag.
 import argparse
 import json
 import os
-import shutil
 
 from run_experiment import init_experiment_state_and_iterator, run_experiment
 from src.config_builder import build_config
@@ -92,13 +91,6 @@ parser.add_argument(
     help="Use cached versions of Codex queries.",
 )
 
-parser.add_argument(
-    "--overwrite",
-    default=False,
-    action="store_true",
-    help="Delete the `experiment_id` directory before running the experiment.",
-)
-
 
 def main(args):
 
@@ -132,23 +124,6 @@ def main(args):
         os.makedirs(os.path.dirname(config_base_write_path), exist_ok=True)
         with open(config_base_write_path, "w") as f:
             json.dump(config_base, f, indent=4)
-
-        # Clear the experiment_id_base directory
-        if args.overwrite:
-            shutil.rmtree(
-                os.path.join(
-                    os.getcwd(),
-                    config_base["metadata"]["export_directory"],
-                ),
-                ignore_errors=True,
-            )
-            shutil.rmtree(
-                os.path.join(
-                    os.getcwd(),
-                    config_base["metadata"]["log_directory"],
-                ),
-                ignore_errors=True,
-            )
 
         for global_batch_size in args.global_batch_sizes:
             config = build_config(

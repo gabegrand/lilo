@@ -134,11 +134,12 @@ class Prompt(object):
             self._get_task_data(task_id=task_id, task_types=body_task_types)
             for task_id in body_task_ids
         ]
+
         self.final_task_data = self._get_task_data(
             task_id=final_task_id,
             task_types=final_task_types,
             task_split=TEST
-            if final_task_origin is Prompt.FINAL_TASK_ORIGIN_RANDOM_TEST
+            if final_task_origin == Prompt.FINAL_TASK_ORIGIN_RANDOM_TEST
             else TRAIN,
         )
 
