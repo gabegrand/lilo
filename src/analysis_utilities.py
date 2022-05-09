@@ -25,6 +25,14 @@ class IterativeExperimentAnalyzer:
         "experiment_type": "Model",
         "n_frontiers": "Number of training programs (including samples)",
     }
+    DOMAIN_NAMES_CAMERA = {
+        "drawings_nuts_bolts": "nuts & bolts",
+        "drawings_wheels": "vehicles",
+        "drawings_dials": "gadgets",
+        "drawings_furniture": "furniture",
+        "re2": "REGEX",
+        "clevr": "CLEVR",
+    }
     EXPERIMENT_TYPES_CAMERA = {
         ExperimentType.ORACLE: "oracle (test)",
         ExperimentType.ORACLE_TRAIN_TEST: "oracle (train + test)",
@@ -60,6 +68,8 @@ class IterativeExperimentAnalyzer:
             os.path.split(path)[-1]
             for path in glob.glob(os.path.join(self.dir_domains, "*"))
         ]
+        # Reorder the domains by DOMAIN_NAMES_CAMERA
+        self.domains = [d for d in self.DOMAIN_NAMES_CAMERA.keys() if d in self.domains]
         print(f"Available domains: {self.domains}")
 
         self.compute_likelihoods = compute_likelihoods
@@ -235,7 +245,16 @@ class IterativeExperimentAnalyzer:
         df = pd.DataFrame(data)
         return df
 
-    def get_codex_programs(self, domain):
+    def get_codex_programs(self, use_results_by_query: bool = False):
+        df_list = []
+        for domain in self.domains:
+            df_domain = self.get_codex_programs_for_domain(domain, use_results_by_query)
+            df_domain["domain"] = domain
+            df_list.append(df_domain)
+        df = pd.concat(df_list, axis=0).reset_index(drop=True)
+        return df
+
+    def get_codex_programs_for_domain(self, domain, use_results_by_query: bool = False):
         df_list = []
         for experiment_type in self.get_available_experiment_types(domain):
             if experiment_type in [
@@ -243,9 +262,14 @@ class IterativeExperimentAnalyzer:
                 ExperimentType.STITCH_CODEX_LANGUAGE,
                 ExperimentType.STITCH_CODEX_LANGUAGE_ORIGIN_RANDOM_TEST,
             ]:
-                df = self.get_codex_programs_for_experiment_type(
-                    domain, experiment_type
-                )
+                if use_results_by_query:
+                    df = self.get_codex_programs_by_query_for_experiment_type(
+                        domain, experiment_type
+                    )
+                else:
+                    df = self.get_codex_programs_for_experiment_type(
+                        domain, experiment_type
+                    )
                 df["experiment_type"] = experiment_type
                 df_list.append(df)
         return pd.concat(df_list, axis=0).reset_index(drop=True)
@@ -277,7 +301,61 @@ class IterativeExperimentAnalyzer:
                     codex_query_results = json.load(f)
 
                 data = []
+                for program_data in codex_query_results["results"]["programs_valid"]:
+                    prompt_programs = [
+                        d["task_program"]
+                        for d in codex_query_results["results_by_query"][
+                            program_data["query_id"]
+                        ]["prompt"]["body_task_data"]
+                    ]
+                    prompt_programs.append(
+                        codex_query_results["results_by_query"][
+                            program_data["query_id"]
+                        ]["prompt"]["final_task_data"]["task_program"]
+                    )
+
+                    program_data["match_prompt"] = (
+                        program_data["program"] in prompt_programs
+                    )
+                    data.append(program_data)
+
+                df = pd.DataFrame(data)
+                df["batch_size"] = batch_size
+                df["random_seed"] = random_seed
+                df_list.append(df)
+
+        return pd.concat(df_list, axis=0).reset_index(drop=True)
+
+    def get_codex_programs_by_query_for_experiment_type(
+        self, domain, experiment_type: ExperimentType = ExperimentType.STITCH_CODEX
+    ):
+        seeds = self.get_available_seeds(domain, experiment_type)
+
+        df_list = []
+
+        for random_seed in seeds:
+            config_base = self.get_config(domain, experiment_type, random_seed)
+            global_batch_sizes = config_base["metadata"]["global_batch_sizes"]
+
+            for batch_size in global_batch_sizes:
+                path = os.path.join(
+                    self.get_run_path(domain, experiment_type, random_seed, batch_size),
+                    "0",
+                    "codex_query_results.json",
+                )
+
+                if self.allow_incomplete_results and not os.path.exists(path):
+                    print(
+                        f"Skipping incomplete results for {domain}, {experiment_type}, {random_seed}, {batch_size}"
+                    )
+                    continue
+                with open(path, "r") as f:
+                    codex_query_results = json.load(f)
+
+                data = []
                 for query_data in codex_query_results["results_by_query"]:
+                    prompt_programs = []
+
                     for body_task_data in query_data["prompt"]["body_task_data"]:
                         body_task_data["query_id"] = query_data["query_id"]
                         body_task_data["program"] = body_task_data["task_program"]
@@ -286,18 +364,22 @@ class IterativeExperimentAnalyzer:
                         body_task_data["final_task"] = False
                         body_task_data["valid"] = True
                         body_task_data["seed"] = random_seed
+                        body_task_data["match_prompt"] = False
                         data.append(body_task_data)
+                        prompt_programs.append(body_task_data["program"])
 
                     if "programs" in codex_query_results["params"]["final_task_types"]:
                         final_task_data = query_data["prompt"]["final_task_data"]
                         final_task_data["query_id"] = query_data["query_id"]
-                        final_task_data["program"] = "task_program"
+                        final_task_data["program"] = final_task_data["task_program"]
                         final_task_data.pop("task_program")
                         final_task_data["origin"] = "train"
                         final_task_data["final_task"] = True
                         final_task_data["valid"] = True
                         final_task_data["seed"] = random_seed
+                        final_task_data["match_prompt"] = False
                         data.append(final_task_data)
+                        prompt_programs.append(final_task_data["program"])
 
                     for parse_result_data in query_data["parse_results"]:
                         parse_result_data["origin"] = "codex"
@@ -305,6 +387,9 @@ class IterativeExperimentAnalyzer:
                         parse_result_data["seed"] = random_seed
                         if not parse_result_data["valid"]:
                             parse_result_data["program"] = parse_result_data["text"]
+                        parse_result_data["match_prompt"] = (
+                            parse_result_data["program"] in prompt_programs
+                        )
                         data.append(parse_result_data)
 
                 df = pd.DataFrame(data)
@@ -313,7 +398,7 @@ class IterativeExperimentAnalyzer:
                 df["random_seed"] = random_seed
 
                 train_programs = set(df[df["origin"] == "train"]["program"].tolist())
-                df["copied_from_train"] = [
+                df["match_train"] = [
                     (row["origin"] == "codex") and (row["program"] in train_programs)
                     for _, row in df.iterrows()
                 ]
@@ -365,6 +450,8 @@ class IterativeExperimentAnalyzer:
         df[self.COL_NAMES_CAMERA["experiment_type"]] = df[
             self.COL_NAMES_CAMERA["experiment_type"]
         ].replace({k.value: v for k, v in self.EXPERIMENT_TYPES_CAMERA.items()})
+        if "domain" in df.columns:
+            df["domain"] = df["domain"].replace(self.DOMAIN_NAMES_CAMERA)
         return df
 
     def plot_description_length(
