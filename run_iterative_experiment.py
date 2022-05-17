@@ -57,6 +57,20 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--increment_task_batcher",
+    default=False,
+    action="store_true",
+    help="Increment the task batch pointer over the global ordering at each iteration.",
+)
+
+parser.add_argument(
+    "--iterations",
+    default=1,
+    type=int,
+    help="How many iterations to run the experiment loop specified in the config.",
+)
+
+parser.add_argument(
     "--stitch_params", default="{}", help="JSON string of stitch params"
 )
 
@@ -106,10 +120,12 @@ def main(args):
             domain=args.domain,
             task_batcher=args.task_batcher,
             random_seed=random_seed,
+            iterations=args.iterations,
             codex_params=codex_params,
             stitch_params=stitch_params,
             compute_likelihoods=args.compute_likelihoods,
             compute_description_lengths=True,
+            increment_task_batcher=args.increment_task_batcher,
         )
 
         # If --global_batch_sizes is not specified, use the domain-specific default.
@@ -132,11 +148,13 @@ def main(args):
                 domain=args.domain,
                 task_batcher=args.task_batcher,
                 random_seed=random_seed,
+                iterations=args.iterations,
                 global_batch_size=global_batch_size,
                 codex_params=codex_params,
                 stitch_params=stitch_params,
                 compute_likelihoods=args.compute_likelihoods,
                 compute_description_lengths=True,
+                increment_task_batcher=args.increment_task_batcher,
             )
 
             experiment_state, experiment_iterator = init_experiment_state_and_iterator(

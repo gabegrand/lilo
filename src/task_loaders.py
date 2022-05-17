@@ -82,8 +82,10 @@ class OrderedTaskBatcher(TaskBatcher):
         curr_iteration,
         max_iterations,
         global_batch_size,
+        increment_at_global_iteration=True,
         verbose=False,
     ):
+        self.increment_at_global_iteration = increment_at_global_iteration
         self.global_batch_size = global_batch_size
         self.task_id_orderings = {
             split: [t.name for t in experiment_state.tasks[split]]
@@ -124,7 +126,11 @@ class OrderedTaskBatcher(TaskBatcher):
         )
         batch_size = int(batch_size)
 
-        global_batch_start = self.global_batch_size * curr_iteration
+        if self.increment_at_global_iteration:
+            global_batch_start = self.global_batch_size * curr_iteration
+        else:
+            global_batch_start = 0
+
         start = global_batch_start % len(all_tasks_for_split)
 
         end = start + batch_size
@@ -147,10 +153,16 @@ class RandomShuffleOrderedTaskBatcher(OrderedTaskBatcher):
         curr_iteration,
         max_iterations,
         global_batch_size,
+        increment_at_global_iteration,
         verbose=False,
     ):
         super(RandomShuffleOrderedTaskBatcher, self).__init__(
-            experiment_state, curr_iteration, max_iterations, global_batch_size, verbose
+            experiment_state,
+            curr_iteration,
+            max_iterations,
+            global_batch_size,
+            increment_at_global_iteration,
+            verbose,
         )
         self.seed = experiment_state.metadata[RANDOM_SEED]
 
@@ -173,10 +185,19 @@ class GroundTruthOrderedTaskBatcher(OrderedTaskBatcher):
         curr_iteration,
         max_iterations,
         global_batch_size,
+        increment_at_global_iteration,
         verbose=False,
     ):
+        """
+        increment_at_global_iteration: if True, uses a sliding pointer to return the next batch of global_batch_size with each global iteration of the LAPS experiment. If false, remains fixed at the first batch even at progressive iterations.
+        """
         super(GroundTruthOrderedTaskBatcher, self).__init__(
-            experiment_state, curr_iteration, max_iterations, global_batch_size, verbose
+            experiment_state,
+            curr_iteration,
+            max_iterations,
+            global_batch_size,
+            increment_at_global_iteration,
+            verbose,
         )
         from dreamcoder.frontier import Frontier
 
