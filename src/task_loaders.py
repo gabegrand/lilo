@@ -163,7 +163,7 @@ class RandomShuffleOrderedTaskBatcher(OrderedTaskBatcher):
 
 @TaskBatcherRegistry.register
 class GroundTruthOrderedTaskBatcher(OrderedTaskBatcher):
-    """GroundTruthOrderedTaskBatcher: orders tasks according to the log prior for a reference ground truth. No shuffle."""
+    """GroundTruthOrderedTaskBatcher: orders tasks according to their description length in the reference ground truth. No shuffle."""
 
     name = "ground_truth_ordered_task_batcher"
 
@@ -188,18 +188,22 @@ class GroundTruthOrderedTaskBatcher(OrderedTaskBatcher):
             for task_split in experiment_state.task_frontiers
         }
 
-        def best_log_prior(task, task_split):
+        def best_description_length(task, task_split):
             frontier = gt_frontiers[task_split][task]
-            return min([e.logPrior for e in frontier.entries])
+            return min(
+                [
+                    len(e.program.left_order_tokens(show_vars=True))
+                    for e in frontier.entries
+                ]
+            )
 
-        def sorted_log_prior(task_split):
-            sorted(
+        def sorted_description_lengths(task_split):
+            return sorted(
                 gt_frontiers[task_split],
-                key=lambda task: best_log_prior(task),
-                reverse=True,
+                key=lambda task: best_description_length(task, task_split),
             )
 
         self.task_id_orderings = {
-            split: [t.name for t in gt_frontiers[split]] for split in gt_frontiers
+            split: [t.name for t in sorted_description_lengths(split)]
+            for split in gt_frontiers
         }
-
