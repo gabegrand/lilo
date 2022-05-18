@@ -70,8 +70,8 @@ class LAPSGrammar(Grammar):
     STRUCTURE_PENALTY = "structure_penalty"
     TOP_K = "top_k"  # Compress with respect to the top K frontiers.
 
-    DEFAULT_FUNCTION_NAMES = "default" # DC names. Uses inlined naming for inventions.
-    DEFAULT_NO_INLINE_FUNCTION_NAMES = "default_no_inline" # DC names, but does not include inlined naming for inventions.
+    DEFAULT_FUNCTION_NAMES = "default" # DC names. Uses inlined naming (#(lambda ...)) for inventions.
+    DEFAULT_NO_INLINE_FUNCTION_NAMES = "default_no_inline" # DC names, but does not include inlined naming for inventions (inventions do not have a default name).
     NUMERIC_FUNCTION_NAMES = "numeric"
     EXCLUDE_NAME_INITIALIZATION = [DEFAULT_FUNCTION_NAMES, NUMERIC_FUNCTION_NAMES]
     # Other common naming schemes.

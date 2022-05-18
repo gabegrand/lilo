@@ -60,7 +60,7 @@ parser.add_argument(
     "--increment_task_batcher",
     default=False,
     action="store_true",
-    help="Increment the task batch pointer over the global ordering at each iteration.",
+    help="Increment the task batch pointer over the global ordering at each iteration. By default, we turn this off - each iteration uses a fixed initial set of tasks. Turning this on allows a data-loader style sliding window over the training set, as in iterative search and synthesis in DC: you get a fresh batch of tasks at each outer loop of a single experiment.",
 )
 
 parser.add_argument(
