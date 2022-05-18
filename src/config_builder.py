@@ -36,7 +36,7 @@ DEFAULT_CODEX_PARAMS = {
     "n_tasks_per_prompt": 20,
     "temperature": 0.75,
     "max_tokens": 256,
-    "function_name_classes": ["default"],
+    "function_name_classes": ["default_no_inline", "numeric"],
 }
 
 
@@ -113,26 +113,28 @@ def build_config(
     domain: str,
     output_directory: str = DEFAULT_EXPERIMENT_DIR,
     random_seed: int = 0,
-    max_iterations: int = 1,
+    iterations: int = 1,
     task_batcher: str = GroundTruthOrderedTaskBatcher.name,
     global_batch_size: int = ALL,
     stitch_params: dict = DEFAULT_STITCH_PARAMS,
     codex_params: dict = DEFAULT_CODEX_PARAMS,
     compute_likelihoods: bool = True,
     compute_description_lengths: bool = True,
+    increment_task_batcher: bool = False,
 ):
     config = {}
     config.update(
         build_config_body(
             experiment_type=experiment_type,
             domain=domain,
-            max_iterations=max_iterations,
+            iterations=iterations,
             task_batcher=task_batcher,
             global_batch_size=global_batch_size,
             stitch_params=stitch_params,
             codex_params=codex_params,
             compute_likelihoods=compute_likelihoods,
             compute_description_lengths=compute_description_lengths,
+            increment_task_batcher=increment_task_batcher,
         )
     )
     config.update(
@@ -199,13 +201,14 @@ def build_config_metadata(
 def build_config_body(
     experiment_type: str,
     domain: str,
-    max_iterations: int = 1,
+    iterations: int = 1,
     task_batcher: str = GroundTruthOrderedTaskBatcher.name,
     global_batch_size: int = ALL,
     stitch_params: dict = DEFAULT_STITCH_PARAMS,
     codex_params: dict = DEFAULT_CODEX_PARAMS,
     compute_likelihoods: bool = True,
     compute_description_lengths: bool = True,
+    increment_task_batcher: bool = False,
 ):
     template_path = os.path.join(
         DEFAULT_TEMPLATE_DIR, f"template_{experiment_type}.json"
@@ -219,11 +222,15 @@ def build_config_body(
     model_initializers[0]["model_loader"] = domain_meta["ocaml_special_handler"]
     config["model_initializers"] = model_initializers
 
-    config["experiment_iterator"]["max_iterations"] = max_iterations
+    config["experiment_iterator"]["max_iterations"] = iterations
     config["experiment_iterator"]["task_batcher"]["model_type"] = task_batcher
     config["experiment_iterator"]["task_batcher"]["params"][
         "global_batch_size"
     ] = global_batch_size
+
+    config["experiment_iterator"]["task_batcher"]["params"][
+        "increment_at_global_iteration"
+    ] = increment_task_batcher
 
     # Use defaults for any unspeficied parameters
     _codex_params = DEFAULT_CODEX_PARAMS
@@ -239,17 +246,11 @@ def build_config_body(
             block["params"].update(_stitch_params)
         if (
             block.get("model_type")
-            in [
-                LAPSGrammar.GRAMMAR,
-                SAMPLE_GENERATOR,
-                PROGRAM_REWRITER,
-            ]
+            in [LAPSGrammar.GRAMMAR, SAMPLE_GENERATOR, PROGRAM_REWRITER,]
             or block.get("state_fn") == INITIALIZE_GROUND_TRUTH
         ):
             block["params"].update(
-                {
-                    "compute_likelihoods": compute_likelihoods,
-                }
+                {"compute_likelihoods": compute_likelihoods,}
             )
         loop_blocks.append(block)
     config["experiment_iterator"]["loop_blocks"] = loop_blocks

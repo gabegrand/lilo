@@ -70,7 +70,8 @@ class LAPSGrammar(Grammar):
     STRUCTURE_PENALTY = "structure_penalty"
     TOP_K = "top_k"  # Compress with respect to the top K frontiers.
 
-    DEFAULT_FUNCTION_NAMES = "default"
+    DEFAULT_FUNCTION_NAMES = "default" # DC names. Uses inlined naming (#(lambda ...)) for inventions.
+    DEFAULT_NO_INLINE_FUNCTION_NAMES = "default_no_inline" # DC names, but does not include inlined naming for inventions (inventions do not have a default name).
     NUMERIC_FUNCTION_NAMES = "numeric"
     EXCLUDE_NAME_INITIALIZATION = [DEFAULT_FUNCTION_NAMES, NUMERIC_FUNCTION_NAMES]
     # Other common naming schemes.
@@ -97,6 +98,24 @@ class LAPSGrammar(Grammar):
         self.function_names = self._init_function_names(
             initialize_parameters_from_grammar
         )
+    
+    def _add_base_primitive(self, base_primitive, use_default_as_human_readable=False):
+        numeric_idx = len(self.function_names)
+        self.function_names[str(base_primitive)] = {
+            LAPSGrammar.DEFAULT_FUNCTION_NAMES: str(base_primitive),
+            LAPSGrammar.DEFAULT_NO_INLINE_FUNCTION_NAMES : str(base_primitive),
+            LAPSGrammar.NUMERIC_FUNCTION_NAMES: LAPSGrammar.NUMERIC_FUNCTION_NAMES_PREFIX
+            + str(numeric_idx),
+        }
+        if use_default_as_human_readable:
+            self.function_names[str(base_primitive)][LAPSGrammar.HUMAN_READABLE] = str(
+                base_primitive
+            )
+
+        self.all_function_names_counts[str(base_primitive)] += 1
+        self.all_function_names_to_productions[str(base_primitive)] = str(
+            base_primitive
+        )
 
     def _init_function_names(self, initialize_from_grammar=None):
         """
@@ -119,6 +138,9 @@ class LAPSGrammar(Grammar):
             for idx, p in enumerate(base_dsl + inventions)
         }
         for p in base_dsl:
+            # Only base inventions have non-inlined names.
+            function_names[str(p)][LAPSGrammar.DEFAULT_NO_INLINE_FUNCTION_NAMES] = str(p)
+
             # Set any alternate names that exist.
             function_names[str(p)][LAPSGrammar.HUMAN_READABLE] = p.alternate_names[-1]
 
@@ -127,6 +149,9 @@ class LAPSGrammar(Grammar):
             for p in initialize_from_grammar.function_names:
                 for name_class in initialize_from_grammar.function_names[p]:
                     if name_class not in self.EXCLUDE_NAME_INITIALIZATION:
+                        if p not in function_names:
+                            function_names[p] = dict()
+
                         function_names[p][
                             name_class
                         ] = initialize_from_grammar.function_names[p][name_class]
@@ -232,7 +257,15 @@ class LAPSGrammar(Grammar):
             def primitive(self, e, isFunction):
                 # First, find out what primitive we're talking about here.
                 if not e.name in self.grammar.all_function_names_to_productions:
-                    raise ParseFailure((str(e), e))
+                    # Allow floats.
+                    try:
+                        float_primitive = float(e.name)  # If we can cast to float.
+                        self.grammar._add_base_primitive(
+                            e, use_default_as_human_readable=True
+                        )
+                        self.function_names = self.grammar.function_names
+                    except:
+                        raise ParseFailure((str(e), e))
 
                 original_name = self.grammar.all_function_names_to_productions[e.name]
                 for n in self.name_classes:
