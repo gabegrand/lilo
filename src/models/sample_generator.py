@@ -65,6 +65,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         # Codex parameters
         temperature: float = 0.75,
         max_tokens: int = 256,
+        max_tokens_completion_beta: float = 2.0,
         engine: str = CodexBase.DEFAULT_ENGINE,
         # Utility
         debug: bool = False,
@@ -173,11 +174,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         parse_results_valid, parse_results_invalid = [], []
 
         for query_id in range(max_queries):
-            body_task_ids = list(
-                rng.choice(
-                    task_ids_in_splits[TRAIN], size=n_tasks_per_prompt, replace=False
-                )
-            )
+
+            # Random ordering of the body tasks
+            body_task_ids = list(rng.permutation(task_ids_in_splits[TRAIN]))
 
             if final_task_origin == Prompt.FINAL_TASK_ORIGIN_DEFAULT:
                 final_task_id = None
@@ -195,6 +194,30 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 )
             else:
                 raise ValueError(f"Unknown final_task_origin={final_task_origin}")
+
+
+
+            # Iteratively add tasks to the body until we exceed the token budget
+            prompt = None
+            for body_task_i in range(len(body_task_ids)):
+                body_task_ids_for_prompt = body_task_ids[:body_task_i+1]
+                prompt_i = Prompt(
+                    experiment_state=experiment_state,
+                    body_task_ids=body_task_ids_for_prompt,
+                    final_task_id=final_task_id,
+                    body_task_types=body_task_types,
+                    final_task_types=final_task_types,
+                    final_task_origin=final_task_origin,
+                    function_name_classes=function_name_classes,
+                    line_separator=line_separator,
+                    # TODO(gg): Support for configuring prompt prefixes.
+                )
+
+                # Max tokens
+                last_program_token_count = self.count_tokens_gpt2(str(prompt_i.get_last_program()))
+                max_tokens_completion = last_program_token_count * max_tokens_completion_beta
+                max_tokens_prompt = self.ENGINE_MAX_TOKENS - max_tokens_completion
+
 
             for retry_i in range(max_retries):
                 if retry_i > 0:

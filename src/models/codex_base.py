@@ -10,6 +10,7 @@ import time
 
 import openai
 from openai.error import APIConnectionError, InvalidRequestError, RateLimitError
+from transformers import GPT2TokenizerFast
 
 from src.experiment_iterator import RANDOM_GENERATOR
 from src.models.laps_grammar import LAPSGrammar
@@ -20,7 +21,9 @@ DEFAULT_LINE_SEPARATOR = "\n"
 
 
 class CodexBase(object):
+    # https://beta.openai.com/docs/engines/codex-series-private-beta
     DEFAULT_ENGINE = "davinci-codex"
+    ENGINE_MAX_TOKENS = 4000 
 
     def __init__(self, experiment_state=None):
         super().__init__()
@@ -29,6 +32,10 @@ class CodexBase(object):
                 "OPENAI_API_KEY is not set. Please set this in the shell via `export OPENAI_API_KEY=...`"
             )
         openai.api_key = os.environ["OPENAI_API_KEY"]
+
+        # Used for computing approximate token counts for queries
+        self.tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
+
 
     def query_codex(
         self,
@@ -78,6 +85,9 @@ class CodexBase(object):
 
         return completion
 
+    def count_tokens_gpt2(self, text):
+        return len(self.tokenizer(text)['input_ids'])
+
 
 class Prompt(object):
     TASK_TYPES = [LANGUAGE, PROGRAMS]
@@ -115,6 +125,7 @@ class Prompt(object):
         final_task_types = [t for t in self.TASK_TYPES if t in final_task_types]
         assert len(body_task_types) > 0
         assert len(final_task_types) > 0
+        assert PROGRAMS in body_task_types
 
         self.experiment_state = experiment_state
         self.grammar = experiment_state.models[GRAMMAR]
@@ -181,6 +192,12 @@ class Prompt(object):
 
     def json(self):
         return json.dumps(self.to_dict(), indent=4)
+
+    def get_last_program(self):
+        if PROGRAMS in self.final_task_types:
+            return self.final_task_data["task_program"]
+        else:
+            return self.body_task_data["task_program"][-1]
 
     def _get_task_data(self, task_id: str, task_types: list, task_split: str = TRAIN):
         frontier = self.experiment_state.get_frontiers_for_ids(task_split, [task_id])[0]
