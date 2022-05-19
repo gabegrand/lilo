@@ -70,7 +70,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         line_separator: str = DEFAULT_LINE_SEPARATOR,
         # Codex parameters
         temperature: float = 0.75,
-        max_tokens: int = 256,
         max_tokens_completion_beta: float = 2.0,
         engine: str = CodexBase.DEFAULT_ENGINE,
         # Utility
@@ -111,8 +110,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
             # Codex-specific parameters
             temperature: Codex temperature sampling value in `[0., 1.]` range.
-            max_tokens: Max number of tokens for a single program in the completion.
-                Codex will stop at `line_separator` anyway, so this value should be generous.
             engine: Codex `engine` parameter.
 
             # Utility parameters
@@ -185,14 +182,18 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 verbose=verbose,
             )
 
-            # Iteratively remove tasks from the prompt until query success
+            # Iteratively remove tasks from the prompt until query success.
             max_retries = len(prompt.body_task_data)
             for retry_i in range(max_retries):
                 if retry_i > 0:
-                    print(
-                        f"Retry ({retry_i} / {max_retries}): Prompt now has {len(prompt)} tasks."
-                    )
                     prompt.remove_last_body_task()
+                    print(
+                        f"Retry ({retry_i} / {max_retries}): Prompt reduced to {len(prompt)} tasks."
+                    )
+
+                token_stats = self.get_token_stats(
+                    prompt=prompt, max_tokens_completion_beta=max_tokens_completion_beta
+                )
 
                 if use_cached:
                     # Load cached prompt for query_id
@@ -204,7 +205,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
                 if query_id % query_print_frequency == 0:
                     print(
-                        f"[QUERY {query_id}/{max_queries}]: Querying Codex ({len(prompt)} prompt tasks) for {n_samples_per_query} samples..."
+                        f"[QUERY {query_id}/{max_queries}]: Prompting Codex ({len(prompt)} tasks, {token_stats['token_count_prompt']} tokens) for {n_samples_per_query} samples ({token_stats['max_tokens_completion']} max tokens)..."
                     )
 
                 completion, cache_used = self.get_completion_for_prompt(
@@ -214,7 +215,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     query_results_filepath=query_results_filepath,
                     n_samples_per_query=n_samples_per_query,
                     temperature=temperature,
-                    max_tokens=max_tokens,
+                    max_tokens=token_stats["max_tokens_completion"],
                     engine=engine,
                     line_separator=line_separator,
                     use_cached=use_cached,
@@ -249,6 +250,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 results_by_query.append(
                     {
                         "query_id": query_id,
+                        "token_stats": token_stats,
                         "prompt": prompt.to_dict(),
                         "completion": completion.to_dict_recursive()
                         if not debug
@@ -291,7 +293,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 "n_samples_per_query": n_samples_per_query,
                 "max_queries": max_queries,
                 "temperature": temperature,
-                "max_tokens": max_tokens,
                 "engine": engine,
                 "line_separator": line_separator,
                 "use_cached": use_cached,
@@ -380,21 +381,15 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             )
 
             # Estimate token budgets
-            token_count_last_program = self.count_tokens_gpt2(
-                str(prompt_i.get_last_program())
+            token_stats = self.get_token_stats(
+                prompt=prompt_i, max_tokens_completion_beta=max_tokens_completion_beta
             )
-            token_count_prompt = self.count_tokens_gpt2(prompt_i.serialize())
 
-            max_tokens_completion = int(
-                token_count_last_program * max_tokens_completion_beta
-            )
-            max_tokens_prompt = int(self.ENGINE_MAX_TOKENS - max_tokens_completion)
-
-            if token_count_prompt <= max_tokens_prompt:
+            if token_stats["token_count_prompt"] <= token_stats["max_tokens_prompt"]:
                 prompt = prompt_i
                 if verbose:
                     print(
-                        f"Prompt construction ({body_task_i+1} / {len(body_task_ids)}): {token_count_prompt} (prompt; max {max_tokens_prompt}) + {max_tokens_completion} (completion allocation) = {token_count_prompt + max_tokens_completion} tokens"
+                        f"Prompt construction ({body_task_i+1} / {len(body_task_ids)}): {token_stats['token_count_prompt']} (prompt; max {token_stats['max_tokens_prompt']}) + {token_stats['max_tokens_completion']} (completion allocation) = {token_stats['token_count_prompt'] + token_stats['max_tokens_completion']} tokens"
                     )
             else:
                 break
@@ -404,6 +399,27 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         assert body_task_i > 0
 
         return prompt
+
+    def get_token_stats(self, prompt, max_tokens_completion_beta):
+        token_count_last_program = self.count_tokens_gpt2(
+            str(prompt.get_last_program())
+        )
+        token_count_prompt = self.count_tokens_gpt2(prompt.serialize())
+
+        # Allocate some multiple of the last program's tokens for the completion
+        max_tokens_completion = int(
+            token_count_last_program * max_tokens_completion_beta
+        )
+        # Allocate the remainder of the token budget to the prompt
+        max_tokens_prompt = int(self.ENGINE_MAX_TOKENS - max_tokens_completion)
+
+        token_stats = {
+            "token_count_prompt": token_count_prompt,
+            "token_count_last_program": token_count_last_program,
+            "max_tokens_prompt": max_tokens_prompt,
+            "max_tokens_completion": max_tokens_completion,
+        }
+        return token_stats
 
     def get_completion_for_prompt(
         self,

@@ -23,7 +23,7 @@ DEFAULT_LINE_SEPARATOR = "\n"
 class CodexBase(object):
     # https://beta.openai.com/docs/engines/codex-series-private-beta
     DEFAULT_ENGINE = "davinci-codex"
-    ENGINE_MAX_TOKENS = 4000
+    ENGINE_MAX_TOKENS = 4096  # Max tokens for BOTH the prompt and the completion.
 
     def __init__(self, experiment_state=None):
         super().__init__()
@@ -35,13 +35,15 @@ class CodexBase(object):
 
         # Used for computing approximate token counts for queries
         self.tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
+        self.tokenizer.model_max_length = self.ENGINE_MAX_TOKENS
+        os.environ["TOKENIZERS_PARALLELISM"] = str(False)
 
     def query_codex(
         self,
         prompt: str,
         n_samples: int,
         temperature: float = 0.75,
-        max_tokens: int = 256,
+        max_tokens: int = 256,  # Max tokens for completion only.
         engine: str = DEFAULT_ENGINE,
         line_separator: str = DEFAULT_LINE_SEPARATOR,
         top_p=None,
@@ -87,7 +89,7 @@ class CodexBase(object):
     def count_tokens_gpt2(self, text):
         # TODO(gg): Consider preprocessing to collapse whitespace, which could
         # bring the behavior more in line with the Codex tokenizer.
-        return len(self.tokenizer(text)["input_ids"])
+        return len(self.tokenizer(text, truncation=False)["input_ids"])
 
 
 class Prompt(object):
