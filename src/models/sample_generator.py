@@ -63,7 +63,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         max_queries: int = None,
         max_retries: int = None,
         # Prompt construction
-        n_tasks_per_prompt: int = 10,
         body_task_types: list = [PROGRAMS],
         final_task_types: list = [PROGRAMS],
         final_task_origin: str = FINAL_TASK_ORIGIN_DEFAULT,
@@ -103,8 +102,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 Defaults to a very permissive behavior where the query will retry until reduced to a single task before failing.
 
             # Prompt construction parameters
-            n_tasks_per_prompt: Number of training programs to include in each Codex prompt.
-                If `n_train_programs_per_prompt` is too high, the prompt may exceed the token budget and trigger an `InvalidRequestError`.
             body_task_types: List of task types in [LANGUAGE, PROGRAMS] to include in the body of the prompt.
             final_task_types: List of task types in [LANGUAGE, PROGRAMS] to include in the final task of the prompt.
             final_task_origin: Origin of the final task in the prompt.
@@ -160,13 +157,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         if n_samples_per_query is None:
             n_samples_per_query = n_samples
 
-        # We sample without replacement
-        n_tasks_per_prompt = min(n_tasks_per_prompt, len(task_ids_in_splits[TRAIN]))
-
-        # Default to retrying until reduced to a single task before failing.
-        if max_retries is None:
-            max_retries = n_tasks_per_prompt
-
         # Set the number of prompt attempts to something reasonable
         min_queries = np.ceil(n_samples / n_samples_per_query)
         if max_queries is None:
@@ -207,49 +197,55 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             else:
                 raise ValueError(f"Unknown final_task_origin={final_task_origin}")
 
-            # # Iteratively add tasks to the body until we exceed the token budget
-            # prompt = None
-            # for body_task_i in range(len(body_task_ids)):
-            #     body_task_ids_for_prompt = body_task_ids[:body_task_i+1]
-            #     prompt_i = Prompt(
-            #         experiment_state=experiment_state,
-            #         body_task_ids=body_task_ids_for_prompt,
-            #         final_task_id=final_task_id,
-            #         body_task_types=body_task_types,
-            #         final_task_types=final_task_types,
-            #         final_task_split=(TEST if final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TEST else TRAIN),
-            #         function_name_classes=function_name_classes,
-            #         line_separator=line_separator,
-            #         # TODO(gg): Support for configuring prompt prefixes.
-            #     )
+            # Iteratively add tasks to the body until we exceed the token budget
+            prompt = None
+            for body_task_i in range(len(body_task_ids)):
+                body_task_ids_for_prompt = body_task_ids[: body_task_i + 1]
+                prompt_i = Prompt(
+                    experiment_state=experiment_state,
+                    body_task_ids=body_task_ids_for_prompt,
+                    final_task_id=final_task_id,
+                    body_task_types=body_task_types,
+                    final_task_types=final_task_types,
+                    final_task_split=(
+                        TEST
+                        if final_task_origin
+                        == CodexSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TEST
+                        else TRAIN
+                    ),
+                    function_name_classes=function_name_classes,
+                    line_separator=line_separator,
+                    # TODO(gg): Support for configuring prompt prefixes.
+                )
 
-            #     # Max tokens
-            #     last_program_token_count = self.count_tokens_gpt2(str(prompt_i.get_last_program()))
-            #     max_tokens_completion = last_program_token_count * max_tokens_completion_beta
-            #     max_tokens_prompt = self.ENGINE_MAX_TOKENS - max_tokens_completion
+                # Estimate token budgets
+                token_count_last_program = self.count_tokens_gpt2(
+                    str(prompt_i.get_last_program())
+                )
+                token_count_prompt = self.count_tokens_gpt2(prompt_i.serialize())
 
-            #     if self.count_tokens_gpt2(prompt_i.serialize()) <= max_tokens_prompt:
-            #         prompt = prompt_i
-            #     else:
-            #         break
+                max_tokens_completion = int(
+                    token_count_last_program * max_tokens_completion_beta
+                )
+                max_tokens_prompt = int(self.ENGINE_MAX_TOKENS - max_tokens_completion)
 
-            # if prompt is None:
-            #     raise ValueError(
-            #         f"Failed to construct prompt."
-            #     )
+                print(
+                    f"Prompt construction ({body_task_i+1} / {len(body_task_ids)}): {token_count_prompt} (prompt; max {max_tokens_prompt}) + {token_count_last_program} (last program; allocated {max_tokens_completion}) = {token_count_prompt + token_count_last_program} tokens"
+                )
 
-            # assert body_task_i > 0
-
-            # body_task_ids_for_prompt = body_task_ids_for_prompt[:-1]
-
-            for retry_i in range(max_retries):
-                if retry_i > 0:
-                    body_task_ids_for_prompt = body_task_ids[:-retry_i]
-                    print(
-                        f"Retrying prompt with {len(body_task_ids_for_prompt)} body tasks"
-                    )
+                if token_count_prompt <= max_tokens_prompt:
+                    prompt = prompt_i
                 else:
-                    body_task_ids_for_prompt = body_task_ids
+                    break
+
+            if prompt is None:
+                raise ValueError(f"Failed to construct prompt.")
+            assert body_task_i > 0
+
+            n_body_tasks = len(prompt.body_task_data)
+
+            for retry_i in range(n_body_tasks):
+                body_task_ids_for_prompt = body_task_ids[: (n_body_tasks - retry_i)]
 
                 prompt = Prompt(
                     experiment_state=experiment_state,
@@ -363,7 +359,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 "n_samples": n_samples,
                 "n_samples_per_query": n_samples_per_query,
                 "max_queries": max_queries,
-                "n_tasks_per_prompt": n_tasks_per_prompt,
                 "temperature": temperature,
                 "max_tokens": max_tokens,
                 "engine": engine,

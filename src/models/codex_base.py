@@ -85,6 +85,8 @@ class CodexBase(object):
         return completion
 
     def count_tokens_gpt2(self, text):
+        # TODO(gg): Consider preprocessing to collapse whitespace, which could
+        # bring the behavior more in line with the Codex tokenizer.
         return len(self.tokenizer(text)["input_ids"])
 
 
