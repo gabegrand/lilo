@@ -15,7 +15,7 @@ from transformers import GPT2TokenizerFast
 from src.experiment_iterator import RANDOM_GENERATOR
 from src.models.laps_grammar import LAPSGrammar
 from src.models.model_loaders import GRAMMAR
-from src.task_loaders import LANGUAGE, PROGRAMS, TRAIN
+from src.task_loaders import LANGUAGE, PROGRAMS, TEST, TRAIN
 
 DEFAULT_LINE_SEPARATOR = "\n"
 
@@ -109,8 +109,11 @@ class Prompt(object):
         prefix_program: str = DEFAULT_PREFIX_PROGRAM,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
     ):
-        # final_task_id must be specified
-        assert final_task_id is not None
+        assert isinstance(body_task_ids, list)
+        assert len(body_task_ids) > 0
+
+        assert isinstance(final_task_id, str)
+        assert final_task_split in (TRAIN, TEST)
 
         # Enforce canonical ordering of task_types
         body_task_types = [t for t in self.TASK_TYPES if t in body_task_types]
@@ -188,6 +191,12 @@ class Prompt(object):
             return self.final_task_data["task_program"]
         else:
             return self.body_task_data["task_program"][-1]
+
+    def remove_last_body_task(self):
+        if len(self.body_task_data) > 1:
+            self.body_task_data = self.body_task_data[:-1]
+        else:
+            raise ValueError("Cannot remove single remaining body task from prompt.")
 
     def _get_task_data(self, task_id: str, task_types: list, task_split: str = TRAIN):
         frontier = self.experiment_state.get_frontiers_for_ids(task_split, [task_id])[0]
