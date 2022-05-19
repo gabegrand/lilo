@@ -60,7 +60,11 @@ def test_get_completion_for_prompt():
     sample_generator, experiment_state = get_sample_generator_and_state()
     task_ids = get_train_task_ids(experiment_state, n_task_ids=20)
     n_samples_per_query = 10
-    prompt = Prompt(experiment_state=experiment_state, body_task_ids=task_ids[TRAIN])
+    prompt = Prompt(
+        experiment_state=experiment_state,
+        body_task_ids=task_ids[TRAIN][:-1],
+        final_task_id=task_ids[TRAIN][-1],
+    )
     completion = get_completion(
         experiment_state, sample_generator, prompt.serialize(), n_samples_per_query
     )
@@ -71,7 +75,11 @@ def test_parse_completion():
     sample_generator, experiment_state = get_sample_generator_and_state()
     task_ids = get_train_task_ids(experiment_state, n_task_ids=20)
     n_samples_per_query = 10
-    prompt = Prompt(experiment_state=experiment_state, body_task_ids=task_ids[TRAIN])
+    prompt = Prompt(
+        experiment_state=experiment_state,
+        body_task_ids=task_ids[TRAIN][:-1],
+        final_task_id=task_ids[TRAIN][-1],
+    )
     completion = get_completion(
         experiment_state, sample_generator, prompt.serialize(), n_samples_per_query
     )
@@ -89,7 +97,11 @@ def test_add_samples_to_experiment_state():
     assert len(experiment_state.sample_tasks[TRAIN]) == 0
     task_ids = get_train_task_ids(experiment_state, n_task_ids=20)
     n_samples_per_query = 10
-    prompt = Prompt(experiment_state=experiment_state, body_task_ids=task_ids[TRAIN])
+    prompt = Prompt(
+        experiment_state=experiment_state,
+        body_task_ids=task_ids[TRAIN][:-1],
+        final_task_id=task_ids[TRAIN][-1],
+    )
     completion = get_completion(
         experiment_state, sample_generator, prompt.serialize(), n_samples_per_query
     )
@@ -114,7 +126,7 @@ def test_generate_samples():
         n_samples=n_samples_per_query,
         body_task_types=[PROGRAMS],
         final_task_types=[PROGRAMS],
-        final_task_origin=Prompt.FINAL_TASK_ORIGIN_DEFAULT,
+        final_task_origin=sample_generator.FINAL_TASK_ORIGIN_DEFAULT,
         function_name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
         debug=True,
     )
@@ -134,7 +146,7 @@ def test_generate_samples_alternative_naming():
         n_samples=n_samples_per_query,
         body_task_types=[PROGRAMS],
         final_task_types=[PROGRAMS],
-        final_task_origin=Prompt.FINAL_TASK_ORIGIN_DEFAULT,
+        final_task_origin=sample_generator.FINAL_TASK_ORIGIN_DEFAULT,
         function_name_classes=[
             LAPSGrammar.HUMAN_READABLE,
             LAPSGrammar.NUMERIC_FUNCTION_NAMES,
@@ -158,7 +170,7 @@ def test_generate_samples_with_language():
         n_samples=n_samples_per_query,
         body_task_types=[PROGRAMS, LANGUAGE],
         final_task_types=[PROGRAMS],
-        final_task_origin=Prompt.FINAL_TASK_ORIGIN_DEFAULT,
+        final_task_origin=sample_generator.FINAL_TASK_ORIGIN_DEFAULT,
         function_name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
         debug=True,
     )
@@ -179,7 +191,7 @@ def test_generate_samples_final_task_origin_train():
         n_samples=n_samples_per_query,
         body_task_types=[PROGRAMS, LANGUAGE],
         final_task_types=[PROGRAMS],
-        final_task_origin=Prompt.FINAL_TASK_ORIGIN_RANDOM_TRAIN,
+        final_task_origin=sample_generator.FINAL_TASK_ORIGIN_RANDOM_TRAIN,
         function_name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
         debug=True,
     )
@@ -206,7 +218,7 @@ def test_generate_samples_final_task_origin_test():
         n_samples=n_samples_per_query,
         body_task_types=[PROGRAMS, LANGUAGE],
         final_task_types=[PROGRAMS],
-        final_task_origin=Prompt.FINAL_TASK_ORIGIN_RANDOM_TEST,
+        final_task_origin=sample_generator.FINAL_TASK_ORIGIN_RANDOM_TEST,
         function_name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
         debug=True,
     )

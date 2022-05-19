@@ -15,7 +15,7 @@ from transformers import GPT2TokenizerFast
 from src.experiment_iterator import RANDOM_GENERATOR
 from src.models.laps_grammar import LAPSGrammar
 from src.models.model_loaders import GRAMMAR
-from src.task_loaders import LANGUAGE, PROGRAMS, TEST, TRAIN
+from src.task_loaders import LANGUAGE, PROGRAMS, TRAIN
 
 DEFAULT_LINE_SEPARATOR = "\n"
 
@@ -23,7 +23,7 @@ DEFAULT_LINE_SEPARATOR = "\n"
 class CodexBase(object):
     # https://beta.openai.com/docs/engines/codex-series-private-beta
     DEFAULT_ENGINE = "davinci-codex"
-    ENGINE_MAX_TOKENS = 4000 
+    ENGINE_MAX_TOKENS = 4000
 
     def __init__(self, experiment_state=None):
         super().__init__()
@@ -35,7 +35,6 @@ class CodexBase(object):
 
         # Used for computing approximate token counts for queries
         self.tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
-
 
     def query_codex(
         self,
@@ -86,7 +85,7 @@ class CodexBase(object):
         return completion
 
     def count_tokens_gpt2(self, text):
-        return len(self.tokenizer(text)['input_ids'])
+        return len(self.tokenizer(text)["input_ids"])
 
 
 class Prompt(object):
@@ -95,30 +94,21 @@ class Prompt(object):
     DEFAULT_PREFIX_PROGRAM = ""
     DEFAULT_PREFIX_LANGUAGE = "-- "  # Haskell-style comment
 
-    # Final task is the last task in body_tasks
-    FINAL_TASK_ORIGIN_DEFAULT = "default"
-    # Final task is drawn randomly from unused train tasks
-    FINAL_TASK_ORIGIN_RANDOM_TRAIN = "random_train"
-    # Final task is drawn randomly from test tasks
-    FINAL_TASK_ORIGIN_RANDOM_TEST = "random_test"
-
     def __init__(
         self,
         experiment_state,
         body_task_ids: list,
-        final_task_id: str = None,
+        final_task_id: str,
         body_task_types: list = [LANGUAGE, PROGRAMS],
         final_task_types: list = [LANGUAGE],
-        final_task_origin: str = FINAL_TASK_ORIGIN_DEFAULT,
+        final_task_split: str = TRAIN,
         line_separator: str = DEFAULT_LINE_SEPARATOR,
         prefix_language: str = DEFAULT_PREFIX_LANGUAGE,
         prefix_program: str = DEFAULT_PREFIX_PROGRAM,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
     ):
-        # Default final_task_id is the last task in body_task_ids
-        if final_task_id is None:
-            final_task_id = body_task_ids[-1]
-            body_task_ids = body_task_ids[:-1]
+        # final_task_id must be specified
+        assert final_task_id is not None
 
         # Enforce canonical ordering of task_types
         body_task_types = [t for t in self.TASK_TYPES if t in body_task_types]
@@ -133,7 +123,7 @@ class Prompt(object):
 
         self.body_task_types = body_task_types
         self.final_task_types = final_task_types
-        self.final_task_origin = final_task_origin
+        self.final_task_split = final_task_split
 
         self.line_separator = line_separator
         self.prefix_language = prefix_language
@@ -149,9 +139,7 @@ class Prompt(object):
         self.final_task_data = self._get_task_data(
             task_id=final_task_id,
             task_types=final_task_types,
-            task_split=TEST
-            if final_task_origin == Prompt.FINAL_TASK_ORIGIN_RANDOM_TEST
-            else TRAIN,
+            task_split=final_task_split,
         )
 
     def __len__(self):
