@@ -33,9 +33,8 @@ DEFAULT_CODEX_PARAMS = {
     "use_cached": False,
     "n_samples": 2,
     "n_samples_per_query": 5,
-    "n_tasks_per_prompt": 20,
     "temperature": 0.75,
-    "max_tokens": 256,
+    "max_tokens_completion_beta": 2.0,
     "function_name_classes": ["default_no_inline", "numeric"],
 }
 
@@ -246,11 +245,17 @@ def build_config_body(
             block["params"].update(_stitch_params)
         if (
             block.get("model_type")
-            in [LAPSGrammar.GRAMMAR, SAMPLE_GENERATOR, PROGRAM_REWRITER,]
+            in [
+                LAPSGrammar.GRAMMAR,
+                SAMPLE_GENERATOR,
+                PROGRAM_REWRITER,
+            ]
             or block.get("state_fn") == INITIALIZE_GROUND_TRUTH
         ):
             block["params"].update(
-                {"compute_likelihoods": compute_likelihoods,}
+                {
+                    "compute_likelihoods": compute_likelihoods,
+                }
             )
         loop_blocks.append(block)
     config["experiment_iterator"]["loop_blocks"] = loop_blocks
