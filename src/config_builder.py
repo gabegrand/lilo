@@ -31,11 +31,14 @@ DEFAULT_STITCH_PARAMS = {
 DEFAULT_CODEX_PARAMS = {
     "debug": False,
     "use_cached": False,
-    "n_samples": 2,
+    "n_samples": 50,
     "n_samples_per_query": 5,
     "temperature": 0.75,
     "max_tokens_completion_beta": 2.0,
     "function_name_classes": ["default_no_inline", "numeric"],
+    "final_task_origin": "default",
+    "body_task_types": ["programs"],
+    "final_task_types": ["programs"],
 }
 
 
@@ -231,18 +234,23 @@ def build_config_body(
         "increment_at_global_iteration"
     ] = increment_task_batcher
 
-    # Use defaults for any unspeficied parameters
-    _codex_params = DEFAULT_CODEX_PARAMS
-    _codex_params.update(codex_params)
-    _stitch_params = DEFAULT_STITCH_PARAMS
-    _stitch_params.update(stitch_params)
+    # params updates use the following precedence order (highest to lowest):
+    # 1. params from CLI (e.g., stitch_params)
+    # 2. params from template (e.g., block["params"])
+    # 3. params from config_builder globals (e.g., DEFAULT_STITCH_PARAMS)
 
     loop_blocks = []
     for block in config["experiment_iterator"]["loop_blocks"]:
         if block.get("model_type") == SAMPLE_GENERATOR:
-            block["params"].update(_codex_params)
+            _codex_params = DEFAULT_CODEX_PARAMS
+            _codex_params.update(block["params"])
+            _codex_params.update(codex_params)
+            block["params"] = _codex_params
         if block.get("model_type") == LIBRARY_LEARNER:
-            block["params"].update(_stitch_params)
+            _stitch_params = DEFAULT_STITCH_PARAMS
+            _stitch_params.update(block["params"])
+            _stitch_params.update(stitch_params)
+            block["params"] = _stitch_params
         if (
             block.get("model_type")
             in [

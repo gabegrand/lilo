@@ -68,14 +68,9 @@
                     "global_batch_size"
                 ],
                 "params": {
-                    "debug": false,
-                    "use_cached": false,
-                    "n_samples": 10,
-                    "body_task_types": ["language", "programs"],
-                    "final_task_types": ["language"],
                     "final_task_origin": "default",
-                    "temperature": 0.75,
-                    "function_name_classes": ["default"]
+                    "body_task_types": ["language", "programs"],
+                    "final_task_types": ["language"]
                 }
             },
             {
