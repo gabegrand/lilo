@@ -110,6 +110,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
             # Codex-specific parameters
             temperature: Codex temperature sampling value in `[0., 1.]` range.
+            max_tokens_completion_beta: Multiplicative factor for the maximum number of tokens in the completion.
+                max_tokens is set to the number of tokens in the last program in the prompt,
+                times the value of max_tokens_completion_beta.
             engine: Codex `engine` parameter.
 
             # Utility parameters
