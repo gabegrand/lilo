@@ -117,7 +117,7 @@ def test_add_samples_to_experiment_state():
 def test_generate_samples():
     sample_generator, experiment_state = get_sample_generator_and_state()
     assert len(experiment_state.sample_tasks[TRAIN]) == 0
-    task_ids = get_train_task_ids(experiment_state, n_task_ids=100)
+    task_ids = get_train_task_ids(experiment_state, n_task_ids=20)
     n_samples_per_query = 10
     query_results = sample_generator.generate_samples(
         experiment_state=experiment_state,
