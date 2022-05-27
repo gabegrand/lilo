@@ -17,7 +17,7 @@ import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.program import EtaLongVisitor, InferenceFailure, ParseFailure, Program
 from dreamcoder.task import Task
-from dreamcoder.type import TypeConstructor
+from dreamcoder.type import Type, TypeConstructor
 from src.experiment_iterator import RANDOM_GENERATOR
 from src.models.codex_base import DEFAULT_LINE_SEPARATOR, CodexBase, Prompt
 from src.models.laps_grammar import LAPSGrammar
@@ -560,6 +560,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     "valid": True,
                     "program": str(p),
                     "type": str(p_type),
+                    "type_json": p_type.json(),
                     "hash": abs(hash(str(p))),
                 }
             )
@@ -575,7 +576,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         for result_data in parse_results_valid:
             task = Task(
                 name=f"codex_{result_data['hash']}",
-                request=result_data["type"],
+                request=Type.fromjson(result_data["type_json"]),
                 examples=[],
             )
 
