@@ -124,7 +124,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             compute_likelihoods: If True, compute likelihoods for each sample.
             verbose: If True, print extra status updates including parse errors.
         """
-        experiment_state.metadata[RANDOM_GENERATOR]
         grammar = experiment_state.models[model_loaders.GRAMMAR]
 
         if task_splits != [TRAIN]:
