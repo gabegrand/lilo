@@ -10,6 +10,7 @@ import time
 
 import openai
 from openai.error import APIConnectionError, InvalidRequestError, RateLimitError
+from transformers import GPT2TokenizerFast
 
 from src.experiment_iterator import RANDOM_GENERATOR
 from src.models.laps_grammar import LAPSGrammar
@@ -20,7 +21,9 @@ DEFAULT_LINE_SEPARATOR = "\n"
 
 
 class CodexBase(object):
+    # https://beta.openai.com/docs/engines/codex-series-private-beta
     DEFAULT_ENGINE = "davinci-codex"
+    ENGINE_MAX_TOKENS = 4096  # Max tokens for BOTH the prompt and the completion.
 
     def __init__(self, experiment_state=None):
         super().__init__()
@@ -30,12 +33,17 @@ class CodexBase(object):
             )
         openai.api_key = os.environ["OPENAI_API_KEY"]
 
+        # Used for computing approximate token counts for queries
+        self.tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
+        self.tokenizer.model_max_length = self.ENGINE_MAX_TOKENS
+        os.environ["TOKENIZERS_PARALLELISM"] = str(False)
+
     def query_codex(
         self,
         prompt: str,
         n_samples: int,
         temperature: float = 0.75,
-        max_tokens: int = 256,
+        max_tokens: int = 256,  # Max tokens for completion only.
         engine: str = DEFAULT_ENGINE,
         line_separator: str = DEFAULT_LINE_SEPARATOR,
         top_p=None,
@@ -78,6 +86,11 @@ class CodexBase(object):
 
         return completion
 
+    def count_tokens_gpt2(self, text):
+        # TODO(gg): Consider preprocessing to collapse whitespace, which could
+        # bring the behavior more in line with the Codex tokenizer.
+        return len(self.tokenizer(text, truncation=False)["input_ids"])
+
 
 class Prompt(object):
     TASK_TYPES = [LANGUAGE, PROGRAMS]
@@ -85,36 +98,31 @@ class Prompt(object):
     DEFAULT_PREFIX_PROGRAM = ""
     DEFAULT_PREFIX_LANGUAGE = "-- "  # Haskell-style comment
 
-    # Final task is the last task in body_tasks
-    FINAL_TASK_ORIGIN_DEFAULT = "default"
-    # Final task is drawn randomly from unused train tasks
-    FINAL_TASK_ORIGIN_RANDOM_TRAIN = "random_train"
-    # Final task is drawn randomly from test tasks
-    FINAL_TASK_ORIGIN_RANDOM_TEST = "random_test"
-
     def __init__(
         self,
         experiment_state,
         body_task_ids: list,
-        final_task_id: str = None,
+        final_task_id: str,
         body_task_types: list = [LANGUAGE, PROGRAMS],
         final_task_types: list = [LANGUAGE],
-        final_task_origin: str = FINAL_TASK_ORIGIN_DEFAULT,
+        final_task_split: str = TRAIN,
         line_separator: str = DEFAULT_LINE_SEPARATOR,
         prefix_language: str = DEFAULT_PREFIX_LANGUAGE,
         prefix_program: str = DEFAULT_PREFIX_PROGRAM,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
     ):
-        # Default final_task_id is the last task in body_task_ids
-        if final_task_id is None:
-            final_task_id = body_task_ids[-1]
-            body_task_ids = body_task_ids[:-1]
+        assert isinstance(body_task_ids, list)
+        assert len(body_task_ids) > 0
+
+        assert isinstance(final_task_id, str)
+        assert final_task_split in (TRAIN, TEST)
 
         # Enforce canonical ordering of task_types
         body_task_types = [t for t in self.TASK_TYPES if t in body_task_types]
         final_task_types = [t for t in self.TASK_TYPES if t in final_task_types]
         assert len(body_task_types) > 0
         assert len(final_task_types) > 0
+        assert PROGRAMS in body_task_types
 
         self.experiment_state = experiment_state
         self.grammar = experiment_state.models[GRAMMAR]
@@ -122,7 +130,7 @@ class Prompt(object):
 
         self.body_task_types = body_task_types
         self.final_task_types = final_task_types
-        self.final_task_origin = final_task_origin
+        self.final_task_split = final_task_split
 
         self.line_separator = line_separator
         self.prefix_language = prefix_language
@@ -138,9 +146,7 @@ class Prompt(object):
         self.final_task_data = self._get_task_data(
             task_id=final_task_id,
             task_types=final_task_types,
-            task_split=TEST
-            if final_task_origin == Prompt.FINAL_TASK_ORIGIN_RANDOM_TEST
-            else TRAIN,
+            task_split=final_task_split,
         )
 
     def __len__(self):
@@ -181,6 +187,18 @@ class Prompt(object):
 
     def json(self):
         return json.dumps(self.to_dict(), indent=4)
+
+    def get_last_program(self):
+        if PROGRAMS in self.final_task_types:
+            return self.final_task_data["task_program"]
+        else:
+            return self.body_task_data["task_program"][-1]
+
+    def remove_last_body_task(self):
+        if len(self.body_task_data) > 1:
+            self.body_task_data = self.body_task_data[:-1]
+        else:
+            raise ValueError("Cannot remove single remaining body task from prompt.")
 
     def _get_task_data(self, task_id: str, task_types: list, task_split: str = TRAIN):
         frontier = self.experiment_state.get_frontiers_for_ids(task_split, [task_id])[0]

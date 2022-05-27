@@ -68,13 +68,9 @@
                     "global_batch_size"
                 ],
                 "params": {
-                    "debug": false,
-                    "use_cached": false,
-                    "n_samples": 10,
-                    "n_tasks_per_prompt": 20,
-                    "temperature": 0.75,
-                    "max_tokens": 256,
-                    "function_name_classes": ["default"]
+                    "final_task_origin": "default",
+                    "body_task_types": ["programs"],
+                    "final_task_types": ["programs"]
                 }
             },
             {
@@ -88,9 +84,6 @@
                     "global_batch_size"
                 ],
                 "params": {
-                    "max_arity": null,
-                    "iterations": null,
-                    "candidates_per_iteration": 1,
                     "include_samples": true
                 }
             },

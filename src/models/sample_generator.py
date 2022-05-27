@@ -38,6 +38,13 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     ERROR_INVALID_TYPE = "invalid_type"
     ERROR_ETA_LONG = "eta_long"
 
+    # Final task is the last task in body_tasks
+    FINAL_TASK_ORIGIN_DEFAULT = "default"
+    # Final task is drawn randomly from unused train tasks
+    FINAL_TASK_ORIGIN_RANDOM_TRAIN = "random_train"
+    # Final task is drawn randomly from test tasks
+    FINAL_TASK_ORIGIN_RANDOM_TEST = "random_test"
+
     @staticmethod
     def load_model(experiment_state, **kwargs):
         return CodexSampleGenerator(experiment_state=experiment_state, **kwargs)
@@ -56,15 +63,14 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         max_queries: int = None,
         max_retries: int = None,
         # Prompt construction
-        n_tasks_per_prompt: int = 10,
         body_task_types: list = [PROGRAMS],
         final_task_types: list = [PROGRAMS],
-        final_task_origin: str = Prompt.FINAL_TASK_ORIGIN_DEFAULT,
+        final_task_origin: str = FINAL_TASK_ORIGIN_DEFAULT,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
         line_separator: str = DEFAULT_LINE_SEPARATOR,
         # Codex parameters
         temperature: float = 0.75,
-        max_tokens: int = 256,
+        max_tokens_completion_beta: float = 2.0,
         engine: str = CodexBase.DEFAULT_ENGINE,
         # Utility
         debug: bool = False,
@@ -95,19 +101,18 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 Defaults to a very permissive behavior where the query will retry until reduced to a single task before failing.
 
             # Prompt construction parameters
-            n_tasks_per_prompt: Number of training programs to include in each Codex prompt.
-                If `n_train_programs_per_prompt` is too high, the prompt may exceed the token budget and trigger an `InvalidRequestError`.
             body_task_types: List of task types in [LANGUAGE, PROGRAMS] to include in the body of the prompt.
             final_task_types: List of task types in [LANGUAGE, PROGRAMS] to include in the final task of the prompt.
-            final_task_origin: Origin of the final task in the prompt. See the `Prompt.FINAL_TASK_ORIGIN_*` constants.
+            final_task_origin: Origin of the final task in the prompt.
             function_name_classes: List of 'name_classes' specifying what naming scheme to use for functions
                 programs used for the inductive prompt. Name classes will be applied in order as they are avaialble for each
                 function, falling back on DEFAULT (the DreamCoder parseable function names).
 
             # Codex-specific parameters
             temperature: Codex temperature sampling value in `[0., 1.]` range.
-            max_tokens: Max number of tokens for a single program in the completion.
-                Codex will stop at `line_separator` anyway, so this value should be generous.
+            max_tokens_completion_beta: Multiplicative factor for the maximum number of tokens in the completion.
+                max_tokens is set to the number of tokens in the last program in the prompt,
+                times the value of max_tokens_completion_beta.
             engine: Codex `engine` parameter.
 
             # Utility parameters
@@ -119,7 +124,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             compute_likelihoods: If True, compute likelihoods for each sample.
             verbose: If True, print extra status updates including parse errors.
         """
-        rng = experiment_state.metadata[RANDOM_GENERATOR]
         grammar = experiment_state.models[model_loaders.GRAMMAR]
 
         if task_splits != [TRAIN]:
@@ -152,13 +156,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         if n_samples_per_query is None:
             n_samples_per_query = n_samples
 
-        # We sample without replacement
-        n_tasks_per_prompt = min(n_tasks_per_prompt, len(task_ids_in_splits[TRAIN]))
-
-        # Default to retrying until reduced to a single task before failing.
-        if max_retries is None:
-            max_retries = n_tasks_per_prompt
-
         # Set the number of prompt attempts to something reasonable
         min_queries = np.ceil(n_samples / n_samples_per_query)
         if max_queries is None:
@@ -173,49 +170,33 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         parse_results_valid, parse_results_invalid = [], []
 
         for query_id in range(max_queries):
-            body_task_ids = list(
-                rng.choice(
-                    task_ids_in_splits[TRAIN], size=n_tasks_per_prompt, replace=False
-                )
+            # Construct an initial prompt with the max number of tasks we think
+            # we can fit based on estimates from GPT-2 tokenizer.
+            prompt = self.construct_initial_prompt(
+                experiment_state=experiment_state,
+                task_ids_in_splits=task_ids_in_splits,
+                body_task_types=body_task_types,
+                final_task_types=final_task_types,
+                final_task_origin=final_task_origin,
+                function_name_classes=function_name_classes,
+                line_separator=line_separator,
+                max_tokens_completion_beta=max_tokens_completion_beta,
+                verbose=verbose,
             )
 
-            if final_task_origin == Prompt.FINAL_TASK_ORIGIN_DEFAULT:
-                final_task_id = None
-            elif final_task_origin == Prompt.FINAL_TASK_ORIGIN_RANDOM_TRAIN:
-                final_task_id = rng.choice(
-                    [
-                        t.name
-                        for t in experiment_state.tasks[TRAIN]
-                        if t.name not in task_ids_in_splits[TRAIN]
-                    ]
-                )
-            elif final_task_origin == Prompt.FINAL_TASK_ORIGIN_RANDOM_TEST:
-                final_task_id = rng.choice(
-                    [t.name for t in experiment_state.tasks[TEST]]
-                )
-            else:
-                raise ValueError(f"Unknown final_task_origin={final_task_origin}")
-
+            # Iteratively remove tasks from the prompt until query success.
+            max_retries = len(prompt.body_task_data)
             for retry_i in range(max_retries):
                 if retry_i > 0:
-                    body_task_ids_for_prompt = body_task_ids[:-retry_i]
+                    prompt.remove_last_body_task()
                     print(
-                        f"Retrying prompt with {len(body_task_ids_for_prompt)} body tasks"
+                        f"Retry ({retry_i} / {max_retries}): Prompt reduced to {len(prompt)} tasks."
                     )
-                else:
-                    body_task_ids_for_prompt = body_task_ids
 
-                prompt = Prompt(
-                    experiment_state=experiment_state,
-                    body_task_ids=body_task_ids_for_prompt,
-                    final_task_id=final_task_id,
-                    body_task_types=body_task_types,
-                    final_task_types=final_task_types,
-                    final_task_origin=final_task_origin,
-                    function_name_classes=function_name_classes,
-                    line_separator=line_separator,
-                    # TODO(gg): Support for configuring prompt prefixes.
+                token_stats = self.get_token_stats(
+                    prompt=prompt, max_tokens_completion_beta=max_tokens_completion_beta
                 )
+
                 if use_cached:
                     # Load cached prompt for query_id
                     with open(query_results_filepath, "r") as f:
@@ -226,7 +207,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
                 if query_id % query_print_frequency == 0:
                     print(
-                        f"[QUERY {query_id}/{max_queries}]: Querying Codex ({len(prompt)} prompt tasks) for {n_samples_per_query} samples..."
+                        f"[QUERY {query_id}/{max_queries}]: Prompting Codex ({len(prompt)} tasks, {token_stats['token_count_prompt']} tokens) for {n_samples_per_query} samples ({token_stats['max_tokens_completion']} max tokens)..."
                     )
 
                 completion, cache_used = self.get_completion_for_prompt(
@@ -236,7 +217,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     query_results_filepath=query_results_filepath,
                     n_samples_per_query=n_samples_per_query,
                     temperature=temperature,
-                    max_tokens=max_tokens,
+                    max_tokens=token_stats["max_tokens_completion"],
                     engine=engine,
                     line_separator=line_separator,
                     use_cached=use_cached,
@@ -252,6 +233,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                         raise completion
                     elif isinstance(completion, APIConnectionError):
                         raise completion
+                    elif isinstance(completion, dict):
+                        # completion is a dict when debug=True
+                        assert debug
                     else:
                         raise ValueError(
                             f"Unexpected completion type: {type(completion)}"
@@ -268,6 +252,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 results_by_query.append(
                     {
                         "query_id": query_id,
+                        "token_stats": token_stats,
                         "prompt": prompt.to_dict(),
                         "completion": completion.to_dict_recursive()
                         if not debug
@@ -309,9 +294,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 "n_samples": n_samples,
                 "n_samples_per_query": n_samples_per_query,
                 "max_queries": max_queries,
-                "n_tasks_per_prompt": n_tasks_per_prompt,
                 "temperature": temperature,
-                "max_tokens": max_tokens,
                 "engine": engine,
                 "line_separator": line_separator,
                 "use_cached": use_cached,
@@ -344,6 +327,101 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         )
 
         return query_results
+
+    def construct_initial_prompt(
+        self,
+        experiment_state,
+        task_ids_in_splits,
+        body_task_types,
+        final_task_types,
+        final_task_origin,
+        function_name_classes,
+        line_separator,
+        max_tokens_completion_beta,
+        verbose,
+    ):
+        rng = experiment_state.metadata[RANDOM_GENERATOR]
+
+        # Random ordering of the body tasks
+        body_task_ids = list(rng.permutation(task_ids_in_splits[TRAIN]))
+
+        if final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_DEFAULT:
+            final_task_id = body_task_ids[-1]
+            body_task_ids = body_task_ids[:-1]
+        elif final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TRAIN:
+            final_task_id = rng.choice(
+                [
+                    t.name
+                    for t in experiment_state.tasks[TRAIN]
+                    if t.name not in task_ids_in_splits[TRAIN]
+                ]
+            )
+        elif final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TEST:
+            final_task_id = rng.choice([t.name for t in experiment_state.tasks[TEST]])
+        else:
+            raise ValueError(f"Unknown final_task_origin={final_task_origin}")
+
+        # Iteratively add tasks to the body until we exceed the token budget
+        prompt = None
+        for body_task_i in range(len(body_task_ids)):
+            body_task_ids_for_prompt = body_task_ids[: body_task_i + 1]
+            prompt_i = Prompt(
+                experiment_state=experiment_state,
+                body_task_ids=body_task_ids_for_prompt,
+                final_task_id=final_task_id,
+                body_task_types=body_task_types,
+                final_task_types=final_task_types,
+                final_task_split=(
+                    TEST
+                    if final_task_origin
+                    == CodexSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TEST
+                    else TRAIN
+                ),
+                function_name_classes=function_name_classes,
+                line_separator=line_separator,
+                # TODO(gg): Support for configuring prompt prefixes.
+            )
+
+            # Estimate token budgets
+            token_stats = self.get_token_stats(
+                prompt=prompt_i, max_tokens_completion_beta=max_tokens_completion_beta
+            )
+
+            if token_stats["token_count_prompt"] <= token_stats["max_tokens_prompt"]:
+                prompt = prompt_i
+                if verbose:
+                    print(
+                        f"Prompt construction ({body_task_i+1} / {len(body_task_ids)}): {token_stats['token_count_prompt']} (prompt; max {token_stats['max_tokens_prompt']}) + {token_stats['max_tokens_completion']} (completion allocation) = {token_stats['token_count_prompt'] + token_stats['max_tokens_completion']} tokens"
+                    )
+            else:
+                break
+
+        if prompt is None:
+            raise ValueError(f"Failed to construct prompt.")
+        assert body_task_i > 0
+
+        return prompt
+
+    def get_token_stats(self, prompt, max_tokens_completion_beta):
+        token_count_last_program = self.count_tokens_gpt2(
+            str(prompt.get_last_program())
+        )
+        token_count_prompt = self.count_tokens_gpt2(prompt.serialize())
+
+        # Allocate some multiple of the last program's tokens for the completion
+        max_tokens_completion = int(
+            token_count_last_program * max_tokens_completion_beta
+        )
+        # Allocate the remainder of the token budget to the prompt
+        max_tokens_prompt = int(self.ENGINE_MAX_TOKENS - max_tokens_completion)
+
+        token_stats = {
+            "token_count_prompt": token_count_prompt,
+            "token_count_last_program": token_count_last_program,
+            "max_tokens_prompt": max_tokens_prompt,
+            "max_tokens_completion": max_tokens_completion,
+        }
+        return token_stats
 
     def get_completion_for_prompt(
         self,
