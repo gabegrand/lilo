@@ -56,7 +56,7 @@ class IterativeExperimentAnalyzer:
         self,
         experiment_name,
         experiment_dir: str = DEFAULT_EXPERIMENT_DIR,
-        compute_likelihoods: bool = False,
+        compute_likelihoods: bool = True,
         allow_incomplete_results: bool = False,
     ):
 

@@ -76,7 +76,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         debug: bool = False,
         use_cached: bool = False,
         query_print_frequency: int = 1,
-        compute_likelihoods: bool = False,
+        compute_likelihoods: bool = True,
         verbose: bool = False,
     ):
         """
@@ -484,7 +484,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         grammar,
         valid_request_types: Set[TypeConstructor] = None,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
-        compute_likelihoods: bool = False,
+        compute_likelihoods: bool = True,
         verbose: bool = False,
     ):
         parse_results = []
@@ -571,7 +571,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         self,
         experiment_state,
         parse_results_valid: list,
-        compute_likelihoods: bool = False,
+        compute_likelihoods: bool = True,
     ):
         for result_data in parse_results_valid:
             task = Task(
