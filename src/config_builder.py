@@ -35,7 +35,7 @@ DEFAULT_CODEX_PARAMS = {
     "n_samples_per_query": 5,
     "temperature": 0.75,
     "max_tokens_completion_beta": 2.0,
-    "function_name_classes": ["default_no_inline", "numeric"],
+    "function_name_classes": ["human_readable", "default_no_inline", "numeric"],
     "final_task_origin": "default",
     "body_task_types": ["programs"],
     "final_task_types": ["programs"],
