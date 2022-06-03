@@ -127,7 +127,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         )
         self.run_binary(
             bin="compress",
-            stitch_args=[frontiers_filepath, "--no-mismatch-check"],
+            stitch_args=[frontiers_filepath, "--utility-by-rewrite", "--no-other-util"],
             stitch_kwargs={
                 "out": inventions_filepath,
                 "max-arity": max_arity,

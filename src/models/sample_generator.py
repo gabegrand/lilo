@@ -17,7 +17,7 @@ import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.program import EtaLongVisitor, InferenceFailure, ParseFailure, Program
 from dreamcoder.task import Task
-from dreamcoder.type import TypeConstructor
+from dreamcoder.type import Type, TypeConstructor
 from src.experiment_iterator import RANDOM_GENERATOR
 from src.models.codex_base import DEFAULT_LINE_SEPARATOR, CodexBase, Prompt
 from src.models.laps_grammar import LAPSGrammar
@@ -76,7 +76,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         debug: bool = False,
         use_cached: bool = False,
         query_print_frequency: int = 1,
-        compute_likelihoods: bool = False,
+        compute_likelihoods: bool = True,
         verbose: bool = False,
     ):
         """
@@ -141,6 +141,12 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             ]
         )
 
+        train_programs = set()
+        for f in experiment_state.get_frontiers_for_ids(
+            task_split=TRAIN, task_ids=task_ids_in_splits[TRAIN]
+        ):
+            train_programs.update([e.program for e in f.entries])
+
         query_results_filepath = os.path.join(
             os.getcwd(),
             experiment_state.get_checkpoint_directory(),
@@ -166,8 +172,8 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             )
 
         results_by_query = []
-        unique_hashes_valid = set()
-        parse_results_valid, parse_results_invalid = [], []
+        sampled_programs = set()
+        parse_results_valid = []
 
         for query_id in range(max_queries):
             # Construct an initial prompt with the max number of tasks we think
@@ -263,15 +269,13 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 for result_data in parse_results:
                     result_data["query_id"] = query_id
                     if result_data["valid"]:
-                        # Only allow one unique parse per program (even if the original text is different).
-                        if result_data["hash"] not in unique_hashes_valid:
-                            unique_hashes_valid.add(result_data["hash"])
+                        p = Program.parse(result_data["program"])
+                        if (p not in train_programs) and (p not in sampled_programs):
+                            sampled_programs.add(p)
                             parse_results_valid.append(result_data)
-                    else:
-                        parse_results_invalid.append(result_data)
 
                     # Stop as soon as target n_samples is reached, even if there are more valid programs in the results.
-                    if len(unique_hashes_valid) >= n_samples:
+                    if len(sampled_programs) >= n_samples:
                         break
 
                 if query_id % query_print_frequency == 0:
@@ -280,12 +284,12 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     )
 
                 print(
-                    f"[STATUS]: Sampled {len(unique_hashes_valid)}/{n_samples} unique, valid samples."
+                    f"[STATUS]: Sampled {len(sampled_programs)}/{n_samples} unique, valid samples."
                 )
 
                 break
 
-            if len(unique_hashes_valid) >= n_samples:
+            if len(sampled_programs) >= n_samples:
                 break
 
         # Save results to file.
@@ -307,10 +311,8 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             },
             "results": {
                 "n_queries": query_id + 1,
-                "n_programs_valid": len(unique_hashes_valid),
-                "n_programs_invalid": len(parse_results_invalid),
+                "n_sampled_programs": len(sampled_programs),
                 "programs_valid": parse_results_valid,
-                "programs_invalid": parse_results_invalid,
             },
             "results_by_query": results_by_query,
         }
@@ -484,7 +486,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         grammar,
         valid_request_types: Set[TypeConstructor] = None,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
-        compute_likelihoods: bool = False,
+        compute_likelihoods: bool = True,
         verbose: bool = False,
     ):
         parse_results = []
@@ -560,6 +562,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     "valid": True,
                     "program": str(p),
                     "type": str(p_type),
+                    "type_json": p_type.json(),
                     "hash": abs(hash(str(p))),
                 }
             )
@@ -570,12 +573,12 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         self,
         experiment_state,
         parse_results_valid: list,
-        compute_likelihoods: bool = False,
+        compute_likelihoods: bool = True,
     ):
         for result_data in parse_results_valid:
             task = Task(
                 name=f"codex_{result_data['hash']}",
-                request=result_data["type"],
+                request=Type.fromjson(result_data["type_json"]),
                 examples=[],
             )
 

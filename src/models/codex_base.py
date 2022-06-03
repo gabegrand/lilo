@@ -192,7 +192,7 @@ class Prompt(object):
         if PROGRAMS in self.final_task_types:
             return self.final_task_data["task_program"]
         else:
-            return self.body_task_data["task_program"][-1]
+            return self.body_task_data[-1]["task_program"]
 
     def remove_last_body_task(self):
         if len(self.body_task_data) > 1:
