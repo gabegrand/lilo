@@ -36,6 +36,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     ERROR_PARSE = "parse"
     ERROR_INFER = "infer"
     ERROR_INVALID_TYPE = "invalid_type"
+    ERROR_FREE_VARIABLES = "free_variables"
     ERROR_ETA_LONG = "eta_long"
 
     # Final task is the last task in body_tasks
@@ -499,7 +500,13 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     program_str_codex, input_name_class=function_name_classes
                 )
                 p = Program.parse(program_str)
-            except (ParseFailure, IndexError, AssertionError, ValueError) as e:
+            except (
+                ParseFailure,
+                IndexError,
+                AssertionError,
+                ValueError,
+                AttributeError,
+            ) as e:
                 if verbose:
                     print(f"Failed to parse ({type(e)}): {program_str_codex}")
                 parse_results.append(
@@ -539,7 +546,19 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                         }
                     )
                     continue
-            # CHECK 4: Can we convert the program to eta long form?
+            # CHECK 4: Does the program have free variables?
+            if not p.closed:
+                if verbose:
+                    print(f"Program has free variables: {str(p)}")
+                parse_results.append(
+                    {
+                        "text": program_str_codex,
+                        "valid": False,
+                        "error": CodexSampleGenerator.ERROR_FREE_VARIABLES,
+                    }
+                )
+                continue
+            # CHECK 5: Can we convert the program to eta long form?
             if compute_likelihoods:
                 try:
                     # Hack to avoid fatal error when computing likelihood summaries during rescoreFrontier
