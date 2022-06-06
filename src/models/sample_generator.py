@@ -415,6 +415,10 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         max_tokens_completion = int(
             token_count_last_program * max_tokens_completion_beta
         )
+        # The completion shouldn't take up more than 50% of the tokens
+        max_tokens_completion = min(
+            max_tokens_completion, int(self.ENGINE_MAX_TOKENS / 2)
+        )
         # Allocate the remainder of the token budget to the prompt
         max_tokens_prompt = int(self.ENGINE_MAX_TOKENS - max_tokens_completion)
 
