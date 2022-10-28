@@ -105,6 +105,13 @@ parser.add_argument(
     help="Use cached versions of Codex queries.",
 )
 
+parser.add_argument(
+    "--debug",
+    default=False,
+    action="store_true",
+    help="Replaces live query to Codex with a random sample from the training set.",
+)
+
 
 def main(args):
 
@@ -112,6 +119,8 @@ def main(args):
     stitch_params = json.loads(args.stitch_params)
     if args.use_cached:
         codex_params["use_cached"] = True
+    if args.debug:
+        codex_params["debug"] = True
 
     for random_seed in args.random_seeds:
         config_base = build_config(

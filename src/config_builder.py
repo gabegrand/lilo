@@ -39,6 +39,7 @@ DEFAULT_CODEX_PARAMS = {
     "final_task_origin": "default",
     "body_task_types": ["programs"],
     "final_task_types": ["programs"],
+    "prepend_dsl_description": False,
 }
 
 

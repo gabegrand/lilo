@@ -70,8 +70,10 @@ class LAPSGrammar(Grammar):
     STRUCTURE_PENALTY = "structure_penalty"
     TOP_K = "top_k"  # Compress with respect to the top K frontiers.
 
-    DEFAULT_FUNCTION_NAMES = "default" # DC names. Uses inlined naming (#(lambda ...)) for inventions.
-    DEFAULT_NO_INLINE_FUNCTION_NAMES = "default_no_inline" # DC names, but does not include inlined naming for inventions (inventions do not have a default name).
+    DEFAULT_FUNCTION_NAMES = (
+        "default"  # DC names. Uses inlined naming (#(lambda ...)) for inventions.
+    )
+    DEFAULT_NO_INLINE_FUNCTION_NAMES = "default_no_inline"  # DC names, but does not include inlined naming for inventions (inventions do not have a default name).
     NUMERIC_FUNCTION_NAMES = "numeric"
     EXCLUDE_NAME_INITIALIZATION = [DEFAULT_FUNCTION_NAMES, NUMERIC_FUNCTION_NAMES]
     # Other common naming schemes.
@@ -98,12 +100,12 @@ class LAPSGrammar(Grammar):
         self.function_names = self._init_function_names(
             initialize_parameters_from_grammar
         )
-    
+
     def _add_base_primitive(self, base_primitive, use_default_as_human_readable=False):
         numeric_idx = len(self.function_names)
         self.function_names[str(base_primitive)] = {
             LAPSGrammar.DEFAULT_FUNCTION_NAMES: str(base_primitive),
-            LAPSGrammar.DEFAULT_NO_INLINE_FUNCTION_NAMES : str(base_primitive),
+            LAPSGrammar.DEFAULT_NO_INLINE_FUNCTION_NAMES: str(base_primitive),
             LAPSGrammar.NUMERIC_FUNCTION_NAMES: LAPSGrammar.NUMERIC_FUNCTION_NAMES_PREFIX
             + str(numeric_idx),
         }
@@ -139,7 +141,9 @@ class LAPSGrammar(Grammar):
         }
         for p in base_dsl:
             # Only base inventions have non-inlined names.
-            function_names[str(p)][LAPSGrammar.DEFAULT_NO_INLINE_FUNCTION_NAMES] = str(p)
+            function_names[str(p)][LAPSGrammar.DEFAULT_NO_INLINE_FUNCTION_NAMES] = str(
+                p
+            )
 
             # Set any alternate names that exist.
             function_names[str(p)][LAPSGrammar.HUMAN_READABLE] = p.alternate_names[-1]
@@ -175,8 +179,7 @@ class LAPSGrammar(Grammar):
         return function_names
 
     def get_name(self, production_key, name_classes):
-        name_classes += [LAPSGrammar.DEFAULT_FUNCTION_NAMES]
-        for n in name_classes:
+        for n in name_classes + [LAPSGrammar.DEFAULT_FUNCTION_NAMES]:
             if n in self.function_names[production_key]:
                 return self.function_names[production_key][n]
         assert False
@@ -237,7 +240,11 @@ class LAPSGrammar(Grammar):
         return self.show_program_from_tree(program, name_classes, lam, debug)
 
     def show_program_from_tree(
-        self, program, name_classes, lam, debug=False,
+        self,
+        program,
+        name_classes,
+        lam,
+        debug=False,
     ):
         # Show a program, walking the tree and printing out alternate names as we go.
         class NameVisitor(object):
@@ -280,13 +287,17 @@ class LAPSGrammar(Grammar):
                 if isFunction:
                     return "%s %s" % (e.f.visit(self, True), e.x.visit(self, False))
                 else:
-                    return "(%s %s)" % (e.f.visit(self, True), e.x.visit(self, False),)
+                    return "(%s %s)" % (
+                        e.f.visit(self, True),
+                        e.x.visit(self, False),
+                    )
 
             def abstraction(self, e, isFunction):
                 return "(%s %s)" % (self.lam, e.body.visit(self, False))
 
         return program.visit(
-            NameVisitor(self.function_names, name_classes, lam, self), isFunction=False,
+            NameVisitor(self.function_names, name_classes, lam, self),
+            isFunction=False,
         )
 
     def infer_programs_for_tasks(
@@ -838,7 +849,9 @@ class LAPSGrammar(Grammar):
 
         if save_filename is not None:
             save_filepath = os.path.join(
-                os.getcwd(), experiment_state.get_checkpoint_directory(), save_filename,
+                os.getcwd(),
+                experiment_state.get_checkpoint_directory(),
+                save_filename,
             )
             os.makedirs(os.path.dirname(save_filepath), exist_ok=True)
             with open(save_filepath, "w") as f:
