@@ -287,12 +287,18 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                         f"[QUERY {query_id}/{max_queries}]: Returned {len(list(filter(lambda x: x['valid'], parse_results)))}/{n_samples_per_query} valid samples."
                     )
 
-                    print(prompt)
-                    print("Codex completions:")
-                    for result_data in parse_results:
-                        print(
-                            f"{'✅' if result_data['valid'] else '❌'} {result_data['text']}"
-                        )
+                    if verbose:
+                        print(prompt)
+
+                        if PROGRAMS not in prompt.final_task_types:
+                            print("Ground truth program:")
+                            print(prompt.final_task_data["task_program"])
+
+                        print("Codex completions:")
+                        for result_data in parse_results:
+                            print(
+                                f"{'✅' if result_data['valid'] else '❌'} {result_data['text']}"
+                            )
 
                 print(
                     f"[STATUS]: Sampled {len(sampled_programs)}/{n_samples} unique, valid samples."

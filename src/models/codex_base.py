@@ -22,7 +22,7 @@ DEFAULT_LINE_SEPARATOR = "\n"
 
 class CodexBase(object):
     # https://beta.openai.com/docs/engines/codex-series-private-beta
-    DEFAULT_ENGINE = "davinci-codex"
+    DEFAULT_ENGINE = "code-davinci-002"
     ENGINE_MAX_TOKENS = 4096  # Max tokens for BOTH the prompt and the completion.
 
     def __init__(self, experiment_state=None):
@@ -264,7 +264,13 @@ class Prompt(object):
         # Print dsl_fns sorted by length and alphabetically
         dsl_fns = sorted(dsl_fns, key=lambda x: (len(x), x))
 
-        dsl_description = "Write programs using the available functions:\n"
+        dsl_description = ""
+        if "dsl_description_prefix" in self.experiment_state.metadata:
+            dsl_description += (
+                self.experiment_state.metadata["dsl_description_prefix"] + "\n\n"
+            )
+
+        dsl_description += "Write programs using the available functions:\n"
 
         for dsl_fn in dsl_fns:
             dsl_description += f"- {dsl_fn}\n"

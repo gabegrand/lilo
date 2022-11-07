@@ -33,7 +33,7 @@ DEFAULT_CODEX_PARAMS = {
     "use_cached": False,
     "n_samples": 50,
     "n_samples_per_query": 5,
-    "temperature": 0.75,
+    "temperature": 0.40,
     "max_tokens_completion_beta": 2.0,
     "function_name_classes": ["human_readable", "default_no_inline", "numeric"],
     "final_task_origin": "default",
@@ -52,6 +52,7 @@ class ExperimentType(str, Enum):
     STITCH_CODEX_LANGUAGE_ORIGIN_RANDOM_TEST = (
         "stitch_codex_language_origin_random_test"
     )
+    STITCH_CODEX_DSL_DESCRIPTION = "stitch_codex_dsl_description"
 
 
 def get_domain_metadata(domain: str):
@@ -60,18 +61,21 @@ def get_domain_metadata(domain: str):
             "tasks_loader": "compositional_graphics_200",
             "task_language_loader": "compositional_graphics_200_synthetic",
             "ocaml_special_handler": "LOGO",
+            "dsl_description_prefix": "",
             "global_batch_sizes": [5, 10, 15, 25, 50, 100, 200],
         },
         "clevr": {
             "tasks_loader": "clevr",
             "task_language_loader": "clevr_synthetic",
             "ocaml_special_handler": "clevr",
+            "dsl_description_prefix": "",
             "global_batch_sizes": [5, 10, 15, 25, 50, 100, 191],
         },
         "re2": {
             "tasks_loader": "re2",
             "task_language_loader": "re2_synthetic",
             "ocaml_special_handler": "re2",
+            "dsl_description_prefix": "Lambda calculus DSL for regular expressions.\n\nCharacter primitives must be composed using one of the functions; e.g., (regex_or 'a' (regex_or 'b' 'c'))",
             "global_batch_sizes": [5, 10, 15, 25, 50, 100, 200, 300, 400, 491],
         },
     }
@@ -103,6 +107,7 @@ def get_domain_metadata(domain: str):
             "tasks_loader": drawing_domain_name,
             "task_language_loader": f"drawings_human_{drawing_domain}",
             "ocaml_special_handler": "drawings",
+            "dsl_description_prefix": "",
             "global_batch_sizes": [5, 10, 15, 25, 50, 100, 150, 200],
         }
         METADATA[drawing_domain_name] = drawing_domain_metadata
@@ -191,6 +196,7 @@ def build_config_metadata(
             "log_directory": log_directory,
             "tasks_loader": domain_meta["tasks_loader"],
             "task_language_loader": domain_meta["task_language_loader"],
+            "dsl_description_prefix": domain_meta["dsl_description_prefix"],
             "export_with_timestamp": False,
             "resume_checkpoint_directory": None,
             "init_frontiers_from_checkpoint": False,
