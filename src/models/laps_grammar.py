@@ -32,7 +32,7 @@ class LAPSGrammar(Grammar):
     DEFAULT_CPUS = 12  # Parallel CPUs
     DEFAULT_ENUMERATION_SOLVER = "ocaml"  # OCaml, PyPy, or Python enumeration
     DEFAULT_SAMPLER = "helmholtz"
-    DEFAULT_BINARY_DIRECTORY = os.path.join(DEFAULT_ENUMERATION_SOLVER, "bin")
+    DEFAULT_BINARY_DIRECTORY = "."
     DEFAULT_EVALUATION_TIMEOUT = 1  # Timeout for evaluating a program on a task
     DEFAULT_MAX_MEM_PER_ENUMERATION_THREAD = 1000000000  # Max memory usage per thread
     DEFAULT_MAX_SAMPLES = 5000
@@ -70,8 +70,10 @@ class LAPSGrammar(Grammar):
     STRUCTURE_PENALTY = "structure_penalty"
     TOP_K = "top_k"  # Compress with respect to the top K frontiers.
 
-    DEFAULT_FUNCTION_NAMES = "default" # DC names. Uses inlined naming (#(lambda ...)) for inventions.
-    DEFAULT_NO_INLINE_FUNCTION_NAMES = "default_no_inline" # DC names, but does not include inlined naming for inventions (inventions do not have a default name).
+    DEFAULT_FUNCTION_NAMES = (
+        "default"  # DC names. Uses inlined naming (#(lambda ...)) for inventions.
+    )
+    DEFAULT_NO_INLINE_FUNCTION_NAMES = "default_no_inline"  # DC names, but does not include inlined naming for inventions (inventions do not have a default name).
     NUMERIC_FUNCTION_NAMES = "numeric"
     EXCLUDE_NAME_INITIALIZATION = [DEFAULT_FUNCTION_NAMES, NUMERIC_FUNCTION_NAMES]
     # Other common naming schemes.
@@ -98,12 +100,12 @@ class LAPSGrammar(Grammar):
         self.function_names = self._init_function_names(
             initialize_parameters_from_grammar
         )
-    
+
     def _add_base_primitive(self, base_primitive, use_default_as_human_readable=False):
         numeric_idx = len(self.function_names)
         self.function_names[str(base_primitive)] = {
             LAPSGrammar.DEFAULT_FUNCTION_NAMES: str(base_primitive),
-            LAPSGrammar.DEFAULT_NO_INLINE_FUNCTION_NAMES : str(base_primitive),
+            LAPSGrammar.DEFAULT_NO_INLINE_FUNCTION_NAMES: str(base_primitive),
             LAPSGrammar.NUMERIC_FUNCTION_NAMES: LAPSGrammar.NUMERIC_FUNCTION_NAMES_PREFIX
             + str(numeric_idx),
         }
@@ -139,7 +141,9 @@ class LAPSGrammar(Grammar):
         }
         for p in base_dsl:
             # Only base inventions have non-inlined names.
-            function_names[str(p)][LAPSGrammar.DEFAULT_NO_INLINE_FUNCTION_NAMES] = str(p)
+            function_names[str(p)][LAPSGrammar.DEFAULT_NO_INLINE_FUNCTION_NAMES] = str(
+                p
+            )
 
             # Set any alternate names that exist.
             function_names[str(p)][LAPSGrammar.HUMAN_READABLE] = p.alternate_names[-1]
