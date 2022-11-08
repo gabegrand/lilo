@@ -3,6 +3,7 @@
     "experiment_id": "dreamcoder_compositional_graphics_200_synthetic",
     "human_readable": "DreamCoder baseline. Domain: compositional graphics 200. Human language.",
     "export_directory": "experiments/outputs/compositional_graphics",
+    "export_with_timestamp": false,
     "log_directory": "experiments/logs/compositional_graphics",
     "tasks_loader": "compositional_graphics_200",
     "task_language_loader": "compositional_graphics_200_synthetic",
@@ -37,6 +38,7 @@
       "model_type": "ground_truth_ordered_task_batcher",
       "params": {
         "global_batch_size": 10,
+        "increment_at_global_iteration": false,
         "verbose": true
       }
     },
