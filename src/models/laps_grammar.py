@@ -32,7 +32,7 @@ class LAPSGrammar(Grammar):
     DEFAULT_CPUS = 12  # Parallel CPUs
     DEFAULT_ENUMERATION_SOLVER = "ocaml"  # OCaml, PyPy, or Python enumeration
     DEFAULT_SAMPLER = "helmholtz"
-    DEFAULT_BINARY_DIRECTORY = "."
+    DEFAULT_BINARY_DIRECTORY = "dreamcoder"
     DEFAULT_EVALUATION_TIMEOUT = 1  # Timeout for evaluating a program on a task
     DEFAULT_MAX_MEM_PER_ENUMERATION_THREAD = 1000000000  # Max memory usage per thread
     DEFAULT_MAX_SAMPLES = 5000
