@@ -194,7 +194,7 @@ def build_config_metadata(
             "resume_checkpoint_directory": None,
             "init_frontiers_from_checkpoint": False,
             "ocaml_special_handler": domain_meta["ocaml_special_handler"],
-            "global_batch_sizes": domain_meta["global_batch_sizes"],
+            "global_batch_size": global_batch_size,
             "random_seed": random_seed,
         }
     }

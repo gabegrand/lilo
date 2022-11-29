@@ -40,7 +40,7 @@ import os
 from run_experiment import init_experiment_state_and_iterator, run_experiment
 from src.config_builder import build_config
 from src.experiment_iterator import EXPORT_DIRECTORY
-from src.task_loaders import GroundTruthOrderedTaskBatcher
+from src.task_loaders import ALL, GroundTruthOrderedTaskBatcher
 
 parser = argparse.ArgumentParser()
 
@@ -95,6 +95,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--global_batch_size_all",
+    default=False,
+    action="store_true",
+    help="Set global_batch_size to all",
+)
+
+parser.add_argument(
     "--random_seeds",
     nargs="+",
     default=[0],
@@ -132,10 +139,16 @@ def main(args):
             increment_task_batcher=args.increment_task_batcher,
         )
 
-        # If --global_batch_sizes is not specified, use the domain-specific default.
-        if not args.global_batch_sizes:
-            args.global_batch_sizes = config_base["metadata"]["global_batch_sizes"]
-        config_base["metadata"]["global_batch_sizes"] = args.global_batch_sizes
+        if args.global_batch_size_all:
+            # Runs a single iteration with all tasks.
+            global_batch_sizes = [ALL]
+        elif args.global_batch_sizes:
+            # Runs multiple iterations with a manually-specified list of batch sizes.
+            global_batch_sizes = args.global_batch_sizes
+        else:
+            # If --global_batch_sizes is not specified, use the domain-specific default.
+            global_batch_sizes = config_base["metadata"]["global_batch_sizes"]
+        config_base["metadata"]["global_batch_sizes"] = global_batch_sizes
 
         # Write a copy of config.json to the experiment directory
         config_base_write_path = os.path.join(
@@ -145,7 +158,7 @@ def main(args):
         with open(config_base_write_path, "w") as f:
             json.dump(config_base, f, indent=4)
 
-        for global_batch_size in args.global_batch_sizes:
+        for global_batch_size in global_batch_sizes:
             config = build_config(
                 experiment_name=args.experiment_name,
                 experiment_type=args.experiment_type,

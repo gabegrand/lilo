@@ -3,9 +3,10 @@ task_loaders.py | Author : Catherine Wong
 Utility classes for loading and batching datasets of tasks and language.
 """
 
-import os
 import json
+import os
 import random
+
 from class_registry import ClassRegistry
 
 TaskLoaderRegistry = ClassRegistry("name", unique=True)
@@ -111,19 +112,19 @@ class OrderedTaskBatcher(TaskBatcher):
     ):
         """
         Gets a batch of tasks relative to a global pointer.
-        batch_size: {ALL, GLOBAL_BATCH_SIZE, scalar}: 
-        if ALL, returns all tasks for a split. 
+        batch_size: {ALL, GLOBAL_BATCH_SIZE, scalar}:
+        if ALL, returns all tasks for a split.
         if GLOBAL_BATCH_SIZE, returns global_batch_size tasks from the global pointer.
         Else, returns n tasks from the global pointer.
         """
         all_tasks_for_split = self.task_id_orderings[task_split]
+        if batch_size == GLOBAL_BATCH_SIZE:
+            batch_size = self.global_batch_size
+
         if batch_size == ALL:
             return all_tasks_for_split
 
         # Calculate batching wrt. a global pointer.
-        batch_size = (
-            batch_size if batch_size != GLOBAL_BATCH_SIZE else self.global_batch_size
-        )
         batch_size = int(batch_size)
 
         if self.increment_at_global_iteration:

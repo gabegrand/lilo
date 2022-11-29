@@ -99,6 +99,10 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
             for task in experiment_state.get_tasks_for_ids(
                 task_split=split, task_ids=task_ids_in_splits[split]
             ):
+                # If we don't have any solved programs for this task, skip it
+                if task.name not in task_to_programs:
+                    continue
+
                 frontier_rewritten = Frontier(
                     frontier=[],
                     task=task,
