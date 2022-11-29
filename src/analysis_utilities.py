@@ -40,6 +40,7 @@ class IterativeExperimentAnalyzer:
         ExperimentType.STITCH_CODEX: "stitch + lilo [programs]",
         ExperimentType.STITCH_CODEX_LANGUAGE: "stitch + lilo [programs, language (train)]",
         ExperimentType.STITCH_CODEX_LANGUAGE_ORIGIN_RANDOM_TEST: "stitch + lilo [programs, language (test)]",
+        ExperimentType.STITCH_CODEX_DSL_DESCRIPTION: "stitch + lilo [programs, language (test), dsl description]",
     }
     EXPERIMENT_TYPES_PALETTE = {
         EXPERIMENT_TYPES_CAMERA[ExperimentType.ORACLE]: "#3F553A",
@@ -50,6 +51,7 @@ class IterativeExperimentAnalyzer:
         EXPERIMENT_TYPES_CAMERA[
             ExperimentType.STITCH_CODEX_LANGUAGE_ORIGIN_RANDOM_TEST
         ]: "#EAAC8B",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.STITCH_CODEX_DSL_DESCRIPTION]: "#EAAC8B",
     }
 
     def __init__(
@@ -261,6 +263,7 @@ class IterativeExperimentAnalyzer:
                 ExperimentType.STITCH_CODEX,
                 ExperimentType.STITCH_CODEX_LANGUAGE,
                 ExperimentType.STITCH_CODEX_LANGUAGE_ORIGIN_RANDOM_TEST,
+                ExperimentType.STITCH_CODEX_DSL_DESCRIPTION,
             ]:
                 if use_results_by_query:
                     df = self.get_codex_programs_by_query_for_experiment_type(

@@ -1,0 +1,126 @@
+{
+    "metadata": {},
+    "model_initializers": [
+        {
+            "model_type": "grammar",
+            "model_loader": null,
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "sample_generator",
+            "model_loader": "codex_sample_generator",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "library_learner",
+            "model_loader": "stitch_proposer",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "program_rewriter",
+            "model_loader": "stitch_rewriter",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        }
+    ],
+    "experiment_iterator": {
+        "max_iterations": null,
+        "task_batcher": {
+            "model_type": "ground_truth_ordered_task_batcher",
+            "params": {
+                "global_batch_size": null,
+                "verbose": true
+            }
+        },
+        "loop_blocks": [
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_metadata",
+                "params": {
+                    "verbosity": 3
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "initialize_ground_truth_task_frontiers",
+                "params": {
+                    "task_split": "train"
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "initialize_ground_truth_task_frontiers",
+                "params": {
+                    "task_split": "test"
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "sample_generator",
+                "model_fn": "generate_samples",
+                "task_splits": [
+                    "train"
+                ],
+                "task_batch_sizes": [
+                    "global_batch_size"
+                ],
+                "params": {
+                    "final_task_origin": "random_test",
+                    "body_task_types": ["language", "programs"],
+                    "final_task_types": ["language"],
+                    "prepend_dsl_description": true,
+                    "verbose": true
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "library_learner",
+                "model_fn": "get_compressed_grammar_mdl_prior_rank",
+                "task_splits": [
+                    "train"
+                ],
+                "task_batch_sizes": [
+                    "global_batch_size"
+                ],
+                "params": {
+                    "include_samples": true
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "program_rewriter",
+                "model_fn": "get_rewritten_frontiers_for_grammar",
+                "task_splits": [
+                    "train",
+                    "test"
+                ],
+                "task_batch_sizes": [
+                    "global_batch_size",
+                    "all"
+                ],
+                "params": {
+                    "include_samples": true
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "grammar",
+                "model_fn": "evaluate_frontiers",
+                "task_splits": [
+                    "test"
+                ],
+                "task_batch_sizes": [
+                    "all"
+                ],
+                "params": {
+                    "compute_likelihoods": true,
+                    "compute_description_lengths": true,
+                    "save_filename": "test_likelihoods.json"
+                }
+            }
+        ]
+    }
+}

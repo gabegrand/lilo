@@ -22,7 +22,7 @@ DEFAULT_LINE_SEPARATOR = "\n"
 
 class CodexBase(object):
     # https://beta.openai.com/docs/engines/codex-series-private-beta
-    DEFAULT_ENGINE = "davinci-codex"
+    DEFAULT_ENGINE = "code-davinci-002"
     ENGINE_MAX_TOKENS = 4096  # Max tokens for BOTH the prompt and the completion.
 
     def __init__(self, experiment_state=None):
@@ -110,6 +110,7 @@ class Prompt(object):
         prefix_language: str = DEFAULT_PREFIX_LANGUAGE,
         prefix_program: str = DEFAULT_PREFIX_PROGRAM,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+        prepend_dsl_description: bool = False,
     ):
         assert isinstance(body_task_ids, list)
         assert len(body_task_ids) > 0
@@ -149,6 +150,11 @@ class Prompt(object):
             task_split=final_task_split,
         )
 
+        self.prepend_dsl_description = prepend_dsl_description
+        self.dsl_description = (
+            self._get_dsl_description() if prepend_dsl_description else ""
+        )
+
     def __len__(self):
         return len(self.body_task_data) + 1
 
@@ -157,19 +163,36 @@ class Prompt(object):
 
     def __str__(self):
         prompt_text = ""
-        for task_data in self.body_task_data + [self.final_task_data]:
-            if task_data["task_language"] is not None:
+        if self.prepend_dsl_description:
+            prompt_text += self.dsl_description
+        # Write the body tasks
+        prompt_text += "\nHere are some example programs:\n"
+        for task_data in self.body_task_data:
+            if LANGUAGE in self.body_task_types:
                 prompt_text += (
                     self.prefix_language
                     + task_data["task_language"]
                     + self.line_separator
                 )
-            if task_data["task_program"] is not None:
+            if PROGRAMS in self.body_task_types:
                 prompt_text += (
                     self.prefix_program
                     + task_data["task_program"]
                     + self.line_separator
                 )
+        # Write the final task
+        if LANGUAGE in self.final_task_types:
+            prompt_text += (
+                self.prefix_language
+                + self.final_task_data["task_language"]
+                + self.line_separator
+            )
+        if PROGRAMS in self.final_task_types:
+            prompt_text += (
+                self.prefix_program
+                + self.final_task_data["task_program"]
+                + self.line_separator
+            )
         return prompt_text
 
     def serialize(self):
@@ -177,11 +200,13 @@ class Prompt(object):
 
     def to_dict(self):
         return {
+            "dsl_description": self.dsl_description,
             "body_task_data": self.body_task_data,
             "final_task_data": self.final_task_data,
         }
 
     def load_from_dict(self, d):
+        self.dsl_description = d["dsl_description"]
         self.body_task_data = d["body_task_data"]
         self.final_task_data = d["final_task_data"]
 
@@ -202,17 +227,18 @@ class Prompt(object):
 
     def _get_task_data(self, task_id: str, task_types: list, task_split: str = TRAIN):
         frontier = self.experiment_state.get_frontiers_for_ids(task_split, [task_id])[0]
-        if PROGRAMS in task_types:
-            task_program = self.rng.choice(
-                [
-                    self.grammar.show_program(
-                        e.program, name_classes=self.function_name_classes
-                    )
-                    for e in frontier.entries
-                ]
-            )
-        else:
-            task_program = None
+
+        # Always get the program
+        task_program = self.rng.choice(
+            [
+                self.grammar.show_program(
+                    e.program, name_classes=self.function_name_classes
+                )
+                for e in frontier.entries
+            ]
+        )
+
+        # Optionally, get the language
         if LANGUAGE in task_types:
             task_language = self.rng.choice(
                 self.experiment_state.get_language_for_ids(task_split, [task_id])[0]
@@ -227,3 +253,26 @@ class Prompt(object):
             "task_program": task_program,
             "task_language": task_language,
         }
+
+    def _get_dsl_description(self):
+        dsl_fns = [
+            self.grammar.get_name(
+                production_key=production_key, name_classes=self.function_name_classes
+            )
+            for production_key in self.grammar.function_names
+        ]
+        # Print dsl_fns sorted by length and alphabetically
+        dsl_fns = sorted(dsl_fns, key=lambda x: (len(x), x))
+
+        dsl_description = ""
+        if "dsl_description_prefix" in self.experiment_state.metadata:
+            dsl_description += (
+                self.experiment_state.metadata["dsl_description_prefix"] + "\n\n"
+            )
+
+        dsl_description += "Write programs using the available functions:\n"
+
+        for dsl_fn in dsl_fns:
+            dsl_description += f"- {dsl_fn}\n"
+
+        return dsl_description

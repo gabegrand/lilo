@@ -68,6 +68,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         final_task_types: list = [PROGRAMS],
         final_task_origin: str = FINAL_TASK_ORIGIN_DEFAULT,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+        prepend_dsl_description: bool = False,
         line_separator: str = DEFAULT_LINE_SEPARATOR,
         # Codex parameters
         temperature: float = 0.75,
@@ -108,6 +109,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             function_name_classes: List of 'name_classes' specifying what naming scheme to use for functions
                 programs used for the inductive prompt. Name classes will be applied in order as they are avaialble for each
                 function, falling back on DEFAULT (the DreamCoder parseable function names).
+            prepend_dsl_description: Prepends an automatically-constructed description of all fns in the DSL to the prompt.
 
             # Codex-specific parameters
             temperature: Codex temperature sampling value in `[0., 1.]` range.
@@ -186,6 +188,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 final_task_types=final_task_types,
                 final_task_origin=final_task_origin,
                 function_name_classes=function_name_classes,
+                prepend_dsl_description=prepend_dsl_description,
                 line_separator=line_separator,
                 max_tokens_completion_beta=max_tokens_completion_beta,
                 verbose=verbose,
@@ -284,6 +287,19 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                         f"[QUERY {query_id}/{max_queries}]: Returned {len(list(filter(lambda x: x['valid'], parse_results)))}/{n_samples_per_query} valid samples."
                     )
 
+                    if verbose:
+                        print(prompt)
+
+                        if PROGRAMS not in prompt.final_task_types:
+                            print("Ground truth program:")
+                            print(prompt.final_task_data["task_program"])
+
+                        print("Codex completions:")
+                        for result_data in parse_results:
+                            print(
+                                f"{'✅' if result_data['valid'] else '❌'} {result_data['text']}"
+                            )
+
                 print(
                     f"[STATUS]: Sampled {len(sampled_programs)}/{n_samples} unique, valid samples."
                 )
@@ -339,6 +355,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         final_task_types,
         final_task_origin,
         function_name_classes,
+        prepend_dsl_description,
         line_separator,
         max_tokens_completion_beta,
         verbose,
@@ -381,6 +398,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     else TRAIN
                 ),
                 function_name_classes=function_name_classes,
+                prepend_dsl_description=prepend_dsl_description,
                 line_separator=line_separator,
                 # TODO(gg): Support for configuring prompt prefixes.
             )
