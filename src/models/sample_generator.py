@@ -362,8 +362,20 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     ):
         rng = experiment_state.metadata[RANDOM_GENERATOR]
 
+        non_empty_task_ids = [
+            f.task.name
+            for f in experiment_state.get_non_empty_frontiers_for_split(TRAIN)
+        ]
+
         # Random ordering of the body tasks
         body_task_ids = list(rng.permutation(task_ids_in_splits[TRAIN]))
+
+        # Filter body_task_ids to only include tasks that have non-empty frontiers.
+        body_task_ids = [t for t in body_task_ids if t in non_empty_task_ids]
+        if len(body_task_ids) < 2:
+            raise ValueError(
+                "At least 2 tasks must have non-empty frontiers to construct a prompt."
+            )
 
         if final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_DEFAULT:
             final_task_id = body_task_ids[-1]
