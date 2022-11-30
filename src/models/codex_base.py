@@ -228,15 +228,18 @@ class Prompt(object):
     def _get_task_data(self, task_id: str, task_types: list, task_split: str = TRAIN):
         frontier = self.experiment_state.get_frontiers_for_ids(task_split, [task_id])[0]
 
-        # Always get the program
-        task_program = self.rng.choice(
-            [
-                self.grammar.show_program(
-                    e.program, name_classes=self.function_name_classes
-                )
-                for e in frontier.entries
-            ]
-        )
+        # Optionally, get the program
+        if PROGRAMS in task_types:
+            task_program = self.rng.choice(
+                [
+                    self.grammar.show_program(
+                        e.program, name_classes=self.function_name_classes
+                    )
+                    for e in frontier.entries
+                ]
+            )
+        else:
+            task_program = None
 
         # Optionally, get the language
         if LANGUAGE in task_types:

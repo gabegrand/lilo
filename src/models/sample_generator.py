@@ -41,8 +41,10 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
     # Final task is the last task in body_tasks
     FINAL_TASK_ORIGIN_DEFAULT = "default"
-    # Final task is drawn randomly from unused train tasks
+    # Final task is drawn randomly from train tasks not in the current batch
     FINAL_TASK_ORIGIN_RANDOM_TRAIN = "random_train"
+    # Final task is drawn randomly from unsolved train tasks
+    FINAL_TASK_ORIGIN_UNSOLVED_TRAIN = "unsolved_train"
     # Final task is drawn randomly from test tasks
     FINAL_TASK_ORIGIN_RANDOM_TEST = "random_test"
 
@@ -386,6 +388,14 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     t.name
                     for t in experiment_state.tasks[TRAIN]
                     if t.name not in task_ids_in_splits[TRAIN]
+                ]
+            )
+        elif final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_UNSOLVED_TRAIN:
+            final_task_id = rng.choice(
+                [
+                    t.name
+                    for t in experiment_state.tasks[TRAIN]
+                    if t.name not in non_empty_task_ids
                 ]
             )
         elif final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TEST:
