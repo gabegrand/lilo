@@ -44,6 +44,13 @@
                 }
             },
             {
+                "experiment_block_type": "state_fn",
+                "state_fn": "initialize_ground_truth_task_frontiers",
+                "params": {
+                    "task_split": "test"
+                }
+            },
+            {
                 "experiment_block_type": "model_fn",
                 "model_type": "grammar",
                 "model_fn": "infer_programs_for_tasks",
@@ -75,6 +82,7 @@
                     "body_task_types": ["language", "programs"],
                     "final_task_types": ["language"],
                     "prepend_dsl_description": true,
+                    "evaluate_samples": true,
                     "verbose": true
                 }
             },

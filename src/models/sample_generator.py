@@ -65,6 +65,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         n_samples_per_query: int = None,
         max_queries: int = None,
         max_retries: int = None,
+        evaluate_samples: bool = False,
         # Prompt construction
         body_task_types: list = [PROGRAMS],
         final_task_types: list = [PROGRAMS],
@@ -103,6 +104,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 Intention is to more gracefully handle `InvalidRequestError` when max tokens is exceeded via iterative backoff.
                 Iteratively removes last item from body_tasks until query success or max_retries is exceeded.
                 Defaults to a very permissive behavior where the query will retry until reduced to a single task before failing.
+            evaluate_samples: Exhaustively check whether each valid program solves any training task. If True, programs that solve
+                a training task will be added to that task's frontier and programs that don't solve any training task will be added
+                to a sample task's frontier. If False, all programs will be added to a sample task's frontier.
 
             # Prompt construction parameters
             body_task_types: List of task types in [LANGUAGE, PROGRAMS] to include in the body of the prompt.
@@ -343,7 +347,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         # Update experiment_state.
         self.add_samples_to_experiment_state(
             experiment_state=experiment_state,
+            task_ids_in_splits=task_ids_in_splits,
             parse_results_valid=parse_results_valid,
+            evaluate_samples=evaluate_samples,
             compute_likelihoods=compute_likelihoods,
         )
 
@@ -635,35 +641,74 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     def add_samples_to_experiment_state(
         self,
         experiment_state,
+        task_ids_in_splits: dict,
         parse_results_valid: list,
+        evaluate_samples: bool = False,
         compute_likelihoods: bool = True,
     ):
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+
         for result_data in parse_results_valid:
-            task = Task(
-                name=f"codex_{result_data['hash']}",
-                request=Type.fromjson(result_data["type_json"]),
-                examples=[],
-            )
 
-            frontier = Frontier(
-                frontier=[
-                    FrontierEntry(
-                        program=Program.parse(result_data["program"]),
-                        logPrior=0.0,
-                        logLikelihood=0.0,
+            program = Program.parse(result_data["program"])
+
+            # Check if the program solves any tasks.
+            tasks_solved_with_program = []
+            if evaluate_samples:
+
+                for task in experiment_state.get_tasks_for_ids(
+                    TRAIN, task_ids_in_splits[TRAIN]
+                ):
+                    if task.check(program, timeout=grammar.DEFAULT_EVALUATION_TIMEOUT):
+                        new_frontier = Frontier(
+                            frontier=[
+                                FrontierEntry(
+                                    program=program,
+                                    logPrior=0.0,  # TODO: compute prior?
+                                    logLikelihood=0.0,
+                                )
+                            ],
+                            task=task,
+                        )
+
+                        experiment_state.task_frontiers[TRAIN][task.name].combine(
+                            new_frontier
+                        )
+                        tasks_solved_with_program.append(task.name)
+
+                        # TODO: break on first solved task?
+
+                if len(tasks_solved_with_program) > 0:
+                    print(
+                        f"🏆 Solved {len(tasks_solved_with_program)} tasks with program: {program}"
                     )
-                ],
-                task=task,
-            )
+                    break
 
-            # Re-score the logPrior and logLikelihood of the frontier under the current grammar
-            if compute_likelihoods:
-                frontier = experiment_state.models[
-                    model_loaders.GRAMMAR
-                ].rescoreFrontier(frontier)
+            # If the program doesn't solve any tasks, add it to the experiment state as a sample.
+            if not evaluate_samples or len(tasks_solved_with_program) == 0:
+                sample_task = Task(
+                    name=f"codex_{result_data['hash']}",
+                    request=Type.fromjson(result_data["type_json"]),
+                    examples=[],
+                )
 
-            experiment_state.sample_tasks[TRAIN].append(task)
-            experiment_state.sample_frontiers[TRAIN][task] = frontier
+                sample_frontier = Frontier(
+                    frontier=[
+                        FrontierEntry(
+                            program=program,
+                            logPrior=0.0,
+                            logLikelihood=0.0,
+                        )
+                    ],
+                    task=sample_task,
+                )
+
+                # Re-score the logPrior and logLikelihood of the frontier under the current grammar
+                if compute_likelihoods:
+                    sample_frontier = grammar.rescoreFrontier(sample_frontier)
+
+                experiment_state.sample_tasks[TRAIN].append(sample_task)
+                experiment_state.sample_frontiers[TRAIN][sample_task] = sample_frontier
 
     def query_mock(self, experiment_state, n_samples: int = 3, **kwargs):
         """Debugging query that returns a sample of programs from the task."""
