@@ -133,7 +133,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             compute_likelihoods: If True, compute likelihoods for each sample.
             verbose: If True, print extra status updates including parse errors.
         """
-        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        experiment_state.models[model_loaders.GRAMMAR]
 
         if task_splits != [TRAIN]:
             raise ValueError(
@@ -259,9 +259,11 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
                 parse_results = self.parse_completion(
                     completion,
-                    grammar,
+                    experiment_state=experiment_state,
+                    task_ids_in_splits=task_ids_in_splits,
                     valid_request_types=train_task_request_types,
                     function_name_classes=function_name_classes,
+                    evaluate_samples=evaluate_samples,
                     compute_likelihoods=compute_likelihoods,
                     verbose=verbose,
                 )
@@ -302,9 +304,13 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
                         print("Codex completions:")
                         for result_data in parse_results:
-                            print(
-                                f"{'✅' if result_data['valid'] else '❌'} {result_data['text']}"
-                            )
+                            if result_data.get("tasks_solved", False):
+                                status_emoji = "🏆"
+                            elif result_data["valid"]:
+                                status_emoji = "✅"
+                            else:
+                                status_emoji = "❌"
+                            print(f"{status_emoji} {result_data['text']}")
 
                 print(
                     f"[STATUS]: Sampled {len(sampled_programs)}/{n_samples} unique, valid samples."
@@ -314,6 +320,11 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
             if len(sampled_programs) >= n_samples:
                 break
+
+        all_tasks_solved = {}
+        for result_data in parse_results_valid:
+            if result_data.get("tasks_solved", False):
+                all_tasks_solved.update(result_data["tasks_solved"])
 
         # Save results to file.
         query_results = {
@@ -335,7 +346,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             "results": {
                 "n_queries": query_id + 1,
                 "n_sampled_programs": len(sampled_programs),
+                "n_tasks_solved": len(all_tasks_solved),
                 "programs_valid": parse_results_valid,
+                "tasks_solved": list(all_tasks_solved),
             },
             "results_by_query": results_by_query,
         }
@@ -534,12 +547,16 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     def parse_completion(
         self,
         completion,
-        grammar,
+        experiment_state,
+        task_ids_in_splits: dict,
         valid_request_types: Set[TypeConstructor] = None,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+        evaluate_samples: bool = True,
         compute_likelihoods: bool = True,
         verbose: bool = False,
     ):
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+
         parse_results = []
         for choice in completion["choices"]:
             program_str_codex = choice["text"]
@@ -624,6 +641,15 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                         }
                     )
                     continue
+            # Check 6: Does the program solve any tasks?
+            tasks_solved = []
+            if evaluate_samples:
+                for task in experiment_state.get_tasks_for_ids(
+                    TRAIN, task_ids_in_splits[TRAIN]
+                ):
+                    if task.check(p, timeout=grammar.DEFAULT_EVALUATION_TIMEOUT):
+                        tasks_solved.append(task.name)
+                        # TODO: break on first solved task?
 
             parse_results.append(
                 {
@@ -633,6 +659,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     "type": str(p_type),
                     "type_json": p_type.json(),
                     "hash": abs(hash(str(p))),
+                    "tasks_solved": tasks_solved,
                 }
             )
 
@@ -652,40 +679,25 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
             program = Program.parse(result_data["program"])
 
-            # Check if the program solves any tasks.
-            tasks_solved_with_program = []
-            if evaluate_samples:
-
+            # If the program solves any train tasks, add it to the respective task frontier(s).
+            if evaluate_samples and len(result_data["tasks_solved"]) > 0:
                 for task in experiment_state.get_tasks_for_ids(
-                    TRAIN, task_ids_in_splits[TRAIN]
+                    task_split=TRAIN, task_ids=result_data["tasks_solved"]
                 ):
-                    if task.check(program, timeout=grammar.DEFAULT_EVALUATION_TIMEOUT):
-                        new_frontier = Frontier(
-                            frontier=[
-                                FrontierEntry(
-                                    program=program,
-                                    logPrior=0.0,  # TODO: compute prior?
-                                    logLikelihood=0.0,
-                                )
-                            ],
-                            task=task,
-                        )
-
-                        experiment_state.task_frontiers[TRAIN][task.name].combine(
-                            new_frontier
-                        )
-                        tasks_solved_with_program.append(task.name)
-
-                        # TODO: break on first solved task?
-
-                if len(tasks_solved_with_program) > 0:
-                    print(
-                        f"🏆 Solved {len(tasks_solved_with_program)} tasks with program: {program}"
+                    new_frontier = Frontier(
+                        frontier=[
+                            FrontierEntry(
+                                program=program,
+                                logPrior=0.0,  # TODO: compute prior?
+                                logLikelihood=0.0,
+                            )
+                        ],
+                        task=task,
                     )
-                    break
+                experiment_state.task_frontiers[TRAIN][task].combine(new_frontier)
 
             # If the program doesn't solve any tasks, add it to the experiment state as a sample.
-            if not evaluate_samples or len(tasks_solved_with_program) == 0:
+            else:
                 sample_task = Task(
                     name=f"codex_{result_data['hash']}",
                     request=Type.fromjson(result_data["type_json"]),
