@@ -3,19 +3,15 @@ test_experiment_iterator.py | Author : Catherine Wong.
 
 Usage: pytest -m src/test_experiment_iterator.py
 """
+from data.compositional_graphics.encoder import *
+from data.compositional_graphics.grammar import *
+from data.compositional_graphics.make_tasks import *
+from dreamcoder.frontier import Frontier
 from src.experiment_iterator import *
+from src.models.laps_dreamcoder_recognition import *
+from src.models.laps_grammar import LAPSGrammar
 from src.models.model_loaders import *
 from src.task_loaders import *
-
-from src.models.laps_grammar import LAPSGrammar
-from src.models.laps_dreamcoder_recognition import *
-
-from data.compositional_graphics.make_tasks import *
-from data.compositional_graphics.grammar import *
-from data.compositional_graphics.encoder import *
-
-
-from dreamcoder.frontier import Frontier
 
 grammar_config_block = {
     MODEL_TYPE: GRAMMAR,
@@ -124,8 +120,6 @@ def test_get_tasks_with_samples():
     test_config = TEST_GRAPHICS_CONFIG
     test_experiment_state = ExperimentState(test_config)
 
-    test_task_ids = ["a small triangle", "a medium triangle"]
-
     # Add a sample task in each.
     for split in (TRAIN, TEST):
         test_experiment_state.sample_tasks[split] += ["test"]
@@ -182,7 +176,7 @@ def test_checkpoint_resume_frontiers():
     test_experiment_state.initialize_ground_truth_task_frontiers(task_split=TRAIN)
     test_experiment_state.checkpoint_frontiers()
 
-    test_experiment_state.empty_task_frontiers(task_split=TRAIN, task_ids=ALL)
+    test_experiment_state.reset_task_frontiers(task_split=TRAIN, task_ids=ALL)
 
     assert len(test_experiment_state.get_non_empty_frontiers_for_split(TRAIN)) == 0
 

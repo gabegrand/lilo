@@ -44,6 +44,28 @@
                 }
             },
             {
+                "experiment_block_type": "state_fn",
+                "state_fn": "reset_task_frontiers",
+                "params": {
+                    "task_split": "train",
+                    "task_ids": "all"
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "reset_samples",
+                "params": {
+                    "task_split": "train"
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_frontiers",
+                "params": {
+                  "verbosity": 3
+                }
+            },
+            {
                 "experiment_block_type": "model_fn",
                 "model_type": "grammar",
                 "model_fn": "infer_programs_for_tasks",
