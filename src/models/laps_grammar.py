@@ -179,7 +179,7 @@ class LAPSGrammar(Grammar):
         return function_names
 
     def get_name(self, production_key, name_classes):
-        for n in name_classes + [LAPSGrammar.DEFAULT_FUNCTION_NAMES]:
+        for n in name_classes + LAPSGrammar.DEFAULT_FUNCTION_NAMES:
             if n in self.function_names[production_key]:
                 return self.function_names[production_key][n]
         assert False
@@ -898,10 +898,14 @@ class LAPSGrammar(Grammar):
 
     ## Elevate static methods to create correct class.
     @staticmethod
-    def fromGrammar(grammar):
+    def fromGrammar(grammar, remove_inventions=False):
+        productions = grammar.productions
+        if remove_inventions:
+            productions = [prod for prod in productions if not prod[2].isInvented]
+
         return LAPSGrammar(
             grammar.logVariable,
-            grammar.productions,
+            productions,
             continuationType=grammar.continuationType,
         )
 

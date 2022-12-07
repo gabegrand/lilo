@@ -7,7 +7,7 @@ Updates GRAMMAR based on Stitch compression.
 """
 
 import src.models.model_loaders as model_loaders
-from dreamcoder.program import Program
+from dreamcoder.program import Invented
 from src.models.laps_grammar import LAPSGrammar
 from src.models.stitch_base import StitchBase
 
@@ -40,7 +40,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         beta_reduce_programs: bool = True,
         update_grammar: bool = True,
         replace_existing_abstractions: bool = True,
-        **kwargs
+        **kwargs,
     ):
         """
         Updates experiment_state.models[GRAMMAR].
@@ -55,6 +55,12 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
                 and writes an inventions file, but leaves the grammar unaltered.
         """
         split = "_".join(task_splits)
+
+        # Update the grammar to remove all existing abstractions.
+        if update_grammar and replace_existing_abstractions:
+            experiment_state.models[model_loaders.GRAMMAR] = LAPSGrammar.fromGrammar(
+                experiment_state.models[model_loaders.GRAMMAR], remove_inventions=True
+            )
 
         # Write frontiers for stitch.
         frontiers_filepath = self._get_filepath_for_current_iteration(
@@ -84,20 +90,19 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         # Update the grammar with the new inventions.
         if update_grammar:
             grammar = experiment_state.models[model_loaders.GRAMMAR]
-            existing_productions = (
-                grammar.productions
-                if not replace_existing_abstractions
-                else grammar.primitives
-            )
             new_productions = [(0.0, p.infer(), p) for p in inv_programs]
             new_grammar = LAPSGrammar(
                 logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
-                productions=existing_productions + new_productions,
+                productions=grammar.productions + new_productions,
                 continuationType=grammar.continuationType,
                 initialize_parameters_from_grammar=grammar,
             )
 
             experiment_state.models[model_loaders.GRAMMAR] = new_grammar
+
+            print(
+                f"Updated grammar (productions={len(grammar.productions)}) with {len(new_productions)} new abstractions."
+            )
 
     def get_compressed_grammar_lm_prior_rank(
         self, experiment_state, task_splits, task_ids_in_splits, max_arity, iterations
@@ -147,7 +152,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         inv_name_to_dc_fmt = self.get_inventions_from_file(
             stitch_output_filepath=inventions_filepath
         )
-        inv_programs = [Program.parse(p) for p in inv_name_to_dc_fmt.values()]
+        inv_programs = [Invented.parse(p) for p in inv_name_to_dc_fmt.values()]
         return inv_programs
 
     def get_inventions_and_metadata_for_current_iteration(self, experiment_state):
