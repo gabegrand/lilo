@@ -37,6 +37,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         task_splits,
         task_ids_in_splits,
         include_samples,
+        use_mdl_program: bool = True,
         beta_reduce_programs: bool = True,
         update_grammar: bool = True,
         replace_existing_abstractions: bool = True,
@@ -48,6 +49,8 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         Uses p(library) based on the training data description length to rerank the libraries.
 
         params:
+            `use_mdl_program`: If True, compresses the single MDL program for each frontier.
+                If False, compresses all programs in the frontier.
             `beta_reduce_programs`: Whether to beta reduce programs before compression.
                 This will rewrite the programs into the base DSL, removing any abstractions.
             `update_grammar`: If True, updates the grammar in the experiment_state
@@ -73,6 +76,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             task_splits=task_splits,
             task_ids_in_splits=task_ids_in_splits,
             frontiers_filepath=frontiers_filepath,
+            use_mdl_program=use_mdl_program,
             beta_reduce_programs=beta_reduce_programs,
             include_samples=include_samples,
         )

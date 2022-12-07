@@ -926,6 +926,14 @@ class LAPSGrammar(Grammar):
             continuationType=continuationType,
         )
 
+    @staticmethod
+    def get_mdl_program(programs):
+        assert len(programs) > 0
+        description_lengths = [
+            len(p.left_order_tokens(show_vars=True)) for p in programs
+        ]
+        return programs[np.argmin(description_lengths)]
+
     def get_checkpoint_filepath(self, checkpoint_directory):
         return os.path.join(checkpoint_directory, f"{self.name}.json")
 
