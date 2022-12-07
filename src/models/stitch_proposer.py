@@ -39,6 +39,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         include_samples,
         beta_reduce_programs: bool = True,
         update_grammar: bool = True,
+        replace_existing_abstractions: bool = True,
         **kwargs
     ):
         """
@@ -83,10 +84,15 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         # Update the grammar with the new inventions.
         if update_grammar:
             grammar = experiment_state.models[model_loaders.GRAMMAR]
+            existing_productions = (
+                grammar.productions
+                if not replace_existing_abstractions
+                else grammar.primitives
+            )
             new_productions = [(0.0, p.infer(), p) for p in inv_programs]
             new_grammar = LAPSGrammar(
                 logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
-                productions=grammar.productions + new_productions,
+                productions=existing_productions + new_productions,
                 continuationType=grammar.continuationType,
                 initialize_parameters_from_grammar=grammar,
             )
