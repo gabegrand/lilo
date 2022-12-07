@@ -42,6 +42,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
         task_splits,
         task_ids_in_splits,
         include_samples,
+        beta_reduce_programs: bool = True,
         load_inventions_from_split: str = "train",
         compute_likelihoods: bool = False,
     ):
@@ -49,6 +50,8 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
         Updates experiment_state frontiers wrt. the experiment_state.models[GRAMMAR]
 
         params:
+            `beta_reduce_programs`: Whether to beta reduce programs before compression.
+                This will rewrite the programs into the base DSL, removing any abstractions.
             `load_inventions_from_split`: Name of split associated with Stitch inventions.
                 Allows rewriting to be performed w/r/t inventions from any split.
             `compute_likelihoods`: Whether to compute log likelihoods of each program
@@ -80,6 +83,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 task_splits=[split],
                 task_ids_in_splits=task_ids_in_splits,
                 frontiers_filepath=programs_filepath,
+                beta_reduce_programs=beta_reduce_programs,
                 include_samples=include_samples,
             )
             self.run_binary(

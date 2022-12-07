@@ -37,6 +37,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         task_splits,
         task_ids_in_splits,
         include_samples,
+        beta_reduce_programs: bool = True,
         update_grammar: bool = True,
         **kwargs
     ):
@@ -46,6 +47,8 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         Uses p(library) based on the training data description length to rerank the libraries.
 
         params:
+            `beta_reduce_programs`: Whether to beta reduce programs before compression.
+                This will rewrite the programs into the base DSL, removing any abstractions.
             `update_grammar`: If True, updates the grammar in the experiment_state
                 with the new inventions from compression. If False, runs compression
                 and writes an inventions file, but leaves the grammar unaltered.
@@ -63,6 +66,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             task_splits=task_splits,
             task_ids_in_splits=task_ids_in_splits,
             frontiers_filepath=frontiers_filepath,
+            beta_reduce_programs=beta_reduce_programs,
             include_samples=include_samples,
         )
 

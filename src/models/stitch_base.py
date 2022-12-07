@@ -43,6 +43,7 @@ class StitchBase(object):
         task_splits,
         task_ids_in_splits,
         frontiers_filepath: str,
+        beta_reduce_programs: bool = False,
         include_samples: bool = True,
     ):
         """Dumps programs from frontiers to a file that can be passed to Stitch.
@@ -59,12 +60,13 @@ class StitchBase(object):
         frontiers_list = []
         for split in task_splits:
             for frontier in frontiers[split]:
+                programs = [entry.program for entry in frontier]
+                if beta_reduce_programs:
+                    programs = [p.betaNormalForm() for p in programs]
                 frontiers_list.append(
                     {
                         "task": frontier.task.name,
-                        "programs": [
-                            {"program": str(entry.program)} for entry in frontier
-                        ],
+                        "programs": [{"program": str(p)} for p in programs],
                     }
                 )
 

@@ -53,6 +53,14 @@
             },
             {
                 "experiment_block_type": "state_fn",
+                "state_fn": "reset_task_frontiers",
+                "params": {
+                    "task_split": "test",
+                    "task_ids": "all"
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
                 "state_fn": "reset_samples",
                 "params": {
                     "task_split": "train"
@@ -62,7 +70,8 @@
                 "experiment_block_type": "state_fn",
                 "state_fn": "log_frontiers",
                 "params": {
-                  "verbosity": 3
+                  "verbosity": 3,
+                  "include_samples": true
                 }
             },
             {
@@ -79,7 +88,8 @@
                 "experiment_block_type": "state_fn",
                 "state_fn": "log_frontiers",
                 "params": {
-                  "verbosity": 3
+                  "verbosity": 3,
+                  "include_samples": true
                 }
             },
             {
@@ -129,7 +139,8 @@
                 "experiment_block_type": "state_fn",
                 "state_fn": "log_frontiers",
                 "params": {
-                  "verbosity": 3
+                  "verbosity": 3,
+                  "include_samples": true
                 }
             }
         ]
