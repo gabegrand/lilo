@@ -77,6 +77,7 @@ class StitchBase(object):
                     "frontiers": frontiers_list,
                 },
                 f,
+                indent=4,
             )
 
     def get_inventions_from_file(self, stitch_output_filepath: str):

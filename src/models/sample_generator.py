@@ -321,7 +321,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             if len(sampled_programs) >= n_samples:
                 break
 
-        all_tasks_solved = {}
+        all_tasks_solved = set()
         for result_data in parse_results_valid:
             if result_data.get("tasks_solved", False):
                 all_tasks_solved.update(result_data["tasks_solved"])

@@ -44,20 +44,13 @@
                 }
             },
             {
-                "experiment_block_type": "state_fn",
-                "state_fn": "initialize_ground_truth_task_frontiers",
-                "params": {
-                    "task_split": "test"
-                }
-            },
-            {
                 "experiment_block_type": "model_fn",
                 "model_type": "grammar",
                 "model_fn": "infer_programs_for_tasks",
                 "task_split": "train",
-                "task_batch_size": 40,
+                "task_batch_size": "all",
                 "params": {
-                  "enumeration_timeout": 5
+                  "enumeration_timeout": 60
                 }
             },
             {
@@ -102,34 +95,19 @@
             },
             {
                 "experiment_block_type": "model_fn",
-                "model_type": "program_rewriter",
-                "model_fn": "get_rewritten_frontiers_for_grammar",
-                "task_splits": [
-                    "train",
-                    "test"
-                ],
-                "task_batch_sizes": [
-                    "all",
-                    "all"
-                ],
+                "model_type": "grammar",
+                "model_fn": "infer_programs_for_tasks",
+                "task_split": "test",
+                "task_batch_size": "all",
                 "params": {
-                    "include_samples": true
+                  "enumeration_timeout": 60
                 }
             },
             {
-                "experiment_block_type": "model_fn",
-                "model_type": "grammar",
-                "model_fn": "evaluate_frontiers",
-                "task_splits": [
-                    "test"
-                ],
-                "task_batch_sizes": [
-                    "all"
-                ],
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_frontiers",
                 "params": {
-                    "compute_likelihoods": false,
-                    "compute_description_lengths": true,
-                    "save_filename": "test_likelihoods.json"
+                  "verbosity": 3
                 }
             }
         ]
