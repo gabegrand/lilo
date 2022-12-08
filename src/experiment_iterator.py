@@ -217,7 +217,7 @@ class ExperimentState:
             self.get_checkpoint_directory(), FRONTIERS_CHECKPOINT
         )
         with open(checkpoint_directory, "w") as f:
-            json.dump(json_frontiers, f)
+            json.dump(json_frontiers, f, indent=4)
         print(
             f"============Checkpointing frontiers to {checkpoint_directory}==========="
         )
