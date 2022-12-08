@@ -225,18 +225,27 @@ class Prompt(object):
         else:
             raise ValueError("Cannot remove single remaining body task from prompt.")
 
-    def _get_task_data(self, task_id: str, task_types: list, task_split: str = TRAIN):
+    def _get_task_data(
+        self,
+        task_id: str,
+        task_types: list,
+        task_split: str = TRAIN,
+        use_mdl_program: bool = True,
+    ):
         frontier = self.experiment_state.get_frontiers_for_ids(task_split, [task_id])[0]
 
-        # Always get the program
-        task_program = self.rng.choice(
-            [
-                self.grammar.show_program(
-                    e.program, name_classes=self.function_name_classes
-                )
-                for e in frontier.entries
-            ]
-        )
+        # Optionally, get the program
+        if PROGRAMS in task_types:
+            programs = [e.program for e in frontier.entries]
+            if use_mdl_program:
+                task_program = self.grammar.get_mdl_program(programs)
+            else:
+                task_program = self.rng.choice(programs)
+            task_program = self.grammar.show_program(
+                task_program, name_classes=self.function_name_classes
+            )
+        else:
+            task_program = None
 
         # Optionally, get the language
         if LANGUAGE in task_types:

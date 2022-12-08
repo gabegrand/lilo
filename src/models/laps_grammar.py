@@ -898,10 +898,14 @@ class LAPSGrammar(Grammar):
 
     ## Elevate static methods to create correct class.
     @staticmethod
-    def fromGrammar(grammar):
+    def fromGrammar(grammar, remove_inventions=False):
+        productions = grammar.productions
+        if remove_inventions:
+            productions = [prod for prod in productions if not prod[2].isInvented]
+
         return LAPSGrammar(
             grammar.logVariable,
-            grammar.productions,
+            productions,
             continuationType=grammar.continuationType,
         )
 
@@ -921,6 +925,14 @@ class LAPSGrammar(Grammar):
             [(0.0, p.infer(), p) for p in primitives],
             continuationType=continuationType,
         )
+
+    @staticmethod
+    def get_mdl_program(programs):
+        assert len(programs) > 0
+        description_lengths = [
+            len(p.left_order_tokens(show_vars=True)) for p in programs
+        ]
+        return programs[np.argmin(description_lengths)]
 
     def get_checkpoint_filepath(self, checkpoint_directory):
         return os.path.join(checkpoint_directory, f"{self.name}.json")

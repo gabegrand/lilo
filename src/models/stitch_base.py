@@ -9,6 +9,8 @@ import json
 import os
 import subprocess
 
+from src.models.model_loaders import GRAMMAR
+
 
 class StitchBase(object):
     def run_binary(
@@ -43,6 +45,8 @@ class StitchBase(object):
         task_splits,
         task_ids_in_splits,
         frontiers_filepath: str,
+        use_mdl_program: bool = False,
+        beta_reduce_programs: bool = False,
         include_samples: bool = True,
     ):
         """Dumps programs from frontiers to a file that can be passed to Stitch.
@@ -59,24 +63,34 @@ class StitchBase(object):
         frontiers_list = []
         for split in task_splits:
             for frontier in frontiers[split]:
-                frontiers_list.append(
-                    {
-                        "task": frontier.task.name,
-                        "programs": [
-                            {"program": str(entry.program)} for entry in frontier
-                        ],
-                    }
-                )
+                programs = [entry.program for entry in frontier]
+
+                if len(programs) > 0:
+                    if beta_reduce_programs:
+                        programs = [p.betaNormalForm() for p in programs]
+
+                    if use_mdl_program:
+                        programs = [
+                            experiment_state.models[GRAMMAR].get_mdl_program(programs)
+                        ]
+
+                    frontiers_list.append(
+                        {
+                            "task": frontier.task.name,
+                            "programs": [{"program": str(p)} for p in programs],
+                        }
+                    )
 
         # Write out the programs.
         os.makedirs(os.path.dirname(frontiers_filepath), exist_ok=True)
         with open(frontiers_filepath, "w") as f:
             json.dump(
                 {
-                    "DSL": experiment_state.models["grammar"].json(),
+                    "DSL": experiment_state.models[GRAMMAR].json(),
                     "frontiers": frontiers_list,
                 },
                 f,
+                indent=4,
             )
 
     def get_inventions_from_file(self, stitch_output_filepath: str):

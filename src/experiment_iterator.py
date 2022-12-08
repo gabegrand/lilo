@@ -7,6 +7,7 @@ import json
 import os
 
 import numpy as np
+
 import src.models.model_loaders as model_loaders
 import src.task_loaders as task_loaders
 import src.utils as utils
@@ -140,7 +141,8 @@ class ExperimentState:
             utils.mkdir_if_necessary(self.metadata[LOG_DIRECTORY])
             # Set log directory to the timestamped output file
             self.metadata[LOG_DIRECTORY] = os.path.join(
-                self.metadata[LOG_DIRECTORY], self.metadata[TIMESTAMPED_EXPERIMENT_ID],
+                self.metadata[LOG_DIRECTORY],
+                self.metadata[TIMESTAMPED_EXPERIMENT_ID],
             )
             self.init_logger()
 
@@ -167,13 +169,24 @@ class ExperimentState:
                 print(f"\t{attr}: {self.metadata[attr]}")
         print(f"====================================")
 
-    def log_frontiers(self, verbosity=LOG_DEBUG):
+    def log_frontiers(self, verbosity=LOG_DEBUG, include_samples=False):
         print(f"============LOGGING FRONTIERS============")
         for task_split in self.task_frontiers:
             num_solved = len(self.get_non_empty_frontiers_for_split(task_split))
             print(
                 f"\t total_solved_tasks_{task_split} @ iteration {self.curr_iteration}: {num_solved} / {len(self.task_frontiers[task_split])}"
             )
+
+        if include_samples:
+            for task_split in self.task_frontiers:
+                sample_frontiers_non_empty = [
+                    self.sample_frontiers[task_split][task]
+                    for task in self.sample_frontiers[task_split]
+                    if not self.sample_frontiers[task_split][task].empty
+                ]
+                print(
+                    f"\t total_solved_sample_tasks_{task_split} @ iteration {self.curr_iteration}: {len(sample_frontiers_non_empty)} / {len(self.sample_frontiers[task_split])}"
+                )
         print(f"====================================")
 
     def maybe_resume_from_checkpoint(self):
@@ -270,7 +283,10 @@ class ExperimentState:
         language = [
             self.task_language[task_split][task.name]
             for task in self.get_tasks_for_ids(
-                task_split, task_ids, include_samples, include_ground_truth_tasks,
+                task_split,
+                task_ids,
+                include_samples,
+                include_ground_truth_tasks,
             )
             if task.name in self.task_language[task_split]
         ]
@@ -308,7 +324,10 @@ class ExperimentState:
         frontiers = [
             self.task_frontiers[task_split][task]
             for task in self.get_tasks_for_ids(
-                task_split, task_ids, include_samples, include_ground_truth_tasks,
+                task_split,
+                task_ids,
+                include_samples,
+                include_ground_truth_tasks,
             )
             if task in self.task_frontiers[task_split]
         ]
@@ -369,7 +388,7 @@ class ExperimentState:
                 compute_likelihoods=compute_likelihoods,
             )
 
-    def empty_task_frontiers(self, task_split, task_ids):
+    def reset_task_frontiers(self, task_split, task_ids):
         tasks = self.get_tasks_for_ids(
             task_split,
             task_ids,
@@ -378,6 +397,13 @@ class ExperimentState:
         )
         for task in tasks:
             self.task_frontiers[task_split][task] = Frontier.makeEmpty(task)
+        print(f"============Reset task frontiers for {task_split}============")
+
+    def reset_samples(self, task_split):
+        self.sample_tasks[task_split] = []
+        self.sample_language[task_split] = {}
+        self.sample_frontiers[task_split] = {}
+        print(f"============Reset samples for {task_split}============")
 
 
 # Experiment iterator config constants
@@ -461,7 +487,9 @@ class ExperimentIterator:
         state_fn_name = curr_loop_block[EXPERIMENT_BLOCK_TYPE_STATE_FN]
         state_fn = getattr(experiment_state, state_fn_name)
 
-        state_fn(**curr_loop_block[PARAMS],)
+        state_fn(
+            **curr_loop_block[PARAMS],
+        )
 
     def log_model_fn(self, experiment_state, curr_loop_block, task_batch_ids):
         print(f"============LOGGING MODEL_FN============")

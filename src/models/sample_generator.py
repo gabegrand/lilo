@@ -41,8 +41,10 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
     # Final task is the last task in body_tasks
     FINAL_TASK_ORIGIN_DEFAULT = "default"
-    # Final task is drawn randomly from unused train tasks
+    # Final task is drawn randomly from train tasks not in the current batch
     FINAL_TASK_ORIGIN_RANDOM_TRAIN = "random_train"
+    # Final task is drawn randomly from unsolved train tasks
+    FINAL_TASK_ORIGIN_UNSOLVED_TRAIN = "unsolved_train"
     # Final task is drawn randomly from test tasks
     FINAL_TASK_ORIGIN_RANDOM_TEST = "random_test"
 
@@ -63,6 +65,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         n_samples_per_query: int = None,
         max_queries: int = None,
         max_retries: int = None,
+        evaluate_samples: bool = False,
         # Prompt construction
         body_task_types: list = [PROGRAMS],
         final_task_types: list = [PROGRAMS],
@@ -101,6 +104,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                 Intention is to more gracefully handle `InvalidRequestError` when max tokens is exceeded via iterative backoff.
                 Iteratively removes last item from body_tasks until query success or max_retries is exceeded.
                 Defaults to a very permissive behavior where the query will retry until reduced to a single task before failing.
+            evaluate_samples: Exhaustively check whether each valid program solves any training task. If True, programs that solve
+                a training task will be added to that task's frontier and programs that don't solve any training task will be added
+                to a sample task's frontier. If False, all programs will be added to a sample task's frontier.
 
             # Prompt construction parameters
             body_task_types: List of task types in [LANGUAGE, PROGRAMS] to include in the body of the prompt.
@@ -127,7 +133,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             compute_likelihoods: If True, compute likelihoods for each sample.
             verbose: If True, print extra status updates including parse errors.
         """
-        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        experiment_state.models[model_loaders.GRAMMAR]
 
         if task_splits != [TRAIN]:
             raise ValueError(
@@ -253,9 +259,11 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
                 parse_results = self.parse_completion(
                     completion,
-                    grammar,
+                    experiment_state=experiment_state,
+                    task_ids_in_splits=task_ids_in_splits,
                     valid_request_types=train_task_request_types,
                     function_name_classes=function_name_classes,
+                    evaluate_samples=evaluate_samples,
                     compute_likelihoods=compute_likelihoods,
                     verbose=verbose,
                 )
@@ -296,9 +304,13 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
                         print("Codex completions:")
                         for result_data in parse_results:
-                            print(
-                                f"{'✅' if result_data['valid'] else '❌'} {result_data['text']}"
-                            )
+                            if result_data.get("tasks_solved", False):
+                                status_emoji = "🏆"
+                            elif result_data["valid"]:
+                                status_emoji = "✅"
+                            else:
+                                status_emoji = "❌"
+                            print(f"{status_emoji} {result_data['text']}")
 
                 print(
                     f"[STATUS]: Sampled {len(sampled_programs)}/{n_samples} unique, valid samples."
@@ -308,6 +320,11 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
 
             if len(sampled_programs) >= n_samples:
                 break
+
+        all_tasks_solved = set()
+        for result_data in parse_results_valid:
+            if result_data.get("tasks_solved", False):
+                all_tasks_solved.update(result_data["tasks_solved"])
 
         # Save results to file.
         query_results = {
@@ -329,7 +346,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
             "results": {
                 "n_queries": query_id + 1,
                 "n_sampled_programs": len(sampled_programs),
+                "n_tasks_solved": len(all_tasks_solved),
                 "programs_valid": parse_results_valid,
+                "tasks_solved": list(all_tasks_solved),
             },
             "results_by_query": results_by_query,
         }
@@ -341,7 +360,9 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         # Update experiment_state.
         self.add_samples_to_experiment_state(
             experiment_state=experiment_state,
+            task_ids_in_splits=task_ids_in_splits,
             parse_results_valid=parse_results_valid,
+            evaluate_samples=evaluate_samples,
             compute_likelihoods=compute_likelihoods,
         )
 
@@ -362,8 +383,20 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     ):
         rng = experiment_state.metadata[RANDOM_GENERATOR]
 
+        non_empty_task_ids = [
+            f.task.name
+            for f in experiment_state.get_non_empty_frontiers_for_split(TRAIN)
+        ]
+
         # Random ordering of the body tasks
         body_task_ids = list(rng.permutation(task_ids_in_splits[TRAIN]))
+
+        # Filter body_task_ids to only include tasks that have non-empty frontiers.
+        body_task_ids = [t for t in body_task_ids if t in non_empty_task_ids]
+        if len(body_task_ids) < 2:
+            raise ValueError(
+                "At least 2 tasks must have non-empty frontiers to construct a prompt."
+            )
 
         if final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_DEFAULT:
             final_task_id = body_task_ids[-1]
@@ -374,6 +407,14 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     t.name
                     for t in experiment_state.tasks[TRAIN]
                     if t.name not in task_ids_in_splits[TRAIN]
+                ]
+            )
+        elif final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_UNSOLVED_TRAIN:
+            final_task_id = rng.choice(
+                [
+                    t.name
+                    for t in experiment_state.tasks[TRAIN]
+                    if t.name not in non_empty_task_ids
                 ]
             )
         elif final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TEST:
@@ -506,12 +547,16 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     def parse_completion(
         self,
         completion,
-        grammar,
+        experiment_state,
+        task_ids_in_splits: dict,
         valid_request_types: Set[TypeConstructor] = None,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+        evaluate_samples: bool = True,
         compute_likelihoods: bool = True,
         verbose: bool = False,
     ):
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+
         parse_results = []
         for choice in completion["choices"]:
             program_str_codex = choice["text"]
@@ -596,6 +641,15 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                         }
                     )
                     continue
+            # Check 6: Does the program solve any tasks?
+            tasks_solved = []
+            if evaluate_samples:
+                for task in experiment_state.get_tasks_for_ids(
+                    TRAIN, task_ids_in_splits[TRAIN]
+                ):
+                    if task.check(p, timeout=grammar.DEFAULT_EVALUATION_TIMEOUT):
+                        tasks_solved.append(task.name)
+                        # TODO: break on first solved task?
 
             parse_results.append(
                 {
@@ -605,6 +659,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     "type": str(p_type),
                     "type_json": p_type.json(),
                     "hash": abs(hash(str(p))),
+                    "tasks_solved": tasks_solved,
                 }
             )
 
@@ -613,35 +668,59 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
     def add_samples_to_experiment_state(
         self,
         experiment_state,
+        task_ids_in_splits: dict,
         parse_results_valid: list,
+        evaluate_samples: bool = False,
         compute_likelihoods: bool = True,
     ):
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+
         for result_data in parse_results_valid:
-            task = Task(
-                name=f"codex_{result_data['hash']}",
-                request=Type.fromjson(result_data["type_json"]),
-                examples=[],
-            )
 
-            frontier = Frontier(
-                frontier=[
-                    FrontierEntry(
-                        program=Program.parse(result_data["program"]),
-                        logPrior=0.0,
-                        logLikelihood=0.0,
+            program = Program.parse(result_data["program"])
+
+            # If the program solves any train tasks, add it to the respective task frontier(s).
+            if evaluate_samples and len(result_data["tasks_solved"]) > 0:
+                for task in experiment_state.get_tasks_for_ids(
+                    task_split=TRAIN, task_ids=result_data["tasks_solved"]
+                ):
+                    new_frontier = Frontier(
+                        frontier=[
+                            FrontierEntry(
+                                program=program,
+                                logPrior=0.0,  # TODO: compute prior?
+                                logLikelihood=0.0,
+                            )
+                        ],
+                        task=task,
                     )
-                ],
-                task=task,
-            )
+                experiment_state.task_frontiers[TRAIN][task].combine(new_frontier)
 
-            # Re-score the logPrior and logLikelihood of the frontier under the current grammar
-            if compute_likelihoods:
-                frontier = experiment_state.models[
-                    model_loaders.GRAMMAR
-                ].rescoreFrontier(frontier)
+            # If the program doesn't solve any tasks, add it to the experiment state as a sample.
+            else:
+                sample_task = Task(
+                    name=f"codex_{result_data['hash']}",
+                    request=Type.fromjson(result_data["type_json"]),
+                    examples=[],
+                )
 
-            experiment_state.sample_tasks[TRAIN].append(task)
-            experiment_state.sample_frontiers[TRAIN][task] = frontier
+                sample_frontier = Frontier(
+                    frontier=[
+                        FrontierEntry(
+                            program=program,
+                            logPrior=0.0,
+                            logLikelihood=0.0,
+                        )
+                    ],
+                    task=sample_task,
+                )
+
+                # Re-score the logPrior and logLikelihood of the frontier under the current grammar
+                if compute_likelihoods:
+                    sample_frontier = grammar.rescoreFrontier(sample_frontier)
+
+                experiment_state.sample_tasks[TRAIN].append(sample_task)
+                experiment_state.sample_frontiers[TRAIN][sample_task] = sample_frontier
 
     def query_mock(self, experiment_state, n_samples: int = 3, **kwargs):
         """Debugging query that returns a sample of programs from the task."""
