@@ -69,7 +69,6 @@ class StitchBase(object):
                     if beta_reduce_programs:
                         programs = [p.betaNormalForm() for p in programs]
 
-                    # TODO: Beta reduce before MDL?
                     if use_mdl_program:
                         programs = [
                             experiment_state.models[GRAMMAR].get_mdl_program(programs)

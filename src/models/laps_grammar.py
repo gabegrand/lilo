@@ -179,7 +179,7 @@ class LAPSGrammar(Grammar):
         return function_names
 
     def get_name(self, production_key, name_classes):
-        for n in name_classes + LAPSGrammar.DEFAULT_FUNCTION_NAMES:
+        for n in name_classes + [LAPSGrammar.DEFAULT_FUNCTION_NAMES]:
             if n in self.function_names[production_key]:
                 return self.function_names[production_key][n]
         assert False
