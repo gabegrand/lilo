@@ -881,7 +881,7 @@ class LAPSGrammar(Grammar):
                             "description_lengths_by_task": description_lengths_by_task,
                         }
                     )
-                json.dump(data, f)
+                json.dump(data, f, indent=4)
 
     def evaluate_frontier_likelihoods(
         self,
@@ -948,7 +948,7 @@ class LAPSGrammar(Grammar):
     def checkpoint(self, experiment_state, checkpoint_directory):
         f"=> Checkpointed grammar to: {self.get_checkpoint_filepath(checkpoint_directory)}==========="
         with open(self.get_checkpoint_filepath(checkpoint_directory), "w") as f:
-            json.dump(self.json(), f)
+            json.dump(self.json(), f, indent=4)
 
     def load_model_from_checkpoint(self, experiment_state, checkpoint_directory):
         with open(self.get_checkpoint_filepath(checkpoint_directory)) as f:
