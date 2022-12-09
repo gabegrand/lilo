@@ -251,7 +251,7 @@ class ExperimentState:
             for task in self.task_frontiers[split]:
                 if task.name in json_frontiers[split]:
                     json_frontier = json_frontiers[split][task.name]
-                    loaded_frontier = Frontier.makeFromJSON(
+                    loaded_frontier = Frontier.from_json(
                         task, self.models[model_loaders.GRAMMAR], json_frontier
                     )
                     self.task_frontiers[split][task] = self.task_frontiers[split][
@@ -297,7 +297,7 @@ class ExperimentState:
         # Update the frontiers
         for split in json_samples["frontiers"]:
             for task in json_samples["frontiers"][split]:
-                loaded_frontier = Frontier.makeFromJSON(
+                loaded_frontier = Frontier.from_json(
                     task,
                     self.models[model_loaders.GRAMMAR],
                     json_samples["frontiers"][split][task],
