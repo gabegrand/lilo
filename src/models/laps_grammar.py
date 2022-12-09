@@ -21,6 +21,7 @@ from dreamcoder.grammar import Grammar
 from dreamcoder.program import Program
 from dreamcoder.type import Type
 from dreamcoder.utilities import ParseFailure, get_root_dir
+from src.experiment_iterator import INIT_FRONTIERS_FROM_CHECKPOINT
 
 
 class LAPSGrammar(Grammar):
@@ -321,6 +322,13 @@ class LAPSGrammar(Grammar):
         Wrapper function around multicoreEnumeration from dreamcoder.enumeration.
         """
         del compute_likelihoods  # Unused, for compatibility with config_builder interface
+
+        if experiment_state.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
+            print(
+                f"infer_programs_for_tasks: Restoring frontiers from checkpoint and skipping enumeration."
+            )
+            experiment_state.maybe_resume_from_checkpoint()
+            return
 
         tasks_to_attempt = experiment_state.get_tasks_for_ids(
             task_split=task_split, task_ids=task_batch_ids, include_samples=False

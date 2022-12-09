@@ -129,7 +129,7 @@ class ExperimentState:
         return metadata
 
     def init_curr_iteration(self):
-        return self.metadata.get(CURR_ITERATION, None)
+        return self.metadata.get(CURR_ITERATION, 0)
 
     def init_log_and_export_from_config(self):
         """Initializes time-stamped checkpoint directory and log file if log and export directory are provided."""
@@ -191,7 +191,12 @@ class ExperimentState:
 
     def maybe_resume_from_checkpoint(self):
         if self.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
-            self.load_frontiers_from_checkpoint(use_resume_checkpoint=True)
+            use_resume_checkpoint = (
+                self.metadata[RESUME_CHECKPOINT_DIRECTORY] is not None
+            )
+            self.load_frontiers_from_checkpoint(
+                use_resume_checkpoint=use_resume_checkpoint
+            )
 
     def get_checkpoint_directory(self):
         checkpoint_directory = os.path.join(
@@ -397,13 +402,13 @@ class ExperimentState:
         )
         for task in tasks:
             self.task_frontiers[task_split][task] = Frontier.makeEmpty(task)
-        print(f"============Reset task frontiers for {task_split}============")
+        print(f"reset_task_frontiers for split: {task_split}")
 
     def reset_samples(self, task_split):
         self.sample_tasks[task_split] = []
         self.sample_language[task_split] = {}
         self.sample_frontiers[task_split] = {}
-        print(f"============Reset samples for {task_split}============")
+        print(f"reset_samples for split: {task_split}")
 
 
 # Experiment iterator config constants

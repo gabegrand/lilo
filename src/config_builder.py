@@ -129,6 +129,7 @@ def build_config(
     compute_likelihoods: bool = True,
     compute_description_lengths: bool = True,
     increment_task_batcher: bool = False,
+    init_frontiers_from_checkpoint: bool = False,
 ):
     config = {}
     config.update(
@@ -152,6 +153,7 @@ def build_config(
             experiment_type=experiment_type,
             global_batch_size=global_batch_size,
             output_directory=output_directory,
+            init_frontiers_from_checkpoint=init_frontiers_from_checkpoint,
             random_seed=random_seed,
         )
     )
@@ -164,6 +166,7 @@ def build_config_metadata(
     experiment_type: str,
     global_batch_size: int = ALL,
     output_directory: str = DEFAULT_EXPERIMENT_DIR,
+    init_frontiers_from_checkpoint: bool = False,
     random_seed: int = 0,
 ):
     domain_meta = get_domain_metadata(domain)
@@ -199,7 +202,7 @@ def build_config_metadata(
             "dsl_description_prefix": domain_meta["dsl_description_prefix"],
             "export_with_timestamp": False,
             "resume_checkpoint_directory": None,
-            "init_frontiers_from_checkpoint": False,
+            "init_frontiers_from_checkpoint": init_frontiers_from_checkpoint,
             "ocaml_special_handler": domain_meta["ocaml_special_handler"],
             "global_batch_size": global_batch_size,
             "random_seed": random_seed,
