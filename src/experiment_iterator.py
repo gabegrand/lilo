@@ -26,6 +26,7 @@ TASKS_LOADER = "tasks_loader"
 TASK_LANGUAGE_LOADER = "task_language_loader"
 INIT_FRONTIERS_FROM_CHECKPOINT = "init_frontiers_from_checkpoint"
 FRONTIERS_CHECKPOINT = "frontiers.json"
+SAMPLES_CHECKPOINT = "samples.json"
 
 MODEL_INITIALIZERS = "model_initializers"
 MODEL_TYPE = "model_type"
@@ -194,9 +195,10 @@ class ExperimentState:
             use_resume_checkpoint = (
                 self.metadata[RESUME_CHECKPOINT_DIRECTORY] is not None
             )
-            self.load_frontiers_from_checkpoint(
+            frontiers_loaded = self.load_frontiers_from_checkpoint(
                 use_resume_checkpoint=use_resume_checkpoint
             )
+            return frontiers_loaded
 
     def get_checkpoint_directory(self):
         checkpoint_directory = os.path.join(
@@ -236,6 +238,12 @@ class ExperimentState:
             else self.get_resume_checkpoint_directory()
         )
         frontiers_checkpoint = os.path.join(checkpoint_dir, FRONTIERS_CHECKPOINT)
+        if not os.path.exists(frontiers_checkpoint):
+            print(
+                f"load_frontiers_from_checkpoint: No checkpoint found at: {frontiers_checkpoint}"
+            )
+            return False
+
         with open(frontiers_checkpoint, "r") as f:
             json_frontiers = json.load(f)
 
@@ -250,14 +258,111 @@ class ExperimentState:
                         task
                     ].combine(loaded_frontier)
         f"============Loaded previously checkpointed frontiers from {frontiers_checkpoint}==========="
+        return True
+
+    def load_samples_from_checkpoint(self, use_resume_checkpoint=False):
+        """NOTE(gg): This is currently untested and unused.
+
+        CodexSampleGenerator already has the ability to cache and load queries via `use_cached`,
+        so there is no current need to load samples from checkpoint.
+        """
+        checkpoint_dir = (
+            self.get_checkpoint_directory()
+            if not use_resume_checkpoint
+            else self.get_resume_checkpoint_directory()
+        )
+        samples_checkpoint = os.path.join(checkpoint_dir, SAMPLES_CHECKPOINT)
+        if not os.path.exists(samples_checkpoint):
+            print(
+                f"load_samples_from_checkpoint: No checkpoint found at: {samples_checkpoint}"
+            )
+            return False
+
+        with open(samples_checkpoint, "r") as f:
+            json_samples = json.load(f)
+
+        # Update the tasks
+        current_sample_tasks = {
+            split: {t.name: t for t in self.sample_tasks[split]}
+            for split in self.sample_tasks
+        }
+        for split in json_samples["tasks"]:
+            for loaded_task in json_samples["tasks"][split]:
+                current_sample_tasks[split][loaded_task.name] = loaded_task.from_json()
+        self.sample_tasks = {
+            split: list(current_sample_tasks[split].values())
+            for split in current_sample_tasks
+        }
+
+        # Update the frontiers
+        for split in json_samples["frontiers"]:
+            for task in json_samples["frontiers"][split]:
+                loaded_frontier = Frontier.makeFromJSON(
+                    task,
+                    self.models[model_loaders.GRAMMAR],
+                    json_samples["frontiers"][split][task],
+                )
+                if task.name in self.sample_frontiers[split]:
+                    self.sample_frontiers[split][task] = self.sample_frontiers[split][
+                        task
+                    ].combine(loaded_frontier)
+                else:
+                    self.sample_frontiers[split][task] = loaded_frontier
+
+        # Update the language
+        for split in json_samples["language"]:
+            for task in json_samples["language"][split]:
+                self.sample_language[split][task] = json_samples["language"][split][
+                    task
+                ]
+
+        print(
+            f"============Loaded previously checkpointed samples from {samples_checkpoint}==========="
+        )
+        return True
 
     def checkpoint_samples(self):
-        pass
+        """Save sample_tasks, sample_frontiers, and sample_language to JSON."""
+        sample_tasks = {
+            split: {task.name: task.json() for task in self.sample_tasks[split]}
+            for split in self.sample_tasks
+        }
+        sample_frontiers = {
+            split: {
+                task.name: self.sample_frontiers[split][task].json()
+                for task in self.sample_frontiers[split]
+            }
+            for split in self.sample_frontiers
+        }
+        sample_language = {
+            split: {
+                task.name: self.sample_language[split][task].json()
+                for task in self.sample_language[split]
+            }
+            for split in self.sample_language
+        }
+
+        checkpoint_directory = os.path.join(
+            self.get_checkpoint_directory(), SAMPLES_CHECKPOINT
+        )
+        with open(checkpoint_directory, "w") as f:
+            json.dump(
+                {
+                    "sample_tasks": sample_tasks,
+                    "sample_frontiers": sample_frontiers,
+                    "sample_language": sample_language,
+                },
+                f,
+                indent=4,
+            )
+        print(f"============Checkpointing samples to {checkpoint_directory}===========")
 
     def checkpoint_state(self, state_to_checkpoint):
         for state in state_to_checkpoint:
             if state == self.FRONTIERS:
                 self.checkpoint_frontiers()
+            elif state == self.SAMPLES:
+                self.checkpoint_samples()
             else:
                 raise NotImplementedError
 

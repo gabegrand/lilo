@@ -324,11 +324,11 @@ class LAPSGrammar(Grammar):
         del compute_likelihoods  # Unused, for compatibility with config_builder interface
 
         if experiment_state.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
-            print(
-                f"infer_programs_for_tasks: Restoring frontiers from checkpoint and skipping enumeration."
-            )
-            experiment_state.maybe_resume_from_checkpoint()
-            return
+            if experiment_state.maybe_resume_from_checkpoint():
+                print(
+                    f"infer_programs_for_tasks: Restored frontiers from checkpoint and skipped enumeration."
+                )
+                return
 
         tasks_to_attempt = experiment_state.get_tasks_for_ids(
             task_split=task_split, task_ids=task_batch_ids, include_samples=False
