@@ -81,7 +81,7 @@
                 "task_split": "train",
                 "task_batch_size": "all",
                 "params": {
-                  "enumeration_timeout": 60
+                  "enumeration_timeout": 10
                 }
             },
             {
@@ -132,16 +132,18 @@
                 "task_split": "test",
                 "task_batch_size": "all",
                 "params": {
-                  "enumeration_timeout": 60
+                  "enumeration_timeout": 10
                 }
             },
             {
-                "experiment_block_type": "state_fn",
-                "state_fn": "log_frontiers",
-                "params": {
-                  "verbosity": 3,
-                  "include_samples": true
-                }
+                "experiment_block_type": "checkpoint",
+                "state_to_checkpoint": [
+                    "frontiers",
+                    "samples"
+                ],
+                "models_to_checkpoint": [
+                    "grammar"
+                ]
             }
         ]
     }

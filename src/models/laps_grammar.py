@@ -21,6 +21,7 @@ from dreamcoder.grammar import Grammar
 from dreamcoder.program import Program
 from dreamcoder.type import Type
 from dreamcoder.utilities import ParseFailure, get_root_dir
+from src.experiment_iterator import INIT_FRONTIERS_FROM_CHECKPOINT
 
 
 class LAPSGrammar(Grammar):
@@ -321,6 +322,13 @@ class LAPSGrammar(Grammar):
         Wrapper function around multicoreEnumeration from dreamcoder.enumeration.
         """
         del compute_likelihoods  # Unused, for compatibility with config_builder interface
+
+        if experiment_state.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
+            if experiment_state.maybe_resume_from_checkpoint():
+                print(
+                    f"infer_programs_for_tasks: Restored frontiers from checkpoint and skipped enumeration."
+                )
+                return
 
         tasks_to_attempt = experiment_state.get_tasks_for_ids(
             task_split=task_split, task_ids=task_batch_ids, include_samples=False
@@ -873,7 +881,7 @@ class LAPSGrammar(Grammar):
                             "description_lengths_by_task": description_lengths_by_task,
                         }
                     )
-                json.dump(data, f)
+                json.dump(data, f, indent=4)
 
     def evaluate_frontier_likelihoods(
         self,
@@ -940,7 +948,7 @@ class LAPSGrammar(Grammar):
     def checkpoint(self, experiment_state, checkpoint_directory):
         f"=> Checkpointed grammar to: {self.get_checkpoint_filepath(checkpoint_directory)}==========="
         with open(self.get_checkpoint_filepath(checkpoint_directory), "w") as f:
-            json.dump(self.json(), f)
+            json.dump(self.json(), f, indent=4)
 
     def load_model_from_checkpoint(self, experiment_state, checkpoint_directory):
         with open(self.get_checkpoint_filepath(checkpoint_directory)) as f:

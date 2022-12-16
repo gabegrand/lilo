@@ -110,6 +110,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--init_frontiers_from_checkpoint",
+    default=False,
+    action="store_true",
+    help="Initialize the frontiers from a checkpoint (location automatically inferred).",
+)
+
+parser.add_argument(
     "--use_cached",
     default=False,
     action="store_true",
@@ -146,6 +153,7 @@ def main(args):
             compute_likelihoods=(not args.no_likelihoods),
             compute_description_lengths=True,
             increment_task_batcher=args.increment_task_batcher,
+            init_frontiers_from_checkpoint=args.init_frontiers_from_checkpoint,
         )
 
         if args.global_batch_size_all:
@@ -181,6 +189,7 @@ def main(args):
                 compute_likelihoods=(not args.no_likelihoods),
                 compute_description_lengths=True,
                 increment_task_batcher=args.increment_task_batcher,
+                init_frontiers_from_checkpoint=args.init_frontiers_from_checkpoint,
             )
 
             experiment_state, experiment_iterator = init_experiment_state_and_iterator(
