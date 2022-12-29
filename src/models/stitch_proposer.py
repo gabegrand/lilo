@@ -6,6 +6,10 @@ Expects an experiment_state with a GRAMMAR and FRONTIERs.
 Updates GRAMMAR based on Stitch compression.
 """
 
+import json
+
+import stitch_core as stitch
+
 import src.models.model_loaders as model_loaders
 from dreamcoder.program import Invented
 from src.models.laps_grammar import LAPSGrammar
@@ -22,7 +26,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
     name = "stitch_proposer"
 
     frontiers_filename = "stitch_frontiers.json"
-    inventions_filename = "stitch_output.json"
+    abstractions_filename = "stitch_output.json"
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
@@ -139,29 +143,35 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         iterations,
         candidates_per_iteration,
     ):
-        inventions_filepath = self._get_filepath_for_current_iteration(
+        abstractions_filepath = self._get_filepath_for_current_iteration(
             experiment_state.get_checkpoint_directory(),
-            StitchProposerLibraryLearner.inventions_filename,
+            StitchProposerLibraryLearner.abstractions_filename,
             split=split,
         )
-        self.run_binary(
-            bin="compress",
-            stitch_args=[frontiers_filepath, "--utility-by-rewrite", "--no-other-util"],
-            stitch_kwargs={
-                "out": inventions_filepath,
-                "max-arity": max_arity,
-                "iterations": iterations,
-            },
+
+        with open(frontiers_filepath, "r") as f:
+            frontiers_dict = json.load(f)
+            stitch_kwargs = stitch.from_dreamcoder(frontiers_dict)
+
+        compression_result = stitch.compress(
+            **stitch_kwargs,
+            iterations=iterations,
+            max_arity=max_arity,
+            no_other_util=True,
         )
-        inv_name_to_dc_fmt = self.get_inventions_from_file(
-            stitch_output_filepath=inventions_filepath
-        )
-        inv_programs = [Invented.parse(p) for p in inv_name_to_dc_fmt.values()]
-        return inv_programs
+        abstractions = [
+            Invented.parse(abs["dreamcoder"])
+            for abs in compression_result.json["abstractions"]
+        ]
+
+        with open(abstractions_filepath, "w") as f:
+            json.dump(compression_result.json, f)
+
+        return abstractions
 
     def get_inventions_and_metadata_for_current_iteration(self, experiment_state):
         inventions_filepath = self._get_filepath_for_current_iteration(
             experiment_state.get_checkpoint_directory(),
-            StitchProposerLibraryLearner.inventions_filename,
+            StitchProposerLibraryLearner.abstractions_filename,
         )
         return self.get_inventions_and_metadata_from_file(inventions_filepath)
