@@ -168,10 +168,3 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             json.dump(compression_result.json, f)
 
         return abstractions
-
-    def get_inventions_and_metadata_for_current_iteration(self, experiment_state):
-        inventions_filepath = self._get_filepath_for_current_iteration(
-            experiment_state.get_checkpoint_directory(),
-            StitchProposerLibraryLearner.abstractions_filename,
-        )
-        return self.get_inventions_and_metadata_from_file(inventions_filepath)
