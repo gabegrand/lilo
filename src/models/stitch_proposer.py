@@ -86,7 +86,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         )
 
         # Call stitch compressor.
-        inv_programs = self._get_stitch_libraries(
+        abstractions = self._compress(
             experiment_state,
             frontiers_filepath,
             split,
@@ -98,7 +98,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         # Update the grammar with the new inventions.
         if update_grammar:
             grammar = experiment_state.models[model_loaders.GRAMMAR]
-            new_productions = [(0.0, p.infer(), p) for p in inv_programs]
+            new_productions = [(0.0, p.infer(), p) for p in abstractions]
             new_grammar = LAPSGrammar(
                 logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
                 productions=grammar.productions + new_productions,
@@ -112,29 +112,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
                 f"Updated grammar (productions={len(grammar.productions)}) with {len(new_productions)} new abstractions."
             )
 
-    def get_compressed_grammar_lm_prior_rank(
-        self, experiment_state, task_splits, task_ids_in_splits, max_arity, iterations
-    ):
-        """
-        Updates experiment_state.models[GRAMMAR].
-        Uses Stitch compressor to propose libraries.
-        Uses p(library) under a language model (default Codex) to rerank the libraries.
-        """
-        # grammar:
-        # experiment_state.task_frontiers
-
-    def get_compressed_grammar_lm_alignment_rank(
-        self, experiment_state, task_splits, task_ids_in_splits, max_arity, iterations
-    ):
-        """
-        Updates experiment_state.models[GRAMMAR].
-        Uses Stitch compressor to propose libraries.
-        Uses p(language, libraries) under a language model (default Codex) to rerank the libraries.
-        """
-        # catwong: here's how you could get an example grammar.
-        # catwong: here's how you get all of the language out of the
-
-    def _get_stitch_libraries(
+    def _compress(
         self,
         experiment_state,
         frontiers_filepath,
