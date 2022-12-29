@@ -36,6 +36,7 @@ replications with different random seeds, use the `--random_seeds` flag.
 import argparse
 import json
 import os
+import shutil
 
 from run_experiment import init_experiment_state_and_iterator, run_experiment
 from src.config_builder import build_config
@@ -130,6 +131,13 @@ parser.add_argument(
     help="Replaces live query to Codex with a random sample from the training set.",
 )
 
+parser.add_argument(
+    "--overwrite_dir",
+    default=False,
+    action="store_true",
+    help="Overwrites any existing files associated with `experiment_name` in export and log directories.",
+)
+
 
 def main(args):
 
@@ -166,6 +174,15 @@ def main(args):
             # If --global_batch_sizes is not specified, use the domain-specific default.
             global_batch_sizes = config_base["metadata"]["global_batch_sizes"]
         config_base["metadata"]["global_batch_sizes"] = global_batch_sizes
+
+        # Delete any existing files associated with this experiment name.
+        if args.overwrite_dir:
+            export_dir = config_base["metadata"]["export_directory"]
+            if os.path.exists(export_dir):
+                shutil.rmtree(export_dir)
+            log_dir = config_base["metadata"]["log_directory"]
+            if os.path.exists(log_dir):
+                shutil.rmtree(log_dir)
 
         # Write a copy of config.json to the experiment directory
         config_base_write_path = os.path.join(
