@@ -38,7 +38,7 @@ import json
 import os
 
 from run_experiment import init_experiment_state_and_iterator, run_experiment
-from src.config_builder import build_config
+from src.config_builder import build_config, get_domain_metadata
 from src.experiment_iterator import EXPORT_DIRECTORY
 from src.task_loaders import ALL, GroundTruthOrderedTaskBatcher
 
@@ -164,7 +164,7 @@ def main(args):
             global_batch_sizes = args.global_batch_sizes
         else:
             # If --global_batch_sizes is not specified, use the domain-specific default.
-            global_batch_sizes = config_base["metadata"]["global_batch_sizes"]
+            global_batch_sizes = get_domain_metadata(args.domain)["global_batch_sizes"]
         config_base["metadata"]["global_batch_sizes"] = global_batch_sizes
 
         # Write a copy of config.json to the experiment directory
