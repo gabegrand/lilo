@@ -92,7 +92,6 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             split,
             max_arity=kwargs["max_arity"],
             iterations=kwargs["iterations"],
-            candidates_per_iteration=kwargs["candidates_per_iteration"],
         )
 
         # Update the grammar with the new inventions.
@@ -119,14 +118,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         split,
         max_arity,
         iterations,
-        candidates_per_iteration,
     ):
-        abstractions_filepath = self._get_filepath_for_current_iteration(
-            experiment_state.get_checkpoint_directory(),
-            StitchProposerLibraryLearner.abstractions_filename,
-            split=split,
-        )
-
         with open(frontiers_filepath, "r") as f:
             frontiers_dict = json.load(f)
             stitch_kwargs = stitch.from_dreamcoder(frontiers_dict)
@@ -142,7 +134,12 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             for abs in compression_result.json["abstractions"]
         ]
 
+        abstractions_filepath = self._get_filepath_for_current_iteration(
+            experiment_state.get_checkpoint_directory(),
+            StitchProposerLibraryLearner.abstractions_filename,
+            split=split,
+        )
         with open(abstractions_filepath, "w") as f:
-            json.dump(compression_result.json, f)
+            json.dump(compression_result.json, f, indent=4)
 
         return abstractions

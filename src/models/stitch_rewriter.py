@@ -7,6 +7,9 @@ Updates FRONTIERS given a grammar.
 
 import json
 import os
+from collections import defaultdict
+
+import stitch_core as stitch
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
@@ -21,7 +24,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
     name = "stitch_rewriter"
 
     # Inventions from prior run of Stitch to use in rewriting process
-    inventions_filename = "stitch_output.json"
+    abstractions_filename = "stitch_output.json"
 
     # Programs for Stitch to rewrite
     programs_filename = "programs_to_rewrite.json"
@@ -59,13 +62,19 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 which is error-prone, so we don't do it by default.
 
         """
-        inventions_filepath = self._get_filepath_for_current_iteration(
+        abstractions_filepath = self._get_filepath_for_current_iteration(
             experiment_state.get_checkpoint_directory(),
-            StitchProgramRewriter.inventions_filename,
+            StitchProgramRewriter.abstractions_filename,
             split=load_inventions_from_split,
         )
-        if not os.path.exists(inventions_filepath):
-            raise FileNotFoundError(inventions_filepath)
+        if not os.path.exists(abstractions_filepath):
+            raise FileNotFoundError(abstractions_filepath)
+        with open(abstractions_filepath, "r") as f:
+            abstractions_data = json.load(f)
+        abstractions = [
+            stitch.Abstraction(name=abs["name"], body=abs["body"], arity=abs["arity"])
+            for abs in abstractions_data["abstractions"]
+        ]
 
         for split in task_splits:
             programs_filepath = self._get_filepath_for_current_iteration(
@@ -86,19 +95,47 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 beta_reduce_programs=beta_reduce_programs,
                 include_samples=include_samples,
             )
-            self.run_binary(
-                bin="rewrite",
-                stitch_args=["--dreamcoder-output"],
-                stitch_kwargs={
-                    "program-file": programs_filepath,
-                    "inventions-file": inventions_filepath,
-                    "out": out_filepath,
-                },
-            )
+            with open(programs_filepath, "r") as f:
+                frontiers_dict = json.load(f)
+                stitch_kwargs = stitch.from_dreamcoder(frontiers_dict)
 
-            with open(out_filepath, "r") as f:
-                data = json.load(f)
-                task_to_programs = {d["task"]: d["programs"] for d in data["frontiers"]}
+            # TODO(gg): stitch.rewrite() needs to preserve DC-format for this to work
+            programs_rewritten = stitch.rewrite(
+                programs=stitch_kwargs["programs"],
+                abstractions=abstractions,
+                rewritten_dreamcoder=True,
+            )
+            assert len(programs_rewritten) == len(stitch_kwargs["programs"])
+            assert len(programs_rewritten) == len(stitch_kwargs["tasks"])
+
+            task_to_programs = defaultdict(list)
+            for task, program in zip(stitch_kwargs["tasks"], programs_rewritten):
+                task_to_programs[task].append(program)
+
+            with open(out_filepath, "w") as f:
+                rewrite_json = {"frontiers": []}
+                for task, programs in task_to_programs.items():
+                    rewrite_json["frontiers"].append(
+                        {
+                            "task": task,
+                            "programs": [{"program": program} for program in programs],
+                        }
+                    )
+                json.dump(rewrite_json, f, indent=4)
+
+            # self.run_binary(
+            #     bin="rewrite",
+            #     stitch_args=["--dreamcoder-output"],
+            #     stitch_kwargs={
+            #         "program-file": programs_filepath,
+            #         "inventions-file": inventions_filepath,
+            #         "out": out_filepath,
+            #     },
+            # )
+
+            # with open(out_filepath, "r") as f:
+            #     data = json.load(f)
+            #     task_to_programs = {d["task"]: d["programs"] for d in data["frontiers"]}
 
             for task in experiment_state.get_tasks_for_ids(
                 task_split=split, task_ids=task_ids_in_splits[split]
