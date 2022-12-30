@@ -10,28 +10,25 @@ Assumes that the directory structure is:
 Usage:
 python visualize_drawings_experiments.py
     --experiments_id default
-    --domains nuts_bolts 
+    --domains nuts_bolts
     --experiment_type stitch stitch_codex stitch_codex_language_human
     --visualize_codex_results
     --visualize_inventions # Not yet implemented.
 """
 import argparse
-from calendar import c
-from collections import defaultdict
-import itertools
 import json
 import os
 import random
-from dreamcoder.program import Program
+from collections import defaultdict
 
-from matplotlib import pyplot as plt
 import numpy as np
 import PIL
 
-from src.models.sample_generator import CodexSampleGenerator
+import data.drawings.drawings_primitives as drawings_primitives
 from data.drawings.grammar import DrawingGrammar
 from data.drawings.make_tasks import TASK_DOMAINS  # Drawing task domains.
-import data.drawings.drawings_primitives as drawings_primitives
+from dreamcoder.program import Program
+from src.models.sample_generator import CodexSampleGenerator
 
 DEFAULT_EXPERIMENTS_DIRECTORY = "experiments_iterative"
 DEFAULT_DRAWINGS_GRAMMAR = DrawingGrammar.new_uniform()
@@ -52,7 +49,9 @@ parser.add_argument(
     default=["stitch", "stitch_codex", "stitch_codex_language_human"],
 )
 parser.add_argument(
-    "--domains", nargs="+", default=TASK_DOMAINS,
+    "--domains",
+    nargs="+",
+    default=TASK_DOMAINS,
 )
 parser.add_argument(
     "--visualize_codex_results",
@@ -133,7 +132,10 @@ def get_blank_spacer(images, percentage=1):
     last_image = images[-1]
 
     spacer = PIL.Image.new(
-        "RGB", int(last_image.size[0]), last_image.size[-1], (255, 255, 255),
+        "RGB",
+        int(last_image.size[0]),
+        last_image.size[-1],
+        (255, 255, 255),
     )
     return spacer
 
@@ -217,10 +219,10 @@ def get_iteration_inventions_and_programs(args, iteration, full_batch_directory)
 
     for split in ["train", "test"]:
         programs_to_rewrite_file = os.path.join(
-            full_batch_directory, iteration, split, "programs_to_rewrite.json"
+            full_batch_directory, iteration, split, "stitch_rewrite_input.json"
         )
         programs_rewritten_file = os.path.join(
-            full_batch_directory, iteration, split, "programs_rewritten.json"
+            full_batch_directory, iteration, split, "stitch_rewrite_output.json"
         )
         with open(programs_to_rewrite_file) as f:
             data = json.load(f)
@@ -255,7 +257,6 @@ def visualize_inventions(args, experiment_type, replication_directory):
         [d for d in os.listdir(replication_directory) if experiment_type in d],
         key=lambda subdir: int(subdir.split("_")[-1]),
     )
-    codex_results_figure = []
     for batch_directory in batch_directories:
         full_batch_directory = os.path.join(replication_directory, batch_directory)
         for iteration in os.listdir(full_batch_directory):
@@ -265,7 +266,7 @@ def visualize_inventions(args, experiment_type, replication_directory):
                 args, iteration, full_batch_directory
             )
             for invention in inventions:
-                usages = get_program_primitive_usages(invention, programs)
+                get_program_primitive_usages(invention, programs)
                 import pdb
 
                 pdb.set_trace()

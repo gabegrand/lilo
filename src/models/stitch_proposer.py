@@ -25,8 +25,8 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
 
     name = "stitch_proposer"
 
-    frontiers_filename = "stitch_frontiers.json"
-    abstractions_filename = "stitch_output.json"
+    compress_input_filename = "stitch_compress_input.json"
+    compress_output_filename = "stitch_compress_output.json"
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
@@ -72,7 +72,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         # Write frontiers for stitch.
         frontiers_filepath = self._get_filepath_for_current_iteration(
             experiment_state.get_checkpoint_directory(),
-            StitchProposerLibraryLearner.frontiers_filename,
+            StitchProposerLibraryLearner.compress_input_filename,
             split=split,
         )
         self.write_frontiers_to_file(
@@ -136,7 +136,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
 
         abstractions_filepath = self._get_filepath_for_current_iteration(
             experiment_state.get_checkpoint_directory(),
-            StitchProposerLibraryLearner.abstractions_filename,
+            StitchProposerLibraryLearner.compress_output_filename,
             split=split,
         )
         with open(abstractions_filepath, "w") as f:

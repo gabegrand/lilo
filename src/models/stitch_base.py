@@ -7,38 +7,11 @@ https://github.com/mlb2251/stitch
 
 import json
 import os
-import subprocess
 
 from src.models.model_loaders import GRAMMAR
 
 
 class StitchBase(object):
-    def run_binary(
-        self,
-        bin: str = "compress",
-        stitch_args: list = [],
-        stitch_kwargs: dict = {},
-    ):
-        """Calls `cargo run` to invoke Stitch via subprocess call.
-
-        params:
-            bin: Stitch binary.
-            stitch_args: Positional arguments to Stitch CLI.
-            stitch_kwargs: Keyword arguments to pass to Stitch CLI.
-
-        """
-        assert stitch_args or stitch_kwargs
-        if "fmt" not in stitch_kwargs:
-            stitch_kwargs["fmt"] = "dreamcoder"
-        stitch_command = (
-            f"cd stitch; cargo run --bin={bin} --release -- {' '.join(stitch_args)} "
-        )
-        stitch_command += " ".join([f"--{k}={v}" for k, v in stitch_kwargs.items()])
-        print("Running Stitch with the following command:")
-        print(stitch_command)
-
-        subprocess.run(stitch_command, capture_output=True, check=True, shell=True)
-
     def write_frontiers_to_file(
         self,
         experiment_state,

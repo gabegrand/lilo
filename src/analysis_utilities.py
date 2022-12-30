@@ -216,7 +216,7 @@ class IterativeExperimentAnalyzer:
                 likelihoods_data = json.load(f)
 
             stitch_frontiers_json_path = os.path.join(
-                run_path, "0", split, "stitch_frontiers.json"
+                run_path, "0", split, "stitch_compress_input.json"
             )
             if self.allow_incomplete_results and not os.path.exists(
                 stitch_frontiers_json_path
@@ -432,7 +432,7 @@ class IterativeExperimentAnalyzer:
                         f"{experiment_type}_{batch_size}",
                         "0",
                         split,
-                        "stitch_output.json",
+                        "stitch_compress_output.json",
                     )
 
                     with open(path, "r") as f:

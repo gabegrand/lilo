@@ -24,13 +24,13 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
     name = "stitch_rewriter"
 
     # Inventions from prior run of Stitch to use in rewriting process
-    abstractions_filename = "stitch_output.json"
+    compress_output_filename = "stitch_compress_output.json"
 
     # Programs for Stitch to rewrite
-    programs_filename = "programs_to_rewrite.json"
+    rewrite_input_filename = "stitch_rewrite_input.json"
 
     # Output of rewriter
-    out_filename = "programs_rewritten.json"
+    rewrite_output_filename = "stitch_rewrite_output.json"
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
@@ -64,7 +64,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
         """
         abstractions_filepath = self._get_filepath_for_current_iteration(
             experiment_state.get_checkpoint_directory(),
-            StitchProgramRewriter.abstractions_filename,
+            StitchProgramRewriter.compress_output_filename,
             split=load_inventions_from_split,
         )
         if not os.path.exists(abstractions_filepath):
@@ -79,12 +79,12 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
         for split in task_splits:
             programs_filepath = self._get_filepath_for_current_iteration(
                 experiment_state.get_checkpoint_directory(),
-                StitchProgramRewriter.programs_filename,
+                StitchProgramRewriter.rewrite_input_filename,
                 split=split,
             )
             out_filepath = self._get_filepath_for_current_iteration(
                 experiment_state.get_checkpoint_directory(),
-                StitchProgramRewriter.out_filename,
+                StitchProgramRewriter.rewrite_output_filename,
                 split=split,
             )
             self.write_frontiers_to_file(
@@ -99,12 +99,12 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 frontiers_dict = json.load(f)
                 stitch_kwargs = stitch.from_dreamcoder(frontiers_dict)
 
-            # TODO(gg): stitch.rewrite() needs to preserve DC-format for this to work
-            programs_rewritten = stitch.rewrite(
+            rewrite_result = stitch.rewrite(
                 programs=stitch_kwargs["programs"],
                 abstractions=abstractions,
-                rewritten_dreamcoder=True,
             )
+
+            programs_rewritten = rewrite_result.json["rewritten_dreamcoder"]
             assert len(programs_rewritten) == len(stitch_kwargs["programs"])
             assert len(programs_rewritten) == len(stitch_kwargs["tasks"])
 
@@ -113,29 +113,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 task_to_programs[task].append(program)
 
             with open(out_filepath, "w") as f:
-                rewrite_json = {"frontiers": []}
-                for task, programs in task_to_programs.items():
-                    rewrite_json["frontiers"].append(
-                        {
-                            "task": task,
-                            "programs": [{"program": program} for program in programs],
-                        }
-                    )
-                json.dump(rewrite_json, f, indent=4)
-
-            # self.run_binary(
-            #     bin="rewrite",
-            #     stitch_args=["--dreamcoder-output"],
-            #     stitch_kwargs={
-            #         "program-file": programs_filepath,
-            #         "inventions-file": inventions_filepath,
-            #         "out": out_filepath,
-            #     },
-            # )
-
-            # with open(out_filepath, "r") as f:
-            #     data = json.load(f)
-            #     task_to_programs = {d["task"]: d["programs"] for d in data["frontiers"]}
+                json.dump(rewrite_result.json, f, indent=4)
 
             for task in experiment_state.get_tasks_for_ids(
                 task_split=split, task_ids=task_ids_in_splits[split]
@@ -148,8 +126,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                     frontier=[],
                     task=task,
                 )
-                for program_data in task_to_programs[task.name]:
-                    p_str = program_data["program"]
+                for p_str in task_to_programs[task.name]:
                     p = Program.parse(p_str)
                     # Hack to avoid fatal error when computing likelihood summaries
                     if compute_likelihoods:
