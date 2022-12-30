@@ -7,38 +7,11 @@ https://github.com/mlb2251/stitch
 
 import json
 import os
-import subprocess
 
 from src.models.model_loaders import GRAMMAR
 
 
 class StitchBase(object):
-    def run_binary(
-        self,
-        bin: str = "compress",
-        stitch_args: list = [],
-        stitch_kwargs: dict = {},
-    ):
-        """Calls `cargo run` to invoke Stitch via subprocess call.
-
-        params:
-            bin: Stitch binary.
-            stitch_args: Positional arguments to Stitch CLI.
-            stitch_kwargs: Keyword arguments to pass to Stitch CLI.
-
-        """
-        assert stitch_args or stitch_kwargs
-        if "fmt" not in stitch_kwargs:
-            stitch_kwargs["fmt"] = "dreamcoder"
-        stitch_command = (
-            f"cd stitch; cargo run --bin={bin} --release -- {' '.join(stitch_args)} "
-        )
-        stitch_command += " ".join([f"--{k}={v}" for k, v in stitch_kwargs.items()])
-        print("Running Stitch with the following command:")
-        print(stitch_command)
-
-        subprocess.run(stitch_command, capture_output=True, check=True, shell=True)
-
     def write_frontiers_to_file(
         self,
         experiment_state,
@@ -92,31 +65,6 @@ class StitchBase(object):
                 f,
                 indent=4,
             )
-
-    def get_inventions_from_file(self, stitch_output_filepath: str):
-        with open(stitch_output_filepath, "r") as f:
-            stitch_results = json.load(f)
-
-        inv_name_to_dc_fmt = {
-            inv["name"]: inv["dreamcoder"] for inv in stitch_results["invs"]
-        }
-
-        return inv_name_to_dc_fmt
-
-    def get_inventions_and_metadata_from_file(self, stitch_output_filepath: str):
-        with open(stitch_output_filepath, "r") as f:
-            stitch_results = json.load(f)
-
-        invs_and_metadata = {
-            inv["name"]: {
-                "name": inv["name"],
-                "body": inv["body"],
-                "dreamcoder": inv["dreamcoder"],
-                "rewritten": inv["rewritten"],
-            }
-            for inv in stitch_results["invs"]
-        }
-        return invs_and_metadata
 
     def _get_filepath_for_current_iteration(
         self,

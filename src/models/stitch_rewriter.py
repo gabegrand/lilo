@@ -7,6 +7,9 @@ Updates FRONTIERS given a grammar.
 
 import json
 import os
+from collections import defaultdict
+
+import stitch_core as stitch
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
@@ -21,13 +24,13 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
     name = "stitch_rewriter"
 
     # Inventions from prior run of Stitch to use in rewriting process
-    inventions_filename = "stitch_output.json"
+    compress_output_filename = "stitch_compress_output.json"
 
     # Programs for Stitch to rewrite
-    programs_filename = "programs_to_rewrite.json"
+    rewrite_input_filename = "stitch_rewrite_input.json"
 
     # Output of rewriter
-    out_filename = "programs_rewritten.json"
+    rewrite_output_filename = "stitch_rewrite_output.json"
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
@@ -59,23 +62,29 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 which is error-prone, so we don't do it by default.
 
         """
-        inventions_filepath = self._get_filepath_for_current_iteration(
+        abstractions_filepath = self._get_filepath_for_current_iteration(
             experiment_state.get_checkpoint_directory(),
-            StitchProgramRewriter.inventions_filename,
+            StitchProgramRewriter.compress_output_filename,
             split=load_inventions_from_split,
         )
-        if not os.path.exists(inventions_filepath):
-            raise FileNotFoundError(inventions_filepath)
+        if not os.path.exists(abstractions_filepath):
+            raise FileNotFoundError(abstractions_filepath)
+        with open(abstractions_filepath, "r") as f:
+            abstractions_data = json.load(f)
+        abstractions = [
+            stitch.Abstraction(name=abs["name"], body=abs["body"], arity=abs["arity"])
+            for abs in abstractions_data["abstractions"]
+        ]
 
         for split in task_splits:
             programs_filepath = self._get_filepath_for_current_iteration(
                 experiment_state.get_checkpoint_directory(),
-                StitchProgramRewriter.programs_filename,
+                StitchProgramRewriter.rewrite_input_filename,
                 split=split,
             )
             out_filepath = self._get_filepath_for_current_iteration(
                 experiment_state.get_checkpoint_directory(),
-                StitchProgramRewriter.out_filename,
+                StitchProgramRewriter.rewrite_output_filename,
                 split=split,
             )
             self.write_frontiers_to_file(
@@ -86,19 +95,25 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 beta_reduce_programs=beta_reduce_programs,
                 include_samples=include_samples,
             )
-            self.run_binary(
-                bin="rewrite",
-                stitch_args=["--dreamcoder-output"],
-                stitch_kwargs={
-                    "program-file": programs_filepath,
-                    "inventions-file": inventions_filepath,
-                    "out": out_filepath,
-                },
+            with open(programs_filepath, "r") as f:
+                frontiers_dict = json.load(f)
+                stitch_kwargs = stitch.from_dreamcoder(frontiers_dict)
+
+            rewrite_result = stitch.rewrite(
+                programs=stitch_kwargs["programs"],
+                abstractions=abstractions,
             )
 
-            with open(out_filepath, "r") as f:
-                data = json.load(f)
-                task_to_programs = {d["task"]: d["programs"] for d in data["frontiers"]}
+            programs_rewritten = rewrite_result.json["rewritten_dreamcoder"]
+            assert len(programs_rewritten) == len(stitch_kwargs["programs"])
+            assert len(programs_rewritten) == len(stitch_kwargs["tasks"])
+
+            task_to_programs = defaultdict(list)
+            for task, program in zip(stitch_kwargs["tasks"], programs_rewritten):
+                task_to_programs[task].append(program)
+
+            with open(out_filepath, "w") as f:
+                json.dump(rewrite_result.json, f, indent=4)
 
             for task in experiment_state.get_tasks_for_ids(
                 task_split=split, task_ids=task_ids_in_splits[split]
@@ -111,8 +126,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                     frontier=[],
                     task=task,
                 )
-                for program_data in task_to_programs[task.name]:
-                    p_str = program_data["program"]
+                for p_str in task_to_programs[task.name]:
                     p = Program.parse(p_str)
                     # Hack to avoid fatal error when computing likelihood summaries
                     if compute_likelihoods:
