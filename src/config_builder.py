@@ -11,6 +11,7 @@ from enum import Enum
 import data.drawings.make_tasks as drawing_tasks
 from src.models.laps_grammar import LAPSGrammar
 from src.models.model_loaders import (
+    GRAMMAR,
     INITIALIZE_GROUND_TRUTH,
     LIBRARY_LEARNER,
     PROGRAM_REWRITER,
@@ -124,6 +125,7 @@ def build_config(
     iterations: int = 1,
     task_batcher: str = GroundTruthOrderedTaskBatcher.name,
     global_batch_size: int = ALL,
+    enumeration_timeout: int = None,
     stitch_params: dict = DEFAULT_STITCH_PARAMS,
     codex_params: dict = DEFAULT_CODEX_PARAMS,
     compute_likelihoods: bool = True,
@@ -139,6 +141,7 @@ def build_config(
             iterations=iterations,
             task_batcher=task_batcher,
             global_batch_size=global_batch_size,
+            enumeration_timeout=enumeration_timeout,
             stitch_params=stitch_params,
             codex_params=codex_params,
             compute_likelihoods=compute_likelihoods,
@@ -216,6 +219,7 @@ def build_config_body(
     iterations: int = 1,
     task_batcher: str = GroundTruthOrderedTaskBatcher.name,
     global_batch_size: int = ALL,
+    enumeration_timeout: int = None,
     stitch_params: dict = DEFAULT_STITCH_PARAMS,
     codex_params: dict = DEFAULT_CODEX_PARAMS,
     compute_likelihoods: bool = True,
@@ -251,6 +255,16 @@ def build_config_body(
 
     loop_blocks = []
     for block in config["experiment_iterator"]["loop_blocks"]:
+        if (
+            block.get("model_type") == LAPSGrammar.GRAMMAR
+            and block.get("model_fn") == LAPSGrammar.infer_programs_for_tasks.__name__
+            and enumeration_timeout is not None
+        ):
+            block["params"].update(
+                {
+                    "enumeration_timeout": enumeration_timeout,
+                }
+            )
         if block.get("model_type") == SAMPLE_GENERATOR:
             _codex_params = DEFAULT_CODEX_PARAMS
             _codex_params.update(block["params"])

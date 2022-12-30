@@ -333,7 +333,7 @@ class LAPSGrammar(Grammar):
         tasks_to_attempt = experiment_state.get_tasks_for_ids(
             task_split=task_split, task_ids=task_batch_ids, include_samples=False
         )
-        new_frontiers, _ = multicoreEnumeration(
+        new_frontiers, best_search_time_per_task = multicoreEnumeration(
             g=self,
             tasks=tasks_to_attempt,
             maximumFrontier=maximum_frontier,
@@ -351,6 +351,8 @@ class LAPSGrammar(Grammar):
             task_split=task_split,
             is_sample=False,
         )
+
+        experiment_state.best_search_times[task_split].update(best_search_time_per_task)
 
     def generative_sample_frontiers_for_tasks(
         self,
