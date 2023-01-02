@@ -8,12 +8,6 @@
             "params": {}
         },
         {
-            "model_type": "sample_generator",
-            "model_loader": "codex_sample_generator",
-            "model_initializer_fn": "load_model",
-            "params": {}
-        },
-        {
             "model_type": "library_learner",
             "model_loader": "stitch_proposer",
             "model_initializer_fn": "load_model",
@@ -55,17 +49,9 @@
             },
             {
                 "experiment_block_type": "state_fn",
-                "state_fn": "reset_samples",
-                "params": {
-                    "task_split": "train"
-                }
-            },
-            {
-                "experiment_block_type": "state_fn",
                 "state_fn": "log_frontiers",
                 "params": {
-                  "verbosity": 3,
-                  "include_samples": true
+                  "verbosity": 3
                 }
             },
             {
@@ -82,27 +68,7 @@
                 "experiment_block_type": "state_fn",
                 "state_fn": "log_frontiers",
                 "params": {
-                  "verbosity": 3,
-                  "include_samples": true
-                }
-            },
-            {
-                "experiment_block_type": "model_fn",
-                "model_type": "sample_generator",
-                "model_fn": "generate_samples",
-                "task_splits": [
-                    "train"
-                ],
-                "task_batch_sizes": [
-                    "global_batch_size"
-                ],
-                "params": {
-                    "final_task_origin": "unsolved_train",
-                    "body_task_types": ["language", "programs"],
-                    "final_task_types": ["language"],
-                    "prepend_dsl_description": true,
-                    "evaluate_samples": true,
-                    "verbose": true
+                  "verbosity": 3
                 }
             },
             {
@@ -116,7 +82,7 @@
                     "global_batch_size"
                 ],
                 "params": {
-                    "include_samples": true,
+                    "include_samples": false,
                     "use_mdl_program": true,
                     "beta_reduce_programs": true,
                     "update_grammar": true,
@@ -137,15 +103,13 @@
                 "experiment_block_type": "state_fn",
                 "state_fn": "log_frontiers",
                 "params": {
-                  "verbosity": 3,
-                  "include_samples": true
+                  "verbosity": 3
                 }
             },
             {
                 "experiment_block_type": "checkpoint",
                 "state_to_checkpoint": [
-                    "frontiers",
-                    "samples"
+                    "frontiers"
                 ],
                 "models_to_checkpoint": [
                     "grammar"
