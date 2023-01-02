@@ -60,13 +60,15 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             `update_grammar`: If True, updates the grammar in the experiment_state
                 with the new inventions from compression. If False, runs compression
                 and writes an inventions file, but leaves the grammar unaltered.
+            `replace_existing_abstractions`: If True, replaces all existing abstractions
+                with new abstractions after compression.
         """
         split = "_".join(task_splits)
 
         # Update the grammar to remove all existing abstractions.
         if update_grammar and replace_existing_abstractions:
             experiment_state.models[model_loaders.GRAMMAR] = LAPSGrammar.fromGrammar(
-                experiment_state.models[model_loaders.GRAMMAR], remove_inventions=True
+                experiment_state.models[model_loaders.GRAMMAR], remove_abstractions=True
             )
 
         # Write frontiers for stitch.

@@ -505,3 +505,106 @@ class IterativeExperimentAnalyzer:
         )
         plt.title(domain)
         return fig
+
+
+class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def get_available_iterations(self, domain, experiment_type, seed):
+        path = os.path.join(
+            self.dir_domains,
+            domain,
+            experiment_type,
+            f"seed_{seed}",
+            f"{experiment_type}_all",
+        )
+        return [
+            int(d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))
+        ]
+
+    def get_enumeration_timeout(self, domain, experiment_type, seed):
+        config_base = self.get_config(domain, experiment_type, seed)
+        return config_base["metadata"]["enumeration_timeout"]
+
+    def get_synthesis_results_for_domain(self, domain):
+        df_list = []
+        for experiment_type in self.get_available_experiment_types(domain):
+            df = self.get_synthesis_results_for_experiment_type(domain, experiment_type)
+            df["experiment_type"] = experiment_type
+            df_list.append(df)
+        return pd.concat(df_list).reset_index(drop=True)
+
+    def get_synthesis_results_for_experiment_type(self, domain, experiment_type):
+        df_list = []
+        for seed in self.get_available_seeds(domain, experiment_type):
+            for iteration in self.get_available_iterations(
+                domain, experiment_type, seed
+            ):
+                df = self.get_synthesis_results_for_iteration(
+                    domain, experiment_type, seed, iteration
+                )
+                df["seed"] = seed
+                df["iteration"] = iteration
+                df_list.append(df)
+        return pd.concat(df_list).reset_index(drop=True)
+
+    def get_synthesis_results_for_iteration(
+        self, domain, experiment_type, seed, iteration
+    ):
+        path = os.path.join(
+            self.dir_domains,
+            domain,
+            experiment_type,
+            f"seed_{seed}",
+            f"{experiment_type}_all",
+            str(iteration),
+            "frontiers.json",
+        )
+        with open(path, "r") as f:
+            frontiers_json = json.load(f)
+
+        df_list = []
+        for split, data in frontiers_json.items():
+            df = pd.DataFrame.from_dict(data, orient="index")
+            df["task"] = df.index
+            df["split"] = split
+            df_list.append(df)
+        return pd.concat(df_list).reset_index(drop=True)
+
+    def get_search_time_results_for_domain(self, domain, time_interval=1):
+        df = self.get_synthesis_results_for_domain(domain)
+
+        enumeration_timeouts = [
+            self.get_enumeration_timeout(domain, experiment_type, seed)
+            for experiment_type, seed in df[["experiment_type", "seed"]]
+            .drop_duplicates()
+            .values
+        ]
+        if len(set(enumeration_timeouts)) != 1:
+            raise ValueError(
+                f"Enumeration timeouts are inconsistent across conditions: {enumeration_timeouts}"
+            )
+        enumeration_timeout = enumeration_timeouts[0]
+        print(f"Using enumeration_timeout: {enumeration_timeout}")
+
+        df_list = []
+        for (experiment_type, seed, iteration, split), df_tmp in df.groupby(
+            ["experiment_type", "seed", "iteration", "split"]
+        ):
+
+            ts = range(0, enumeration_timeout + time_interval, time_interval)
+            n_solved = []
+
+            for t in ts:
+                n_solved.append(len(df_tmp[df_tmp.best_search_time <= t]))
+
+            df_tmp_results = pd.DataFrame({"time": list(ts), "n_solved": n_solved})
+            df_tmp_results["experiment_type"] = experiment_type
+            df_tmp_results["seed"] = seed
+            df_tmp_results["iteration"] = iteration
+            df_tmp_results["split"] = split
+
+            df_list.append(df_tmp_results)
+
+        return pd.concat(df_list).reset_index(drop=True)

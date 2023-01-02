@@ -155,6 +155,7 @@ def build_config(
             domain=domain,
             experiment_type=experiment_type,
             global_batch_size=global_batch_size,
+            enumeration_timeout=enumeration_timeout,
             output_directory=output_directory,
             init_frontiers_from_checkpoint=init_frontiers_from_checkpoint,
             random_seed=random_seed,
@@ -168,6 +169,7 @@ def build_config_metadata(
     domain: str,
     experiment_type: str,
     global_batch_size: int = ALL,
+    enumeration_timeout: int = None,
     output_directory: str = DEFAULT_EXPERIMENT_DIR,
     init_frontiers_from_checkpoint: bool = False,
     random_seed: int = 0,
@@ -208,6 +210,7 @@ def build_config_metadata(
             "init_frontiers_from_checkpoint": init_frontiers_from_checkpoint,
             "ocaml_special_handler": domain_meta["ocaml_special_handler"],
             "global_batch_size": global_batch_size,
+            "enumeration_timeout": enumeration_timeout,
             "random_seed": random_seed,
         }
     }

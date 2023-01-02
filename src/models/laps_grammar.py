@@ -908,9 +908,9 @@ class LAPSGrammar(Grammar):
 
     ## Elevate static methods to create correct class.
     @staticmethod
-    def fromGrammar(grammar, remove_inventions=False):
+    def fromGrammar(grammar, remove_abstractions=False):
         productions = grammar.productions
-        if remove_inventions:
+        if remove_abstractions:
             productions = [prod for prod in productions if not prod[2].isInvented]
 
         return LAPSGrammar(
