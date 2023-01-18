@@ -97,11 +97,16 @@
                     "global_batch_size"
                 ],
                 "params": {
+                    "n_samples": 20,
+                    "n_samples_per_query": 5,
+                    "max_queries": 10,
+                    "temperature": 0.4,
+                    "max_tokens_completion_beta": 4.0,
+                    "evaluate_samples": true,
                     "final_task_origin": "unsolved_train",
                     "body_task_types": ["language", "programs"],
                     "final_task_types": ["language"],
                     "prepend_dsl_description": true,
-                    "evaluate_samples": true,
                     "verbose": true
                 }
             },

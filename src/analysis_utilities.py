@@ -527,9 +527,13 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         config_base = self.get_config(domain, experiment_type, seed)
         return config_base["metadata"]["enumeration_timeout"]
 
-    def get_synthesis_results_for_domain(self, domain):
+    def get_synthesis_results_for_domain(
+        self, domain, experiment_types: List[ExperimentType] = None
+    ):
+        if experiment_types is None:
+            experiment_types = self.get_available_experiment_types(domain)
         df_list = []
-        for experiment_type in self.get_available_experiment_types(domain):
+        for experiment_type in experiment_types:
             df = self.get_synthesis_results_for_experiment_type(domain, experiment_type)
             df["experiment_type"] = experiment_type
             df_list.append(df)
@@ -572,8 +576,10 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
             df_list.append(df)
         return pd.concat(df_list).reset_index(drop=True)
 
-    def get_search_time_results_for_domain(self, domain, time_interval=1):
-        df = self.get_synthesis_results_for_domain(domain)
+    def get_search_time_results_for_domain(
+        self, domain, experiment_types=None, time_interval=1
+    ):
+        df = self.get_synthesis_results_for_domain(domain, experiment_types)
 
         enumeration_timeouts = [
             self.get_enumeration_timeout(domain, experiment_type, seed)
