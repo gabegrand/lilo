@@ -238,7 +238,7 @@ class Prompt(object):
         if PROGRAMS in task_types:
             programs = [e.program for e in frontier.entries]
             if use_mdl_program:
-                task_program = self.grammar.get_mdl_program(programs)
+                task_program = self.rng.choice(self.grammar.get_mdl_programs(programs))
             else:
                 task_program = self.rng.choice(programs)
             task_program = self.grammar.show_program(

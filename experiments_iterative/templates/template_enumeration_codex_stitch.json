@@ -97,10 +97,10 @@
                     "global_batch_size"
                 ],
                 "params": {
-                    "n_samples": 20,
-                    "n_samples_per_query": 5,
-                    "max_queries": 10,
-                    "temperature": 0.4,
+                    "n_samples": 60,
+                    "n_samples_per_query": 3,
+                    "max_queries": null,
+                    "temperature": 0.9,
                     "max_tokens_completion_beta": 4.0,
                     "evaluate_samples": true,
                     "final_task_origin": "unsolved_train",

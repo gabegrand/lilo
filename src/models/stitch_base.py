@@ -8,6 +8,7 @@ https://github.com/mlb2251/stitch
 import json
 import os
 
+from src.experiment_iterator import RANDOM_GENERATOR
 from src.models.model_loaders import GRAMMAR
 
 
@@ -27,6 +28,7 @@ class StitchBase(object):
         returns:
             Path to JSON file containing a list of programs.
         """
+        rng = experiment_state.metadata[RANDOM_GENERATOR]
 
         frontiers = experiment_state.get_frontiers_for_ids_in_splits(
             task_splits=task_splits,
@@ -44,7 +46,11 @@ class StitchBase(object):
 
                     if use_mdl_program:
                         programs = [
-                            experiment_state.models[GRAMMAR].get_mdl_program(programs)
+                            rng.choice(
+                                experiment_state.models[GRAMMAR].get_mdl_programs(
+                                    programs
+                                )
+                            )
                         ]
 
                     frontiers_list.append(
