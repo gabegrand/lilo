@@ -99,6 +99,8 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 frontiers_dict = json.load(f)
                 stitch_kwargs = stitch.from_dreamcoder(frontiers_dict)
 
+            stitch_kwargs.update(dict(eta_long=True, utility_by_rewrite=True))
+
             rewrite_result = stitch.rewrite(
                 programs=stitch_kwargs["programs"],
                 abstractions=abstractions,

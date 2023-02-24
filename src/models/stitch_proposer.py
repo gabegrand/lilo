@@ -125,6 +125,8 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             frontiers_dict = json.load(f)
             stitch_kwargs = stitch.from_dreamcoder(frontiers_dict)
 
+        stitch_kwargs.update(dict(eta_long=True, utility_by_rewrite=True))
+
         compression_result = stitch.compress(
             **stitch_kwargs,
             iterations=iterations,
