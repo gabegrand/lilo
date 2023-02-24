@@ -130,7 +130,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 )
                 for p_str in task_to_programs[task.name]:
                     p = Program.parse(p_str)
-                    # Hack to avoid fatal error when computing likelihood summaries
+                    # Catch fatal error when computing likelihood summaries
                     if compute_likelihoods:
                         try:
                             p = EtaLongVisitor(request=task.request).execute(p)

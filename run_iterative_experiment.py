@@ -91,7 +91,7 @@ parser.add_argument("--codex_params", default="{}", help="JSON string of codex p
 parser.add_argument(
     "--no_likelihoods",
     action="store_true",
-    help="Disable computing program log likelihoods, which sometimes produce EtaExpandFailure errors",
+    help="[DEPRAECATED: Eta long issues should be fixed now] Disable computing program log likelihoods, which sometimes produce EtaExpandFailure errors",
 )
 
 parser.add_argument(

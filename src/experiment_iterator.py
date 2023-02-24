@@ -488,7 +488,7 @@ class ExperimentState:
                     )
 
     def initialize_ground_truth_task_frontiers(
-        self, task_split, exclude_nonempty=True, compute_likelihoods=False
+        self, task_split, exclude_nonempty=True, compute_likelihoods=True
     ):
         """Updates frontiers to ground truth programs. Expects the ground truth programs to be under task.supervision"""
         for task in self.task_frontiers[task_split]:

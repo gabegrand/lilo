@@ -313,7 +313,7 @@ class LAPSGrammar(Grammar):
         evaluation_timeout=DEFAULT_EVALUATION_TIMEOUT,
         max_mem_per_enumeration_thread=DEFAULT_MAX_MEM_PER_ENUMERATION_THREAD,
         solver_directory=DEFAULT_BINARY_DIRECTORY,
-        compute_likelihoods=None,
+        compute_likelihoods=True,
     ):
         """
         Infers programs for tasks via top-down enumerative search from the grammar.

@@ -687,12 +687,16 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                         frontier=[
                             FrontierEntry(
                                 program=program,
-                                logPrior=0.0,  # TODO: compute prior?
+                                logPrior=0.0,
                                 logLikelihood=0.0,
                             )
                         ],
                         task=task,
                     )
+
+                if compute_likelihoods:
+                    new_frontier = grammar.rescoreFrontier(new_frontier)
+
                 experiment_state.task_frontiers[TRAIN][task].combine(new_frontier)
 
             # If the program doesn't solve any tasks, add it to the experiment state as a sample.
@@ -714,7 +718,6 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
                     task=sample_task,
                 )
 
-                # Re-score the logPrior and logLikelihood of the frontier under the current grammar
                 if compute_likelihoods:
                     sample_frontier = grammar.rescoreFrontier(sample_frontier)
 
