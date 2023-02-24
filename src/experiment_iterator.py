@@ -221,17 +221,10 @@ class ExperimentState:
         json_frontiers = {split: {} for split in self.task_frontiers}
         for split in self.task_frontiers:
             for task in self.task_frontiers[split]:
-                task_json = self.task_frontiers[split][task].json()
-                task_json["best_search_time"] = self.best_search_times[split][task]
-                json_frontiers[split][task.name] = task_json
+                frontier_json = self.task_frontiers[split][task].json()
+                frontier_json["best_search_time"] = self.best_search_times[split][task]
+                json_frontiers[split][task.name] = frontier_json
 
-        # json_frontiers = {
-        #     split: {
-        #         task.name: self.task_frontiers[split][task].json()
-        #         for task in self.task_frontiers[split]
-        #     }
-        #     for split in self.task_frontiers
-        # }
         checkpoint_directory = os.path.join(
             self.get_checkpoint_directory(), FRONTIERS_CHECKPOINT
         )
