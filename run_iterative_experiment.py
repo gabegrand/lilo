@@ -76,6 +76,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--enumeration_timeout",
+    default=None,
+    type=int,
+    help="How many seconds to run enumeration for. Applies to both train and test sets. Defaults to whatever value is specified in the experiment template.",
+)
+
+parser.add_argument(
     "--stitch_params", default="{}", help="JSON string of stitch params"
 )
 
@@ -156,6 +163,7 @@ def main(args):
             task_batcher=args.task_batcher,
             random_seed=random_seed,
             iterations=args.iterations,
+            enumeration_timeout=args.enumeration_timeout,
             codex_params=codex_params,
             stitch_params=stitch_params,
             compute_likelihoods=(not args.no_likelihoods),
@@ -200,6 +208,7 @@ def main(args):
                 task_batcher=args.task_batcher,
                 random_seed=random_seed,
                 iterations=args.iterations,
+                enumeration_timeout=args.enumeration_timeout,
                 global_batch_size=global_batch_size,
                 codex_params=codex_params,
                 stitch_params=stitch_params,

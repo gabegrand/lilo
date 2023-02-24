@@ -74,7 +74,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         prepend_dsl_description: bool = False,
         line_separator: str = DEFAULT_LINE_SEPARATOR,
         # Codex parameters
-        temperature: float = 0.75,
+        temperature: float = 0.40,
         max_tokens_completion_beta: float = 2.0,
         engine: str = CodexBase.DEFAULT_ENGINE,
         # Utility

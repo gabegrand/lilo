@@ -61,6 +61,11 @@ class ExperimentState:
             config
         )
 
+        self.best_search_times = {
+            split: {task: None for task in self.task_frontiers[split]}
+            for split in self.tasks.keys()
+        }
+
         # Contains tasks, frontiers, language sampled from a generative model.
         self.sample_tasks = {split: [] for split in self.tasks.keys()}
         self.sample_language = {split: {} for split in self.tasks.keys()}
@@ -213,13 +218,13 @@ class ExperimentState:
         )
 
     def checkpoint_frontiers(self):
-        json_frontiers = {
-            split: {
-                task.name: self.task_frontiers[split][task].json()
-                for task in self.task_frontiers[split]
-            }
-            for split in self.task_frontiers
-        }
+        json_frontiers = {split: {} for split in self.task_frontiers}
+        for split in self.task_frontiers:
+            for task in self.task_frontiers[split]:
+                frontier_json = self.task_frontiers[split][task].json()
+                frontier_json["best_search_time"] = self.best_search_times[split][task]
+                json_frontiers[split][task.name] = frontier_json
+
         checkpoint_directory = os.path.join(
             self.get_checkpoint_directory(), FRONTIERS_CHECKPOINT
         )

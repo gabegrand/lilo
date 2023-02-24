@@ -333,7 +333,7 @@ class LAPSGrammar(Grammar):
         tasks_to_attempt = experiment_state.get_tasks_for_ids(
             task_split=task_split, task_ids=task_batch_ids, include_samples=False
         )
-        new_frontiers, _ = multicoreEnumeration(
+        new_frontiers, best_search_time_per_task = multicoreEnumeration(
             g=self,
             tasks=tasks_to_attempt,
             maximumFrontier=maximum_frontier,
@@ -351,6 +351,8 @@ class LAPSGrammar(Grammar):
             task_split=task_split,
             is_sample=False,
         )
+
+        experiment_state.best_search_times[task_split].update(best_search_time_per_task)
 
     def generative_sample_frontiers_for_tasks(
         self,
@@ -906,9 +908,9 @@ class LAPSGrammar(Grammar):
 
     ## Elevate static methods to create correct class.
     @staticmethod
-    def fromGrammar(grammar, remove_inventions=False):
+    def fromGrammar(grammar, remove_abstractions=False):
         productions = grammar.productions
-        if remove_inventions:
+        if remove_abstractions:
             productions = [prod for prod in productions if not prod[2].isInvented]
 
         return LAPSGrammar(
@@ -935,12 +937,17 @@ class LAPSGrammar(Grammar):
         )
 
     @staticmethod
-    def get_mdl_program(programs):
+    def get_mdl_programs(programs):
         assert len(programs) > 0
         description_lengths = [
             len(p.left_order_tokens(show_vars=True)) for p in programs
         ]
-        return programs[np.argmin(description_lengths)]
+        mdl_programs = [
+            p
+            for p, dl in zip(programs, description_lengths)
+            if dl == min(description_lengths)
+        ]
+        return mdl_programs
 
     def get_checkpoint_filepath(self, checkpoint_directory):
         return os.path.join(checkpoint_directory, f"{self.name}.json")
