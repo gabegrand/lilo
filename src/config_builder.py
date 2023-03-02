@@ -10,12 +10,14 @@ from enum import Enum
 
 import data.drawings.make_tasks as drawing_tasks
 from src.models.laps_grammar import LAPSGrammar
+from src.models.laps_dreamcoder_recognition import LAPSDreamCoderRecognition
 from src.models.model_loaders import (
     GRAMMAR,
     INITIALIZE_GROUND_TRUTH,
     LIBRARY_LEARNER,
     PROGRAM_REWRITER,
     SAMPLE_GENERATOR,
+    AMORTIZED_SYNTHESIS,
 )
 from src.task_loaders import ALL, GroundTruthOrderedTaskBatcher
 
@@ -126,6 +128,7 @@ def build_config(
     task_batcher: str = GroundTruthOrderedTaskBatcher.name,
     global_batch_size: int = ALL,
     enumeration_timeout: int = None,
+    recognition_train_steps: int = None,
     encoder: str = None,
     stitch_params: dict = DEFAULT_STITCH_PARAMS,
     codex_params: dict = DEFAULT_CODEX_PARAMS,
@@ -143,6 +146,7 @@ def build_config(
             task_batcher=task_batcher,
             global_batch_size=global_batch_size,
             enumeration_timeout=enumeration_timeout,
+            recognition_train_steps=recognition_train_steps,
             encoder=encoder,
             stitch_params=stitch_params,
             codex_params=codex_params,
@@ -158,6 +162,7 @@ def build_config(
             experiment_type=experiment_type,
             global_batch_size=global_batch_size,
             enumeration_timeout=enumeration_timeout,
+            recognition_train_steps=recognition_train_steps,
             encoder=encoder,
             output_directory=output_directory,
             init_frontiers_from_checkpoint=init_frontiers_from_checkpoint,
@@ -173,6 +178,7 @@ def build_config_metadata(
     experiment_type: str,
     global_batch_size: int = ALL,
     enumeration_timeout: int = None,
+    recognition_train_steps: int = None,
     encoder: str = None,
     output_directory: str = DEFAULT_EXPERIMENT_DIR,
     init_frontiers_from_checkpoint: bool = False,
@@ -215,6 +221,7 @@ def build_config_metadata(
             "ocaml_special_handler": domain_meta["ocaml_special_handler"],
             "global_batch_size": global_batch_size,
             "enumeration_timeout": enumeration_timeout,
+            "recognition_train_steps": recognition_train_steps,
             "encoder": encoder,
             "random_seed": random_seed,
         }
@@ -228,6 +235,7 @@ def build_config_body(
     task_batcher: str = GroundTruthOrderedTaskBatcher.name,
     global_batch_size: int = ALL,
     enumeration_timeout: int = None,
+    recognition_train_steps: int = None,
     encoder: str = None,
     stitch_params: dict = DEFAULT_STITCH_PARAMS,
     codex_params: dict = DEFAULT_CODEX_PARAMS,
@@ -281,6 +289,10 @@ def build_config_body(
             block.get("model_type") == LAPSGrammar.GRAMMAR
             and block.get("model_fn") == LAPSGrammar.infer_programs_for_tasks.__name__
             and enumeration_timeout is not None
+        ) or (
+            block.get("model_type") == AMORTIZED_SYNTHESIS
+            and block.get("model_fn") == LAPSDreamCoderRecognition.infer_programs_for_tasks.__name__
+            and enumeration_timeout is not None
         ):
             block["params"].update(
                 {
@@ -311,6 +323,15 @@ def build_config_body(
                     "compute_likelihoods": compute_likelihoods,
                 }
             )
+        if (block.get("model_type") == AMORTIZED_SYNTHESIS 
+            and block.get("model_fn") == LAPSDreamCoderRecognition.optimize_model_for_frontiers.__name__
+            and recognition_train_steps is not None):
+            block["params"].update(
+                {
+                    "recognition_train_steps": recognition_train_steps,
+                }
+            )
+
         loop_blocks.append(block)
     config["experiment_iterator"]["loop_blocks"] = loop_blocks
 

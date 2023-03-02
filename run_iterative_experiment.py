@@ -83,6 +83,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--recognition_train_steps",
+    default=None,
+    type=int,
+    help="How many training steps to train the recognition model for. Defaults to whatever value is specified in the experiment template.",
+)
+
+parser.add_argument(
     "--encoder",
     default=None,
     type=str,
@@ -171,6 +178,7 @@ def main(args):
             random_seed=random_seed,
             iterations=args.iterations,
             enumeration_timeout=args.enumeration_timeout,
+            recognition_train_steps=args.recognition_train_steps,
             encoder=args.encoder,
             codex_params=codex_params,
             stitch_params=stitch_params,
@@ -217,6 +225,7 @@ def main(args):
                 random_seed=random_seed,
                 iterations=args.iterations,
                 enumeration_timeout=args.enumeration_timeout,
+                recognition_train_steps=args.recognition_train_steps,
                 encoder=args.encoder,
                 global_batch_size=global_batch_size,
                 codex_params=codex_params,
