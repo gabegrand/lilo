@@ -83,6 +83,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--encoder",
+    default=None,
+    type=str,
+    help="The name of the encoder to use in the recognition model. Defaults to whatever value is specified in the experiment template.",
+)
+
+parser.add_argument(
     "--stitch_params", default="{}", help="JSON string of stitch params"
 )
 
@@ -164,6 +171,7 @@ def main(args):
             random_seed=random_seed,
             iterations=args.iterations,
             enumeration_timeout=args.enumeration_timeout,
+            encoder=args.encoder,
             codex_params=codex_params,
             stitch_params=stitch_params,
             compute_likelihoods=(not args.no_likelihoods),
@@ -209,6 +217,7 @@ def main(args):
                 random_seed=random_seed,
                 iterations=args.iterations,
                 enumeration_timeout=args.enumeration_timeout,
+                encoder=args.encoder,
                 global_batch_size=global_batch_size,
                 codex_params=codex_params,
                 stitch_params=stitch_params,

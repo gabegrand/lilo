@@ -126,6 +126,7 @@ def build_config(
     task_batcher: str = GroundTruthOrderedTaskBatcher.name,
     global_batch_size: int = ALL,
     enumeration_timeout: int = None,
+    encoder: str = None,
     stitch_params: dict = DEFAULT_STITCH_PARAMS,
     codex_params: dict = DEFAULT_CODEX_PARAMS,
     compute_likelihoods: bool = True,
@@ -142,6 +143,7 @@ def build_config(
             task_batcher=task_batcher,
             global_batch_size=global_batch_size,
             enumeration_timeout=enumeration_timeout,
+            encoder=encoder,
             stitch_params=stitch_params,
             codex_params=codex_params,
             compute_likelihoods=compute_likelihoods,
@@ -156,6 +158,7 @@ def build_config(
             experiment_type=experiment_type,
             global_batch_size=global_batch_size,
             enumeration_timeout=enumeration_timeout,
+            encoder=encoder,
             output_directory=output_directory,
             init_frontiers_from_checkpoint=init_frontiers_from_checkpoint,
             random_seed=random_seed,
@@ -170,6 +173,7 @@ def build_config_metadata(
     experiment_type: str,
     global_batch_size: int = ALL,
     enumeration_timeout: int = None,
+    encoder: str = None,
     output_directory: str = DEFAULT_EXPERIMENT_DIR,
     init_frontiers_from_checkpoint: bool = False,
     random_seed: int = 0,
@@ -211,6 +215,7 @@ def build_config_metadata(
             "ocaml_special_handler": domain_meta["ocaml_special_handler"],
             "global_batch_size": global_batch_size,
             "enumeration_timeout": enumeration_timeout,
+            "encoder": encoder,
             "random_seed": random_seed,
         }
     }
@@ -223,6 +228,7 @@ def build_config_body(
     task_batcher: str = GroundTruthOrderedTaskBatcher.name,
     global_batch_size: int = ALL,
     enumeration_timeout: int = None,
+    encoder: str = None,
     stitch_params: dict = DEFAULT_STITCH_PARAMS,
     codex_params: dict = DEFAULT_CODEX_PARAMS,
     compute_likelihoods: bool = True,
@@ -240,6 +246,19 @@ def build_config_body(
     model_initializers = config["model_initializers"]
     model_initializers[0]["model_loader"] = domain_meta["ocaml_special_handler"]
     config["model_initializers"] = model_initializers
+
+    # Update recognition model params to match domain if there is a recognition model and
+    # it is set on the command-line.
+    recognition_encoder_initializer = next(
+        (initializer for initializer in model_initializers 
+         if initializer["model_type"] == "examples_encoder"), None)
+    
+    if encoder:
+        if not recognition_encoder_initializer:
+            raise ValueError("Encoder is provided by command-line arguments but there is no encoder being initialized in the template.")
+        recognition_encoder_initializer["model_loader"] = encoder
+    elif recognition_encoder_initializer and recognition_encoder_initializer["model_loader"] is None:
+        raise ValueError("Encoder is not provided by command-line arguments but there is an encoder being initialized in the template.")
 
     config["experiment_iterator"]["max_iterations"] = iterations
     config["experiment_iterator"]["task_batcher"]["model_type"] = task_batcher
