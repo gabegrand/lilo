@@ -2,6 +2,7 @@ name: laps
 channels:
   - conda-forge
   - pytorch
+  - huggingface
 dependencies:
   - python=3.7
   - black
@@ -26,6 +27,7 @@ dependencies:
   - pandas
   - pandocfilters
   - pathspec
+  - pathos
   - Pillow
   - pip
   - pre-commit
@@ -49,6 +51,7 @@ dependencies:
   - torchvision
   - tornado
   - tqdm
+  - transformers
   - typed-ast
   - typing-extensions
   - pip:
