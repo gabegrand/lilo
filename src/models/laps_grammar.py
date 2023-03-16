@@ -313,7 +313,7 @@ class LAPSGrammar(Grammar):
         evaluation_timeout=DEFAULT_EVALUATION_TIMEOUT,
         max_mem_per_enumeration_thread=DEFAULT_MAX_MEM_PER_ENUMERATION_THREAD,
         solver_directory=DEFAULT_BINARY_DIRECTORY,
-        compute_likelihoods=None,
+        compute_likelihoods=True,
     ):
         """
         Infers programs for tasks via top-down enumerative search from the grammar.
@@ -806,6 +806,7 @@ class LAPSGrammar(Grammar):
         task_ids_in_splits,
         compute_likelihoods: bool = True,
         compute_description_lengths: bool = True,
+        include_ground_truth_tasks: bool = True,
         include_samples: bool = False,
         save_filename: str = None,
     ):
@@ -817,6 +818,7 @@ class LAPSGrammar(Grammar):
         frontiers = experiment_state.get_frontiers_for_ids_in_splits(
             task_splits=task_splits,
             task_ids_in_splits=task_ids_in_splits,
+            include_ground_truth_tasks=include_ground_truth_tasks,
             include_samples=include_samples,
         )
 
@@ -839,8 +841,9 @@ class LAPSGrammar(Grammar):
                 # Compute log likelihood of each program
                 if compute_likelihoods:
                     lls = [self.logLikelihood(f.task.request, e.program) for e in f]
-                    log_likelihoods += lls
                     log_likelihoods_by_task[task_split][f.task.name] = lls
+                    if lls:
+                        log_likelihoods += [np.mean(lls)]
 
                 # Additionally, compute description length of each program
                 if compute_description_lengths:
@@ -848,8 +851,9 @@ class LAPSGrammar(Grammar):
                         len(Program.left_order_tokens(e.program, show_vars=True))
                         for e in f
                     ]
-                    description_lengths += dls
                     description_lengths_by_task[task_split][f.task.name] = dls
+                    if dls:
+                        description_lengths += [np.mean(dls)]
 
         if compute_likelihoods:
             print(

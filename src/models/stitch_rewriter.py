@@ -99,6 +99,8 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 frontiers_dict = json.load(f)
                 stitch_kwargs = stitch.from_dreamcoder(frontiers_dict)
 
+            stitch_kwargs.update(dict(eta_long=True, utility_by_rewrite=True))
+
             rewrite_result = stitch.rewrite(
                 programs=stitch_kwargs["programs"],
                 abstractions=abstractions,
@@ -128,7 +130,7 @@ class StitchProgramRewriter(StitchBase, model_loaders.ModelLoader):
                 )
                 for p_str in task_to_programs[task.name]:
                     p = Program.parse(p_str)
-                    # Hack to avoid fatal error when computing likelihood summaries
+                    # Catch fatal error when computing likelihood summaries
                     if compute_likelihoods:
                         try:
                             p = EtaLongVisitor(request=task.request).execute(p)

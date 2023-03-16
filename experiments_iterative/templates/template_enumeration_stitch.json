@@ -107,6 +107,22 @@
                 }
             },
             {
+                "experiment_block_type": "model_fn",
+                "model_type": "grammar",
+                "model_fn": "evaluate_frontiers",
+                "task_splits": [
+                    "test"
+                ],
+                "task_batch_sizes": [
+                    "all"
+                ],
+                "params": {
+                    "compute_likelihoods": true,
+                    "compute_description_lengths": true,
+                    "save_filename": "test_likelihoods.json"
+                }
+            },
+            {
                 "experiment_block_type": "checkpoint",
                 "state_to_checkpoint": [
                     "frontiers"
