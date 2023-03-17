@@ -33,22 +33,6 @@
             },
             {
                 "experiment_block_type": "state_fn",
-                "state_fn": "reset_task_frontiers",
-                "params": {
-                    "task_split": "train",
-                    "task_ids": "all"
-                }
-            },
-            {
-                "experiment_block_type": "state_fn",
-                "state_fn": "reset_task_frontiers",
-                "params": {
-                    "task_split": "test",
-                    "task_ids": "all"
-                }
-            },
-            {
-                "experiment_block_type": "state_fn",
                 "state_fn": "log_frontiers",
                 "params": {
                   "verbosity": 3
@@ -59,10 +43,19 @@
                 "model_type": "grammar",
                 "model_fn": "infer_programs_for_tasks",
                 "task_split": "train",
-                "task_batch_size": "all",
+                "task_batch_size": 5,
                 "params": {
                   "enumeration_timeout": 10
                 }
+            },
+            {
+                "experiment_block_type": "checkpoint",
+                "state_to_checkpoint": [
+                    "frontiers"
+                ],
+                "models_to_checkpoint": [
+                    "grammar"
+                ]
             },
             {
                 "experiment_block_type": "state_fn",
