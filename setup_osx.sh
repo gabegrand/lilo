@@ -1,5 +1,5 @@
 # setup_osx.sh: set up script | Author: Catherine Wong.
-# Setup script for Mac OSX. Should be run upon cloning the directory. 
+# Setup script for Mac OSX. Should be run upon cloning the directory.
 
 # Download LAPS-DreamCoder submodule dependency, which needs to be unpacked into laps/dreamcoder
 git submodule update --init --recursive
@@ -8,8 +8,7 @@ git submodule update --init --recursive
 conda env create -f environment.yml
 conda activate laps
 
+pip install pregex==1.0.0 --ignore-requires-python
+
 # Install the NLTK word tokenize package.
 python -m nltk.downloader 'punkt'
-
-# Install Rust for stitch.
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
