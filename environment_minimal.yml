@@ -43,6 +43,7 @@ dependencies:
   - pip:
     - mypy-extensions
     - phx-class-registry
-    - pregex==1.1.0 --install-option="--ignore-requires-python"
     - pytorch-nlp
     - stitch_core
+    - pregex==1.1.0 --install-option="--ignore-requires-python"
+
