@@ -7,11 +7,13 @@ Updates GRAMMAR based on Stitch compression.
 """
 
 import json
+from collections import defaultdict
 
 import stitch_core as stitch
 
 import src.models.model_loaders as model_loaders
-from dreamcoder.program import Invented
+from dreamcoder.frontier import Frontier, FrontierEntry
+from dreamcoder.program import Invented, Program
 from src.models.laps_grammar import LAPSGrammar
 from src.models.stitch_base import StitchBase
 
@@ -63,7 +65,10 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             `replace_existing_abstractions`: If True, replaces all existing abstractions
                 with new abstractions after compression.
         """
-        split = "_".join(task_splits)
+        # NOTE(gg): Restrict to single split, otherwise working with rewritten frontiers is tricky
+        assert len(task_splits) == 1
+        split = task_splits[0]
+        # split = "_".join(task_splits)
 
         # Update the grammar to remove all existing abstractions.
         if update_grammar and replace_existing_abstractions:
@@ -88,13 +93,35 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         )
 
         # Call stitch compressor.
-        abstractions = self._compress(
+        abstractions, task_to_programs = self._compress(
             experiment_state,
             frontiers_filepath,
             split,
             max_arity=kwargs["max_arity"],
             iterations=kwargs["iterations"],
         )
+
+        # Rebuild the set of frontiers
+        frontiers_rewritten = []
+        for task_id, programs in task_to_programs.items():
+            task = experiment_state.get_tasks_for_ids(
+                task_splits[0],
+                [task_id],
+                include_samples=False,
+                include_ground_truth_tasks=True,
+            )[0]
+            for program in programs:
+                frontier = Frontier(
+                    frontier=[
+                        FrontierEntry(
+                            program=Program.parse(program),
+                            logPrior=0.0,
+                            logLikelihood=0.0,
+                        )
+                    ],
+                    task=task,
+                )
+                frontiers_rewritten.append(frontier)
 
         # Update the grammar with the new inventions.
         if update_grammar:
@@ -107,11 +134,31 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
                 initialize_parameters_from_grammar=grammar,
             )
 
+            # Recompute production probabilities in grammar
+            new_grammar = new_grammar.insideOutside(
+                frontiers_rewritten, pseudoCounts=30, iterations=1
+            )
+            new_grammar = LAPSGrammar.fromGrammar(new_grammar)  # Wrap in LAPSGrammar
+
             experiment_state.models[model_loaders.GRAMMAR] = new_grammar
 
             print(
                 f"Updated grammar (productions={len(grammar.productions)}) with {len(new_productions)} new abstractions."
             )
+
+        # Rescore all frontiers under grammar
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        frontiers_rewritten = [grammar.rescoreFrontier(f) for f in frontiers_rewritten]
+
+        experiment_state.reset_task_frontiers(
+            task_split=split, task_ids=task_ids_in_splits[split]
+        )
+        experiment_state.update_frontiers(
+            new_frontiers=frontiers_rewritten,
+            maximum_frontier=grammar.maximum_frontier,
+            task_split=split,
+            is_sample=False,
+        )
 
     def _compress(
         self,
@@ -138,6 +185,12 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             for abs in compression_result.json["abstractions"]
         ]
 
+        task_to_programs = defaultdict(list)
+        for rewritten, task in zip(
+            compression_result.json["rewritten_dreamcoder"], stitch_kwargs["tasks"]
+        ):
+            task_to_programs[task].append(rewritten)
+
         abstractions_filepath = self._get_filepath_for_current_iteration(
             experiment_state.get_checkpoint_directory(),
             StitchProposerLibraryLearner.compress_output_filename,
@@ -146,4 +199,4 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         with open(abstractions_filepath, "w") as f:
             json.dump(compression_result.json, f, indent=4)
 
-        return abstractions
+        return abstractions, task_to_programs
