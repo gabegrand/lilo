@@ -532,6 +532,7 @@ class ExperimentState:
 # Experiment iterator config constants
 EXPERIMENT_ITERATOR = "experiment_iterator"
 MAX_ITERATIONS = "max_iterations"
+RUN_EVERY_N_ITERATIONS = "run_every_n_iterations"
 TASK_BATCHER = "task_batcher"
 LOOP_BLOCKS = "loop_blocks"
 EXPERIMENT_BLOCK_TYPE = "experiment_block_type"
@@ -592,12 +593,20 @@ class ExperimentIterator:
         checkpoint: checkpoint state or models.
         """
         curr_loop_block = self.loop_blocks[self.loop_pointer]
-        if curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_MODEL_FN:
-            self.execute_model_fn(experiment_state, curr_loop_block)
-        elif curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_STATE_FN:
-            self.execute_state_fn(experiment_state, curr_loop_block)
-        elif curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_CHECKPOINT:
-            self.checkpoint(experiment_state, curr_loop_block)
+
+        every_n_iterations = curr_loop_block.get(RUN_EVERY_N_ITERATIONS, 1)
+        if every_n_iterations % self.curr_iteration == 0:
+            if curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_MODEL_FN:
+                self.execute_model_fn(experiment_state, curr_loop_block)
+            elif (
+                curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_STATE_FN
+            ):
+                self.execute_state_fn(experiment_state, curr_loop_block)
+            elif (
+                curr_loop_block[EXPERIMENT_BLOCK_TYPE]
+                == EXPERIMENT_BLOCK_TYPE_CHECKPOINT
+            ):
+                self.checkpoint(experiment_state, curr_loop_block)
 
         self.loop_pointer += 1
 
