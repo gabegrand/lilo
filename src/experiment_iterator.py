@@ -5,6 +5,7 @@ Utility classes for initializing and running iterated experiments from configs.
 import copy
 import json
 import os
+import subprocess
 
 import numpy as np
 
@@ -376,6 +377,13 @@ class ExperimentState:
             if model in self.models:
                 self.models[model].checkpoint(self, self.get_checkpoint_directory())
 
+    def aws_s3_sync(self, s3_base_path):
+        assert(s3_base_path.startswith("s3://"))
+        cmd = f"aws s3 sync {self.metadata[EXPORT_DIRECTORY]} {os.path.join(s3_base_path, self.metadata[EXPORT_DIRECTORY])}"
+        print(cmd)
+        subprocess.run(cmd, shell=True, capture_output=True)
+
+
     def load_models_from_checkpoint(self):
         pass
 
@@ -532,6 +540,7 @@ EXPERIMENT_BLOCK_TYPE_CHECKPOINT = "checkpoint"  # Checkpoint the model state
 EXPERIMENT_BLOCK_TYPE_STATE_FN = "state_fn"
 STATE_TO_CHECKPOINT = "state_to_checkpoint"
 MODELS_TO_CHECKPOINT = "models_to_checkpoint"
+AWS_S3_SYNC_BASE_PATH = "aws_s3_sync_base_path"
 
 
 class ExperimentIterator:
@@ -699,3 +708,5 @@ class ExperimentIterator:
     def checkpoint(self, experiment_state, curr_loop_block):
         experiment_state.checkpoint_state(curr_loop_block[STATE_TO_CHECKPOINT])
         experiment_state.checkpoint_models(curr_loop_block[MODELS_TO_CHECKPOINT])
+        if curr_loop_block.get(AWS_S3_SYNC_BASE_PATH):
+            experiment_state.aws_s3_sync(curr_loop_block[AWS_S3_SYNC_BASE_PATH])
