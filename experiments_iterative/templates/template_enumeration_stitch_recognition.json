@@ -100,7 +100,7 @@
                 "model_type": "amortized_synthesis",
                 "model_fn": "infer_programs_for_tasks",
                 "task_split": "test",
-                "task_batch_size": 10,
+                "task_batch_size": "all",
                 "params": {
                     "enumeration_timeout": 10
                 },

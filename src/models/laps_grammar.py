@@ -30,7 +30,7 @@ class LAPSGrammar(Grammar):
     name = "laps_grammar"
 
     DEFAULT_MAXIMUM_FRONTIER = 5  # Maximum top-programs to keep in frontier
-    DEFAULT_CPUS = 12  # Parallel CPUs
+    DEFAULT_CPUS = os.cpu_count()  # Parallel CPUs
     DEFAULT_ENUMERATION_SOLVER = "ocaml"  # OCaml, PyPy, or Python enumeration
     DEFAULT_SAMPLER = "helmholtz"
     DEFAULT_BINARY_DIRECTORY = "dreamcoder"
