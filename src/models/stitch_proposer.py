@@ -13,7 +13,7 @@ import stitch_core as stitch
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
-from dreamcoder.program import Program, Invented
+from dreamcoder.program import Invented, Program
 from src.models.laps_grammar import LAPSGrammar
 from src.models.stitch_base import StitchBase
 
@@ -66,7 +66,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
                 with new abstractions after compression.
         """
         # NOTE(gg): Restrict to single split, otherwise working with rewritten frontiers is tricky
-        assert(len(task_splits) == 1)
+        assert len(task_splits) == 1
         split = task_splits[0]
         # split = "_".join(task_splits)
 
@@ -135,8 +135,10 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             )
 
             # Recompute production probabilities in grammar
-            new_grammar = new_grammar.insideOutside(frontiers_rewritten, pseudoCounts=30, iterations=1)
-            new_grammar = LAPSGrammar.fromGrammar(new_grammar) # Wrap in LAPSGrammar
+            new_grammar = new_grammar.insideOutside(
+                frontiers_rewritten, pseudoCounts=30, iterations=1
+            )
+            new_grammar = LAPSGrammar.fromGrammar(new_grammar)  # Wrap in LAPSGrammar
 
             experiment_state.models[model_loaders.GRAMMAR] = new_grammar
 
@@ -148,9 +150,15 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         grammar = experiment_state.models[model_loaders.GRAMMAR]
         frontiers_rewritten = [grammar.rescoreFrontier(f) for f in frontiers_rewritten]
 
-        experiment_state.reset_task_frontiers(task_split=split, task_ids=task_ids_in_splits[split])
-        experiment_state.update_frontiers(new_frontiers=frontiers_rewritten, maximum_frontier=grammar.maximum_frontier, task_split=split, is_sample=False)
-
+        experiment_state.reset_task_frontiers(
+            task_split=split, task_ids=task_ids_in_splits[split]
+        )
+        experiment_state.update_frontiers(
+            new_frontiers=frontiers_rewritten,
+            maximum_frontier=grammar.maximum_frontier,
+            task_split=split,
+            is_sample=False,
+        )
 
     def _compress(
         self,
@@ -178,7 +186,9 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         ]
 
         task_to_programs = defaultdict(list)
-        for rewritten, task in zip(compression_result.json["rewritten_dreamcoder"], stitch_kwargs["tasks"]):
+        for rewritten, task in zip(
+            compression_result.json["rewritten_dreamcoder"], stitch_kwargs["tasks"]
+        ):
             task_to_programs[task].append(rewritten)
 
         abstractions_filepath = self._get_filepath_for_current_iteration(
