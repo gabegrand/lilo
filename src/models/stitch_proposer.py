@@ -136,14 +136,21 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
 
             # Recompute production probabilities in grammar
             new_grammar = new_grammar.insideOutside(frontiers_rewritten, pseudoCounts=30, iterations=1)
+            new_grammar = LAPSGrammar.fromGrammar(new_grammar) # Wrap in LAPSGrammar
 
             experiment_state.models[model_loaders.GRAMMAR] = new_grammar
-
-            # TODO: Rescore all frontiers under grammar
 
             print(
                 f"Updated grammar (productions={len(grammar.productions)}) with {len(new_productions)} new abstractions."
             )
+
+        # Rescore all frontiers under grammar
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        frontiers_rewritten = [grammar.rescoreFrontier(f) for f in frontiers_rewritten]
+
+        experiment_state.reset_task_frontiers(task_split=split, task_ids=task_ids_in_splits[split])
+        experiment_state.update_frontiers(new_frontiers=frontiers_rewritten, maximum_frontier=grammar.maximum_frontier, task_split=split, is_sample=False)
+
 
     def _compress(
         self,

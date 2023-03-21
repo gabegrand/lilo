@@ -101,6 +101,7 @@ class LAPSGrammar(Grammar):
         self.function_names = self._init_function_names(
             initialize_parameters_from_grammar
         )
+        self.maximum_frontier = self.DEFAULT_MAXIMUM_FRONTIER
 
     def _add_base_primitive(self, base_primitive, use_default_as_human_readable=False):
         numeric_idx = len(self.function_names)
@@ -322,6 +323,8 @@ class LAPSGrammar(Grammar):
         Wrapper function around multicoreEnumeration from dreamcoder.enumeration.
         """
         del compute_likelihoods  # Unused, for compatibility with config_builder interface
+
+        self.maximum_frontier = maximum_frontier
 
         if experiment_state.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
             if experiment_state.maybe_resume_from_checkpoint():
