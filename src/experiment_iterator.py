@@ -378,11 +378,10 @@ class ExperimentState:
                 self.models[model].checkpoint(self, self.get_checkpoint_directory())
 
     def aws_s3_sync(self, s3_base_path):
-        assert(s3_base_path.startswith("s3://"))
+        assert s3_base_path.startswith("s3://")
         cmd = f"aws s3 sync {self.metadata[EXPORT_DIRECTORY]} {os.path.join(s3_base_path, self.metadata[EXPORT_DIRECTORY])}"
         print(cmd)
         subprocess.run(cmd, shell=True, capture_output=True)
-
 
     def load_models_from_checkpoint(self):
         pass
