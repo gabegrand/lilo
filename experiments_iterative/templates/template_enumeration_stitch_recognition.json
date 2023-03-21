@@ -58,7 +58,8 @@
                 "task_batch_size": 40,
                 "params": {
                   "enumeration_timeout": 10
-                }
+                },
+                "run_every_n_iterations": 1000
             },
             {
                 "experiment_block_type": "state_fn",
@@ -99,11 +100,11 @@
                 "model_type": "amortized_synthesis",
                 "model_fn": "infer_programs_for_tasks",
                 "task_split": "test",
-                "task_batch_size": "all",
-                "run_every_n_iterations": 3,
+                "task_batch_size": 10,
                 "params": {
                     "enumeration_timeout": 10
-                }
+                },
+                "run_every_n_iterations": 3
             },
             {
                 "experiment_block_type": "state_fn",

@@ -594,8 +594,7 @@ class ExperimentIterator:
         """
         curr_loop_block = self.loop_blocks[self.loop_pointer]
 
-        every_n_iterations = curr_loop_block.get(RUN_EVERY_N_ITERATIONS, 1)
-        if every_n_iterations % self.curr_iteration == 0:
+        if self.curr_iteration % curr_loop_block.get(RUN_EVERY_N_ITERATIONS, 1) == 0:
             if curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_MODEL_FN:
                 self.execute_model_fn(experiment_state, curr_loop_block)
             elif (
