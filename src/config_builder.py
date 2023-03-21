@@ -6,18 +6,24 @@ Utilities for autogenerating configs for experiments based on templates.
 
 import json
 import os
+import subprocess
 from enum import Enum
 
 import data.drawings.make_tasks as drawing_tasks
-from src.models.laps_grammar import LAPSGrammar
+from src.experiment_iterator import (
+    AWS_S3_SYNC_BASE_PATH,
+    EXPERIMENT_BLOCK_TYPE,
+    EXPERIMENT_BLOCK_TYPE_CHECKPOINT,
+)
 from src.models.laps_dreamcoder_recognition import LAPSDreamCoderRecognition
+from src.models.laps_grammar import LAPSGrammar
 from src.models.model_loaders import (
+    AMORTIZED_SYNTHESIS,
     GRAMMAR,
     INITIALIZE_GROUND_TRUTH,
     LIBRARY_LEARNER,
     PROGRAM_REWRITER,
     SAMPLE_GENERATOR,
-    AMORTIZED_SYNTHESIS,
 )
 from src.task_loaders import ALL, GroundTruthOrderedTaskBatcher
 
@@ -258,15 +264,27 @@ def build_config_body(
     # Update recognition model params to match domain if there is a recognition model and
     # it is set on the command-line.
     recognition_encoder_initializer = next(
-        (initializer for initializer in model_initializers 
-         if initializer["model_type"] == "examples_encoder"), None)
-    
+        (
+            initializer
+            for initializer in model_initializers
+            if initializer["model_type"] == "examples_encoder"
+        ),
+        None,
+    )
+
     if encoder:
         if not recognition_encoder_initializer:
-            raise ValueError("Encoder is provided by command-line arguments but there is no encoder being initialized in the template.")
+            raise ValueError(
+                "Encoder is provided by command-line arguments but there is no encoder being initialized in the template."
+            )
         recognition_encoder_initializer["model_loader"] = encoder
-    elif recognition_encoder_initializer and recognition_encoder_initializer["model_loader"] is None:
-        raise ValueError("Encoder is not provided by command-line arguments but there is an encoder being initialized in the template.")
+    elif (
+        recognition_encoder_initializer
+        and recognition_encoder_initializer["model_loader"] is None
+    ):
+        raise ValueError(
+            "Encoder is not provided by command-line arguments but there is an encoder being initialized in the template."
+        )
 
     config["experiment_iterator"]["max_iterations"] = iterations
     config["experiment_iterator"]["task_batcher"]["model_type"] = task_batcher
@@ -291,7 +309,8 @@ def build_config_body(
             and enumeration_timeout is not None
         ) or (
             block.get("model_type") == AMORTIZED_SYNTHESIS
-            and block.get("model_fn") == LAPSDreamCoderRecognition.infer_programs_for_tasks.__name__
+            and block.get("model_fn")
+            == LAPSDreamCoderRecognition.infer_programs_for_tasks.__name__
             and enumeration_timeout is not None
         ):
             block["params"].update(
@@ -323,13 +342,33 @@ def build_config_body(
                     "compute_likelihoods": compute_likelihoods,
                 }
             )
-        if (block.get("model_type") == AMORTIZED_SYNTHESIS 
-            and block.get("model_fn") == LAPSDreamCoderRecognition.optimize_model_for_frontiers.__name__
-            and recognition_train_steps is not None):
+        if (
+            block.get("model_type") == AMORTIZED_SYNTHESIS
+            and block.get("model_fn")
+            == LAPSDreamCoderRecognition.optimize_model_for_frontiers.__name__
+            and recognition_train_steps is not None
+        ):
             block["params"].update(
                 {
                     "recognition_train_steps": recognition_train_steps,
                 }
+            )
+        if (
+            block.get(EXPERIMENT_BLOCK_TYPE) == EXPERIMENT_BLOCK_TYPE_CHECKPOINT
+        ) and block.get(AWS_S3_SYNC_BASE_PATH):
+            # Verify that AWS CLI is configured on the machine
+            subprocess.run(
+                "aws sts get-caller-identity",
+                shell=True,
+                capture_output=True,
+                check=True,
+            )
+            # Verify that the bucket exists
+            subprocess.run(
+                f"aws s3 ls {block[AWS_S3_SYNC_BASE_PATH]}",
+                shell=True,
+                capture_output=True,
+                check=True,
             )
 
         loop_blocks.append(block)
