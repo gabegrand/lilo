@@ -718,6 +718,7 @@ class ExperimentIterator:
         t_end = time.time()
 
         print(f"====================================")
+        print(f"iteration: {self.curr_iteration}")
         print(f"{curr_loop_block[MODEL_TYPE]} : {EXPERIMENT_BLOCK_TYPE_MODEL_FN}")
         print(f"Completed in {t_end - t_start:.3f}s")
         print(f"====================================")
