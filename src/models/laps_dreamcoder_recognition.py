@@ -76,6 +76,10 @@ class LAPSDreamCoderRecognition:
             testing=task_split == TEST,
         )
 
+        # Re-score the frontiers under the grammar
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        new_frontiers = [grammar.rescoreFrontier(f) for f in new_frontiers]
+
         experiment_state.update_frontiers(
             new_frontiers=new_frontiers,
             maximum_frontier=maximum_frontier,
