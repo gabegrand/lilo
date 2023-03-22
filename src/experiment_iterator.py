@@ -6,6 +6,7 @@ import copy
 import json
 import os
 import subprocess
+import time
 
 import numpy as np
 
@@ -706,12 +707,19 @@ class ExperimentIterator:
         )
         model_fn = getattr(experiment_state.models[model_type], model_fn_name)
 
+        t_start = time.time()
         model_fn(
             experiment_state=experiment_state,
             task_split=task_split,
             task_batch_ids=task_batch_ids,
             **curr_loop_block[PARAMS],
         )
+        t_end = time.time()
+
+        print(f"====================================")
+        print(f"{curr_loop_block[MODEL_TYPE]} : {EXPERIMENT_BLOCK_TYPE_MODEL_FN}")
+        print(f"Completed in {t_end - t_start:.3f}s")
+        print(f"====================================")
 
     def checkpoint(self, experiment_state, curr_loop_block):
         experiment_state.checkpoint_state(curr_loop_block[STATE_TO_CHECKPOINT])
