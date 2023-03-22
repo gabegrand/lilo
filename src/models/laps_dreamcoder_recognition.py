@@ -61,7 +61,10 @@ class LAPSDreamCoderRecognition:
         tasks_to_attempt = experiment_state.get_tasks_for_ids(
             task_split=task_split, task_ids=task_batch_ids, include_samples=False
         )
-        new_frontiers, _ = self._neural_recognition_model.enumerateFrontiers(
+        (
+            new_frontiers,
+            best_search_time_per_task,
+        ) = self._neural_recognition_model.enumerateFrontiers(
             tasks=tasks_to_attempt,
             maximumFrontier=maximum_frontier,
             enumerationTimeout=enumeration_timeout,
@@ -79,6 +82,8 @@ class LAPSDreamCoderRecognition:
             task_split=task_split,
             is_sample=False,
         )
+
+        experiment_state.best_search_times[task_split].update(best_search_time_per_task)
 
     def optimize_model_for_frontiers(
         self,
