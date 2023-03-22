@@ -29,7 +29,7 @@
     "experiment_iterator": {
         "max_iterations": null,
         "task_batcher": {
-            "model_type": "ground_truth_ordered_task_batcher",
+            "model_type": "random_shuffle_ordered_task_batcher",
             "params": {
                 "global_batch_size": null,
                 "verbose": true
@@ -63,7 +63,7 @@
                 "model_type": "grammar",
                 "model_fn": "infer_programs_for_tasks",
                 "task_split": "train",
-                "task_batch_size": 40,
+                "task_batch_size": "global_batch_size",
                 "params": {
                   "enumeration_timeout": 10
                 },
@@ -98,7 +98,7 @@
                 "model_type": "amortized_synthesis",
                 "model_fn": "infer_programs_for_tasks",
                 "task_split": "train",
-                "task_batch_size": 40,
+                "task_batch_size": "global_batch_size",
                 "params": {
                     "enumeration_timeout": 10
                 }

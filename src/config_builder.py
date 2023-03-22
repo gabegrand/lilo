@@ -25,7 +25,7 @@ from src.models.model_loaders import (
     PROGRAM_REWRITER,
     SAMPLE_GENERATOR,
 )
-from src.task_loaders import ALL, GroundTruthOrderedTaskBatcher
+from src.task_loaders import ALL, RandomShuffleOrderedTaskBatcher
 
 DEFAULT_EXPERIMENT_DIR = "experiments_iterative"
 DEFAULT_TEMPLATE_DIR = os.path.join(DEFAULT_EXPERIMENT_DIR, "templates")
@@ -131,7 +131,7 @@ def build_config(
     output_directory: str = DEFAULT_EXPERIMENT_DIR,
     random_seed: int = 0,
     iterations: int = 1,
-    task_batcher: str = GroundTruthOrderedTaskBatcher.name,
+    task_batcher: str = RandomShuffleOrderedTaskBatcher.name,
     global_batch_size: int = ALL,
     enumeration_timeout: int = None,
     recognition_train_steps: int = None,
@@ -140,7 +140,7 @@ def build_config(
     codex_params: dict = DEFAULT_CODEX_PARAMS,
     compute_likelihoods: bool = True,
     compute_description_lengths: bool = True,
-    increment_task_batcher: bool = False,
+    increment_task_batcher: bool = True,
     init_frontiers_from_checkpoint: bool = False,
 ):
     config = {}
@@ -238,7 +238,7 @@ def build_config_body(
     experiment_type: str,
     domain: str,
     iterations: int = 1,
-    task_batcher: str = GroundTruthOrderedTaskBatcher.name,
+    task_batcher: str = RandomShuffleOrderedTaskBatcher.name,
     global_batch_size: int = ALL,
     enumeration_timeout: int = None,
     recognition_train_steps: int = None,
@@ -247,7 +247,7 @@ def build_config_body(
     codex_params: dict = DEFAULT_CODEX_PARAMS,
     compute_likelihoods: bool = True,
     compute_description_lengths: bool = True,
-    increment_task_batcher: bool = False,
+    increment_task_batcher: bool = True,
 ):
     template_path = os.path.join(
         DEFAULT_TEMPLATE_DIR, f"template_{experiment_type}.json"
