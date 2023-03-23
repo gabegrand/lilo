@@ -45,14 +45,6 @@
             },
             {
                 "experiment_block_type": "state_fn",
-                "state_fn": "reset_task_frontiers",
-                "params": {
-                    "task_split": "test",
-                    "task_ids": "all"
-                }
-            },
-            {
-                "experiment_block_type": "state_fn",
                 "state_fn": "log_frontiers",
                 "params": {
                   "verbosity": 3
@@ -74,7 +66,8 @@
                 "state_fn": "log_frontiers",
                 "params": {
                   "verbosity": 3
-                }
+                },
+                "run_every_n_iterations": 1000
             },
             {
                 "experiment_block_type": "model_fn",
@@ -87,13 +80,6 @@
                 }
             },
             {
-                "experiment_block_type": "state_fn",
-                "state_fn": "log_frontiers",
-                "params": {
-                  "verbosity": 3
-                }
-            },
-            {
                 "experiment_block_type": "model_fn",
                 "model_type": "amortized_synthesis",
                 "model_fn": "infer_programs_for_tasks",
@@ -102,6 +88,22 @@
                 "params": {
                     "enumeration_timeout": 10
                 }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_frontiers",
+                "params": {
+                  "verbosity": 3
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "reset_task_frontiers",
+                "params": {
+                    "task_split": "test",
+                    "task_ids": "all"
+                },
+                "run_every_n_iterations": 3
             },
             {
                 "experiment_block_type": "model_fn",
@@ -119,7 +121,8 @@
                 "state_fn": "log_frontiers",
                 "params": {
                   "verbosity": 3
-                }
+                },
+                "run_every_n_iterations": 3
             },
             {
                 "experiment_block_type": "model_fn",
@@ -135,7 +138,8 @@
                     "compute_likelihoods": true,
                     "compute_description_lengths": true,
                     "save_filename": "test_likelihoods.json"
-                }
+                },
+                "run_every_n_iterations": 3
             },
             {
                 "experiment_block_type": "checkpoint",
