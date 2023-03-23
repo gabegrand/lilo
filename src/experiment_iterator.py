@@ -171,7 +171,7 @@ class ExperimentState:
             keys_to_log = {}
 
         print(f"============LOGGING METADATA============")
-        print(f"iteration: {self.curr_iteration}")
+        print("\t" + f"iteration: {self.curr_iteration}")
         for attr in keys_to_log:
             if attr in self.metadata:
                 print(f"\t{attr}: {self.metadata[attr]}")
@@ -626,7 +626,7 @@ class ExperimentIterator:
 
     def log_model_fn(self, experiment_state, curr_loop_block, task_batch_ids):
         print(f"============LOGGING MODEL_FN============")
-        print(f"iteration: {self.curr_iteration}")
+        print("\t" + f"iteration: {self.curr_iteration}")
 
         keys_to_log = {k for k in curr_loop_block}
         for attr in keys_to_log:
