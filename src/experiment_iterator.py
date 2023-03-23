@@ -6,6 +6,7 @@ import copy
 import json
 import os
 import subprocess
+import time
 
 import numpy as np
 
@@ -170,7 +171,7 @@ class ExperimentState:
             keys_to_log = {}
 
         print(f"============LOGGING METADATA============")
-        print(f"\tcurr_iteration: {self.curr_iteration}")
+        print("\t" + f"iteration: {self.curr_iteration}")
         for attr in keys_to_log:
             if attr in self.metadata:
                 print(f"\t{attr}: {self.metadata[attr]}")
@@ -532,6 +533,7 @@ class ExperimentState:
 # Experiment iterator config constants
 EXPERIMENT_ITERATOR = "experiment_iterator"
 MAX_ITERATIONS = "max_iterations"
+RUN_EVERY_N_ITERATIONS = "run_every_n_iterations"
 TASK_BATCHER = "task_batcher"
 LOOP_BLOCKS = "loop_blocks"
 EXPERIMENT_BLOCK_TYPE = "experiment_block_type"
@@ -592,12 +594,19 @@ class ExperimentIterator:
         checkpoint: checkpoint state or models.
         """
         curr_loop_block = self.loop_blocks[self.loop_pointer]
-        if curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_MODEL_FN:
-            self.execute_model_fn(experiment_state, curr_loop_block)
-        elif curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_STATE_FN:
-            self.execute_state_fn(experiment_state, curr_loop_block)
-        elif curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_CHECKPOINT:
-            self.checkpoint(experiment_state, curr_loop_block)
+
+        if self.curr_iteration % curr_loop_block.get(RUN_EVERY_N_ITERATIONS, 1) == 0:
+            if curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_MODEL_FN:
+                self.execute_model_fn(experiment_state, curr_loop_block)
+            elif (
+                curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_STATE_FN
+            ):
+                self.execute_state_fn(experiment_state, curr_loop_block)
+            elif (
+                curr_loop_block[EXPERIMENT_BLOCK_TYPE]
+                == EXPERIMENT_BLOCK_TYPE_CHECKPOINT
+            ):
+                self.checkpoint(experiment_state, curr_loop_block)
 
         self.loop_pointer += 1
 
@@ -617,6 +626,7 @@ class ExperimentIterator:
 
     def log_model_fn(self, experiment_state, curr_loop_block, task_batch_ids):
         print(f"============LOGGING MODEL_FN============")
+        print("\t" + f"iteration: {self.curr_iteration}")
 
         keys_to_log = {k for k in curr_loop_block}
         for attr in keys_to_log:
@@ -698,12 +708,22 @@ class ExperimentIterator:
         )
         model_fn = getattr(experiment_state.models[model_type], model_fn_name)
 
+        t_start = time.time()
         model_fn(
             experiment_state=experiment_state,
             task_split=task_split,
             task_batch_ids=task_batch_ids,
             **curr_loop_block[PARAMS],
         )
+        t_end = time.time()
+
+        print(f"====================================")
+        print(f"iteration: {self.curr_iteration}")
+        print(
+            f"{curr_loop_block[MODEL_TYPE]} : {curr_loop_block[EXPERIMENT_BLOCK_TYPE_MODEL_FN]}"
+        )
+        print(f"Completed in {t_end - t_start:.3f}s")
+        print(f"====================================")
 
     def checkpoint(self, experiment_state, curr_loop_block):
         experiment_state.checkpoint_state(curr_loop_block[STATE_TO_CHECKPOINT])

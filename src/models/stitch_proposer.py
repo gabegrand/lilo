@@ -43,7 +43,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         task_splits,
         task_ids_in_splits,
         include_samples,
-        use_mdl_program: bool = True,
+        use_mdl_program: bool = False,
         beta_reduce_programs: bool = True,
         update_grammar: bool = True,
         replace_existing_abstractions: bool = True,

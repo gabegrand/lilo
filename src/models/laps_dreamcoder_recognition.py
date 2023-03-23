@@ -5,6 +5,7 @@ Utility wrapper function around the DreamCoder recognition model. Elevates commo
 """
 import src.models.model_loaders as model_loaders
 from dreamcoder.recognition import RecognitionModel
+from src.experiment_iterator import INIT_FRONTIERS_FROM_CHECKPOINT
 from src.task_loaders import *
 
 AmortizedSynthesisModelRegistry = model_loaders.ModelLoaderRegistries[
@@ -28,7 +29,7 @@ class LAPSDreamCoderRecognition:
     """LAPSDreamCoderRecognition: containiner wrapper for a DreamCoder recognition model. The neural weights are fully reset and retrained when optimize_model_for_frontiers is called."""
 
     DEFAULT_MAXIMUM_FRONTIER = 5  # Maximum top-programs to keep in frontier
-    DEFAULT_CPUS = 12  # Parallel CPUs
+    DEFAULT_CPUS = os.cpu_count()  # Parallel CPUs
     DEFAULT_ENUMERATION_SOLVER = "ocaml"  # OCaml, PyPy, or Python enumeration
     DEFAULT_SAMPLER = "helmholtz"
     DEFAULT_BINARY_DIRECTORY = "dreamcoder"
@@ -58,10 +59,20 @@ class LAPSDreamCoderRecognition:
 
         Wrapper function around recognition.enumerateFrontiers from dreamcoder.recognition.
         """
+        if experiment_state.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
+            if experiment_state.maybe_resume_from_checkpoint():
+                print(
+                    f"infer_programs_for_tasks: Restored frontiers from checkpoint and skipped enumeration."
+                )
+                return
+
         tasks_to_attempt = experiment_state.get_tasks_for_ids(
             task_split=task_split, task_ids=task_batch_ids, include_samples=False
         )
-        new_frontiers, _ = self._neural_recognition_model.enumerateFrontiers(
+        (
+            new_frontiers,
+            best_search_time_per_task,
+        ) = self._neural_recognition_model.enumerateFrontiers(
             tasks=tasks_to_attempt,
             maximumFrontier=maximum_frontier,
             enumerationTimeout=enumeration_timeout,
@@ -73,12 +84,18 @@ class LAPSDreamCoderRecognition:
             testing=task_split == TEST,
         )
 
+        # Re-score the frontiers under the grammar
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        new_frontiers = [grammar.rescoreFrontier(f) for f in new_frontiers]
+
         experiment_state.update_frontiers(
             new_frontiers=new_frontiers,
             maximum_frontier=maximum_frontier,
             task_split=task_split,
             is_sample=False,
         )
+
+        experiment_state.best_search_times[task_split].update(best_search_time_per_task)
 
     def optimize_model_for_frontiers(
         self,
@@ -100,7 +117,7 @@ class LAPSDreamCoderRecognition:
         bias_optimal=True,
         auxiliary_loss=True,
         cuda=False,
-        cpus=12,
+        cpus=os.cpu_count(),
         max_mem_per_enumeration_thread=1000000,
         require_ground_truth_frontiers=False,
     ):

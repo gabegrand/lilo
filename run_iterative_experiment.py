@@ -41,7 +41,7 @@ import shutil
 from run_experiment import init_experiment_state_and_iterator, run_experiment
 from src.config_builder import build_config, get_domain_metadata
 from src.experiment_iterator import EXPORT_DIRECTORY
-from src.task_loaders import ALL, GroundTruthOrderedTaskBatcher
+from src.task_loaders import ALL, RandomShuffleOrderedTaskBatcher
 
 parser = argparse.ArgumentParser()
 
@@ -57,22 +57,15 @@ parser.add_argument("--domain", required=True, help="[logo, clevr, re2]")
 
 parser.add_argument(
     "--task_batcher",
-    default=GroundTruthOrderedTaskBatcher.name,
+    default=RandomShuffleOrderedTaskBatcher.name,
     help="[ground_truth_ordered_task_batcher, random_shuffle_ordered_task_batcher]",
-)
-
-parser.add_argument(
-    "--increment_task_batcher",
-    default=False,
-    action="store_true",
-    help="Increment the task batch pointer over the global ordering at each iteration. By default, we turn this off - each iteration uses a fixed initial set of tasks. Turning this on allows a data-loader style sliding window over the training set, as in iterative search and synthesis in DC: you get a fresh batch of tasks at each outer loop of a single experiment.",
 )
 
 parser.add_argument(
     "--iterations",
     default=1,
     type=int,
-    help="How many iterations to run the experiment loop specified in the config.",
+    help="How many LAPS iterations to run the experiment loop specified in the config.",
 )
 
 parser.add_argument(
@@ -184,7 +177,7 @@ def main(args):
             stitch_params=stitch_params,
             compute_likelihoods=(not args.no_likelihoods),
             compute_description_lengths=True,
-            increment_task_batcher=args.increment_task_batcher,
+            increment_task_batcher=True,
             init_frontiers_from_checkpoint=args.init_frontiers_from_checkpoint,
         )
 
@@ -232,7 +225,7 @@ def main(args):
                 stitch_params=stitch_params,
                 compute_likelihoods=(not args.no_likelihoods),
                 compute_description_lengths=True,
-                increment_task_batcher=args.increment_task_batcher,
+                increment_task_batcher=True,
                 init_frontiers_from_checkpoint=args.init_frontiers_from_checkpoint,
             )
 
