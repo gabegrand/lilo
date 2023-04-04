@@ -15,6 +15,13 @@ import pandas as pd
 import seaborn as sns
 
 from src.config_builder import DEFAULT_EXPERIMENT_DIR, ExperimentType
+from src.experiment_iterator import (
+    EXPERIMENT_BLOCK_TYPE_MODEL_FN,
+    LOOP_BLOCKS,
+    MODEL_TYPE,
+    RUN_EVERY_N_ITERATIONS,
+)
+from src.task_loaders import TASK_SPLIT, TEST
 
 
 class IterativeExperimentAnalyzer:
@@ -60,6 +67,7 @@ class IterativeExperimentAnalyzer:
         experiment_dir: str = DEFAULT_EXPERIMENT_DIR,
         compute_likelihoods: bool = True,
         allow_incomplete_results: bool = False,
+        batch_size="all",
     ):
 
         self.dir_base = os.path.join("../", experiment_dir, "outputs", experiment_name)
@@ -73,6 +81,8 @@ class IterativeExperimentAnalyzer:
         # Reorder the domains by DOMAIN_NAMES_CAMERA
         self.domains = [d for d in self.DOMAIN_NAMES_CAMERA.keys() if d in self.domains]
         print(f"Available domains: {self.domains}")
+
+        self.batch_size = batch_size
 
         self.compute_likelihoods = compute_likelihoods
         self.allow_incomplete_results = allow_incomplete_results
@@ -98,6 +108,18 @@ class IterativeExperimentAnalyzer:
                 config_base = json.load(f)
             seeds.append(config_base["metadata"]["random_seed"])
         return seeds
+
+    def get_available_iterations(self, domain, experiment_type, seed):
+        path = os.path.join(
+            self.dir_domains,
+            domain,
+            experiment_type,
+            f"seed_{seed}",
+            f"{experiment_type}_{self.batch_size}",
+        )
+        return sorted(
+            [int(d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
+        )
 
     def get_config(self, domain, experiment_type, seed, batch_size: int = None):
         if batch_size is None:
@@ -410,8 +432,10 @@ class IterativeExperimentAnalyzer:
 
         return pd.concat(df_list).reset_index(drop=True)
 
-    def get_library_inventions(
-        self, domain, experiment_types: List[ExperimentType] = None
+    def get_abstractions_for_domain(
+        self,
+        domain,
+        experiment_types: List[ExperimentType] = None,
     ):
         if experiment_types is None:
             experiment_types = self.get_available_experiment_types(domain)
@@ -423,28 +447,40 @@ class IterativeExperimentAnalyzer:
             for seed in self.get_available_seeds(domain, experiment_type):
                 config_base = self.get_config(domain, experiment_type, seed)
                 global_batch_sizes = config_base["metadata"]["global_batch_sizes"]
-                for batch_size in global_batch_sizes:
-                    path = os.path.join(
-                        self.dir_domains,
-                        domain,
-                        experiment_type,
-                        f"seed_{seed}",
-                        f"{experiment_type}_{batch_size}",
-                        "0",
-                        split,
-                        "stitch_compress_output.json",
-                    )
+                for iteration in self.get_available_iterations(
+                    domain, experiment_type, seed
+                ):
+                    for batch_size in global_batch_sizes:
+                        path = os.path.join(
+                            self.dir_domains,
+                            domain,
+                            experiment_type,
+                            f"seed_{seed}",
+                            f"{experiment_type}_{batch_size}",
+                            str(iteration),
+                            split,
+                            "stitch_compress_output.json",
+                        )
 
-                    with open(path, "r") as f:
-                        stitch_output_data = json.load(f)
+                        with open(path, "r") as f:
+                            stitch_output_data = json.load(f)
 
-                    df = pd.DataFrame(stitch_output_data["invs"])[
-                        ["name", "arity", "utility", "multiplier", "body", "dreamcoder"]
-                    ]
-                    df["experiment_type"] = experiment_type
-                    df["random_seed"] = seed
-                    df["batch_size"] = batch_size
-                    df_list.append(df)
+                        df = pd.DataFrame(stitch_output_data["abstractions"])[
+                            [
+                                "name",
+                                "arity",
+                                "utility",
+                                "compression_ratio",
+                                "cumulative_compression_ratio",
+                                "body",
+                                "dreamcoder",
+                            ]
+                        ]
+                        df["experiment_type"] = experiment_type
+                        df["random_seed"] = seed
+                        df["iteration"] = iteration
+                        df["batch_size"] = batch_size
+                        df_list.append(df)
 
         return pd.concat(df_list, axis=0).reset_index(drop=True)
 
@@ -511,21 +547,24 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def get_available_iterations(self, domain, experiment_type, seed):
-        path = os.path.join(
-            self.dir_domains,
-            domain,
-            experiment_type,
-            f"seed_{seed}",
-            f"{experiment_type}_all",
-        )
-        return [
-            int(d) for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))
-        ]
-
     def get_enumeration_timeout(self, domain, experiment_type, seed):
         config_base = self.get_config(domain, experiment_type, seed)
         return config_base["metadata"]["enumeration_timeout"]
+
+    def get_test_solver_run_every_n(self, domain, experiment_type, seed):
+        config_base = self.get_config(domain, experiment_type, seed)
+        loop_blocks = config_base["experiment_iterator"][LOOP_BLOCKS]
+        test_solver_block = list(
+            filter(
+                lambda x: x.get(MODEL_TYPE) == "amortized_synthesis"
+                and x.get(EXPERIMENT_BLOCK_TYPE_MODEL_FN) == "infer_programs_for_tasks"
+                and x.get(TASK_SPLIT) == TEST,
+                loop_blocks,
+            )
+        )
+        assert len(test_solver_block) == 1
+        test_solver_block = test_solver_block[0]
+        return test_solver_block.get(RUN_EVERY_N_ITERATIONS, 1)
 
     def get_synthesis_results_for_domain(
         self, domain, experiment_types: List[ExperimentType] = None
@@ -561,15 +600,21 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
             domain,
             experiment_type,
             f"seed_{seed}",
-            f"{experiment_type}_all",
+            f"{experiment_type}_{self.batch_size}",
             str(iteration),
             "frontiers.json",
         )
         with open(path, "r") as f:
             frontiers_json = json.load(f)
 
+        run_every_n = self.get_test_solver_run_every_n(domain, experiment_type, seed)
+
         df_list = []
         for split, data in frontiers_json.items():
+            # Skip iterations where the test solver didn't run
+            if split == TEST and iteration % run_every_n != 0:
+                continue
+
             df = pd.DataFrame.from_dict(data, orient="index")
             df["task"] = df.index
             df["split"] = split
