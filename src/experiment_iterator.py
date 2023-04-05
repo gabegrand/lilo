@@ -381,7 +381,8 @@ class ExperimentState:
     def aws_s3_sync(self, s3_base_path):
         assert s3_base_path.startswith("s3://")
         print(f"============Syncing to AWS S3===========")
-        cmd = f"aws s3 sync {self.metadata[EXPORT_DIRECTORY]} {os.path.join(s3_base_path, self.metadata[EXPORT_DIRECTORY])}"
+        sync_dir = os.path.split(self.metadata[EXPORT_DIRECTORY])[0]
+        cmd = f"aws s3 sync {sync_dir} {os.path.join(s3_base_path, sync_dir)}"
         print(cmd)
         subprocess.run(cmd, shell=True, capture_output=True)
 
