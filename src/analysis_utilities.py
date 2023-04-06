@@ -68,6 +68,7 @@ class IterativeExperimentAnalyzer:
         compute_likelihoods: bool = True,
         allow_incomplete_results: bool = False,
         batch_size="all",
+        seeds: List[str] = None,
     ):
 
         self.dir_base = os.path.join("../", experiment_dir, "outputs", experiment_name)
@@ -83,6 +84,7 @@ class IterativeExperimentAnalyzer:
         print(f"Available domains: {self.domains}")
 
         self.batch_size = batch_size
+        self.seeds = seeds
 
         self.compute_likelihoods = compute_likelihoods
         self.allow_incomplete_results = allow_incomplete_results
@@ -107,6 +109,11 @@ class IterativeExperimentAnalyzer:
             with open(os.path.join(path, "config_base.json"), "r") as f:
                 config_base = json.load(f)
             seeds.append(config_base["metadata"]["random_seed"])
+
+        # Filter seeds
+        if self.seeds is not None:
+            seeds = [s for s in seeds if s in self.seeds]
+
         return seeds
 
     def get_available_iterations(self, domain, experiment_type, seed):
