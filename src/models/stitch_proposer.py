@@ -93,7 +93,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         )
 
         # Call stitch compressor.
-        abstractions, task_to_programs = self._compress(
+        abstractions, task_to_programs, programs_rewritten, tasks = self._compress(
             experiment_state,
             frontiers_filepath,
             split,
@@ -102,15 +102,19 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         )
 
         # Rebuild the set of frontiers
-        frontiers_rewritten = []
-        for task_id, programs in task_to_programs.items():
-            task = experiment_state.get_tasks_for_ids(
+        # NOTE(GG): Messy logic due to `include_samples=True` returns all samples; consider refactor.
+        frontiers_rewritten, sample_frontiers_rewritten = [], []
+        for task_id, program in zip(tasks, programs_rewritten):
+            matching_tasks = experiment_state.get_tasks_for_ids(
                 task_splits[0],
                 [task_id],
                 include_samples=False,
                 include_ground_truth_tasks=True,
-            )[0]
-            for program in programs:
+            )
+            if len(matching_tasks) > 1:
+                raise ValueError(f"Multiple tasks associated with task_id {task_id}")
+            elif len(matching_tasks) == 1:
+                task = matching_tasks[0]
                 frontier = Frontier(
                     frontier=[
                         FrontierEntry(
@@ -122,6 +126,30 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
                     task=task,
                 )
                 frontiers_rewritten.append(frontier)
+            else:
+                matching_sample_tasks = experiment_state.get_tasks_for_ids(
+                    task_splits[0],
+                    [],
+                    include_samples=True,
+                    include_ground_truth_tasks=False,
+                )
+                if len(matching_sample_tasks) == 0:
+                    raise ValueError(
+                        f"Failed to find task associated with task_id {task_id}"
+                    )
+
+                task = matching_sample_tasks[0]
+                frontier = Frontier(
+                    frontier=[
+                        FrontierEntry(
+                            program=Program.parse(program),
+                            logPrior=0.0,
+                            logLikelihood=0.0,
+                        )
+                    ],
+                    task=task,
+                )
+                sample_frontiers_rewritten.append(frontier)
 
         # Update the grammar with the new inventions.
         if update_grammar:
@@ -135,6 +163,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             )
 
             # Recompute production probabilities in grammar
+            # TODO(GG): Recompute w/r/t sample frontiers as well?
             new_grammar = new_grammar.insideOutside(
                 frontiers_rewritten, pseudoCounts=30, iterations=1
             )
@@ -146,10 +175,11 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
                 f"Updated grammar (productions={len(grammar.productions)}) with {len(new_productions)} new abstractions."
             )
 
-        # Rescore all frontiers under grammar
+        # Rescore frontiers under grammar
         grammar = experiment_state.models[model_loaders.GRAMMAR]
         frontiers_rewritten = [grammar.rescoreFrontier(f) for f in frontiers_rewritten]
 
+        # Clear old frontiers and replace with rewritten
         experiment_state.reset_task_frontiers(
             task_split=split, task_ids=task_ids_in_splits[split]
         )
@@ -159,6 +189,9 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
             task_split=split,
             is_sample=False,
         )
+
+        # NOTE(GG): For now, do not replace sample frontiers, since we clear these out every iteration
+        experiment_state.reset_samples(task_split=split)
 
     def _compress(
         self,
@@ -199,4 +232,9 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         with open(abstractions_filepath, "w") as f:
             json.dump(compression_result.json, f, indent=4)
 
-        return abstractions, task_to_programs
+        return (
+            abstractions,
+            task_to_programs,
+            compression_result.json["rewritten_dreamcoder"],
+            stitch_kwargs["tasks"],
+        )

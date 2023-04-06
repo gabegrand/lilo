@@ -535,6 +535,7 @@ class ExperimentState:
 EXPERIMENT_ITERATOR = "experiment_iterator"
 MAX_ITERATIONS = "max_iterations"
 RUN_EVERY_N_ITERATIONS = "run_every_n_iterations"
+FIRST_ITERATION = "first_iteration"
 TASK_BATCHER = "task_batcher"
 LOOP_BLOCKS = "loop_blocks"
 EXPERIMENT_BLOCK_TYPE = "experiment_block_type"
@@ -596,7 +597,9 @@ class ExperimentIterator:
         """
         curr_loop_block = self.loop_blocks[self.loop_pointer]
 
-        if self.curr_iteration % curr_loop_block.get(RUN_EVERY_N_ITERATIONS, 1) == 0:
+        if (self.curr_iteration >= curr_loop_block.get(FIRST_ITERATION, 0)) and (
+            self.curr_iteration % curr_loop_block.get(RUN_EVERY_N_ITERATIONS, 1) == 0
+        ):
             if curr_loop_block[EXPERIMENT_BLOCK_TYPE] == EXPERIMENT_BLOCK_TYPE_MODEL_FN:
                 self.execute_model_fn(experiment_state, curr_loop_block)
             elif (
