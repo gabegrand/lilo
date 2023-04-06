@@ -45,14 +45,6 @@
             },
             {
                 "experiment_block_type": "state_fn",
-                "state_fn": "reset_task_frontiers",
-                "params": {
-                    "task_split": "test",
-                    "task_ids": "all"
-                }
-            },
-            {
-                "experiment_block_type": "state_fn",
                 "state_fn": "log_frontiers",
                 "params": {
                   "verbosity": 3
@@ -66,8 +58,7 @@
                 "task_batch_size": 40,
                 "params": {
                   "enumeration_timeout": 10
-                },
-                "run_every_n_iterations": 1000
+                }
             },
             {
                 "experiment_block_type": "state_fn",
@@ -105,14 +96,41 @@
             },
             {
                 "experiment_block_type": "model_fn",
+                "model_type": "library_learner",
+                "model_fn": "get_compressed_grammar_mdl_prior_rank",
+                "task_splits": [
+                    "train"
+                ],
+                "task_batch_sizes": [
+                    "global_batch_size"
+                ],
+                "params": {
+                    "include_samples": false,
+                    "use_mdl_program": false,
+                    "beta_reduce_programs": true,
+                    "update_grammar": true,
+                    "replace_existing_abstractions": true
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "amortized_synthesis",
+                "model_fn": "optimize_model_for_frontiers",
+                "task_split": "train",
+                "task_batch_size": "all",
+                "params": {
+                  "recognition_train_steps": 100
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
                 "model_type": "amortized_synthesis",
                 "model_fn": "infer_programs_for_tasks",
                 "task_split": "test",
                 "task_batch_size": "all",
                 "params": {
                     "enumeration_timeout": 10
-                },
-                "run_every_n_iterations": 3
+                }
             },
             {
                 "experiment_block_type": "state_fn",
@@ -144,26 +162,7 @@
                 ],
                 "models_to_checkpoint": [
                     "grammar"
-                ],
-                "aws_s3_sync_base_path": "s3://grandg-lilo-experiments"
-            },
-            {
-                "experiment_block_type": "model_fn",
-                "model_type": "library_learner",
-                "model_fn": "get_compressed_grammar_mdl_prior_rank",
-                "task_splits": [
-                    "train"
-                ],
-                "task_batch_sizes": [
-                    "global_batch_size"
-                ],
-                "params": {
-                    "include_samples": false,
-                    "use_mdl_program": false,
-                    "beta_reduce_programs": true,
-                    "update_grammar": true,
-                    "replace_existing_abstractions": true
-                }
+                ]
             }
         ]
     }
