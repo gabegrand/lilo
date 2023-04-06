@@ -148,8 +148,7 @@
                 ],
                 "models_to_checkpoint": [
                     "grammar"
-                ],
-                "aws_s3_sync_base_path": "s3://grandg-lilo-experiments"
+                ]
             },
             {
                 "experiment_block_type": "model_fn",
@@ -168,6 +167,12 @@
                     "update_grammar": true,
                     "replace_existing_abstractions": true
                 }
+            },
+            {
+                "experiment_block_type": "checkpoint",
+                "state_to_checkpoint": [],
+                "models_to_checkpoint": [],
+                "aws_s3_sync_base_path": "s3://grandg-lilo-experiments"
             }
         ]
     }
