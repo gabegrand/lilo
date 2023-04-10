@@ -125,6 +125,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--init_iteration",
+    default=0,
+    type=int,
+    help="Initialize from a later iteration; e.g., init_iteration=3 starts the experiment at iteration 3.",
+)
+
+parser.add_argument(
     "--init_frontiers_from_checkpoint",
     default=False,
     action="store_true",
@@ -177,6 +184,7 @@ def main(args):
             task_batcher=args.task_batcher,
             random_seed=random_seed,
             iterations=args.iterations,
+            init_iteration=args.init_iteration,
             enumeration_timeout=args.enumeration_timeout,
             recognition_train_steps=args.recognition_train_steps,
             encoder=args.encoder,
@@ -186,6 +194,7 @@ def main(args):
             compute_description_lengths=True,
             increment_task_batcher=True,
             init_frontiers_from_checkpoint=args.init_frontiers_from_checkpoint,
+            s3_sync=(not args.no_s3_sync),
         )
 
         if args.global_batch_size_all:
@@ -223,6 +232,7 @@ def main(args):
                 domain=args.domain,
                 task_batcher=args.task_batcher,
                 random_seed=random_seed,
+                init_iteration=args.init_iteration,
                 iterations=args.iterations,
                 enumeration_timeout=args.enumeration_timeout,
                 recognition_train_steps=args.recognition_train_steps,

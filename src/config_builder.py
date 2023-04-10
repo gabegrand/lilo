@@ -12,6 +12,7 @@ from enum import Enum
 import data.drawings.make_tasks as drawing_tasks
 from src.experiment_iterator import (
     AWS_S3_SYNC_BASE_PATH,
+    CURR_ITERATION,
     EXPERIMENT_BLOCK_TYPE,
     EXPERIMENT_BLOCK_TYPE_CHECKPOINT,
 )
@@ -131,6 +132,7 @@ def build_config(
     output_directory: str = DEFAULT_EXPERIMENT_DIR,
     random_seed: int = 0,
     iterations: int = 1,
+    init_iteration: int = 0,
     task_batcher: str = RandomShuffleOrderedTaskBatcher.name,
     global_batch_size: int = ALL,
     enumeration_timeout: int = None,
@@ -173,6 +175,7 @@ def build_config(
             recognition_train_steps=recognition_train_steps,
             encoder=encoder,
             output_directory=output_directory,
+            init_iteration=init_iteration,
             init_frontiers_from_checkpoint=init_frontiers_from_checkpoint,
             random_seed=random_seed,
         )
@@ -189,6 +192,7 @@ def build_config_metadata(
     recognition_train_steps: int = None,
     encoder: str = None,
     output_directory: str = DEFAULT_EXPERIMENT_DIR,
+    init_iteration: int = 0,
     init_frontiers_from_checkpoint: bool = False,
     random_seed: int = 0,
 ):
@@ -232,6 +236,7 @@ def build_config_metadata(
             "recognition_train_steps": recognition_train_steps,
             "encoder": encoder,
             "random_seed": random_seed,
+            "curr_iteration": init_iteration,
         }
     }
 

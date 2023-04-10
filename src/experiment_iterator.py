@@ -199,6 +199,15 @@ class ExperimentState:
 
     def maybe_resume_from_checkpoint(self):
         if self.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
+
+            # Load the current grammar
+            if self.curr_iteration > 0:
+                self.models[model_loaders.GRAMMAR] = self.models[
+                    model_loaders.GRAMMAR
+                ].load_model_from_checkpoint(self, self.get_checkpoint_directory())
+                print(f"Loaded grammar from: {self.get_checkpoint_directory()}")
+
+            # Load the frontiers
             use_resume_checkpoint = (
                 self.metadata[RESUME_CHECKPOINT_DIRECTORY] is not None
             )

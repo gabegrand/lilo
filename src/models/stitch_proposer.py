@@ -16,6 +16,7 @@ from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.program import Invented, Program
 from src.models.laps_grammar import LAPSGrammar
 from src.models.stitch_base import StitchBase
+from src.task_loaders import ALL
 
 LibraryLearnerRegistry = model_loaders.ModelLoaderRegistries[
     model_loaders.LIBRARY_LEARNER
@@ -180,9 +181,7 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         frontiers_rewritten = [grammar.rescoreFrontier(f) for f in frontiers_rewritten]
 
         # Clear old frontiers and replace with rewritten
-        experiment_state.reset_task_frontiers(
-            task_split=split, task_ids=task_ids_in_splits[split]
-        )
+        experiment_state.reset_task_frontiers(task_split=split, task_ids={split: ALL})
         experiment_state.update_frontiers(
             new_frontiers=frontiers_rewritten,
             maximum_frontier=grammar.maximum_frontier,

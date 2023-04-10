@@ -979,10 +979,15 @@ class LAPSGrammar(Grammar):
             (probability, p.infer(), p)
             for (probability, p) in zip(log_probabilities, reloaded_primitives)
         ]
+        continuation_type = (
+            Type.fromjson(json_grammar["continuationType"])
+            if json_grammar.get("continuationType")
+            else None
+        )
         grammar = LAPSGrammar(
             logVariable=json_grammar["logVariable"],
             productions=productions,
-            continuationType=Type.fromjson(json_grammar["continuationType"]),
+            continuationType=continuation_type,
         )
         experiment_state.models[model_loaders.GRAMMAR] = grammar
         return grammar
