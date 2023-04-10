@@ -152,6 +152,13 @@ parser.add_argument(
     help="Overwrites any existing files associated with `experiment_name` in export and log directories.",
 )
 
+parser.add_argument(
+    "--no_s3_sync",
+    default=False,
+    action="store_true",
+    help="Disable AWS S3 upload.",
+)
+
 
 def main(args):
 
@@ -227,6 +234,7 @@ def main(args):
                 compute_description_lengths=True,
                 increment_task_batcher=True,
                 init_frontiers_from_checkpoint=args.init_frontiers_from_checkpoint,
+                s3_sync=(not args.no_s3_sync),
             )
 
             experiment_state, experiment_iterator = init_experiment_state_and_iterator(

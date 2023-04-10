@@ -142,6 +142,7 @@ def build_config(
     compute_description_lengths: bool = True,
     increment_task_batcher: bool = True,
     init_frontiers_from_checkpoint: bool = False,
+    s3_sync: bool = True,
 ):
     config = {}
     config.update(
@@ -159,6 +160,7 @@ def build_config(
             compute_likelihoods=compute_likelihoods,
             compute_description_lengths=compute_description_lengths,
             increment_task_batcher=increment_task_batcher,
+            s3_sync=s3_sync,
         )
     )
     config.update(
@@ -248,6 +250,7 @@ def build_config_body(
     compute_likelihoods: bool = True,
     compute_description_lengths: bool = True,
     increment_task_batcher: bool = True,
+    s3_sync: bool = True,
 ):
     template_path = os.path.join(
         DEFAULT_TEMPLATE_DIR, f"template_{experiment_type}.json"
@@ -356,20 +359,24 @@ def build_config_body(
         if (
             block.get(EXPERIMENT_BLOCK_TYPE) == EXPERIMENT_BLOCK_TYPE_CHECKPOINT
         ) and block.get(AWS_S3_SYNC_BASE_PATH):
-            # Verify that AWS CLI is configured on the machine
-            subprocess.run(
-                "aws sts get-caller-identity",
-                shell=True,
-                capture_output=True,
-                check=True,
-            )
-            # Verify that the bucket exists
-            subprocess.run(
-                f"aws s3 ls {block[AWS_S3_SYNC_BASE_PATH]}",
-                shell=True,
-                capture_output=True,
-                check=True,
-            )
+            if s3_sync:
+                # Verify that AWS CLI is configured on the machine
+                subprocess.run(
+                    "aws sts get-caller-identity",
+                    shell=True,
+                    capture_output=True,
+                    check=True,
+                )
+                # Verify that the bucket exists
+                subprocess.run(
+                    f"aws s3 ls {block[AWS_S3_SYNC_BASE_PATH]}",
+                    shell=True,
+                    capture_output=True,
+                    check=True,
+                )
+            else:
+                # Disable S3 upload
+                block[AWS_S3_SYNC_BASE_PATH] = None
 
         loop_blocks.append(block)
     config["experiment_iterator"]["loop_blocks"] = loop_blocks
