@@ -594,6 +594,8 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
                 df = self.get_synthesis_results_for_iteration(
                     domain, experiment_type, seed, iteration
                 )
+                if df is None:
+                    continue
                 df["seed"] = seed
                 df["iteration"] = iteration
                 df_list.append(df)
@@ -611,6 +613,11 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
             str(iteration),
             "frontiers.json",
         )
+        if not os.path.exists(path):
+            print(f"WARNING: Missing path {path}")
+            if self.allow_incomplete_results:
+                return None
+
         with open(path, "r") as f:
             frontiers_json = json.load(f)
 

@@ -12,6 +12,7 @@ from enum import Enum
 import data.drawings.make_tasks as drawing_tasks
 from src.experiment_iterator import (
     AWS_S3_SYNC_BASE_PATH,
+    CURR_ITERATION,
     EXPERIMENT_BLOCK_TYPE,
     EXPERIMENT_BLOCK_TYPE_CHECKPOINT,
 )
@@ -131,6 +132,7 @@ def build_config(
     output_directory: str = DEFAULT_EXPERIMENT_DIR,
     random_seed: int = 0,
     iterations: int = 1,
+    init_iteration: int = 0,
     task_batcher: str = RandomShuffleOrderedTaskBatcher.name,
     global_batch_size: int = ALL,
     enumeration_timeout: int = None,
@@ -142,6 +144,7 @@ def build_config(
     compute_description_lengths: bool = True,
     increment_task_batcher: bool = True,
     init_frontiers_from_checkpoint: bool = False,
+    s3_sync: bool = True,
 ):
     config = {}
     config.update(
@@ -159,6 +162,7 @@ def build_config(
             compute_likelihoods=compute_likelihoods,
             compute_description_lengths=compute_description_lengths,
             increment_task_batcher=increment_task_batcher,
+            s3_sync=s3_sync,
         )
     )
     config.update(
@@ -171,6 +175,7 @@ def build_config(
             recognition_train_steps=recognition_train_steps,
             encoder=encoder,
             output_directory=output_directory,
+            init_iteration=init_iteration,
             init_frontiers_from_checkpoint=init_frontiers_from_checkpoint,
             random_seed=random_seed,
         )
@@ -187,6 +192,7 @@ def build_config_metadata(
     recognition_train_steps: int = None,
     encoder: str = None,
     output_directory: str = DEFAULT_EXPERIMENT_DIR,
+    init_iteration: int = 0,
     init_frontiers_from_checkpoint: bool = False,
     random_seed: int = 0,
 ):
@@ -230,6 +236,7 @@ def build_config_metadata(
             "recognition_train_steps": recognition_train_steps,
             "encoder": encoder,
             "random_seed": random_seed,
+            "curr_iteration": init_iteration,
         }
     }
 
@@ -248,6 +255,7 @@ def build_config_body(
     compute_likelihoods: bool = True,
     compute_description_lengths: bool = True,
     increment_task_batcher: bool = True,
+    s3_sync: bool = True,
 ):
     template_path = os.path.join(
         DEFAULT_TEMPLATE_DIR, f"template_{experiment_type}.json"
@@ -356,20 +364,24 @@ def build_config_body(
         if (
             block.get(EXPERIMENT_BLOCK_TYPE) == EXPERIMENT_BLOCK_TYPE_CHECKPOINT
         ) and block.get(AWS_S3_SYNC_BASE_PATH):
-            # Verify that AWS CLI is configured on the machine
-            subprocess.run(
-                "aws sts get-caller-identity",
-                shell=True,
-                capture_output=True,
-                check=True,
-            )
-            # Verify that the bucket exists
-            subprocess.run(
-                f"aws s3 ls {block[AWS_S3_SYNC_BASE_PATH]}",
-                shell=True,
-                capture_output=True,
-                check=True,
-            )
+            if s3_sync:
+                # Verify that AWS CLI is configured on the machine
+                subprocess.run(
+                    "aws sts get-caller-identity",
+                    shell=True,
+                    capture_output=True,
+                    check=True,
+                )
+                # Verify that the bucket exists
+                subprocess.run(
+                    f"aws s3 ls {block[AWS_S3_SYNC_BASE_PATH]}",
+                    shell=True,
+                    capture_output=True,
+                    check=True,
+                )
+            else:
+                # Disable S3 upload
+                block[AWS_S3_SYNC_BASE_PATH] = None
 
         loop_blocks.append(block)
     config["experiment_iterator"]["loop_blocks"] = loop_blocks
