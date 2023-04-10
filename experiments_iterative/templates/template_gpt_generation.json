@@ -72,8 +72,7 @@
                 "params": {
                   "enumeration_timeout": 10
                 },
-                "run_every_n_iterations": 1000,
-                "first_iteration": 1
+                "run_every_n_iterations": 1000
             },
             {
                 "experiment_block_type": "state_fn",
@@ -81,8 +80,7 @@
                 "params": {
                   "verbosity": 3
                 },
-                "run_every_n_iterations": 1000,
-                "first_iteration": 1
+                "run_every_n_iterations": 1000
             },
             {
                 "experiment_block_type": "model_fn",
@@ -92,8 +90,7 @@
                 "task_batch_size": "all",
                 "params": {
                   "recognition_train_steps": 10000
-                },
-                "first_iteration": 1
+                }
             },
             {
                 "experiment_block_type": "model_fn",
@@ -119,8 +116,7 @@
                     "task_split": "test",
                     "task_ids": "all"
                 },
-                "run_every_n_iterations": 3,
-                "first_iteration": 3
+                "run_every_n_iterations": 3
             },
             {
                 "experiment_block_type": "model_fn",
@@ -131,8 +127,7 @@
                 "params": {
                     "enumeration_timeout": 10
                 },
-                "run_every_n_iterations": 3,
-                "first_iteration": 3
+                "run_every_n_iterations": 3
             },
             {
                 "experiment_block_type": "state_fn",
@@ -140,8 +135,7 @@
                 "params": {
                   "verbosity": 3
                 },
-                "run_every_n_iterations": 3,
-                "first_iteration": 3
+                "run_every_n_iterations": 3
             },
             {
                 "experiment_block_type": "model_fn",
@@ -158,8 +152,7 @@
                     "compute_description_lengths": true,
                     "save_filename": "test_likelihoods.json"
                 },
-                "run_every_n_iterations": 3,
-                "first_iteration": 3
+                "run_every_n_iterations": 3
             },
             {
                 "experiment_block_type": "model_fn",
