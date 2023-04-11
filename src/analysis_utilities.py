@@ -321,7 +321,7 @@ class IterativeExperimentAnalyzer:
                 path = os.path.join(
                     self.get_run_path(domain, experiment_type, random_seed, batch_size),
                     "0",
-                    "codex_query_results.json",
+                    "gpt_query_results.json",
                 )
 
                 if self.allow_incomplete_results and not os.path.exists(path):
@@ -373,7 +373,7 @@ class IterativeExperimentAnalyzer:
                 path = os.path.join(
                     self.get_run_path(domain, experiment_type, random_seed, batch_size),
                     "0",
-                    "codex_query_results.json",
+                    "gpt_query_results.json",
                 )
 
                 if self.allow_incomplete_results and not os.path.exists(path):

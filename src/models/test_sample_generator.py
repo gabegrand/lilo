@@ -33,7 +33,7 @@ def get_test_task_ids(experiment_state, n_task_ids=None):
 def get_sample_generator_and_state():
     config = TEST_GRAPHICS_CONFIG
     experiment_state = get_initial_ground_truth_experiment_state(config)
-    sample_generator = to_test.CodexSampleGenerator()
+    sample_generator = to_test.GPTSampleGenerator()
     return sample_generator, experiment_state
 
 

@@ -1,7 +1,7 @@
 """
 sample_generator.py | Author: Gabe Grand.
 
-Queries Codex to generate new samples based on existing samples.
+Queries GPT to generate new samples based on existing samples.
 
 """
 import json
@@ -27,10 +27,10 @@ ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.SAMPLE_GENERAT
 
 
 @ModelRegistry.register
-class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
-    name = "codex_sample_generator"
+class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
+    name = "gpt_sample_generator"
 
-    query_results_file = "codex_query_results.json"
+    query_results_file = "gpt_query_results.json"
 
     # Parse error codes
     ERROR_PARSE = "parse"
@@ -50,7 +50,7 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
-        return CodexSampleGenerator(experiment_state=experiment_state, **kwargs)
+        return GPTSampleGenerator(experiment_state=experiment_state, **kwargs)
 
     def __init__(self, experiment_state=None):
         super().__init__()
@@ -73,7 +73,7 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
         prepend_dsl_description: bool = False,
         line_separator: str = DEFAULT_LINE_SEPARATOR,
-        # Codex parameters
+        # GPT parameters
         temperature: float = 0.40,
         max_tokens_completion_beta: float = 2.0,
         engine: str = GPTBase.DEFAULT_ENGINE,
@@ -85,7 +85,7 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
         verbose: bool = False,
     ):
         """
-        Queries Codex API to generate new samples based on training data.
+        Queries OpenAI API to generate new samples based on training data.
 
         params:
             # LAPS parameters
@@ -94,11 +94,11 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
             task_ids_in_splits: dict of task_ids_in_splits
 
             # Sampling parameters
-            n_samples: Total number of unique, valid samples to generate from Codex.
+            n_samples: Total number of unique, valid samples to generate from GPT.
                 Prompting will continue until this number is reached or max_queries is exceeded.
-            n_samples_per_query: Number of samples to take from Codex per query. Each query uses a new, random prompt.
+            n_samples_per_query: Number of samples to take from GPT per query. Each query uses a new, random prompt.
                 Defaults to a single query with n_samples.
-            max_queries: Maximum number of queries to make to Codex. Defaults to 2 * min_queries, where min_queries is
+            max_queries: Maximum number of queries to make to GPT. Defaults to 2 * min_queries, where min_queries is
                 the minimum number of queries required to generate n_samples.
             max_retries: Max number of retries per query.
                 Intention is to more gracefully handle `InvalidRequestError` when max tokens is exceeded via iterative backoff.
@@ -117,17 +117,17 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
                 function, falling back on DEFAULT (the DreamCoder parseable function names).
             prepend_dsl_description: Prepends an automatically-constructed description of all fns in the DSL to the prompt.
 
-            # Codex-specific parameters
-            temperature: Codex temperature sampling value in `[0., 1.]` range.
+            # GPT-specific parameters
+            temperature: GPT temperature sampling value in `[0., 1.]` range.
             max_tokens_completion_beta: Multiplicative factor for the maximum number of tokens in the completion.
                 max_tokens is set to the number of tokens in the last program in the prompt,
                 times the value of max_tokens_completion_beta.
-            engine: Codex `engine` parameter.
+            engine: GPT `engine` parameter.
 
             # Utility parameters
-            debug: If True, replaces live query to Codex with a random sample
+            debug: If True, replaces live query to GPT with a random sample
                 from the training set.
-            use_cached: If True, replaces live query to Codex with a cached query
+            use_cached: If True, replaces live query to GPT with a cached query
                 stored in `query_results_filepath`.
             query_print_frequency: Number of queries to make before printing a status update.
             compute_likelihoods: If True, compute likelihoods for each sample.
@@ -136,10 +136,10 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
 
         if task_splits != [TRAIN]:
             raise ValueError(
-                f"CodexSampleGenerator expected task_splits=[{TRAIN}], got task_splits={task_splits}"
+                f"GPTSampleGenerator expected task_splits=[{TRAIN}], got task_splits={task_splits}"
             )
 
-        # Codex-generated programs must type-infer to a request type in this set
+        # GPT-generated programs must type-infer to a request type in this set
         train_task_request_types = set(
             [
                 t.request
@@ -222,7 +222,7 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
 
                 if query_id % query_print_frequency == 0:
                     print(
-                        f"[QUERY {query_id}/{max_queries}]: Prompting Codex ({len(prompt)} tasks, {token_stats['token_count_prompt']} tokens) for {n_samples_per_query} samples ({token_stats['max_tokens_completion']} max tokens)..."
+                        f"[QUERY {query_id}/{max_queries}]: Prompting GPT ({len(prompt)} tasks, {token_stats['token_count_prompt']} tokens) for {n_samples_per_query} samples ({token_stats['max_tokens_completion']} max tokens)..."
                     )
 
                 completion, cache_used = self.get_completion_for_prompt(
@@ -301,7 +301,7 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
                             print("Ground truth program:")
                             print(prompt.final_task_data["task_program"])
 
-                        print("Codex completions:")
+                        print("GPT completions:")
                         for result_data in parse_results:
                             if result_data.get("tasks_solved", False):
                                 status_emoji = "🏆"
@@ -397,10 +397,10 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
                 "At least 2 tasks must have non-empty frontiers to construct a prompt."
             )
 
-        if final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_DEFAULT:
+        if final_task_origin == GPTSampleGenerator.FINAL_TASK_ORIGIN_DEFAULT:
             final_task_id = body_task_ids[-1]
             body_task_ids = body_task_ids[:-1]
-        elif final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TRAIN:
+        elif final_task_origin == GPTSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TRAIN:
             final_task_id = rng.choice(
                 [
                     t.name
@@ -408,7 +408,7 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
                     if t.name not in task_ids_in_splits[TRAIN]
                 ]
             )
-        elif final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_UNSOLVED_TRAIN:
+        elif final_task_origin == GPTSampleGenerator.FINAL_TASK_ORIGIN_UNSOLVED_TRAIN:
             final_task_id = rng.choice(
                 [
                     t.name
@@ -416,7 +416,7 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
                     if t.name not in non_empty_task_ids
                 ]
             )
-        elif final_task_origin == CodexSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TEST:
+        elif final_task_origin == GPTSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TEST:
             final_task_id = rng.choice([t.name for t in experiment_state.tasks[TEST]])
         else:
             raise ValueError(f"Unknown final_task_origin={final_task_origin}")
@@ -434,7 +434,7 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
                 final_task_split=(
                     TEST
                     if final_task_origin
-                    == CodexSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TEST
+                    == GPTSampleGenerator.FINAL_TASK_ORIGIN_RANDOM_TEST
                     else TRAIN
                 ),
                 function_name_classes=function_name_classes,
@@ -558,12 +558,12 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
 
         parse_results = []
         for choice in completion["choices"]:
-            program_str_codex = choice["text"]
+            program_str_gpt = choice["text"]
             # CHECK 1: Does the program parse?
             try:
                 # Write the program back into the DreamCoder form from whatever it was initially in.
                 program_str = grammar.show_program(
-                    program_str_codex, input_name_class=function_name_classes
+                    program_str_gpt, input_name_class=function_name_classes
                 )
                 p = Program.parse(program_str)
             except (
@@ -574,12 +574,12 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
                 AttributeError,
             ) as e:
                 if verbose:
-                    print(f"Failed to parse ({type(e)}): {program_str_codex}")
+                    print(f"Failed to parse ({type(e)}): {program_str_gpt}")
                 parse_results.append(
                     {
-                        "text": program_str_codex,
+                        "text": program_str_gpt,
                         "valid": False,
-                        "error": CodexSampleGenerator.ERROR_PARSE,
+                        "error": GPTSampleGenerator.ERROR_PARSE,
                     }
                 )
                 continue
@@ -591,9 +591,9 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
                     print(f"Type inference failure for: {str(p)}")
                 parse_results.append(
                     {
-                        "text": program_str_codex,
+                        "text": program_str_gpt,
                         "valid": False,
-                        "error": CodexSampleGenerator.ERROR_INFER,
+                        "error": GPTSampleGenerator.ERROR_INFER,
                     }
                 )
                 continue
@@ -606,9 +606,9 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
                         )
                     parse_results.append(
                         {
-                            "text": program_str_codex,
+                            "text": program_str_gpt,
                             "valid": False,
-                            "error": CodexSampleGenerator.ERROR_INVALID_TYPE,
+                            "error": GPTSampleGenerator.ERROR_INVALID_TYPE,
                         }
                     )
                     continue
@@ -618,9 +618,9 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
                     print(f"Program has free variables: {str(p)}")
                 parse_results.append(
                     {
-                        "text": program_str_codex,
+                        "text": program_str_gpt,
                         "valid": False,
-                        "error": CodexSampleGenerator.ERROR_FREE_VARIABLES,
+                        "error": GPTSampleGenerator.ERROR_FREE_VARIABLES,
                     }
                 )
                 continue
@@ -634,9 +634,9 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
                         print(f"Error converting to ETA Long for {p}")
                     parse_results.append(
                         {
-                            "text": program_str_codex,
+                            "text": program_str_gpt,
                             "valid": False,
-                            "error": CodexSampleGenerator.ERROR_ETA_LONG,
+                            "error": GPTSampleGenerator.ERROR_ETA_LONG,
                         }
                     )
                     continue
@@ -652,7 +652,7 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
 
             parse_results.append(
                 {
-                    "text": program_str_codex,
+                    "text": program_str_gpt,
                     "valid": True,
                     "program": str(p),
                     "type": str(p_type),
@@ -702,7 +702,7 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
             # If the program doesn't solve any tasks, add it to the experiment state as a sample.
             else:
                 sample_task = Task(
-                    name=f"codex_{result_data['hash']}",
+                    name=f"gpt_{result_data['hash']}",
                     request=Type.fromjson(result_data["type_json"]),
                     examples=[],
                 )
@@ -734,3 +734,12 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
         program_str_list = [str(f.entries[0].program) for f in frontiers]
         completion = dict(choices=[dict(text=p_str) for p_str in program_str_list])
         return completion
+
+
+@ModelRegistry.register
+class CodexSampleGenerator(GPTSampleGenerator):
+    name = "codex_sample_generator"
+
+    # https://beta.openai.com/docs/engines/codex-series-private-beta
+    DEFAULT_ENGINE = "code-davinci-002"
+    ENGINE_MAX_TOKENS = 4096  # Max tokens for BOTH the prompt and the completion.
