@@ -181,7 +181,8 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
         frontiers_rewritten = [grammar.rescoreFrontier(f) for f in frontiers_rewritten]
 
         # Clear old frontiers and replace with rewritten
-        experiment_state.reset_task_frontiers(task_split=split, task_ids={split: ALL})
+        experiment_state.reset_task_frontiers(task_split=split, task_ids=ALL)
+        assert all([t.empty for t in experiment_state.task_frontiers[split].values()])
         experiment_state.update_frontiers(
             new_frontiers=frontiers_rewritten,
             maximum_frontier=grammar.maximum_frontier,
