@@ -533,7 +533,7 @@ class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
             completion.refresh_from(completion_data)
         else:
             cache_used = False
-            completion = self.query_codex(
+            completion = self.query_completion(
                 prompt_text,
                 n_samples=n_samples_per_query,
                 temperature=temperature,

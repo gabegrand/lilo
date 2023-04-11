@@ -108,7 +108,7 @@ class CodexLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 # TODO (catwong): open space for debugging.
                 pass
             else:
-                completion = self.query_codex(
+                completion = self.query_completion(
                     prompt,
                     n_samples=n_codex_samples_per_invention,
                     top_p=0.1,
