@@ -3,7 +3,7 @@ test_sample_generator.py.
 """
 import src.models.sample_generator as to_test
 from src.experiment_iterator import *
-from src.models.codex_base import DEFAULT_LINE_SEPARATOR, CodexBase, Prompt
+from src.models.codex_base import DEFAULT_LINE_SEPARATOR, GPTBase, Prompt
 from src.models.laps_grammar import LAPSGrammar
 from src.task_loaders import *
 from src.test_experiment_iterator import TEST_GRAPHICS_CONFIG
@@ -48,7 +48,7 @@ def get_completion(
         n_samples_per_query=n_samples_per_query,
         temperature=0.75,
         max_tokens=256,
-        engine=CodexBase.DEFAULT_ENGINE,
+        engine=GPTBase.DEFAULT_ENGINE,
         line_separator=DEFAULT_LINE_SEPARATOR,
         use_cached=False,
         debug=True,

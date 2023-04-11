@@ -20,7 +20,7 @@ from src.task_loaders import LANGUAGE, PROGRAMS, TEST, TRAIN
 DEFAULT_LINE_SEPARATOR = "\n"
 
 
-class CodexBase(object):
+class GPTBase(object):
     # https://beta.openai.com/docs/engines/codex-series-private-beta
     DEFAULT_ENGINE = "code-davinci-002"
     ENGINE_MAX_TOKENS = 4096  # Max tokens for BOTH the prompt and the completion.

@@ -19,7 +19,7 @@ from dreamcoder.program import EtaLongVisitor, InferenceFailure, ParseFailure, P
 from dreamcoder.task import Task
 from dreamcoder.type import Type, TypeConstructor
 from src.experiment_iterator import RANDOM_GENERATOR
-from src.models.codex_base import DEFAULT_LINE_SEPARATOR, CodexBase, Prompt
+from src.models.codex_base import DEFAULT_LINE_SEPARATOR, GPTBase, Prompt
 from src.models.laps_grammar import LAPSGrammar
 from src.task_loaders import ALL, PROGRAMS, TEST, TRAIN
 
@@ -27,7 +27,7 @@ ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.SAMPLE_GENERAT
 
 
 @ModelRegistry.register
-class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
+class CodexSampleGenerator(GPTBase, model_loaders.ModelLoader):
     name = "codex_sample_generator"
 
     query_results_file = "codex_query_results.json"
@@ -76,7 +76,7 @@ class CodexSampleGenerator(CodexBase, model_loaders.ModelLoader):
         # Codex parameters
         temperature: float = 0.40,
         max_tokens_completion_beta: float = 2.0,
-        engine: str = CodexBase.DEFAULT_ENGINE,
+        engine: str = GPTBase.DEFAULT_ENGINE,
         # Utility
         debug: bool = False,
         use_cached: bool = False,

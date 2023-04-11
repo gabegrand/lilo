@@ -4,12 +4,12 @@ library_namer.py | Author : Catherine Wong.
 Queries Codex to generate names for library functions.
 """
 import numpy as np
-from src.models.laps_grammar import LAPSGrammar
-import src.models.model_loaders as model_loaders
-from src.task_loaders import ALL, TRAIN
-from src.models.codex_base import *
 
+import src.models.model_loaders as model_loaders
 from dreamcoder.type import *
+from src.models.codex_base import *
+from src.models.laps_grammar import LAPSGrammar
+from src.task_loaders import ALL, TRAIN
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.LIBRARY_NAMER]
 
@@ -17,7 +17,7 @@ DEFAULT_HEADER = ""
 
 
 @ModelRegistry.register
-class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
+class CodexLibraryNamer(GPTBase, model_loaders.ModelLoader):
     name = "codex_library_namer"
     LIBRARY_DEFAULT_SEPARATOR = "\n"
 
@@ -57,18 +57,18 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
         temperature: float = 0.75,
         max_tokens: int = 256,
         separator: str = LIBRARY_DEFAULT_SEPARATOR,
-        engine: str = CodexBase.DEFAULT_ENGINE,
+        engine: str = GPTBase.DEFAULT_ENGINE,
         debug: bool = False,
         verbose: bool = True,
     ):
         """
         Queries Codex API to generate new names for library functions.
-        
+
         params:
             inventions_to_name: which inventions to generate names for: {ALL, ALL_UNNAMED}; ALL_UNNAMED only selects inventions w/out names in the output_name_class.
             n_codex_samples_per_invention: how many names to sample per invention; we choose 1 of these.
             name_selection_criteria: how to choose a name amongst samples. TOP_1: ranks by logprobs and choose 1; SAMPLE_LOG_PROBS samples as a categorical according to log probs.
-    
+
             prompt_comment_header: String prompt that will prefix the Codex prompt for each invention.
             prompt_with_base_dsl: If true, includes example usage from the Base DSL.
             prompt_with_task_language: If true, includes example task annotations where available.
@@ -88,7 +88,9 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
         # Builds the prompt header for each invention including the Base DSL
         # TODO (catwong): Update this prompt to match the style of the invention prompt.
         fixed_prompt_header = self._build_fixed_prompt_header(
-            experiment_state, prompt_comment_header, prompt_with_base_dsl,
+            experiment_state,
+            prompt_comment_header,
+            prompt_with_base_dsl,
         )
         for invention in inventions:
             # TODO (catwong): Implement use_task_language to include task annotations.
@@ -270,4 +272,3 @@ class CodexLibraryNamer(CodexBase, model_loaders.ModelLoader):
             ]
         inventions = sorted(inventions, key=lambda p: str(p))
         return inventions
-
