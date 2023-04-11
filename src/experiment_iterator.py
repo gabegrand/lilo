@@ -27,6 +27,7 @@ EXPORT_WITH_TIMESTAMP = "export_with_timestamp"
 TASKS_LOADER = "tasks_loader"
 TASK_LANGUAGE_LOADER = "task_language_loader"
 INIT_FRONTIERS_FROM_CHECKPOINT = "init_frontiers_from_checkpoint"
+INIT_FRONTIERS_EVERY_ITERATION = "init_frontiers_every_iteration"
 FRONTIERS_CHECKPOINT = "frontiers.json"
 SAMPLES_CHECKPOINT = "samples.json"
 
@@ -200,21 +201,26 @@ class ExperimentState:
     def maybe_resume_from_checkpoint(self):
         if self.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
 
-            # Load the current grammar
-            if self.curr_iteration > 0:
-                self.models[model_loaders.GRAMMAR] = self.models[
-                    model_loaders.GRAMMAR
-                ].load_model_from_checkpoint(self, self.get_checkpoint_directory())
-                print(f"Loaded grammar from: {self.get_checkpoint_directory()}")
+            # Restore frontiers if it's the first iteration or if config specifies to restore every iteration
+            if self.metadata[INIT_FRONTIERS_EVERY_ITERATION] or (
+                self.curr_iteration == self.metadata[FIRST_ITERATION]
+            ):
 
-            # Load the frontiers
-            use_resume_checkpoint = (
-                self.metadata[RESUME_CHECKPOINT_DIRECTORY] is not None
-            )
-            frontiers_loaded = self.load_frontiers_from_checkpoint(
-                use_resume_checkpoint=use_resume_checkpoint
-            )
-            return frontiers_loaded
+                # Load the current grammar
+                if self.curr_iteration > 0:
+                    self.models[model_loaders.GRAMMAR] = self.models[
+                        model_loaders.GRAMMAR
+                    ].load_model_from_checkpoint(self, self.get_checkpoint_directory())
+                    print(f"Loaded grammar from: {self.get_checkpoint_directory()}")
+
+                # Load the frontiers
+                use_resume_checkpoint = (
+                    self.metadata[RESUME_CHECKPOINT_DIRECTORY] is not None
+                )
+                frontiers_loaded = self.load_frontiers_from_checkpoint(
+                    use_resume_checkpoint=use_resume_checkpoint
+                )
+                return frontiers_loaded
 
     def get_checkpoint_directory(self):
         checkpoint_directory = os.path.join(

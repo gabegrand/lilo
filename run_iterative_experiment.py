@@ -139,6 +139,20 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--init_frontiers_every_iteration",
+    default=False,
+    action="store_true",
+    help="If using init_frontiers_from_checkpoint, default is to init once at the start. With --init_frontiers_every_iteration, frontiers are also loaded at every subsequent iteration.",
+)
+
+parser.add_argument(
+    "--resume_checkpoint_directory",
+    default=None,
+    type=str,
+    help="If using init_frontiers_from_checkpoint, optionally point to a checkpoint from a different experiment run.",
+)
+
+parser.add_argument(
     "--use_cached",
     default=False,
     action="store_true",
@@ -194,6 +208,8 @@ def main(args):
             compute_description_lengths=True,
             increment_task_batcher=True,
             init_frontiers_from_checkpoint=args.init_frontiers_from_checkpoint,
+            init_frontiers_every_iteration=args.init_frontiers_every_iteration,
+            resume_checkpoint_directory=args.resume_checkpoint_directory,
             s3_sync=(not args.no_s3_sync),
         )
 
@@ -244,6 +260,8 @@ def main(args):
                 compute_description_lengths=True,
                 increment_task_batcher=True,
                 init_frontiers_from_checkpoint=args.init_frontiers_from_checkpoint,
+                init_frontiers_every_iteration=args.init_frontiers_every_iteration,
+                resume_checkpoint_directory=args.resume_checkpoint_directory,
                 s3_sync=(not args.no_s3_sync),
             )
 
