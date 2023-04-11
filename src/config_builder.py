@@ -38,7 +38,7 @@ DEFAULT_STITCH_PARAMS = {
     "candidates_per_iteration": 1,
 }
 
-DEFAULT_CODEX_PARAMS = {
+DEFAULT_GPT_PARAMS = {
     "debug": False,
     "use_cached": False,
     "n_samples": 50,
@@ -139,7 +139,7 @@ def build_config(
     recognition_train_steps: int = None,
     encoder: str = None,
     stitch_params: dict = DEFAULT_STITCH_PARAMS,
-    codex_params: dict = DEFAULT_CODEX_PARAMS,
+    gpt_params: dict = DEFAULT_GPT_PARAMS,
     compute_likelihoods: bool = True,
     compute_description_lengths: bool = True,
     increment_task_batcher: bool = True,
@@ -160,7 +160,7 @@ def build_config(
             recognition_train_steps=recognition_train_steps,
             encoder=encoder,
             stitch_params=stitch_params,
-            codex_params=codex_params,
+            gpt_params=gpt_params,
             compute_likelihoods=compute_likelihoods,
             compute_description_lengths=compute_description_lengths,
             increment_task_batcher=increment_task_batcher,
@@ -258,7 +258,7 @@ def build_config_body(
     recognition_train_steps: int = None,
     encoder: str = None,
     stitch_params: dict = DEFAULT_STITCH_PARAMS,
-    codex_params: dict = DEFAULT_CODEX_PARAMS,
+    gpt_params: dict = DEFAULT_GPT_PARAMS,
     compute_likelihoods: bool = True,
     compute_description_lengths: bool = True,
     increment_task_batcher: bool = True,
@@ -334,10 +334,10 @@ def build_config_body(
                 }
             )
         if block.get("model_type") == SAMPLE_GENERATOR:
-            _codex_params = DEFAULT_CODEX_PARAMS
-            _codex_params.update(block["params"])
-            _codex_params.update(codex_params)
-            block["params"] = _codex_params
+            _gpt_params = DEFAULT_GPT_PARAMS
+            _gpt_params.update(block["params"])
+            _gpt_params.update(gpt_params)
+            block["params"] = _gpt_params
         if block.get("model_type") == LIBRARY_LEARNER:
             _stitch_params = DEFAULT_STITCH_PARAMS
             _stitch_params.update(block["params"])
