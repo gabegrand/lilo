@@ -203,7 +203,7 @@ class ExperimentState:
 
             # Restore frontiers if it's the first iteration or if config specifies to restore every iteration
             if self.metadata[INIT_FRONTIERS_EVERY_ITERATION] or (
-                self.curr_iteration == self.metadata[FIRST_ITERATION]
+                self.curr_iteration == self.metadata[CURR_ITERATION]
             ):
 
                 # Load the current grammar
@@ -220,6 +220,7 @@ class ExperimentState:
                 frontiers_loaded = self.load_frontiers_from_checkpoint(
                     use_resume_checkpoint=use_resume_checkpoint
                 )
+
                 return frontiers_loaded
 
     def get_checkpoint_directory(self):
@@ -294,6 +295,7 @@ class ExperimentState:
             else self.get_resume_checkpoint_directory()
         )
         samples_checkpoint = os.path.join(checkpoint_dir, SAMPLES_CHECKPOINT)
+
         if not os.path.exists(samples_checkpoint):
             print(
                 f"load_samples_from_checkpoint: No checkpoint found at: {samples_checkpoint}"
