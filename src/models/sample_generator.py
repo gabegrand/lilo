@@ -38,6 +38,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
     ERROR_INVALID_TYPE = "invalid_type"
     ERROR_FREE_VARIABLES = "free_variables"
     ERROR_ETA_LONG = "eta_long"
+    ERROR_LIKELIHOOD = "likelihood"
 
     # Final task is the last task in body_tasks
     FINAL_TASK_ORIGIN_DEFAULT = "default"
@@ -640,7 +641,22 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                         }
                     )
                     continue
-            # Check 6: Does the program solve any tasks?
+            # CHECK 6: Can we compute a log likelihood?
+            if compute_likelihoods:
+                try:
+                    grammar.logLikelihood(p_type, p)
+                except:
+                    if verbose:
+                        print(f"Unable to compute likelihood under grammar: {p}")
+                    parse_results.append(
+                        {
+                            "text": program_str_gpt,
+                            "valid": False,
+                            "error": GPTSampleGenerator.ERROR_LIKELIHOOD,
+                        }
+                    )
+                    continue
+            # CHECK 7: Does the program solve any tasks?
             tasks_solved = []
             if evaluate_samples:
                 for task in experiment_state.get_tasks_for_ids(
@@ -738,8 +754,9 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
 
 @ModelRegistry.register
 class CodexSampleGenerator(GPTSampleGenerator):
+    """For backwards compatibility with templates that reference `codex_sample_generator`."""
+
     name = "codex_sample_generator"
 
-    # https://beta.openai.com/docs/engines/codex-series-private-beta
     DEFAULT_ENGINE = "code-davinci-002"
     ENGINE_MAX_TOKENS = 4096  # Max tokens for BOTH the prompt and the completion.

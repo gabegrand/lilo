@@ -1,5 +1,5 @@
 """
-gpt_base.py | Author: Catherine Wong, Gabe Grand.
+gpt_base.py | Author: Gabe Grand.
 
 Base class containing utilities for working with the GPT language model.
 """
