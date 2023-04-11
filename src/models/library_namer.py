@@ -7,7 +7,7 @@ import numpy as np
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.type import *
-from src.models.codex_base import *
+from src.models.gpt_base import *
 from src.models.laps_grammar import LAPSGrammar
 from src.task_loaders import ALL, TRAIN
 

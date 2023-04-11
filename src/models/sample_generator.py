@@ -19,7 +19,7 @@ from dreamcoder.program import EtaLongVisitor, InferenceFailure, ParseFailure, P
 from dreamcoder.task import Task
 from dreamcoder.type import Type, TypeConstructor
 from src.experiment_iterator import RANDOM_GENERATOR
-from src.models.codex_base import DEFAULT_LINE_SEPARATOR, GPTBase, Prompt
+from src.models.gpt_base import DEFAULT_LINE_SEPARATOR, GPTBase, Prompt
 from src.models.laps_grammar import LAPSGrammar
 from src.task_loaders import ALL, PROGRAMS, TEST, TRAIN
 
