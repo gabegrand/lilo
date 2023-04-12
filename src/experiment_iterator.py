@@ -280,6 +280,11 @@ class ExperimentState:
                     self.task_frontiers[split][task] = self.task_frontiers[split][
                         task
                     ].combine(loaded_frontier)
+                    self.best_search_times[split][task] = np.nanmin(
+                        self.best_search_times[split][task],
+                        json_frontier["best_search_time"],
+                    )
+
         f"============Loaded previously checkpointed frontiers from {frontiers_checkpoint}==========="
         return True
 
