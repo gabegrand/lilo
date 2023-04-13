@@ -966,7 +966,7 @@ class LAPSGrammar(Grammar):
 
     def load_model_from_checkpoint(self, experiment_state, checkpoint_directory):
         checkpoint_path = self.get_checkpoint_filepath(checkpoint_directory)
-        if not os.path.exists(checkpoint_directory):
+        if not os.path.exists(checkpoint_path):
             print(f"Unable to load grammar: no checkpoint found at {checkpoint_path}")
             return None
 
