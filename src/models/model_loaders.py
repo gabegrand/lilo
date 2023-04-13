@@ -13,6 +13,7 @@ PROGRAM_REWRITER = "program_rewriter"  # Models that rewrite programs wrt. gramm
 SAMPLE_GENERATOR = (
     "sample_generator"  # Models that generate sample programs, language, or both.
 )
+GPT_SOLVER = "gpt_solver"
 LANGUAGE_ENCODER = "language_encoder"
 EXAMPLES_ENCODER = "examples_encoder"
 JOINT_LANGUAGE_EXAMPLES_ENCODER = "joint_language_examples_encoder"

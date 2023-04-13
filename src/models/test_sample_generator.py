@@ -108,7 +108,9 @@ def test_add_samples_to_experiment_state():
     parse_results = sample_generator.parse_completion(
         completion, experiment_state.models[model_loaders.GRAMMAR]
     )
-    sample_generator.add_samples_to_experiment_state(experiment_state, parse_results)
+    sample_generator.add_samples_to_experiment_state(
+        experiment_state, TRAIN, parse_results
+    )
     assert len(experiment_state.sample_tasks[TRAIN]) == n_samples_per_query
     for sample_task in experiment_state.sample_tasks[TRAIN]:
         assert not experiment_state.sample_frontiers[TRAIN][sample_task].empty

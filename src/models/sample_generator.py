@@ -139,15 +139,11 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
             raise ValueError(
                 f"GPTSampleGenerator expected task_splits=[{TRAIN}], got task_splits={task_splits}"
             )
+        task_split = task_splits[0]
 
         # GPT-generated programs must type-infer to a request type in this set
-        train_task_request_types = set(
-            [
-                t.request
-                for t in experiment_state.get_tasks_for_ids(
-                    TRAIN, task_ids_in_splits[TRAIN]
-                )
-            ]
+        train_task_request_types = self.get_valid_request_types(
+            experiment_state, TRAIN, task_ids_in_splits[TRAIN]
         )
 
         train_programs = set()
@@ -260,7 +256,8 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                 parse_results = self.parse_completion(
                     completion,
                     experiment_state=experiment_state,
-                    task_ids_in_splits=task_ids_in_splits,
+                    split=task_split,
+                    task_ids=task_ids_in_splits[task_split],
                     valid_request_types=train_task_request_types,
                     function_name_classes=function_name_classes,
                     evaluate_samples=evaluate_samples,
@@ -360,13 +357,25 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
         # Update experiment_state.
         self.add_samples_to_experiment_state(
             experiment_state=experiment_state,
-            task_ids_in_splits=task_ids_in_splits,
+            task_split=task_split,
             parse_results_valid=parse_results_valid,
             evaluate_samples=evaluate_samples,
             compute_likelihoods=compute_likelihoods,
         )
 
         return query_results
+
+    def get_valid_request_types(
+        self,
+        experiment_state,
+        split,
+        task_ids,
+    ):
+        request_types = set(
+            [t.request for t in experiment_state.get_tasks_for_ids(split, task_ids)]
+        )
+        assert len(request_types) > 0
+        return request_types
 
     def construct_initial_prompt(
         self,
@@ -548,7 +557,8 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
         self,
         completion,
         experiment_state,
-        task_ids_in_splits: dict,
+        task_split: str,
+        task_ids: list,
         valid_request_types: Set[TypeConstructor] = None,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
         evaluate_samples: bool = True,
@@ -659,9 +669,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
             # CHECK 7: Does the program solve any tasks?
             tasks_solved = []
             if evaluate_samples:
-                for task in experiment_state.get_tasks_for_ids(
-                    TRAIN, task_ids_in_splits[TRAIN]
-                ):
+                for task in experiment_state.get_tasks_for_ids(task_split, task_ids):
                     if task.check(p, timeout=grammar.DEFAULT_EVALUATION_TIMEOUT):
                         tasks_solved.append(task.name)
                         # TODO: break on first solved task?
@@ -683,10 +691,11 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
     def add_samples_to_experiment_state(
         self,
         experiment_state,
-        task_ids_in_splits: dict,
+        task_split: str,
         parse_results_valid: list,
         evaluate_samples: bool = False,
         compute_likelihoods: bool = True,
+        add_samples: bool = True,
     ):
         grammar = experiment_state.models[model_loaders.GRAMMAR]
 
@@ -694,10 +703,10 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
 
             program = Program.parse(result_data["program"])
 
-            # If the program solves any train tasks, add it to the respective task frontier(s).
+            # If the program solves any tasks, add it to the respective task frontier(s).
             if evaluate_samples and len(result_data["tasks_solved"]) > 0:
                 for task in experiment_state.get_tasks_for_ids(
-                    task_split=TRAIN, task_ids=result_data["tasks_solved"]
+                    task_split=task_split, task_ids=result_data["tasks_solved"]
                 ):
                     new_frontier = Frontier(
                         frontier=[
@@ -720,10 +729,10 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                         )
                         continue
 
-                experiment_state.task_frontiers[TRAIN][task].combine(new_frontier)
+                experiment_state.task_frontiers[task_split][task].combine(new_frontier)
 
             # If the program doesn't solve any tasks, add it to the experiment state as a sample.
-            else:
+            elif add_samples:
                 sample_task = Task(
                     name=f"gpt_{result_data['hash']}",
                     request=Type.fromjson(result_data["type_json"]),
@@ -744,8 +753,12 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                 if compute_likelihoods:
                     sample_frontier = grammar.rescoreFrontier(sample_frontier)
 
-                experiment_state.sample_tasks[TRAIN].append(sample_task)
-                experiment_state.sample_frontiers[TRAIN][sample_task] = sample_frontier
+                experiment_state.sample_tasks[task_split].append(sample_task)
+                experiment_state.sample_frontiers[task_split][
+                    sample_task
+                ] = sample_frontier
+            else:
+                continue
 
     def query_mock(self, experiment_state, n_samples: int = 3, **kwargs):
         """Debugging query that returns a sample of programs from the task."""
