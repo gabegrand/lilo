@@ -711,7 +711,14 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                     )
 
                 if compute_likelihoods:
-                    new_frontier = grammar.rescoreFrontier(new_frontier)
+                    try:
+                        new_frontier = grammar.rescoreFrontier(new_frontier)
+                    except:
+                        # GG: This should really never happen due to the CHECK 6 but finding it does in practice on clevr dataset
+                        print(
+                            f"ERROR calling rescoreFrontier on GPT-generated program {program}"
+                        )
+                        continue
 
                 experiment_state.task_frontiers[TRAIN][task].combine(new_frontier)
 

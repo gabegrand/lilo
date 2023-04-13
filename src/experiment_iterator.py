@@ -208,9 +208,12 @@ class ExperimentState:
 
                 # Load the current grammar
                 if self.curr_iteration > 0:
-                    self.models[model_loaders.GRAMMAR] = self.models[
+                    grammar = self.models[
                         model_loaders.GRAMMAR
                     ].load_model_from_checkpoint(self, self.get_checkpoint_directory())
+                    if not grammar:
+                        return False
+                    self.models[model_loaders.GRAMMAR] = grammar
                     print(f"Loaded grammar from: {self.get_checkpoint_directory()}")
 
                 # Load the frontiers
@@ -280,9 +283,15 @@ class ExperimentState:
                     self.task_frontiers[split][task] = self.task_frontiers[split][
                         task
                     ].combine(loaded_frontier)
+
+                    def none_to_nan(x):
+                        return np.nan if x is None else x
+
                     self.best_search_times[split][task] = np.nanmin(
-                        self.best_search_times[split][task],
-                        json_frontier["best_search_time"],
+                        [
+                            none_to_nan(self.best_search_times[split][task]),
+                            none_to_nan(json_frontier["best_search_time"]),
+                        ]
                     )
 
         f"============Loaded previously checkpointed frontiers from {frontiers_checkpoint}==========="
