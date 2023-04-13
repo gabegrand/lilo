@@ -208,9 +208,12 @@ class ExperimentState:
 
                 # Load the current grammar
                 if self.curr_iteration > 0:
-                    self.models[model_loaders.GRAMMAR] = self.models[
+                    grammar = self.models[
                         model_loaders.GRAMMAR
                     ].load_model_from_checkpoint(self, self.get_checkpoint_directory())
+                    if not grammar:
+                        return False
+                    self.models[model_loaders.GRAMMAR] = grammar
                     print(f"Loaded grammar from: {self.get_checkpoint_directory()}")
 
                 # Load the frontiers
