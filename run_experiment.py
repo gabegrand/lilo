@@ -13,11 +13,32 @@ Usage:
         --config_dir experiments/configs
         --config_file dreamcoder_compositional_graphics_200_human.json
 """
-import argparse
-import json
-import os
+import os, json, argparse
 
-from src.experiment_iterator import ExperimentIterator, ExperimentState
+from src.experiment_iterator import ExperimentState, ExperimentIterator
+
+from data.compositional_graphics.make_tasks import *
+from data.compositional_graphics.grammar import *
+from data.compositional_graphics.encoder import *
+from data.re2.make_tasks import *
+from data.re2.grammar import *
+from data.re2.encoder import *
+from data.clevr.make_tasks import *
+from data.clevr.grammar import *
+from data.clevr.encoder import *
+
+from data.drawings.make_tasks import *
+from data.drawings.grammar import *
+
+from data.structures.make_tasks import *
+from data.structures.grammar import *
+
+from src.models.gpt_solver import *
+from src.models.laps_dreamcoder_recognition import *
+from src.models.sample_generator import *
+from src.models.stitch_proposer import *
+from src.models.stitch_rewriter import *
+from src.models.library_namer import *
 
 DEFAULT_CONFIG_DIR = "experiments/configs"
 
