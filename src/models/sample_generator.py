@@ -680,7 +680,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                     "valid": True,
                     "program": str(p),
                     "type": str(p_type),
-                    "type_json": p_type.json(),
+                    # "type_json": p_type.json(),
                     "hash": abs(hash(str(p))),
                     "tasks_solved": tasks_solved,
                 }

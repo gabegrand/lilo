@@ -65,7 +65,6 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
             self.results_file,
         )
 
-        results_by_task = defaultdict(list)
         task_to_solutions = defaultdict(list)
         results_by_query = []
         parse_results_solved = []
@@ -152,14 +151,11 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                             parse_results_solved.append(result_data)
                             task_to_solutions[task_id].append(result_data)
 
-                        # TODO: Stop early if max solutions reached?
-                        results_by_task[task_id].append(parse_results)
-
                     # Print query results
-                    print(
-                        f"[TASK {task_i}/{len(task_batch_ids)} QUERY {query_i}/{n_queries_per_task}]"
-                    )
-                    print(task_id)
+                    print("-" * 12)
+                    print(prompt)
+                    print("-" * 12)
+
                     print("GPT completions:")
                     for result_data in parse_results:
                         if result_data.get("tasks_solved"):
@@ -169,6 +165,12 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                         else:
                             status_emoji = "❌"
                         print(f"{status_emoji} {result_data['text']}")
+
+                    print("")
+                    print(
+                        f"[TASK {task_i}/{len(task_batch_ids)} QUERY {query_i}/{n_queries_per_task}]"
+                    )
+                    print(task_id)
 
                     n_tasks_solved = len(
                         [
@@ -205,7 +207,6 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                     "n_tasks_solved": len(tasks_solved),
                     "tasks_solved": list(tasks_solved),
                 },
-                "results_by_task": results_by_task,
                 "results_by_query": results_by_query,
             }
             if not debug:
