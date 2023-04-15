@@ -708,28 +708,41 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                 for task in experiment_state.get_tasks_for_ids(
                     task_split=task_split, task_ids=result_data["tasks_solved"]
                 ):
+                    if (
+                        task.name
+                        == "re2_train_443_if_the_word_ends_with_any_letter_add_k_after_that"
+                    ):
+                        import pdb
+
+                        pdb.set_trace()
+
                     new_frontier = Frontier(
                         frontier=[
                             FrontierEntry(
                                 program=program,
                                 logPrior=0.0,
                                 logLikelihood=0.0,
+                                origin=self.name,
                             )
                         ],
                         task=task,
                     )
 
-                if compute_likelihoods:
-                    try:
-                        new_frontier = grammar.rescoreFrontier(new_frontier)
-                    except:
-                        # GG: This should really never happen due to the CHECK 6 but finding it does in practice on clevr dataset
-                        print(
-                            f"ERROR calling rescoreFrontier on GPT-generated program {program}"
-                        )
-                        continue
+                    if compute_likelihoods:
+                        try:
+                            new_frontier = grammar.rescoreFrontier(new_frontier)
+                        except:
+                            # GG: This should really never happen due to the CHECK 6 but finding it does in practice on clevr dataset
+                            print(
+                                f"ERROR calling rescoreFrontier on GPT-generated program {program}"
+                            )
+                            continue
 
-                experiment_state.task_frontiers[task_split][task].combine(new_frontier)
+                    experiment_state.task_frontiers[task_split][
+                        task
+                    ] = experiment_state.task_frontiers[task_split][task].combine(
+                        new_frontier
+                    )
 
             # If the program doesn't solve any tasks, add it to the experiment state as a sample.
             elif add_samples:
@@ -745,6 +758,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                             program=program,
                             logPrior=0.0,
                             logLikelihood=0.0,
+                            origin=self.name,
                         )
                     ],
                     task=sample_task,

@@ -65,6 +65,23 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
             self.results_file,
         )
 
+        if use_cached:
+            if os.path.exists(results_filepath):
+                with open(results_filepath, "r") as f:
+                    results_json = json.load(f)
+                    self.add_samples_to_experiment_state(
+                        experiment_state=experiment_state,
+                        task_split=task_split,
+                        parse_results_valid=results_json["parse_results_solved"],
+                        evaluate_samples=True,
+                        compute_likelihoods=True,
+                        add_samples=False,
+                    )
+                print(f"Loaded GPT results from: {results_filepath}")
+                return
+            else:
+                print(f"GPT results not found at: {results_filepath}")
+
         task_to_solutions = defaultdict(list)
         results_by_query = []
         parse_results_solved = []
@@ -152,25 +169,25 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                             task_to_solutions[task_id].append(result_data)
 
                     # Print query results
-                    print("-" * 12)
-                    print(prompt)
-                    print("-" * 12)
+                    if verbose:
+                        print("-" * 12)
+                        print(prompt)
+                        print("-" * 12)
 
-                    print("GPT completions:")
-                    for result_data in parse_results:
-                        if result_data.get("tasks_solved"):
-                            status_emoji = "🏆"
-                        elif result_data["valid"]:
-                            status_emoji = "✅"
-                        else:
-                            status_emoji = "❌"
-                        print(f"{status_emoji} {result_data['text']}")
+                        print("GPT completions:")
+                        for result_data in parse_results:
+                            if result_data.get("tasks_solved"):
+                                status_emoji = "🏆"
+                            elif result_data["valid"]:
+                                status_emoji = "❎"
+                            else:
+                                status_emoji = "❌"
+                            print(f"{status_emoji} {result_data['text']}")
+                        print("")
 
-                    print("")
                     print(
-                        f"[TASK {task_i}/{len(task_batch_ids)} QUERY {query_i}/{n_queries_per_task}]"
+                        f"[TASK {task_i}/{len(task_batch_ids)} QUERY {query_i}/{n_queries_per_task}]: {task_id}"
                     )
-                    print(task_id)
 
                     n_tasks_solved = len(
                         [
@@ -207,6 +224,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                     "n_tasks_solved": len(tasks_solved),
                     "tasks_solved": list(tasks_solved),
                 },
+                "parse_results_solved": parse_results_solved,
                 "results_by_query": results_by_query,
             }
             if not debug:

@@ -53,7 +53,7 @@
                 "task_batch_size": "global_batch_size",
                 "params": {
                     "n_samples_per_query": 4,
-                    "n_queries_per_task": 2,
+                    "n_queries_per_task": 1,
                     "temperature": 0.9,
                     "max_tokens_completion_beta": 4.0,
                     "body_task_types": ["language", "programs"],

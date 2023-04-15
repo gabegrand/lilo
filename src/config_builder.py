@@ -53,6 +53,14 @@ DEFAULT_GPT_PARAMS = {
     "prepend_dsl_description": False,
 }
 
+DEFAULT_GPT_SOLVER_PARAMS = {
+    "debug": False,
+    "use_cached": False,
+    "temperature": 0.40,
+    "max_tokens_completion_beta": 2.0,
+    "function_name_classes": ["human_readable", "default_no_inline", "numeric"],
+}
+
 
 class ExperimentType(str, Enum):
     ORACLE = "oracle"
@@ -336,6 +344,11 @@ def build_config_body(
             )
         if block.get("model_type") == SAMPLE_GENERATOR:
             _gpt_params = DEFAULT_GPT_PARAMS
+            _gpt_params.update(block["params"])
+            _gpt_params.update(gpt_params)
+            block["params"] = _gpt_params
+        if block.get("model_type") == LLM_SOLVER:
+            _gpt_params = DEFAULT_GPT_SOLVER_PARAMS
             _gpt_params.update(block["params"])
             _gpt_params.update(gpt_params)
             block["params"] = _gpt_params

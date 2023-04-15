@@ -239,7 +239,15 @@ class ExperimentState:
         )
 
     def checkpoint_frontiers(self):
-        json_frontiers = {split: {} for split in self.task_frontiers}
+        json_frontiers = {}
+        json_frontiers["_summary"] = {
+            "n_tasks_solved": {
+                split: len(self.get_non_empty_frontiers_for_split(split))
+                for split in self.task_frontiers
+            }
+        }
+
+        json_frontiers.update({split: {} for split in self.task_frontiers})
         for split in self.task_frontiers:
             for task in self.task_frontiers[split]:
                 frontier_json = self.task_frontiers[split][task].json()
