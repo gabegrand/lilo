@@ -23,6 +23,7 @@ from src.models.model_loaders import (
     GRAMMAR,
     INITIALIZE_GROUND_TRUTH,
     LIBRARY_LEARNER,
+    LLM_SOLVER,
     PROGRAM_REWRITER,
     SAMPLE_GENERATOR,
 )

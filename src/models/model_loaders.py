@@ -13,7 +13,7 @@ PROGRAM_REWRITER = "program_rewriter"  # Models that rewrite programs wrt. gramm
 SAMPLE_GENERATOR = (
     "sample_generator"  # Models that generate sample programs, language, or both.
 )
-GPT_SOLVER = "gpt_solver"
+LLM_SOLVER = "llm_solver"
 LANGUAGE_ENCODER = "language_encoder"
 EXAMPLES_ENCODER = "examples_encoder"
 JOINT_LANGUAGE_EXAMPLES_ENCODER = "joint_language_examples_encoder"
@@ -25,6 +25,7 @@ ModelLoaderRegistries = {
     LIBRARY_NAMER: ClassRegistry("name", unique=True),
     PROGRAM_REWRITER: ClassRegistry("name", unique=True),
     SAMPLE_GENERATOR: ClassRegistry("name", unique=True),
+    LLM_SOLVER: ClassRegistry("name", unique=True),
     EXAMPLES_ENCODER: ClassRegistry("name", unique=True),
     LANGUAGE_ENCODER: ClassRegistry("name", unique=True),
     JOINT_LANGUAGE_EXAMPLES_ENCODER: ClassRegistry("name", unique=True),

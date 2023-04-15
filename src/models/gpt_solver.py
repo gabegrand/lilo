@@ -4,6 +4,8 @@ gpt_solver.py | Author: Gabe Grand.
 Queries GPT to solve tasks.
 
 """
+import json
+import os
 from collections import defaultdict
 
 from openai.error import InvalidRequestError
@@ -16,12 +18,14 @@ from src.models.laps_grammar import LAPSGrammar
 from src.models.sample_generator import GPTSampleGenerator
 from src.task_loaders import LANGUAGE, PROGRAMS, TRAIN
 
-ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.GPT_SOLVER]
+ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.LLM_SOLVER]
 
 
 @ModelRegistry.register
 class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
     name = "gpt_solver"
+
+    results_file = "gpt_solver_results.json"
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
@@ -49,10 +53,24 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
         temperature: float = 0.40,
         max_tokens_completion_beta: float = 2.0,
         engine: str = GPTBase.DEFAULT_ENGINE,
+        # Utilities
+        debug: bool = False,
+        use_cached: bool = False,
+        verbose: bool = False,
     ):
-        results_by_task = defaultdict(list)
 
-        for task_id in task_batch_ids:
+        results_filepath = os.path.join(
+            os.getcwd(),
+            experiment_state.get_checkpoint_directory(),
+            self.results_file,
+        )
+
+        results_by_task = defaultdict(list)
+        task_to_solutions = defaultdict(list)
+        results_by_query = []
+        parse_results_solved = []
+
+        for task_i, task_id in enumerate(task_batch_ids):
             for query_i in range(n_queries_per_task):
 
                 prompt = self.construct_initial_prompt(
@@ -68,7 +86,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                     verbose=False,
                 )
 
-                max_retries = len(prompt.body_task_data)
+                max_retries = len(prompt.body_task_data) or max_retries
                 for retry_i in range(max_retries):
                     if retry_i > 0:
                         prompt.remove_last_body_task()
@@ -107,15 +125,103 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                         completion,
                         experiment_state=experiment_state,
                         task_split=task_split,
-                        task_ids=task_batch_ids,
+                        task_ids=[task_id],
                         valid_request_types=valid_request_types,
                         function_name_classes=function_name_classes,
                         evaluate_samples=True,
                         compute_likelihoods=True,
                         verbose=True,
                     )
+                    results_by_query.append(
+                        {
+                            "task_id": task_id,
+                            "query_i": query_i,
+                            "token_stats": token_stats,
+                            "prompt": prompt.to_dict(),
+                            "completion": completion.to_dict_recursive(),
+                            "parse_results": parse_results,
+                        }
+                    )
 
-                    results_by_task[task_id].append(parse_results)
+                    for result_data in parse_results:
+                        result_data["query_i"] = query_i
+                        if result_data.get("tasks_solved"):
+                            assert len(result_data["tasks_solved"]) == 1
+                            assert result_data["tasks_solved"][0] == task_id
+
+                            parse_results_solved.append(result_data)
+                            task_to_solutions[task_id].append(result_data)
+
+                        # TODO: Stop early if max solutions reached?
+                        results_by_task[task_id].append(parse_results)
+
+                    # Print query results
+                    print(
+                        f"[TASK {task_i}/{len(task_batch_ids)} QUERY {query_i}/{n_queries_per_task}]"
+                    )
+                    print(task_id)
+                    print("GPT completions:")
+                    for result_data in parse_results:
+                        if result_data.get("tasks_solved"):
+                            status_emoji = "🏆"
+                        elif result_data["valid"]:
+                            status_emoji = "✅"
+                        else:
+                            status_emoji = "❌"
+                        print(f"{status_emoji} {result_data['text']}")
+
+                    n_tasks_solved = len(
+                        [
+                            t
+                            for t, results in task_to_solutions.items()
+                            if len(results) > 0
+                        ]
+                    )
+                    print(f"Tasks solved so far: {n_tasks_solved}/{task_i}")
+
+                    # Query succeeded: break from retry loop
+                    break
+
+            tasks_solved = [
+                t for t, results in task_to_solutions.items() if len(results) > 0
+            ]
+
+            # Save results to file.
+            # TODO: Clean up json format
+            results = {
+                "params": {
+                    "n_samples_per_query": n_samples_per_query,
+                    "n_queries_per_task": n_queries_per_task,
+                    "temperature": temperature,
+                    "engine": engine,
+                    "line_separator": line_separator,
+                    "use_cached": use_cached,
+                    "debug": debug,
+                    "body_task_types": body_task_types,
+                    "final_task_types": final_task_types,
+                    "function_name_classes": function_name_classes,
+                },
+                "summary": {
+                    "n_tasks_solved": len(tasks_solved),
+                    "tasks_solved": list(tasks_solved),
+                },
+                "results_by_task": results_by_task,
+                "results_by_query": results_by_query,
+            }
+            if not debug:
+                with open(results_filepath, "w") as f:
+                    json.dump(results, f, indent=4)
+                print(f"Wrote results: {results_filepath}")
+
+        # Update experiment_state.
+        self.add_samples_to_experiment_state(
+            experiment_state=experiment_state,
+            task_split=task_split,
+            parse_results_valid=parse_results_solved,
+            evaluate_samples=True,
+            compute_likelihoods=True,
+            add_samples=False,
+        )
 
     def construct_initial_prompt(
         self,
