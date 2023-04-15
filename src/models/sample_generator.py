@@ -708,13 +708,6 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                 for task in experiment_state.get_tasks_for_ids(
                     task_split=task_split, task_ids=result_data["tasks_solved"]
                 ):
-                    if (
-                        task.name
-                        == "re2_train_443_if_the_word_ends_with_any_letter_add_k_after_that"
-                    ):
-                        import pdb
-
-                        pdb.set_trace()
 
                     new_frontier = Frontier(
                         frontier=[
