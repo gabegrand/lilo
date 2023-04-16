@@ -28,7 +28,7 @@ import data.drawings.drawings_primitives as drawings_primitives
 from data.drawings.grammar import DrawingGrammar
 from data.drawings.make_tasks import TASK_DOMAINS  # Drawing task domains.
 from dreamcoder.program import Program
-from src.models.sample_generator import CodexSampleGenerator
+from src.models.sample_generator import GPTSampleGenerator
 
 DEFAULT_EXPERIMENTS_DIRECTORY = "experiments_iterative"
 DEFAULT_DRAWINGS_GRAMMAR = DrawingGrammar.new_uniform()
@@ -157,11 +157,11 @@ def visualize_codex_results(args, experiment_type, replication_directory):
         full_batch_directory = os.path.join(replication_directory, batch_directory)
         for iteration in os.listdir(full_batch_directory):
             try:
-                # Visualize codex_query_results.json for each iteration of this batch size.
+                # Visualize gpt_query_results.json for each iteration of this batch size.
                 codex_results_file = os.path.join(
                     full_batch_directory,
                     iteration,
-                    CodexSampleGenerator.query_results_file,
+                    GPTSampleGenerator.query_results_file,
                 )
                 print(codex_results_file)
                 if not os.path.exists(codex_results_file):

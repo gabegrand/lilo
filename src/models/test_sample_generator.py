@@ -3,7 +3,7 @@ test_sample_generator.py.
 """
 import src.models.sample_generator as to_test
 from src.experiment_iterator import *
-from src.models.codex_base import DEFAULT_LINE_SEPARATOR, CodexBase, Prompt
+from src.models.gpt_base import DEFAULT_LINE_SEPARATOR, GPTBase, Prompt
 from src.models.laps_grammar import LAPSGrammar
 from src.task_loaders import *
 from src.test_experiment_iterator import TEST_GRAPHICS_CONFIG
@@ -33,7 +33,7 @@ def get_test_task_ids(experiment_state, n_task_ids=None):
 def get_sample_generator_and_state():
     config = TEST_GRAPHICS_CONFIG
     experiment_state = get_initial_ground_truth_experiment_state(config)
-    sample_generator = to_test.CodexSampleGenerator()
+    sample_generator = to_test.GPTSampleGenerator()
     return sample_generator, experiment_state
 
 
@@ -48,7 +48,7 @@ def get_completion(
         n_samples_per_query=n_samples_per_query,
         temperature=0.75,
         max_tokens=256,
-        engine=CodexBase.DEFAULT_ENGINE,
+        engine=GPTBase.DEFAULT_ENGINE,
         line_separator=DEFAULT_LINE_SEPARATOR,
         use_cached=False,
         debug=True,
@@ -108,7 +108,9 @@ def test_add_samples_to_experiment_state():
     parse_results = sample_generator.parse_completion(
         completion, experiment_state.models[model_loaders.GRAMMAR]
     )
-    sample_generator.add_samples_to_experiment_state(experiment_state, parse_results)
+    sample_generator.add_samples_to_experiment_state(
+        experiment_state, TRAIN, parse_results
+    )
     assert len(experiment_state.sample_tasks[TRAIN]) == n_samples_per_query
     for sample_task in experiment_state.sample_tasks[TRAIN]:
         assert not experiment_state.sample_frontiers[TRAIN][sample_task].empty
