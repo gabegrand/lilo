@@ -140,7 +140,9 @@ class Prompt(object):
         self.function_name_classes = function_name_classes
 
         self.body_task_data = [
-            self._get_task_data(task_id=task_id, task_types=body_task_types)
+            self._get_task_data(
+                task_split=TRAIN, task_id=task_id, task_types=body_task_types
+            )
             for task_id in body_task_ids
         ]
 

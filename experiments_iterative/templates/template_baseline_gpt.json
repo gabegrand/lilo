@@ -33,9 +33,10 @@
             },
             {
                 "experiment_block_type": "state_fn",
-                "state_fn": "reset_samples",
+                "state_fn": "reset_task_frontiers",
                 "params": {
-                    "task_split": "train"
+                    "task_split": "test",
+                    "task_ids": "all"
                 }
             },
             {
@@ -53,7 +54,7 @@
                 "task_batch_size": "global_batch_size",
                 "params": {
                     "n_samples_per_query": 4,
-                    "n_queries_per_task": 1,
+                    "n_queries_per_task": 4,
                     "temperature": 0.9,
                     "max_tokens_completion_beta": 4.0,
                     "body_task_types": ["language", "programs"],
@@ -61,6 +62,24 @@
                     "prepend_dsl_description": true,
                     "verbose": true
                 }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "llm_solver",
+                "model_fn": "infer_programs_for_tasks",
+                "task_split": "test",
+                "task_batch_size": "all",
+                "params": {
+                    "n_samples_per_query": 4,
+                    "n_queries_per_task": 4,
+                    "temperature": 0.9,
+                    "max_tokens_completion_beta": 4.0,
+                    "body_task_types": ["language", "programs"],
+                    "final_task_types": ["language"],
+                    "prepend_dsl_description": true,
+                    "verbose": true
+                },
+                "run_every_n_iterations": 3
             },
             {
                 "experiment_block_type": "checkpoint",

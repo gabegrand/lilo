@@ -62,6 +62,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
         results_filepath = os.path.join(
             os.getcwd(),
             experiment_state.get_checkpoint_directory(),
+            task_split,
             self.results_file,
         )
 
@@ -228,6 +229,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                 "results_by_query": results_by_query,
             }
             if not debug:
+                os.makedirs(os.path.dirname(results_filepath), exist_ok=True)
                 with open(results_filepath, "w") as f:
                     json.dump(results, f, indent=4)
                 print(f"Wrote results: {results_filepath}")

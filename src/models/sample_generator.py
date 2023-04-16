@@ -597,7 +597,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
             # CHECK 2: Does the program typecheck?
             try:
                 p_type = p.infer()
-            except InferenceFailure:
+            except (InferenceFailure, IndexError):
                 if verbose:
                     print(f"Type inference failure for: {str(p)}")
                 parse_results.append(

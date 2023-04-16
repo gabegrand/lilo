@@ -21,7 +21,8 @@ from src.experiment_iterator import (
     MODEL_TYPE,
     RUN_EVERY_N_ITERATIONS,
 )
-from src.task_loaders import TASK_SPLIT, TEST
+from src.models.model_loaders import AMORTIZED_SYNTHESIS, LLM_SOLVER
+from src.task_loaders import TASK_SPLIT, TEST, TRAIN
 
 
 class IterativeExperimentAnalyzer:
@@ -563,7 +564,7 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         loop_blocks = config_base["experiment_iterator"][LOOP_BLOCKS]
         test_solver_block = list(
             filter(
-                lambda x: x.get(MODEL_TYPE) == "amortized_synthesis"
+                lambda x: x.get(MODEL_TYPE) in [AMORTIZED_SYNTHESIS, LLM_SOLVER]
                 and x.get(EXPERIMENT_BLOCK_TYPE_MODEL_FN) == "infer_programs_for_tasks"
                 and x.get(TASK_SPLIT) == TEST,
                 loop_blocks,
@@ -625,6 +626,9 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
 
         df_list = []
         for split, data in frontiers_json.items():
+            # Skip metadata
+            if split not in [TRAIN, TEST]:
+                continue
             # Skip iterations where the test solver didn't run
             if split == TEST and iteration % run_every_n != 0:
                 continue
