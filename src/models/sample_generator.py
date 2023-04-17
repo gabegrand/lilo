@@ -256,7 +256,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                 parse_results = self.parse_completion(
                     completion,
                     experiment_state=experiment_state,
-                    split=task_split,
+                    task_split=task_split,
                     task_ids=task_ids_in_splits[task_split],
                     valid_request_types=train_task_request_types,
                     function_name_classes=function_name_classes,
