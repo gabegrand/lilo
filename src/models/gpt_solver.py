@@ -43,6 +43,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
         n_samples_per_query: int = None,
         n_queries_per_task: int = None,
         max_retries: int = None,
+        add_samples: bool = False,
         # Prompt construction
         body_task_types: list = [LANGUAGE, PROGRAMS],
         final_task_types: list = [LANGUAGE],
@@ -73,10 +74,10 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                     self.add_samples_to_experiment_state(
                         experiment_state=experiment_state,
                         task_split=task_split,
-                        parse_results_valid=results_json["parse_results_solved"],
+                        parse_results_valid=results_json["parse_results_valid"],
                         evaluate_samples=True,
                         compute_likelihoods=True,
-                        add_samples=False,
+                        add_samples=add_samples,
                     )
                 print(f"Loaded GPT results from: {results_filepath}")
                 return
@@ -85,7 +86,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
 
         task_to_solutions = defaultdict(list)
         results_by_query = []
-        parse_results_solved = []
+        parse_results_valid = []
 
         for task_i, task_id in enumerate(task_batch_ids):
             for query_i in range(n_queries_per_task):
@@ -162,12 +163,15 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
 
                     for result_data in parse_results:
                         result_data["query_i"] = query_i
+
                         if result_data.get("tasks_solved"):
+                            # Sanity check
                             assert len(result_data["tasks_solved"]) == 1
                             assert result_data["tasks_solved"][0] == task_id
-
-                            parse_results_solved.append(result_data)
                             task_to_solutions[task_id].append(result_data)
+
+                        if result_data["valid"]:
+                            parse_results_valid.append(result_data)
 
                     # Print query results
                     if verbose:
@@ -225,7 +229,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                     "n_tasks_solved": len(tasks_solved),
                     "tasks_solved": list(tasks_solved),
                 },
-                "parse_results_solved": parse_results_solved,
+                "parse_results_valid": parse_results_valid,
                 "results_by_query": results_by_query,
             }
             if not debug:
@@ -238,10 +242,10 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
         self.add_samples_to_experiment_state(
             experiment_state=experiment_state,
             task_split=task_split,
-            parse_results_valid=parse_results_solved,
+            parse_results_valid=parse_results_valid,
             evaluate_samples=True,
             compute_likelihoods=True,
-            add_samples=False,
+            add_samples=add_samples,
         )
 
     def construct_initial_prompt(

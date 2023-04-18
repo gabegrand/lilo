@@ -667,12 +667,16 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                     )
                     continue
             # CHECK 7: Does the program solve any tasks?
+            task_attempted = None
             tasks_solved = []
             if evaluate_samples:
                 for task in experiment_state.get_tasks_for_ids(task_split, task_ids):
                     if task.check(p, timeout=grammar.DEFAULT_EVALUATION_TIMEOUT):
                         tasks_solved.append(task.name)
                         # TODO: break on first solved task?
+
+                    if len(task_ids) == 1:
+                        task_attempted = task_ids[0]
 
             parse_results.append(
                 {
@@ -682,6 +686,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                     "type": str(p_type),
                     "type_json": p_type.json(),
                     "hash": abs(hash(str(p))),
+                    "task_attempted": task_attempted,
                     "tasks_solved": tasks_solved,
                 }
             )
@@ -740,7 +745,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
             # If the program doesn't solve any tasks, add it to the experiment state as a sample.
             elif add_samples:
                 sample_task = Task(
-                    name=f"gpt_{result_data['hash']}",
+                    name=f"sample_{result_data['task_attempted']}",
                     request=Type.fromjson(result_data["type_json"]),
                     examples=[],
                 )
@@ -760,10 +765,22 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                 if compute_likelihoods:
                     sample_frontier = grammar.rescoreFrontier(sample_frontier)
 
-                experiment_state.sample_tasks[task_split].append(sample_task)
-                experiment_state.sample_frontiers[task_split][
-                    sample_task
-                ] = sample_frontier
+                # If a sample task already exists for this task, combine
+                if sample_task in experiment_state.sample_tasks[task_split]:
+                    experiment_state.sample_tasks[task_split][
+                        sample_task
+                    ] = experiment_state.sample_frontiers[task_split][
+                        sample_task
+                    ].combine(
+                        sample_frontier
+                    )
+                # Otherwise, create a new sample task
+                else:
+                    experiment_state.sample_tasks[task_split].append(sample_task)
+                    experiment_state.sample_frontiers[task_split][
+                        sample_task
+                    ] = sample_frontier
+            # Otherwise, discard the sample
             else:
                 continue
 
