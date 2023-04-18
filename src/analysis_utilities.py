@@ -18,6 +18,8 @@ from src.config_builder import DEFAULT_EXPERIMENT_DIR, ExperimentType
 from src.experiment_iterator import (
     EXPERIMENT_BLOCK_TYPE_MODEL_FN,
     LOOP_BLOCKS,
+    METRICS_CHECKPOINT,
+    METRICS_LOOP_BLOCK_RUNTIMES,
     MODEL_TYPE,
     RUN_EVERY_N_ITERATIONS,
 )
@@ -161,6 +163,46 @@ class IterativeExperimentAnalyzer:
             f"seed_{seed}",
             f"{experiment_type}_{batch_size}",
         )
+
+    def get_runtime_metrics(self):
+        df_list = []
+        for domain in self.domains:
+            for experiment_type in self.get_available_experiment_types(domain):
+                for seed in self.get_available_seeds(domain, experiment_type):
+                    for iteration in self.get_available_iterations(
+                        domain, experiment_type, seed
+                    ):
+                        run_path = self.get_run_path(
+                            domain, experiment_type, seed, self.batch_size
+                        )
+                        metrics_path = os.path.join(
+                            run_path, str(iteration), METRICS_CHECKPOINT
+                        )
+
+                        if self.allow_incomplete_results and not os.path.exists(
+                            metrics_path
+                        ):
+                            print(f"Not found: {metrics_path}")
+                            continue
+
+                        with open(metrics_path, "r") as f:
+                            metrics_json = json.load(f)
+
+                        df = pd.DataFrame(metrics_json[METRICS_LOOP_BLOCK_RUNTIMES])
+                        df["domain"] = domain
+                        df["experiment_type"] = experiment_type
+                        df["seed"] = seed
+                        df["iteration"] = iteration
+                        df_list.append(df)
+
+        df_runtime = pd.concat(df_list, axis=0).reset_index(drop=True)
+        df_runtime["time_start"] = pd.to_datetime(
+            df_runtime["time_start"], unit="s", utc=True
+        )
+        df_runtime["time_end"] = pd.to_datetime(
+            df_runtime["time_end"], unit="s", utc=True
+        )
+        return df_runtime
 
     def get_default_split(self, experiment_type):
         if experiment_type == ExperimentType.ORACLE:
