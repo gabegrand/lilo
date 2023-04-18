@@ -31,6 +31,9 @@ INIT_FRONTIERS_EVERY_ITERATION = "init_frontiers_every_iteration"
 FRONTIERS_CHECKPOINT = "frontiers.json"
 SAMPLES_CHECKPOINT = "samples.json"
 
+METRICS_CHECKPOINT = "metrics.json"
+METRICS_LOOP_BLOCK_RUNTIMES = "loop_block_runtimes"
+
 MODEL_INITIALIZERS = "model_initializers"
 MODEL_TYPE = "model_type"
 MODEL_LOADER = "model_loader"
@@ -417,6 +420,18 @@ class ExperimentState:
             if model in self.models:
                 self.models[model].checkpoint(self, self.get_checkpoint_directory())
 
+    def checkpoint_metrics(self, loop_block_runtimes):
+        metrics_json = {
+            METRICS_LOOP_BLOCK_RUNTIMES: loop_block_runtimes,
+        }
+        checkpoint_filepath = os.path.join(
+            self.get_checkpoint_directory(), METRICS_CHECKPOINT
+        )
+        with open(checkpoint_filepath, "w") as f:
+            json.dump(metrics_json, f, indent=4)
+
+        print(f"Wrote {metrics_json}")
+
     def aws_s3_sync(self, s3_base_path):
         assert s3_base_path.startswith("s3://")
         print(f"============Syncing to AWS S3===========")
@@ -584,6 +599,9 @@ EXPERIMENT_BLOCK_TYPE_STATE_FN = "state_fn"
 STATE_TO_CHECKPOINT = "state_to_checkpoint"
 MODELS_TO_CHECKPOINT = "models_to_checkpoint"
 AWS_S3_SYNC_BASE_PATH = "aws_s3_sync_base_path"
+TIME_START = "time_start"
+TIME_END = "time_end"
+TIME_ELAPSED = "time_elapsed"
 
 
 class ExperimentIterator:
@@ -596,6 +614,7 @@ class ExperimentIterator:
             self.task_batcher,
             self.loop_pointer,
             self.loop_blocks,
+            self.loop_block_runtimes,
         ) = self.init_iterator_from_config(config, experiment_state)
 
     def init_iterator_from_config(self, config, experiment_state):
@@ -618,12 +637,15 @@ class ExperimentIterator:
         loop_pointer = 0
         loop_blocks = config[EXPERIMENT_ITERATOR][LOOP_BLOCKS]
 
+        loop_block_runtimes = []
+
         return (
             curr_iteration,
             max_iterations,
             task_batcher,
             loop_pointer,
             loop_blocks,
+            loop_block_runtimes,
         )
 
     def is_finished(self):
@@ -657,6 +679,7 @@ class ExperimentIterator:
             self.loop_pointer = self.loop_pointer % len(self.loop_blocks)
             self.curr_iteration += 1
             experiment_state.curr_iteration = self.curr_iteration
+            self.loop_block_runtimes = []
 
     def execute_state_fn(self, experiment_state, curr_loop_block):
         """Executes a function on the experiment state."""
@@ -759,6 +782,23 @@ class ExperimentIterator:
             **curr_loop_block[PARAMS],
         )
         t_end = time.time()
+
+        self.loop_block_runtimes.append(
+            {
+                CURR_ITERATION: self.curr_iteration,
+                MODEL_TYPE: curr_loop_block[MODEL_TYPE],
+                EXPERIMENT_BLOCK_TYPE_MODEL_FN: curr_loop_block[
+                    EXPERIMENT_BLOCK_TYPE_MODEL_FN
+                ],
+                task_loaders.TASK_SPLIT: task_split,
+                TIME_START: t_start,
+                TIME_END: t_end,
+                TIME_ELAPSED: t_end - t_start,
+            }
+        )
+        experiment_state.checkpoint_metrics(
+            loop_block_runtimes=self.loop_block_runtimes
+        )
 
         print(f"====================================")
         print(f"iteration: {self.curr_iteration}")
