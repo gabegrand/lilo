@@ -66,7 +66,7 @@
                     "body_task_types": ["language", "programs"],
                     "final_task_types": ["language"],
                     "prepend_dsl_description": true,
-                    "verbose": true
+                    "verbose": false
                 }
             },
             {
@@ -83,7 +83,7 @@
                     "body_task_types": ["language", "programs"],
                     "final_task_types": ["language"],
                     "prepend_dsl_description": true,
-                    "verbose": true
+                    "verbose": false
                 },
                 "run_every_n_iterations": 3,
                 "first_iteration": 3

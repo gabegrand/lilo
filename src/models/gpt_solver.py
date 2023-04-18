@@ -148,7 +148,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                         function_name_classes=function_name_classes,
                         evaluate_samples=True,
                         compute_likelihoods=True,
-                        verbose=True,
+                        verbose=verbose,
                     )
                     results_by_query.append(
                         {
@@ -191,7 +191,8 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                         print("")
 
                     print(
-                        f"[TASK {task_i}/{len(task_batch_ids)} QUERY {query_i}/{n_queries_per_task}]: {task_id}"
+                        f"[TASK {task_i}/{len(task_batch_ids)} QUERY {query_i}/{n_queries_per_task}]: {task_id}",
+                        flush=True,
                     )
 
                     n_tasks_solved = len(
@@ -201,7 +202,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                             if len(results) > 0
                         ]
                     )
-                    print(f"Tasks solved so far: {n_tasks_solved}/{task_i}")
+                    print(f"Tasks solved so far: {n_tasks_solved}/{task_i}", flush=True)
 
                     # Query succeeded: break from retry loop
                     break
@@ -236,7 +237,8 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                 os.makedirs(os.path.dirname(results_filepath), exist_ok=True)
                 with open(results_filepath, "w") as f:
                     json.dump(results, f, indent=4)
-                print(f"Wrote results: {results_filepath}")
+                if verbose:
+                    print(f"Wrote results: {results_filepath}")
 
         # Update experiment_state.
         self.add_samples_to_experiment_state(
