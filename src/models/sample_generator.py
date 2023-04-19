@@ -767,7 +767,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
 
                 # If a sample task already exists for this task, combine
                 if sample_task in experiment_state.sample_tasks[task_split]:
-                    experiment_state.sample_tasks[task_split][
+                    experiment_state.sample_frontiers[task_split][
                         sample_task
                     ] = experiment_state.sample_frontiers[task_split][
                         sample_task

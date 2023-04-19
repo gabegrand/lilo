@@ -62,27 +62,42 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
         if (resume_strategy == "first" and experiment_state.is_first_iteration()) or (
             resume_strategy == "every"
         ):
-            results_filepath = os.path.join(
+            # If RESUME_CHECKPOINT_DIRECTORY not defined, default to self checkpoint directory
+            results_filepath_ext = os.path.join(
                 os.getcwd(),
-                experiment_state.get_resume_checkpoint_directory(),
+                experiment_state.get_checkpoint_directory_maybe_resume(),
                 task_split,
                 self.results_file,
             )
-            if os.path.exists(results_filepath):
-                with open(results_filepath, "r") as f:
+            if os.path.exists(results_filepath_ext):
+                with open(results_filepath_ext, "r") as f:
                     results_json = json.load(f)
-                    self.add_samples_to_experiment_state(
-                        experiment_state=experiment_state,
-                        task_split=task_split,
-                        parse_results_valid=results_json["parse_results_valid"],
-                        evaluate_samples=True,
-                        compute_likelihoods=True,
-                        add_samples=add_samples,
-                    )
-                print(f"Loaded GPT results from: {results_filepath}")
+
+                # Update experiment state from file
+                self.add_samples_to_experiment_state(
+                    experiment_state=experiment_state,
+                    task_split=task_split,
+                    parse_results_valid=results_json["parse_results_valid"],
+                    evaluate_samples=True,
+                    compute_likelihoods=True,
+                    add_samples=add_samples,
+                )
+
+                # Copy external results file to checkpoint directory
+                results_filepath = os.path.join(
+                    os.getcwd(),
+                    experiment_state.get_checkpoint_directory(),
+                    task_split,
+                    self.results_file,
+                )
+                os.makedirs(os.path.dirname(results_filepath), exist_ok=True)
+                with open(results_filepath, "w") as f:
+                    json.dump(results_json, f, indent=4)
+
+                print(f"Loaded GPT results from: {results_filepath_ext}")
                 return
             else:
-                print(f"GPT results not found at: {results_filepath}")
+                print(f"GPT results not found at: {results_filepath_ext}")
                 if experiment_state.is_first_iteration():
                     raise ValueError("Unable to resume first iteration.")
 

@@ -241,9 +241,15 @@ class ExperimentState:
         return checkpoint_directory
 
     def get_resume_checkpoint_directory(self):
-        return os.path.join(
-            self.metadata[RESUME_CHECKPOINT_DIRECTORY], str(self.curr_iteration)
-        )
+        if self.metadata.get(RESUME_CHECKPOINT_DIRECTORY):
+            return os.path.join(
+                self.metadata[RESUME_CHECKPOINT_DIRECTORY], str(self.curr_iteration)
+            )
+        else:
+            return None
+
+    def get_checkpoint_directory_maybe_resume(self):
+        return self.get_resume_checkpoint_directory() or self.get_checkpoint_directory()
 
     def checkpoint_frontiers(self):
         json_frontiers = {}
