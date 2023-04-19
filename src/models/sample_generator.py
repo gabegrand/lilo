@@ -526,7 +526,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                     == n_samples_per_query
                 )
                 assert query_results["params"]["temperature"] == temperature
-                assert query_results["params"]["engine"] == self.engine
+                assert query_results["params"]["engine"] == self.ENGINE
                 assert query_results["params"]["line_separator"] == line_separator
                 # Get the cached completion for the particular query_id.
                 assert (

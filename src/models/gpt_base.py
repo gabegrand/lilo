@@ -34,6 +34,9 @@ class GPTBase(object):
         ENGINE_GPT_4: 8192,
     }
 
+    # Models that use chat completion format
+    CHAT_ENGINES = [ENGINE_GPT_3_5_TURBO, ENGINE_GPT_4]
+
     def __init__(self, experiment_state=None, engine=None):
         super().__init__()
         if not os.getenv("OPENAI_API_KEY"):
@@ -72,13 +75,12 @@ class GPTBase(object):
                 time.sleep(rate_limit_seconds)
                 rate_limit_seconds *= 2  # Exponential backoff
             try:
-                completion = openai.Completion.create(
-                    engine=self.ENGINE,
+                completion = self._create_completion(
                     prompt=prompt,
                     temperature=temperature if top_p is None else 1.0,
                     top_p=top_p if temperature is None else 1.0,
-                    n=n_samples,
-                    stop=line_separator,
+                    n_samples=n_samples,
+                    line_separator=line_separator,
                     max_tokens=max_tokens,
                     logprobs=logprobs,
                 )
@@ -94,6 +96,51 @@ class GPTBase(object):
                 print(e)
                 pause_for_rate_limit = True
                 completion = e
+
+        return completion
+
+    def is_chat_format(self):
+        return self.ENGINE in self.CHAT_ENGINES
+
+    def _create_completion(
+        self,
+        prompt,
+        temperature,
+        top_p,
+        n_samples,
+        line_separator,
+        max_tokens,
+        logprobs,
+    ):
+        if self.is_chat_format():
+
+            # Convert prompt text to ChatCompletion format
+            messages = [{"role": "user", "content": prompt}]
+
+            completion = openai.ChatCompletion.create(
+                model=self.ENGINE,
+                messages=messages,
+                temperature=temperature if top_p is None else 1.0,
+                top_p=top_p if temperature is None else 1.0,
+                n=n_samples,
+                stop=line_separator,
+                max_tokens=max_tokens,
+            )
+
+            # Convert ChatCompletion -> Completion format
+            for choice in completion["choices"]:
+                choice["text"] = choice["message"]["content"]
+        else:
+            completion = openai.Completion.create(
+                model=self.ENGINE,
+                prompt=prompt,
+                temperature=temperature if top_p is None else 1.0,
+                top_p=top_p if temperature is None else 1.0,
+                n=n_samples,
+                stop=line_separator,
+                max_tokens=max_tokens,
+                logprobs=logprobs,
+            )
 
         return completion
 

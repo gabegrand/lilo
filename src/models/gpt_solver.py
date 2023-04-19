@@ -194,7 +194,7 @@ class GPTSolver(GPTSampleGenerator):
                         print(prompt)
                         print("-" * 12)
 
-                        print("GPT completions:")
+                        print(f"GPT ({self.ENGINE}) completions:")
                         for result_data in parse_results:
                             if result_data.get("tasks_solved"):
                                 status_emoji = "🏆"
@@ -232,7 +232,7 @@ class GPTSolver(GPTSampleGenerator):
                     "n_samples_per_query": n_samples_per_query,
                     "n_queries_per_task": n_queries_per_task,
                     "temperature": temperature,
-                    "engine": self.engine,
+                    "engine": self.ENGINE,
                     "line_separator": line_separator,
                     "body_task_types": body_task_types,
                     "final_task_types": final_task_types,
