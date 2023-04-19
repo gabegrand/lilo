@@ -143,6 +143,9 @@ class ExperimentState:
     def init_curr_iteration(self):
         return self.metadata.get(CURR_ITERATION, 0)
 
+    def is_first_iteration(self):
+        return self.curr_iteration == self.metadata.get(CURR_ITERATION, 0)
+
     def init_log_and_export_from_config(self):
         """Initializes time-stamped checkpoint directory and log file if log and export directory are provided."""
 
@@ -205,8 +208,9 @@ class ExperimentState:
         if self.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
 
             # Restore frontiers if it's the first iteration or if config specifies to restore every iteration
-            if self.metadata[INIT_FRONTIERS_EVERY_ITERATION] or (
-                self.curr_iteration == self.metadata[CURR_ITERATION]
+            if (
+                self.metadata[INIT_FRONTIERS_EVERY_ITERATION]
+                or self.is_first_iteration()
             ):
 
                 # Load the current grammar
@@ -240,6 +244,12 @@ class ExperimentState:
         return os.path.join(
             self.metadata[RESUME_CHECKPOINT_DIRECTORY], str(self.curr_iteration)
         )
+
+    def get_checkpoint_directory_maybe_resume(self):
+        if self.metadata[RESUME_CHECKPOINT_DIRECTORY] is not None:
+            return self.get_resume_checkpoint_directory()
+        else:
+            return self.get_checkpoint_directory()
 
     def checkpoint_frontiers(self):
         json_frontiers = {}

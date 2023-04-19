@@ -54,20 +54,23 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
         temperature: float = 0.40,
         max_tokens_completion_beta: float = 2.0,
         engine: str = GPTBase.DEFAULT_ENGINE,
+        # Resume from prior runs
+        resume_strategy: str = None,
         # Utilities
         debug: bool = False,
-        use_cached: bool = False,
         verbose: bool = False,
     ):
-
         results_filepath = os.path.join(
             os.getcwd(),
-            experiment_state.get_checkpoint_directory(),
+            experiment_state.get_checkpoint_directory_maybe_resume(),
             task_split,
             self.results_file,
         )
 
-        if use_cached:
+        should_resume = (
+            resume_strategy == "first" and experiment_state.is_first_iteration()
+        ) or (resume_strategy == "every")
+        if should_resume:
             if os.path.exists(results_filepath):
                 with open(results_filepath, "r") as f:
                     results_json = json.load(f)
@@ -83,6 +86,8 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                 return
             else:
                 print(f"GPT results not found at: {results_filepath}")
+                if experiment_state.is_first_iteration():
+                    raise ValueError("Unable to resume first iteration.")
 
         task_to_solutions = defaultdict(list)
         results_by_query = []
@@ -212,7 +217,6 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
             ]
 
             # Save results to file.
-            # TODO: Clean up json format
             results = {
                 "params": {
                     "n_samples_per_query": n_samples_per_query,
@@ -220,7 +224,6 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                     "temperature": temperature,
                     "engine": engine,
                     "line_separator": line_separator,
-                    "use_cached": use_cached,
                     "debug": debug,
                     "body_task_types": body_task_types,
                     "final_task_types": final_task_types,
