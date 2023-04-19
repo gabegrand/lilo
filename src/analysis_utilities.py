@@ -679,7 +679,10 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
             df["task"] = df.index
             df["split"] = split
             df_list.append(df)
-        return pd.concat(df_list).reset_index(drop=True)
+
+        df_out = pd.concat(df_list).reset_index(drop=True)
+        df_out["solved"] = df_out["programs"].apply(lambda x: len(x) > 0)
+        return df_out
 
     def get_search_time_results_for_domain(
         self, domain, experiment_types=None, time_interval=1

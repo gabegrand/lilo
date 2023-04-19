@@ -160,6 +160,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--resume_strategy",
+    default=None,
+    choices=["first", "every"],
+    help="First: Resume first iteration only. Every: Resume every iteration.",
+)
+
+parser.add_argument(
     "--debug",
     default=False,
     action="store_true",
@@ -185,6 +192,8 @@ def main(args):
 
     gpt_params = json.loads(args.gpt_params)
     stitch_params = json.loads(args.stitch_params)
+    if args.resume_strategy:
+        gpt_params["resume_strategy"] = args.resume_strategy
     if args.use_cached:
         gpt_params["use_cached"] = True
     if args.debug:

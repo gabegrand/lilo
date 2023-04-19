@@ -43,6 +43,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
         n_samples_per_query: int = None,
         n_queries_per_task: int = None,
         max_retries: int = None,
+        add_samples: bool = False,
         # Prompt construction
         body_task_types: list = [LANGUAGE, PROGRAMS],
         final_task_types: list = [LANGUAGE],
@@ -53,39 +54,56 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
         temperature: float = 0.40,
         max_tokens_completion_beta: float = 2.0,
         engine: str = GPTBase.DEFAULT_ENGINE,
+        # Resume from prior runs
+        resume_strategy: str = None,
         # Utilities
-        debug: bool = False,
-        use_cached: bool = False,
         verbose: bool = False,
     ):
-
-        results_filepath = os.path.join(
-            os.getcwd(),
-            experiment_state.get_checkpoint_directory(),
-            task_split,
-            self.results_file,
-        )
-
-        if use_cached:
-            if os.path.exists(results_filepath):
-                with open(results_filepath, "r") as f:
+        if (resume_strategy == "first" and experiment_state.is_first_iteration()) or (
+            resume_strategy == "every"
+        ):
+            # If RESUME_CHECKPOINT_DIRECTORY not defined, default to self checkpoint directory
+            results_filepath_ext = os.path.join(
+                os.getcwd(),
+                experiment_state.get_checkpoint_directory_maybe_resume(),
+                task_split,
+                self.results_file,
+            )
+            if os.path.exists(results_filepath_ext):
+                with open(results_filepath_ext, "r") as f:
                     results_json = json.load(f)
-                    self.add_samples_to_experiment_state(
-                        experiment_state=experiment_state,
-                        task_split=task_split,
-                        parse_results_valid=results_json["parse_results_solved"],
-                        evaluate_samples=True,
-                        compute_likelihoods=True,
-                        add_samples=False,
-                    )
-                print(f"Loaded GPT results from: {results_filepath}")
+
+                # Update experiment state from file
+                self.add_samples_to_experiment_state(
+                    experiment_state=experiment_state,
+                    task_split=task_split,
+                    parse_results_valid=results_json["parse_results_valid"],
+                    evaluate_samples=True,
+                    compute_likelihoods=True,
+                    add_samples=add_samples,
+                )
+
+                # Copy external results file to checkpoint directory
+                results_filepath = os.path.join(
+                    os.getcwd(),
+                    experiment_state.get_checkpoint_directory(),
+                    task_split,
+                    self.results_file,
+                )
+                os.makedirs(os.path.dirname(results_filepath), exist_ok=True)
+                with open(results_filepath, "w") as f:
+                    json.dump(results_json, f, indent=4)
+
+                print(f"Loaded GPT results from: {results_filepath_ext}")
                 return
             else:
-                print(f"GPT results not found at: {results_filepath}")
+                print(f"GPT results not found at: {results_filepath_ext}")
+                if experiment_state.is_first_iteration():
+                    raise ValueError("Unable to resume first iteration.")
 
         task_to_solutions = defaultdict(list)
         results_by_query = []
-        parse_results_solved = []
+        parse_results_valid = []
 
         for task_i, task_id in enumerate(task_batch_ids):
             for query_i in range(n_queries_per_task):
@@ -147,7 +165,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                         function_name_classes=function_name_classes,
                         evaluate_samples=True,
                         compute_likelihoods=True,
-                        verbose=True,
+                        verbose=verbose,
                     )
                     results_by_query.append(
                         {
@@ -162,12 +180,15 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
 
                     for result_data in parse_results:
                         result_data["query_i"] = query_i
+
                         if result_data.get("tasks_solved"):
+                            # Sanity check
                             assert len(result_data["tasks_solved"]) == 1
                             assert result_data["tasks_solved"][0] == task_id
-
-                            parse_results_solved.append(result_data)
                             task_to_solutions[task_id].append(result_data)
+
+                        if result_data["valid"]:
+                            parse_results_valid.append(result_data)
 
                     # Print query results
                     if verbose:
@@ -187,7 +208,8 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                         print("")
 
                     print(
-                        f"[TASK {task_i}/{len(task_batch_ids)} QUERY {query_i}/{n_queries_per_task}]: {task_id}"
+                        f"[TASK {task_i}/{len(task_batch_ids)} QUERY {query_i}/{n_queries_per_task}]: {task_id}",
+                        flush=True,
                     )
 
                     n_tasks_solved = len(
@@ -197,7 +219,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                             if len(results) > 0
                         ]
                     )
-                    print(f"Tasks solved so far: {n_tasks_solved}/{task_i}")
+                    print(f"Tasks solved so far: {n_tasks_solved}/{task_i}", flush=True)
 
                     # Query succeeded: break from retry loop
                     break
@@ -206,8 +228,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                 t for t, results in task_to_solutions.items() if len(results) > 0
             ]
 
-            # Save results to file.
-            # TODO: Clean up json format
+            # Collect results
             results = {
                 "params": {
                     "n_samples_per_query": n_samples_per_query,
@@ -215,8 +236,6 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                     "temperature": temperature,
                     "engine": engine,
                     "line_separator": line_separator,
-                    "use_cached": use_cached,
-                    "debug": debug,
                     "body_task_types": body_task_types,
                     "final_task_types": final_task_types,
                     "function_name_classes": function_name_classes,
@@ -225,23 +244,31 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                     "n_tasks_solved": len(tasks_solved),
                     "tasks_solved": list(tasks_solved),
                 },
-                "parse_results_solved": parse_results_solved,
+                "parse_results_valid": parse_results_valid,
                 "results_by_query": results_by_query,
             }
-            if not debug:
-                os.makedirs(os.path.dirname(results_filepath), exist_ok=True)
-                with open(results_filepath, "w") as f:
-                    json.dump(results, f, indent=4)
+
+            # Save results to file
+            results_filepath = os.path.join(
+                os.getcwd(),
+                experiment_state.get_checkpoint_directory(),
+                task_split,
+                self.results_file,
+            )
+            os.makedirs(os.path.dirname(results_filepath), exist_ok=True)
+            with open(results_filepath, "w") as f:
+                json.dump(results, f, indent=4)
+            if verbose:
                 print(f"Wrote results: {results_filepath}")
 
-        # Update experiment_state.
+        # Update experiment_state
         self.add_samples_to_experiment_state(
             experiment_state=experiment_state,
             task_split=task_split,
-            parse_results_valid=parse_results_solved,
+            parse_results_valid=parse_results_valid,
             evaluate_samples=True,
             compute_likelihoods=True,
-            add_samples=False,
+            add_samples=add_samples,
         )
 
     def construct_initial_prompt(

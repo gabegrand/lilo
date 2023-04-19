@@ -37,8 +37,8 @@ DEFAULT_TEMPLATE_DIR = os.path.join(DEFAULT_EXPERIMENT_DIR, "templates")
 
 
 DEFAULT_STITCH_PARAMS = {
-    "max_arity": 2,
-    "iterations": 1,
+    "max_arity": 3,
+    "iterations": 10,
     "candidates_per_iteration": 1,
 }
 
@@ -57,10 +57,8 @@ DEFAULT_GPT_PARAMS = {
 }
 
 DEFAULT_GPT_SOLVER_PARAMS = {
-    "debug": False,
-    "use_cached": False,
-    "temperature": 0.40,
-    "max_tokens_completion_beta": 2.0,
+    "temperature": 0.90,
+    "max_tokens_completion_beta": 4.0,
     "function_name_classes": ["human_readable", "default_no_inline", "numeric"],
 }
 
@@ -97,7 +95,7 @@ def get_domain_metadata(domain: str):
             "tasks_loader": "re2",
             "task_language_loader": "re2_synthetic",
             "ocaml_special_handler": "re2",
-            "dsl_description_prefix": "Lambda calculus DSL for regular expressions.\n\nCharacter primitives must be composed using one of the functions; e.g., (regex_or 'a' (regex_or 'b' 'c'))",
+            "dsl_description_prefix": "Lambda calculus DSL for regular expressions.",
             "global_batch_sizes": [5, 10, 15, 25, 50, 100, 200, 300, 400, 491],
         },
     }
