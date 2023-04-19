@@ -17,7 +17,19 @@ import argparse
 import json
 import os
 
-from src.experiment_iterator import ExperimentIterator, ExperimentState
+import os, json, argparse
+
+from src.experiment_iterator import ExperimentState, ExperimentIterator
+
+from data.compositional_graphics.make_tasks import *
+from data.compositional_graphics.grammar import *
+from data.compositional_graphics.encoder import *
+from data.re2.make_tasks import *
+from data.re2.grammar import *
+from data.re2.encoder import *
+from data.clevr.make_tasks import *
+from data.clevr.grammar import *
+from data.clevr.encoder import *
 
 # zyzzyva@ - Temporarily disable the LAX domains. These incorrectly overwrite the global int primitives to floats, breaking
 # backward compatability with the DC domains that rely on integers.
@@ -27,6 +39,13 @@ from src.experiment_iterator import ExperimentIterator, ExperimentState
 
 # from data.structures.make_tasks import *
 # from data.structures.grammar import *
+
+from src.models.gpt_solver import *
+from src.models.laps_dreamcoder_recognition import *
+from src.models.sample_generator import *
+from src.models.stitch_proposer import *
+from src.models.stitch_rewriter import *
+from src.models.library_namer import *
 
 
 DEFAULT_CONFIG_DIR = "experiments/configs"
