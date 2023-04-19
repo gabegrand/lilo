@@ -57,7 +57,6 @@ DEFAULT_GPT_PARAMS = {
 }
 
 DEFAULT_GPT_SOLVER_PARAMS = {
-    "debug": False,
     "temperature": 0.90,
     "max_tokens_completion_beta": 4.0,
     "function_name_classes": ["human_readable", "default_no_inline", "numeric"],

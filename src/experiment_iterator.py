@@ -245,12 +245,6 @@ class ExperimentState:
             self.metadata[RESUME_CHECKPOINT_DIRECTORY], str(self.curr_iteration)
         )
 
-    def get_checkpoint_directory_maybe_resume(self):
-        if self.metadata[RESUME_CHECKPOINT_DIRECTORY] is not None:
-            return self.get_resume_checkpoint_directory()
-        else:
-            return self.get_checkpoint_directory()
-
     def checkpoint_frontiers(self):
         json_frontiers = {}
         json_frontiers["_summary"] = {

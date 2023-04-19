@@ -57,20 +57,17 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
         # Resume from prior runs
         resume_strategy: str = None,
         # Utilities
-        debug: bool = False,
         verbose: bool = False,
     ):
-        results_filepath = os.path.join(
-            os.getcwd(),
-            experiment_state.get_checkpoint_directory_maybe_resume(),
-            task_split,
-            self.results_file,
-        )
-
-        should_resume = (
-            resume_strategy == "first" and experiment_state.is_first_iteration()
-        ) or (resume_strategy == "every")
-        if should_resume:
+        if (resume_strategy == "first" and experiment_state.is_first_iteration()) or (
+            resume_strategy == "every"
+        ):
+            results_filepath = os.path.join(
+                os.getcwd(),
+                experiment_state.get_resume_checkpoint_directory(),
+                task_split,
+                self.results_file,
+            )
             if os.path.exists(results_filepath):
                 with open(results_filepath, "r") as f:
                     results_json = json.load(f)
@@ -216,7 +213,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                 t for t, results in task_to_solutions.items() if len(results) > 0
             ]
 
-            # Save results to file.
+            # Collect results
             results = {
                 "params": {
                     "n_samples_per_query": n_samples_per_query,
@@ -224,7 +221,6 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                     "temperature": temperature,
                     "engine": engine,
                     "line_separator": line_separator,
-                    "debug": debug,
                     "body_task_types": body_task_types,
                     "final_task_types": final_task_types,
                     "function_name_classes": function_name_classes,
@@ -236,14 +232,21 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                 "parse_results_valid": parse_results_valid,
                 "results_by_query": results_by_query,
             }
-            if not debug:
-                os.makedirs(os.path.dirname(results_filepath), exist_ok=True)
-                with open(results_filepath, "w") as f:
-                    json.dump(results, f, indent=4)
-                if verbose:
-                    print(f"Wrote results: {results_filepath}")
 
-        # Update experiment_state.
+            # Save results to file
+            results_filepath = os.path.join(
+                os.getcwd(),
+                experiment_state.get_checkpoint_directory(),
+                task_split,
+                self.results_file,
+            )
+            os.makedirs(os.path.dirname(results_filepath), exist_ok=True)
+            with open(results_filepath, "w") as f:
+                json.dump(results, f, indent=4)
+            if verbose:
+                print(f"Wrote results: {results_filepath}")
+
+        # Update experiment_state
         self.add_samples_to_experiment_state(
             experiment_state=experiment_state,
             task_split=task_split,
