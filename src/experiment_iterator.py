@@ -27,8 +27,12 @@ EXPORT_WITH_TIMESTAMP = "export_with_timestamp"
 TASKS_LOADER = "tasks_loader"
 TASK_LANGUAGE_LOADER = "task_language_loader"
 INIT_FRONTIERS_FROM_CHECKPOINT = "init_frontiers_from_checkpoint"
+INIT_FRONTIERS_EVERY_ITERATION = "init_frontiers_every_iteration"
 FRONTIERS_CHECKPOINT = "frontiers.json"
 SAMPLES_CHECKPOINT = "samples.json"
+
+METRICS_CHECKPOINT = "metrics.json"
+METRICS_LOOP_BLOCK_RUNTIMES = "loop_block_runtimes"
 
 MODEL_INITIALIZERS = "model_initializers"
 MODEL_TYPE = "model_type"
@@ -200,21 +204,30 @@ class ExperimentState:
     def maybe_resume_from_checkpoint(self):
         if self.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
 
-            # Load the current grammar
-            if self.curr_iteration > 0:
-                self.models[model_loaders.GRAMMAR] = self.models[
-                    model_loaders.GRAMMAR
-                ].load_model_from_checkpoint(self, self.get_checkpoint_directory())
-                print(f"Loaded grammar from: {self.get_checkpoint_directory()}")
+            # Restore frontiers if it's the first iteration or if config specifies to restore every iteration
+            if self.metadata[INIT_FRONTIERS_EVERY_ITERATION] or (
+                self.curr_iteration == self.metadata[CURR_ITERATION]
+            ):
 
-            # Load the frontiers
-            use_resume_checkpoint = (
-                self.metadata[RESUME_CHECKPOINT_DIRECTORY] is not None
-            )
-            frontiers_loaded = self.load_frontiers_from_checkpoint(
-                use_resume_checkpoint=use_resume_checkpoint
-            )
-            return frontiers_loaded
+                # Load the current grammar
+                if self.curr_iteration > 0:
+                    grammar = self.models[
+                        model_loaders.GRAMMAR
+                    ].load_model_from_checkpoint(self, self.get_checkpoint_directory())
+                    if not grammar:
+                        return False
+                    self.models[model_loaders.GRAMMAR] = grammar
+                    print(f"Loaded grammar from: {self.get_checkpoint_directory()}")
+
+                # Load the frontiers
+                use_resume_checkpoint = (
+                    self.metadata[RESUME_CHECKPOINT_DIRECTORY] is not None
+                )
+                frontiers_loaded = self.load_frontiers_from_checkpoint(
+                    use_resume_checkpoint=use_resume_checkpoint
+                )
+
+                return frontiers_loaded
 
     def get_checkpoint_directory(self):
         checkpoint_directory = os.path.join(
@@ -229,7 +242,15 @@ class ExperimentState:
         )
 
     def checkpoint_frontiers(self):
-        json_frontiers = {split: {} for split in self.task_frontiers}
+        json_frontiers = {}
+        json_frontiers["_summary"] = {
+            "n_tasks_solved": {
+                split: len(self.get_non_empty_frontiers_for_split(split))
+                for split in self.task_frontiers
+            }
+        }
+
+        json_frontiers.update({split: {} for split in self.task_frontiers})
         for split in self.task_frontiers:
             for task in self.task_frontiers[split]:
                 frontier_json = self.task_frontiers[split][task].json()
@@ -273,6 +294,17 @@ class ExperimentState:
                     self.task_frontiers[split][task] = self.task_frontiers[split][
                         task
                     ].combine(loaded_frontier)
+
+                    def none_to_nan(x):
+                        return np.nan if x is None else x
+
+                    self.best_search_times[split][task] = np.nanmin(
+                        [
+                            none_to_nan(self.best_search_times[split][task]),
+                            none_to_nan(json_frontier["best_search_time"]),
+                        ]
+                    )
+
         f"============Loaded previously checkpointed frontiers from {frontiers_checkpoint}==========="
         return True
 
@@ -288,6 +320,7 @@ class ExperimentState:
             else self.get_resume_checkpoint_directory()
         )
         samples_checkpoint = os.path.join(checkpoint_dir, SAMPLES_CHECKPOINT)
+
         if not os.path.exists(samples_checkpoint):
             print(
                 f"load_samples_from_checkpoint: No checkpoint found at: {samples_checkpoint}"
@@ -386,6 +419,18 @@ class ExperimentState:
         for model in models_to_checkpoint:
             if model in self.models:
                 self.models[model].checkpoint(self, self.get_checkpoint_directory())
+
+    def checkpoint_metrics(self, loop_block_runtimes):
+        metrics_json = {
+            METRICS_LOOP_BLOCK_RUNTIMES: loop_block_runtimes,
+        }
+        checkpoint_filepath = os.path.join(
+            self.get_checkpoint_directory(), METRICS_CHECKPOINT
+        )
+        with open(checkpoint_filepath, "w") as f:
+            json.dump(metrics_json, f, indent=4)
+
+        print(f"Wrote {metrics_json}")
 
     def aws_s3_sync(self, s3_base_path):
         assert s3_base_path.startswith("s3://")
@@ -554,6 +599,9 @@ EXPERIMENT_BLOCK_TYPE_STATE_FN = "state_fn"
 STATE_TO_CHECKPOINT = "state_to_checkpoint"
 MODELS_TO_CHECKPOINT = "models_to_checkpoint"
 AWS_S3_SYNC_BASE_PATH = "aws_s3_sync_base_path"
+TIME_START = "time_start"
+TIME_END = "time_end"
+TIME_ELAPSED = "time_elapsed"
 
 
 class ExperimentIterator:
@@ -566,6 +614,7 @@ class ExperimentIterator:
             self.task_batcher,
             self.loop_pointer,
             self.loop_blocks,
+            self.loop_block_runtimes,
         ) = self.init_iterator_from_config(config, experiment_state)
 
     def init_iterator_from_config(self, config, experiment_state):
@@ -588,12 +637,15 @@ class ExperimentIterator:
         loop_pointer = 0
         loop_blocks = config[EXPERIMENT_ITERATOR][LOOP_BLOCKS]
 
+        loop_block_runtimes = []
+
         return (
             curr_iteration,
             max_iterations,
             task_batcher,
             loop_pointer,
             loop_blocks,
+            loop_block_runtimes,
         )
 
     def is_finished(self):
@@ -627,6 +679,7 @@ class ExperimentIterator:
             self.loop_pointer = self.loop_pointer % len(self.loop_blocks)
             self.curr_iteration += 1
             experiment_state.curr_iteration = self.curr_iteration
+            self.loop_block_runtimes = []
 
     def execute_state_fn(self, experiment_state, curr_loop_block):
         """Executes a function on the experiment state."""
@@ -729,6 +782,23 @@ class ExperimentIterator:
             **curr_loop_block[PARAMS],
         )
         t_end = time.time()
+
+        self.loop_block_runtimes.append(
+            {
+                CURR_ITERATION: self.curr_iteration,
+                MODEL_TYPE: curr_loop_block[MODEL_TYPE],
+                EXPERIMENT_BLOCK_TYPE_MODEL_FN: curr_loop_block[
+                    EXPERIMENT_BLOCK_TYPE_MODEL_FN
+                ],
+                task_loaders.TASK_SPLIT: task_split,
+                TIME_START: t_start,
+                TIME_END: t_end,
+                TIME_ELAPSED: t_end - t_start,
+            }
+        )
+        experiment_state.checkpoint_metrics(
+            loop_block_runtimes=self.loop_block_runtimes
+        )
 
         print(f"====================================")
         print(f"iteration: {self.curr_iteration}")

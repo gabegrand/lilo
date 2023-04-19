@@ -1,15 +1,15 @@
 """
 run_experiment.py | Author: Catherine Wong.
 
-Commmand line utility for running experiments. 
+Commmand line utility for running experiments.
 Requires a CONFIG file specifying the experiment.
 
 By default, it exports:
     Experiment outputs and results to the export_directory.
     Experiment logs to the log_directory.
-    
-Usage: 
-    python run_experiment.py 
+
+Usage:
+    python run_experiment.py
         --config_dir experiments/configs
         --config_file dreamcoder_compositional_graphics_200_human.json
 """

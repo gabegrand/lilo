@@ -23,6 +23,7 @@ from src.models.model_loaders import (
     GRAMMAR,
     INITIALIZE_GROUND_TRUTH,
     LIBRARY_LEARNER,
+    LLM_SOLVER,
     PROGRAM_REWRITER,
     SAMPLE_GENERATOR,
 )
@@ -41,7 +42,7 @@ DEFAULT_STITCH_PARAMS = {
     "candidates_per_iteration": 1,
 }
 
-DEFAULT_CODEX_PARAMS = {
+DEFAULT_GPT_PARAMS = {
     "debug": False,
     "use_cached": False,
     "n_samples": 50,
@@ -53,6 +54,14 @@ DEFAULT_CODEX_PARAMS = {
     "body_task_types": ["programs"],
     "final_task_types": ["programs"],
     "prepend_dsl_description": False,
+}
+
+DEFAULT_GPT_SOLVER_PARAMS = {
+    "debug": False,
+    "use_cached": False,
+    "temperature": 0.40,
+    "max_tokens_completion_beta": 2.0,
+    "function_name_classes": ["human_readable", "default_no_inline", "numeric"],
 }
 
 
@@ -142,11 +151,13 @@ def build_config(
     recognition_train_steps: int = None,
     encoder: str = None,
     stitch_params: dict = DEFAULT_STITCH_PARAMS,
-    codex_params: dict = DEFAULT_CODEX_PARAMS,
+    gpt_params: dict = DEFAULT_GPT_PARAMS,
     compute_likelihoods: bool = True,
     compute_description_lengths: bool = True,
     increment_task_batcher: bool = True,
     init_frontiers_from_checkpoint: bool = False,
+    init_frontiers_every_iteration: bool = False,
+    resume_checkpoint_directory: bool = False,
     s3_sync: bool = True,
 ):
     config = {}
@@ -161,7 +172,7 @@ def build_config(
             recognition_train_steps=recognition_train_steps,
             encoder=encoder,
             stitch_params=stitch_params,
-            codex_params=codex_params,
+            gpt_params=gpt_params,
             compute_likelihoods=compute_likelihoods,
             compute_description_lengths=compute_description_lengths,
             increment_task_batcher=increment_task_batcher,
@@ -180,6 +191,8 @@ def build_config(
             output_directory=output_directory,
             init_iteration=init_iteration,
             init_frontiers_from_checkpoint=init_frontiers_from_checkpoint,
+            init_frontiers_every_iteration=init_frontiers_every_iteration,
+            resume_checkpoint_directory=resume_checkpoint_directory,
             random_seed=random_seed,
         )
     )
@@ -197,6 +210,8 @@ def build_config_metadata(
     output_directory: str = DEFAULT_EXPERIMENT_DIR,
     init_iteration: int = 0,
     init_frontiers_from_checkpoint: bool = False,
+    init_frontiers_every_iteration: bool = False,
+    resume_checkpoint_directory: bool = False,
     random_seed: int = 0,
 ):
     domain_meta = get_domain_metadata(domain)
@@ -231,8 +246,9 @@ def build_config_metadata(
             "task_language_loader": domain_meta["task_language_loader"],
             "dsl_description_prefix": domain_meta["dsl_description_prefix"],
             "export_with_timestamp": False,
-            "resume_checkpoint_directory": None,
+            "resume_checkpoint_directory": resume_checkpoint_directory,
             "init_frontiers_from_checkpoint": init_frontiers_from_checkpoint,
+            "init_frontiers_every_iteration": init_frontiers_every_iteration,
             "ocaml_special_handler": domain_meta["ocaml_special_handler"],
             "global_batch_size": global_batch_size,
             "enumeration_timeout": enumeration_timeout,
@@ -254,7 +270,7 @@ def build_config_body(
     recognition_train_steps: int = None,
     encoder: str = None,
     stitch_params: dict = DEFAULT_STITCH_PARAMS,
-    codex_params: dict = DEFAULT_CODEX_PARAMS,
+    gpt_params: dict = DEFAULT_GPT_PARAMS,
     compute_likelihoods: bool = True,
     compute_description_lengths: bool = True,
     increment_task_batcher: bool = True,
@@ -330,10 +346,15 @@ def build_config_body(
                 }
             )
         if block.get("model_type") == SAMPLE_GENERATOR:
-            _codex_params = DEFAULT_CODEX_PARAMS
-            _codex_params.update(block["params"])
-            _codex_params.update(codex_params)
-            block["params"] = _codex_params
+            _gpt_params = DEFAULT_GPT_PARAMS
+            _gpt_params.update(block["params"])
+            _gpt_params.update(gpt_params)
+            block["params"] = _gpt_params
+        if block.get("model_type") == LLM_SOLVER:
+            _gpt_params = DEFAULT_GPT_SOLVER_PARAMS
+            _gpt_params.update(block["params"])
+            _gpt_params.update(gpt_params)
+            block["params"] = _gpt_params
         if block.get("model_type") == LIBRARY_LEARNER:
             _stitch_params = DEFAULT_STITCH_PARAMS
             _stitch_params.update(block["params"])

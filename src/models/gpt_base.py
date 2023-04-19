@@ -1,7 +1,7 @@
 """
-codex_base.py | Author: Catherine Wong, Gabe Grand.
+gpt_base.py | Author: Gabe Grand.
 
-Base class containing utilities for working with the Codex language model.
+Base class containing utilities for working with the GPT language model.
 """
 
 import json
@@ -20,7 +20,7 @@ from src.task_loaders import LANGUAGE, PROGRAMS, TEST, TRAIN
 DEFAULT_LINE_SEPARATOR = "\n"
 
 
-class CodexBase(object):
+class GPTBase(object):
     # https://beta.openai.com/docs/engines/codex-series-private-beta
     DEFAULT_ENGINE = "code-davinci-002"
     ENGINE_MAX_TOKENS = 4096  # Max tokens for BOTH the prompt and the completion.
@@ -38,7 +38,7 @@ class CodexBase(object):
         self.tokenizer.model_max_length = self.ENGINE_MAX_TOKENS
         os.environ["TOKENIZERS_PARALLELISM"] = str(False)
 
-    def query_codex(
+    def query_completion(
         self,
         prompt: str,
         n_samples: int,
@@ -56,7 +56,7 @@ class CodexBase(object):
         for idx in range(max_attempts_rate_limit):
             if pause_for_rate_limit:
                 print(
-                    f"ERR: Codex rate limit. On attempt {idx}/{max_attempts_rate_limit} after waiting {rate_limit_seconds}s."
+                    f"ERR: OpenAI rate limit. On attempt {idx}/{max_attempts_rate_limit} after waiting {rate_limit_seconds}s."
                 )
                 time.sleep(rate_limit_seconds)
                 rate_limit_seconds *= 2  # Exponential backoff
@@ -140,7 +140,9 @@ class Prompt(object):
         self.function_name_classes = function_name_classes
 
         self.body_task_data = [
-            self._get_task_data(task_id=task_id, task_types=body_task_types)
+            self._get_task_data(
+                task_split=TRAIN, task_id=task_id, task_types=body_task_types
+            )
             for task_id in body_task_ids
         ]
 

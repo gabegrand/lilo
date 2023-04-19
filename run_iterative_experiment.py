@@ -17,7 +17,7 @@ python run_iterative_experiment.py \
 	--experiment_type stitch_codex \
 	--domain logo \
 	--stitch_params '{"iterations": 10}' \
-	--codex_params '{"use_cached": true}'
+	--gpt_params '{"use_cached": true}'
 
 python run_iterative_experiment.py \
 	--experiment_type oracle \
@@ -90,10 +90,10 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--stitch_params", default="{}", help="JSON string of stitch params"
+    "--stitch_params", default="{}", help="JSON string of Stitch params"
 )
 
-parser.add_argument("--codex_params", default="{}", help="JSON string of codex params")
+parser.add_argument("--gpt_params", default="{}", help="JSON string of GPT params")
 
 parser.add_argument(
     "--no_likelihoods",
@@ -139,17 +139,31 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--init_frontiers_every_iteration",
+    default=False,
+    action="store_true",
+    help="If using init_frontiers_from_checkpoint, default is to init once at the start. With --init_frontiers_every_iteration, frontiers are also loaded at every subsequent iteration.",
+)
+
+parser.add_argument(
+    "--resume_checkpoint_directory",
+    default=None,
+    type=str,
+    help="If using init_frontiers_from_checkpoint, optionally point to a checkpoint from a different experiment run.",
+)
+
+parser.add_argument(
     "--use_cached",
     default=False,
     action="store_true",
-    help="Use cached versions of Codex queries.",
+    help="Use cached versions of GPT queries.",
 )
 
 parser.add_argument(
     "--debug",
     default=False,
     action="store_true",
-    help="Replaces live query to Codex with a random sample from the training set.",
+    help="Replaces live query to GPT with a random sample from the training set.",
 )
 
 parser.add_argument(
@@ -169,12 +183,12 @@ parser.add_argument(
 
 def main(args):
 
-    codex_params = json.loads(args.codex_params)
+    gpt_params = json.loads(args.gpt_params)
     stitch_params = json.loads(args.stitch_params)
     if args.use_cached:
-        codex_params["use_cached"] = True
+        gpt_params["use_cached"] = True
     if args.debug:
-        codex_params["debug"] = True
+        gpt_params["debug"] = True
 
     for random_seed in args.random_seeds:
         config_base = build_config(
@@ -188,12 +202,14 @@ def main(args):
             enumeration_timeout=args.enumeration_timeout,
             recognition_train_steps=args.recognition_train_steps,
             encoder=args.encoder,
-            codex_params=codex_params,
+            gpt_params=gpt_params,
             stitch_params=stitch_params,
             compute_likelihoods=(not args.no_likelihoods),
             compute_description_lengths=True,
             increment_task_batcher=True,
             init_frontiers_from_checkpoint=args.init_frontiers_from_checkpoint,
+            init_frontiers_every_iteration=args.init_frontiers_every_iteration,
+            resume_checkpoint_directory=args.resume_checkpoint_directory,
             s3_sync=(not args.no_s3_sync),
         )
 
@@ -238,12 +254,14 @@ def main(args):
                 recognition_train_steps=args.recognition_train_steps,
                 encoder=args.encoder,
                 global_batch_size=global_batch_size,
-                codex_params=codex_params,
+                gpt_params=gpt_params,
                 stitch_params=stitch_params,
                 compute_likelihoods=(not args.no_likelihoods),
                 compute_description_lengths=True,
                 increment_task_batcher=True,
                 init_frontiers_from_checkpoint=args.init_frontiers_from_checkpoint,
+                init_frontiers_every_iteration=args.init_frontiers_every_iteration,
+                resume_checkpoint_directory=args.resume_checkpoint_directory,
                 s3_sync=(not args.no_s3_sync),
             )
 

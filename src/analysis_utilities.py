@@ -18,10 +18,13 @@ from src.config_builder import DEFAULT_EXPERIMENT_DIR, ExperimentType
 from src.experiment_iterator import (
     EXPERIMENT_BLOCK_TYPE_MODEL_FN,
     LOOP_BLOCKS,
+    METRICS_CHECKPOINT,
+    METRICS_LOOP_BLOCK_RUNTIMES,
     MODEL_TYPE,
     RUN_EVERY_N_ITERATIONS,
 )
-from src.task_loaders import TASK_SPLIT, TEST
+from src.models.model_loaders import AMORTIZED_SYNTHESIS, LLM_SOLVER
+from src.task_loaders import TASK_SPLIT, TEST, TRAIN
 
 
 class IterativeExperimentAnalyzer:
@@ -160,6 +163,46 @@ class IterativeExperimentAnalyzer:
             f"seed_{seed}",
             f"{experiment_type}_{batch_size}",
         )
+
+    def get_runtime_metrics(self):
+        df_list = []
+        for domain in self.domains:
+            for experiment_type in self.get_available_experiment_types(domain):
+                for seed in self.get_available_seeds(domain, experiment_type):
+                    for iteration in self.get_available_iterations(
+                        domain, experiment_type, seed
+                    ):
+                        run_path = self.get_run_path(
+                            domain, experiment_type, seed, self.batch_size
+                        )
+                        metrics_path = os.path.join(
+                            run_path, str(iteration), METRICS_CHECKPOINT
+                        )
+
+                        if self.allow_incomplete_results and not os.path.exists(
+                            metrics_path
+                        ):
+                            print(f"Not found: {metrics_path}")
+                            continue
+
+                        with open(metrics_path, "r") as f:
+                            metrics_json = json.load(f)
+
+                        df = pd.DataFrame(metrics_json[METRICS_LOOP_BLOCK_RUNTIMES])
+                        df["domain"] = domain
+                        df["experiment_type"] = experiment_type
+                        df["seed"] = seed
+                        df["iteration"] = iteration
+                        df_list.append(df)
+
+        df_runtime = pd.concat(df_list, axis=0).reset_index(drop=True)
+        df_runtime["time_start"] = pd.to_datetime(
+            df_runtime["time_start"], unit="s", utc=True
+        )
+        df_runtime["time_end"] = pd.to_datetime(
+            df_runtime["time_end"], unit="s", utc=True
+        )
+        return df_runtime
 
     def get_default_split(self, experiment_type):
         if experiment_type == ExperimentType.ORACLE:
@@ -321,7 +364,7 @@ class IterativeExperimentAnalyzer:
                 path = os.path.join(
                     self.get_run_path(domain, experiment_type, random_seed, batch_size),
                     "0",
-                    "codex_query_results.json",
+                    "gpt_query_results.json",
                 )
 
                 if self.allow_incomplete_results and not os.path.exists(path):
@@ -373,7 +416,7 @@ class IterativeExperimentAnalyzer:
                 path = os.path.join(
                     self.get_run_path(domain, experiment_type, random_seed, batch_size),
                     "0",
-                    "codex_query_results.json",
+                    "gpt_query_results.json",
                 )
 
                 if self.allow_incomplete_results and not os.path.exists(path):
@@ -563,7 +606,7 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         loop_blocks = config_base["experiment_iterator"][LOOP_BLOCKS]
         test_solver_block = list(
             filter(
-                lambda x: x.get(MODEL_TYPE) == "amortized_synthesis"
+                lambda x: x.get(MODEL_TYPE) in [AMORTIZED_SYNTHESIS, LLM_SOLVER]
                 and x.get(EXPERIMENT_BLOCK_TYPE_MODEL_FN) == "infer_programs_for_tasks"
                 and x.get(TASK_SPLIT) == TEST,
                 loop_blocks,
@@ -625,6 +668,9 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
 
         df_list = []
         for split, data in frontiers_json.items():
+            # Skip metadata
+            if split not in [TRAIN, TEST]:
+                continue
             # Skip iterations where the test solver didn't run
             if split == TEST and iteration % run_every_n != 0:
                 continue
