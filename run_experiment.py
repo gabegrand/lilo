@@ -19,7 +19,9 @@ import os
 
 from src.experiment_iterator import ExperimentIterator, ExperimentState
 
-# zyzzyva@ - temporarily disable the LAX domains which cause conflicts with the LOGO domain.
+# zyzzyva@ - Temporarily disable the LAX domains. These incorrectly overwrite the global int primitives to floats, breaking
+# backward compatability with the DC domains that rely on integers.
+
 # from data.drawings.make_tasks import *
 # from data.drawings.grammar import *
 
