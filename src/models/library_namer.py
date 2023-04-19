@@ -57,7 +57,6 @@ class CodexLibraryNamer(GPTBase, model_loaders.ModelLoader):
         temperature: float = 0.75,
         max_tokens: int = 256,
         separator: str = LIBRARY_DEFAULT_SEPARATOR,
-        engine: str = GPTBase.DEFAULT_ENGINE,
         debug: bool = False,
         verbose: bool = True,
     ):
@@ -114,7 +113,6 @@ class CodexLibraryNamer(GPTBase, model_loaders.ModelLoader):
                     top_p=0.1,
                     temperature=None,
                     max_tokens=max_tokens,
-                    engine=engine,
                     separator=separator,
                     logprobs=1,
                 )

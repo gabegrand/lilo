@@ -13,7 +13,7 @@ from openai.openai_object import OpenAIObject
 
 import src.models.model_loaders as model_loaders
 from src.experiment_iterator import RANDOM_GENERATOR
-from src.models.gpt_base import DEFAULT_LINE_SEPARATOR, GPTBase, Prompt
+from src.models.gpt_base import DEFAULT_LINE_SEPARATOR, Prompt
 from src.models.laps_grammar import LAPSGrammar
 from src.models.sample_generator import GPTSampleGenerator
 from src.task_loaders import LANGUAGE, PROGRAMS, TRAIN
@@ -53,7 +53,6 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
         # GPT parameters
         temperature: float = 0.40,
         max_tokens_completion_beta: float = 2.0,
-        engine: str = GPTBase.DEFAULT_ENGINE,
         # Resume from prior runs
         resume_strategy: str = None,
         # Utilities
@@ -139,7 +138,6 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                         n_samples=n_samples_per_query,
                         temperature=temperature,
                         max_tokens=token_stats["max_tokens_completion"],
-                        engine=engine,
                         line_separator=line_separator,
                     )
 
@@ -234,7 +232,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                     "n_samples_per_query": n_samples_per_query,
                     "n_queries_per_task": n_queries_per_task,
                     "temperature": temperature,
-                    "engine": engine,
+                    "engine": self.engine,
                     "line_separator": line_separator,
                     "body_task_types": body_task_types,
                     "final_task_types": final_task_types,

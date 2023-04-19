@@ -77,7 +77,6 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
         # GPT parameters
         temperature: float = 0.40,
         max_tokens_completion_beta: float = 2.0,
-        engine: str = GPTBase.DEFAULT_ENGINE,
         # Utility
         debug: bool = False,
         use_cached: bool = False,
@@ -123,7 +122,6 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
             max_tokens_completion_beta: Multiplicative factor for the maximum number of tokens in the completion.
                 max_tokens is set to the number of tokens in the last program in the prompt,
                 times the value of max_tokens_completion_beta.
-            engine: GPT `engine` parameter.
 
             # Utility parameters
             debug: If True, replaces live query to GPT with a random sample
@@ -230,7 +228,6 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                     n_samples_per_query=n_samples_per_query,
                     temperature=temperature,
                     max_tokens=token_stats["max_tokens_completion"],
-                    engine=engine,
                     line_separator=line_separator,
                     use_cached=use_cached,
                     debug=debug,
@@ -330,7 +327,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                 "n_samples_per_query": n_samples_per_query,
                 "max_queries": max_queries,
                 "temperature": temperature,
-                "engine": engine,
+                "engine": self.engine,
                 "line_separator": line_separator,
                 "use_cached": use_cached,
                 "debug": debug,
@@ -507,7 +504,6 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
         n_samples_per_query,
         temperature,
         max_tokens,
-        engine,
         line_separator,
         use_cached,
         debug,
@@ -530,7 +526,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                     == n_samples_per_query
                 )
                 assert query_results["params"]["temperature"] == temperature
-                assert query_results["params"]["engine"] == engine
+                assert query_results["params"]["engine"] == self.engine
                 assert query_results["params"]["line_separator"] == line_separator
                 # Get the cached completion for the particular query_id.
                 assert (
@@ -548,7 +544,6 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                 n_samples=n_samples_per_query,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                engine=engine,
                 line_separator=line_separator,
             )
         return completion, cache_used
@@ -802,5 +797,5 @@ class CodexSampleGenerator(GPTSampleGenerator):
 
     name = "codex_sample_generator"
 
-    DEFAULT_ENGINE = "code-davinci-002"
-    ENGINE_MAX_TOKENS = 4096  # Max tokens for BOTH the prompt and the completion.
+    def __init__(self, experiment_state=None):
+        super().__init__(engine=GPTBase.ENGINE_CODEX)

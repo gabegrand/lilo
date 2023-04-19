@@ -21,17 +21,29 @@ DEFAULT_LINE_SEPARATOR = "\n"
 
 
 class GPTBase(object):
-    # https://beta.openai.com/docs/engines/codex-series-private-beta
-    DEFAULT_ENGINE = "code-davinci-002"
-    ENGINE_MAX_TOKENS = 4096  # Max tokens for BOTH the prompt and the completion.
+    # https://platform.openai.com/docs/models
+    ENGINE_CODEX = "code-davinci-002"
+    ENGINE_GPT_3_5_TURBO = "gpt-3.5-turbo-0301"
+    ENGINE_GPT_4 = "gpt-4-0314"
+    ENGINE_DEFAULT = ENGINE_CODEX
 
-    def __init__(self, experiment_state=None):
+    # Max tokens for BOTH the prompt and the completion.
+    MAX_TOKENS_PER_ENGINE = {
+        ENGINE_CODEX: 4096,  # 8001
+        ENGINE_GPT_3_5_TURBO: 4096,
+        ENGINE_GPT_4: 8192,
+    }
+
+    def __init__(self, experiment_state=None, engine=None):
         super().__init__()
         if not os.getenv("OPENAI_API_KEY"):
             raise ValueError(
                 "OPENAI_API_KEY is not set. Please set this in the shell via `export OPENAI_API_KEY=...`"
             )
         openai.api_key = os.environ["OPENAI_API_KEY"]
+
+        self.ENGINE = engine or self.ENGINE_DEFAULT
+        self.ENGINE_MAX_TOKENS = self.MAX_TOKENS_PER_ENGINE[self.ENGINE]
 
         # Used for computing approximate token counts for queries
         self.tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
@@ -44,7 +56,6 @@ class GPTBase(object):
         n_samples: int,
         temperature: float = 0.75,
         max_tokens: int = 256,  # Max tokens for completion only.
-        engine: str = DEFAULT_ENGINE,
         line_separator: str = DEFAULT_LINE_SEPARATOR,
         top_p=None,
         logprobs=None,
@@ -62,7 +73,7 @@ class GPTBase(object):
                 rate_limit_seconds *= 2  # Exponential backoff
             try:
                 completion = openai.Completion.create(
-                    engine=engine,
+                    engine=self.ENGINE,
                     prompt=prompt,
                     temperature=temperature if top_p is None else 1.0,
                     top_p=top_p if temperature is None else 1.0,
