@@ -27,11 +27,12 @@ from data.clevr.make_tasks import *
 from data.clevr.grammar import *
 from data.clevr.encoder import *
 
-from data.drawings.make_tasks import *
-from data.drawings.grammar import *
+# zyzzyva@ - temporarily disable the LAX domains which cause conflicts with the LOGO domain.
+# from data.drawings.make_tasks import *
+# from data.drawings.grammar import *
 
-from data.structures.make_tasks import *
-from data.structures.grammar import *
+# from data.structures.make_tasks import *
+# from data.structures.grammar import *
 
 from src.models.gpt_solver import *
 from src.models.laps_dreamcoder_recognition import *

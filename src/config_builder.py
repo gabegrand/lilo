@@ -9,7 +9,7 @@ import os
 import subprocess
 from enum import Enum
 
-import data.drawings.make_tasks as drawing_tasks
+# import data.drawings.make_tasks as drawing_tasks # zyzzyva@ Temporarily disable this domain., which is causing
 from src.experiment_iterator import (
     AWS_S3_SYNC_BASE_PATH,
     CURR_ITERATION,
@@ -28,6 +28,9 @@ from src.models.model_loaders import (
     SAMPLE_GENERATOR,
 )
 from src.task_loaders import ALL, RandomShuffleOrderedTaskBatcher
+
+# @zyzzyva (April 19): Temporarily disable the drawings domain, which is causing Primitive import conflicts.
+
 
 DEFAULT_EXPERIMENT_DIR = "experiments_iterative"
 DEFAULT_TEMPLATE_DIR = os.path.join(DEFAULT_EXPERIMENT_DIR, "templates")
@@ -99,37 +102,37 @@ def get_domain_metadata(domain: str):
         },
     }
 
-    # Metadata for each drawing task domain
-    METADATA["drawings"] = {
-        "tasks_loader": "drawings",
-        "task_language_loader": f"drawings_human",
-        "ocaml_special_handler": "drawings",
-        "global_batch_sizes": [
-            5,
-            10,
-            15,
-            25,
-            50,
-            100,
-            200,
-            300,
-            400,
-            500,
-            600,
-            700,
-            800,
-        ],
-    }
-    for drawing_domain in drawing_tasks.TASK_DOMAINS:
-        drawing_domain_name = "drawings_" + drawing_domain
-        drawing_domain_metadata = {
-            "tasks_loader": drawing_domain_name,
-            "task_language_loader": f"drawings_human_{drawing_domain}",
-            "ocaml_special_handler": "drawings",
-            "dsl_description_prefix": "",
-            "global_batch_sizes": [5, 10, 15, 25, 50, 100, 150, 200],
-        }
-        METADATA[drawing_domain_name] = drawing_domain_metadata
+    # # Metadata for each drawing task domain
+    # METADATA["drawings"] = {
+    #     "tasks_loader": "drawings",
+    #     "task_language_loader": f"drawings_human",
+    #     "ocaml_special_handler": "drawings",
+    #     "global_batch_sizes": [
+    #         5,
+    #         10,
+    #         15,
+    #         25,
+    #         50,
+    #         100,
+    #         200,
+    #         300,
+    #         400,
+    #         500,
+    #         600,
+    #         700,
+    #         800,
+    #     ],
+    # }
+    # for drawing_domain in drawing_tasks.TASK_DOMAINS:
+    #     drawing_domain_name = "drawings_" + drawing_domain
+    #     drawing_domain_metadata = {
+    #         "tasks_loader": drawing_domain_name,
+    #         "task_language_loader": f"drawings_human_{drawing_domain}",
+    #         "ocaml_special_handler": "drawings",
+    #         "dsl_description_prefix": "",
+    #         "global_batch_sizes": [5, 10, 15, 25, 50, 100, 150, 200],
+    #     }
+    #     METADATA[drawing_domain_name] = drawing_domain_metadata
 
     return METADATA[domain]
 

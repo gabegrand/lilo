@@ -13,29 +13,31 @@ Credit:
 - Builds on the primitives from: https://github.com/CatherineWong/drawingtasks/blob/main/primitives/gadgets_primitives.py
 - Builds on primitives designed by Lucas Tian in: https://github.com/ellisk42/ec/blob/draw/dreamcoder/domains/draw/primitives.py
 """
-import os
 import math
+import os
+
 import cairo
-from data.drawings.tian_primitives import SYNTHESIS_TASK_CANVAS_WIDTH_HEIGHT, XYLIM
 import imageio
 import numpy as np
-from dreamcoder.utilities import Curried
-from dreamcoder.program import *
-from dreamcoder.type import baseType, arrow, tmaybe, t0, t1, t2
+import PIL
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
-import PIL
 
 from data.drawings.tian_primitives import (
-    tstroke,
-    ttransmat,
+    SYNTHESIS_TASK_CANVAS_WIDTH_HEIGHT,
+    XYLIM,
+    _connect,
     _makeAffine,
+    _repeat,
     _tform_once,
     some_none,
-    _repeat,
-    _connect,
     transform,
+    tstroke,
+    ttransmat,
 )
+from dreamcoder.program import *
+from dreamcoder.type import arrow, baseType
+from dreamcoder.utilities import Curried
 
 tfloat = baseType("tfloat")
 
@@ -45,9 +47,9 @@ DISTS = np.arange(-3.0, 3.25, 0.25)  # Distances
 INTEGERS = range(0, 13)  # General scaling constants
 numeric_constants = set(list(SCALES) + list(DISTS) + list(INTEGERS))
 constants = [
-    Primitive(f"{n:g}", tfloat, n, override_globals=True) for n in numeric_constants
+    Primitive(f"f_{n:g}", tfloat, n, override_globals=True) for n in numeric_constants
 ]
-constants += [Primitive("pi", tfloat, math.pi, override_globals=True)]
+constants += [Primitive("f_pi", tfloat, math.pi, override_globals=True)]
 
 
 def _addition(x):
@@ -67,7 +69,7 @@ def _division(x):
 
 
 def _pow(x):
-    return lambda y: x ** y
+    return lambda y: x**y
 
 
 def _max(x):
@@ -79,18 +81,20 @@ def _min(x):
 
 
 math_operations = [
-    Primitive("-", arrow(tfloat, tfloat, tfloat), _subtraction, override_globals=True),
-    Primitive("+", arrow(tfloat, tfloat, tfloat), _addition, override_globals=True),
     Primitive(
-        "*", arrow(tfloat, tfloat, tfloat), _multiplication, override_globals=True
+        "f_-", arrow(tfloat, tfloat, tfloat), _subtraction, override_globals=True
     ),
-    Primitive("/", arrow(tfloat, tfloat, tfloat), _division, override_globals=True),
-    Primitive("pow", arrow(tfloat, tfloat, tfloat), _pow, override_globals=True),
-    Primitive("sin", arrow(tfloat, tfloat), math.sin, override_globals=True),
-    Primitive("cos", arrow(tfloat, tfloat), math.cos, override_globals=True),
-    Primitive("tan", arrow(tfloat, tfloat), math.tan, override_globals=True),
-    Primitive("max", arrow(tfloat, tfloat, tfloat), _max, override_globals=True),
-    Primitive("min", arrow(tfloat, tfloat, tfloat), _min, override_globals=True),
+    Primitive("f_+", arrow(tfloat, tfloat, tfloat), _addition, override_globals=True),
+    Primitive(
+        "f_*", arrow(tfloat, tfloat, tfloat), _multiplication, override_globals=True
+    ),
+    Primitive("f_/", arrow(tfloat, tfloat, tfloat), _division, override_globals=True),
+    Primitive("f_pow", arrow(tfloat, tfloat, tfloat), _pow, override_globals=True),
+    Primitive("f_sin", arrow(tfloat, tfloat), math.sin, override_globals=True),
+    Primitive("f_cos", arrow(tfloat, tfloat), math.cos, override_globals=True),
+    Primitive("f_tan", arrow(tfloat, tfloat), math.tan, override_globals=True),
+    Primitive("f_max", arrow(tfloat, tfloat, tfloat), _max, override_globals=True),
+    Primitive("f_min", arrow(tfloat, tfloat, tfloat), _min, override_globals=True),
 ]
 
 ### Basic transform.
@@ -112,7 +116,9 @@ transformations = [
             ttransmat,
         ),
         Curried(_makeAffineSimple),
-        alternate_names=["transform_matrix",],
+        alternate_names=[
+            "transform_matrix",
+        ],
     ),
     Primitive(
         "T",
@@ -127,7 +133,7 @@ transformations = [
         alternate_names=["connect_strokes"],
     ),  # Connects two strokes into a single new primitive
     Primitive(
-        "repeat",
+        "f_repeat",
         arrow(tstroke, tfloat, ttransmat, tstroke),
         Curried(_repeat),
         override_globals=True,
@@ -180,10 +186,30 @@ def _scaled_rectangle(w):
 
 _emptystroke = []
 objects = [
-    Primitive("empt", tstroke, _emptystroke, alternate_names=["empty_stroke"],),
-    Primitive("l", tstroke, _line, alternate_names=["line"],),
-    Primitive("c", tstroke, _circle, alternate_names=["circle"],),
-    Primitive("r", tstroke, _rectangle, alternate_names=["square"],),
+    Primitive(
+        "empt",
+        tstroke,
+        _emptystroke,
+        alternate_names=["empty_stroke"],
+    ),
+    Primitive(
+        "l",
+        tstroke,
+        _line,
+        alternate_names=["line"],
+    ),
+    Primitive(
+        "c",
+        tstroke,
+        _circle,
+        alternate_names=["circle"],
+    ),
+    Primitive(
+        "r",
+        tstroke,
+        _rectangle,
+        alternate_names=["square"],
+    ),
     Primitive(
         "r_s",
         arrow(tfloat, tfloat, tstroke),
@@ -342,7 +368,10 @@ def render_stroke_arrays_to_canvas(
 
     canvas_array = np.zeros((canvas_width_height, canvas_width_height), dtype=np.uint8)
     surface = cairo.ImageSurface.create_for_data(
-        canvas_array, cairo.Format.A8, canvas_width_height - 2, canvas_width_height - 2,
+        canvas_array,
+        cairo.Format.A8,
+        canvas_width_height - 2,
+        canvas_width_height - 2,
     )
 
     context = cairo.Context(surface)
@@ -385,7 +414,10 @@ def render_parsed_program(
             assert len(evaluated_program.arguments) == 1
             evaluated_program = evaluated_program.arguments[0]
         program.rendering = render_stroke_arrays_to_canvas(
-            evaluated_program, stroke_width_height, canvas_width_height, color,
+            evaluated_program,
+            stroke_width_height,
+            canvas_width_height,
+            color,
         )
 
     return program.rendering
@@ -431,7 +463,11 @@ def fig2img(fig):
 
 
 def display_arrays_as_grid(
-    rendered_arrays, suptitle=None, titles=None, ncols=4, transparent_background=True,
+    rendered_arrays,
+    suptitle=None,
+    titles=None,
+    ncols=4,
+    transparent_background=True,
 ):
     N = len(rendered_arrays)
     ncols = min(N, ncols)
@@ -466,4 +502,3 @@ def display_arrays_as_grid(
     fig.tight_layout()
     image = fig2img(fig)
     return image
-
