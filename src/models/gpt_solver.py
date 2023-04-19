@@ -22,7 +22,7 @@ ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.LLM_SOLVER]
 
 
 @ModelRegistry.register
-class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
+class GPTSolver(GPTSampleGenerator):
     name = "gpt_solver"
 
     results_file = "gpt_solver_results.json"
@@ -31,8 +31,8 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
     def load_model(experiment_state, **kwargs):
         return GPTSolver(experiment_state=experiment_state, **kwargs)
 
-    def __init__(self, experiment_state=None):
-        super().__init__()
+    def __init__(self, experiment_state=None, engine=None):
+        super().__init__(self, engine=engine)
 
     def infer_programs_for_tasks(
         self,

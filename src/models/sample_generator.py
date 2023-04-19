@@ -53,8 +53,8 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
     def load_model(experiment_state, **kwargs):
         return GPTSampleGenerator(experiment_state=experiment_state, **kwargs)
 
-    def __init__(self, experiment_state=None):
-        super().__init__()
+    def __init__(self, experiment_state=None, engine=None):
+        super().__init__(engine=engine)
 
     def generate_samples(
         self,
