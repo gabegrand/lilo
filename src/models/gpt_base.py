@@ -37,6 +37,10 @@ class GPTBase(object):
     # Models that use chat completion format
     CHAT_ENGINES = [ENGINE_GPT_3_5_TURBO, ENGINE_GPT_4]
 
+    # OpenAI organization IDs
+    ORG_MIT_CODE = "org-8jXkUFeFDJqIpWtgvtpuPjwm"  # Use for all other models
+    ORG_PERSONAL = "org-fYb48minYCuDB6m3hu9SJVW8"  # Use for Codex
+
     def __init__(self, experiment_state=None, engine=None):
         super().__init__()
         if not os.getenv("OPENAI_API_KEY"):
@@ -117,6 +121,7 @@ class GPTBase(object):
             # Convert prompt text to ChatCompletion format
             messages = [{"role": "user", "content": prompt}]
 
+            openai.organization = self.ORG_MIT_CODE
             completion = openai.ChatCompletion.create(
                 model=self.ENGINE,
                 messages=messages,
@@ -131,6 +136,7 @@ class GPTBase(object):
             for choice in completion["choices"]:
                 choice["text"] = choice["message"]["content"]
         else:
+            openai.organization = self.ORG_PERSONAL
             completion = openai.Completion.create(
                 model=self.ENGINE,
                 prompt=prompt,
