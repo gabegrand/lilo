@@ -228,41 +228,48 @@ class Prompt(object):
         return self.json()
 
     def __str__(self):
-        prompt_text = ""
+        return "".join(self.to_list())
+
+    def to_list(self):
+        prompt_list = []
         if self.prepend_dsl_description:
-            prompt_text += self.dsl_description
+            prompt_list += [self.dsl_description + "\n"]
         # Write the body tasks
-        prompt_text += "\nHere are some example programs:\n"
+        prompt_list += ["Here are some example programs:\n"]
         for task_data in self.body_task_data:
             if LANGUAGE in self.body_task_types:
-                prompt_text += (
+                prompt_list += [
                     self.prefix_language
                     + task_data["task_language"]
                     + self.line_separator
-                )
+                ]
             if PROGRAMS in self.body_task_types:
-                prompt_text += (
+                prompt_list += [
                     self.prefix_program
                     + task_data["task_program"]
                     + self.line_separator
-                )
+                ]
         # Write the final task
         if LANGUAGE in self.final_task_types:
-            prompt_text += (
+            prompt_list += [
                 self.prefix_language
                 + self.final_task_data["task_language"]
                 + self.line_separator
-            )
+            ]
         if PROGRAMS in self.final_task_types:
-            prompt_text += (
+            prompt_list += [
                 self.prefix_program
                 + self.final_task_data["task_program"]
                 + self.line_separator
-            )
-        return prompt_text
+            ]
+        return prompt_list
 
     def serialize(self):
         return self.__str__()
+
+    def to_chat_format(self):
+        messages = [{"role": "user", "content": text} for text in self.to_list()]
+        return messages
 
     def to_dict(self):
         return {
