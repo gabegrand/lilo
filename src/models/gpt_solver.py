@@ -134,7 +134,7 @@ class GPTSolver(GPTSampleGenerator):
                     )
 
                     completion = self.query_completion(
-                        prompt.serialize(),
+                        prompt,
                         n_samples=n_samples_per_query,
                         temperature=temperature,
                         max_tokens=token_stats["max_tokens_completion"],

@@ -325,7 +325,7 @@ class GPTBase(object):
 
             # Convert prompt text to ChatCompletion format
             if isinstance(prompt, Prompt):
-                messages = Prompt.to_chat_format()
+                messages = prompt.to_chat_format()
             else:
                 messages = [{"role": "user", "content": str(prompt)}]
 
