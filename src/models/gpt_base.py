@@ -27,6 +27,11 @@ class Prompt(object):
     DEFAULT_PREFIX_PROGRAM = ""
     DEFAULT_PREFIX_LANGUAGE = "-- "  # Haskell-style comment
 
+    # https://platform.openai.com/docs/api-reference/chat
+    ROLE_ASSISTANT = "assistant"
+    ROLE_SYSTEM = "system"
+    ROLE_USER = "user"
+
     def __init__(
         self,
         experiment_state,
@@ -93,47 +98,54 @@ class Prompt(object):
         return self.json()
 
     def __str__(self):
-        return "".join(self.to_list())
+        return self.line_separator.join([x["content"] for x in self.to_message_list()])
 
-    def to_list(self):
+    def to_message_list(self):
         prompt_list = []
         if self.prepend_dsl_description:
-            prompt_list += [self.dsl_description + "\n"]
+            prompt_list += [self.chat_message(self.dsl_description)]
         # Write the body tasks
-        prompt_list += ["Here are some example programs:\n"]
+        prompt_list += [self.chat_message("Here are some example programs:")]
         for task_data in self.body_task_data:
             if LANGUAGE in self.body_task_types:
                 prompt_list += [
-                    self.prefix_language
-                    + task_data["task_language"]
-                    + self.line_separator
+                    self.chat_message(self.prefix_language + task_data["task_language"])
                 ]
             if PROGRAMS in self.body_task_types:
                 prompt_list += [
-                    self.prefix_program
-                    + task_data["task_program"]
-                    + self.line_separator
+                    self.chat_message(
+                        self.prefix_program + task_data["task_program"],
+                        role=self.ROLE_ASSISTANT,
+                    )
                 ]
         # Write the final task
         if LANGUAGE in self.final_task_types:
             prompt_list += [
-                self.prefix_language
-                + self.final_task_data["task_language"]
-                + self.line_separator
+                self.chat_message(
+                    self.prefix_language + self.final_task_data["task_language"],
+                )
             ]
         if PROGRAMS in self.final_task_types:
             prompt_list += [
-                self.prefix_program
-                + self.final_task_data["task_program"]
-                + self.line_separator
+                self.chat_message(
+                    self.prefix_program + self.final_task_data["task_program"],
+                    role=self.ROLE_ASSISTANT,
+                )
             ]
         return prompt_list
 
     def serialize(self):
         return self.__str__()
 
+    def chat_message(self, text, role=None):
+        role = role or self.ROLE_USER
+        return {
+            "role": role,
+            "content": text,
+        }
+
     def to_chat_format(self):
-        messages = [{"role": "user", "content": text} for text in self.to_list()]
+        messages = self.to_message_list()
         return messages
 
     def to_dict(self):
