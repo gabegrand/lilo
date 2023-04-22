@@ -13,7 +13,7 @@ from openai.openai_object import OpenAIObject
 
 import src.models.model_loaders as model_loaders
 from src.experiment_iterator import RANDOM_GENERATOR
-from src.models.gpt_base import DEFAULT_LINE_SEPARATOR, GPTBase, Prompt
+from src.models.gpt_base import DEFAULT_LINE_SEPARATOR, Prompt
 from src.models.laps_grammar import LAPSGrammar
 from src.models.sample_generator import GPTSampleGenerator
 from src.task_loaders import LANGUAGE, PROGRAMS, TRAIN
@@ -22,7 +22,7 @@ ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.LLM_SOLVER]
 
 
 @ModelRegistry.register
-class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
+class GPTSolver(GPTSampleGenerator):
     name = "gpt_solver"
 
     results_file = "gpt_solver_results.json"
@@ -31,8 +31,8 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
     def load_model(experiment_state, **kwargs):
         return GPTSolver(experiment_state=experiment_state, **kwargs)
 
-    def __init__(self, experiment_state=None):
-        super().__init__()
+    def __init__(self, experiment_state=None, engine=None):
+        super().__init__(self, engine=engine)
 
     def infer_programs_for_tasks(
         self,
@@ -53,7 +53,6 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
         # GPT parameters
         temperature: float = 0.40,
         max_tokens_completion_beta: float = 2.0,
-        engine: str = GPTBase.DEFAULT_ENGINE,
         # Resume from prior runs
         resume_strategy: str = None,
         # Utilities
@@ -135,11 +134,10 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                     )
 
                     completion = self.query_completion(
-                        prompt.serialize(),
+                        prompt,
                         n_samples=n_samples_per_query,
                         temperature=temperature,
                         max_tokens=token_stats["max_tokens_completion"],
-                        engine=engine,
                         line_separator=line_separator,
                     )
 
@@ -196,7 +194,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                         print(prompt)
                         print("-" * 12)
 
-                        print("GPT completions:")
+                        print(f"GPT ({self.ENGINE}) completions:")
                         for result_data in parse_results:
                             if result_data.get("tasks_solved"):
                                 status_emoji = "🏆"
@@ -234,7 +232,7 @@ class GPTSolver(GPTSampleGenerator, model_loaders.ModelLoader):
                     "n_samples_per_query": n_samples_per_query,
                     "n_queries_per_task": n_queries_per_task,
                     "temperature": temperature,
-                    "engine": engine,
+                    "engine": self.ENGINE,
                     "line_separator": line_separator,
                     "body_task_types": body_task_types,
                     "final_task_types": final_task_types,

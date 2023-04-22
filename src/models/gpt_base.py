@@ -7,6 +7,7 @@ Base class containing utilities for working with the GPT language model.
 import json
 import os
 import time
+from typing import Union
 
 import openai
 from openai.error import APIConnectionError, InvalidRequestError, RateLimitError
@@ -20,83 +21,16 @@ from src.task_loaders import LANGUAGE, PROGRAMS, TEST, TRAIN
 DEFAULT_LINE_SEPARATOR = "\n"
 
 
-class GPTBase(object):
-    # https://beta.openai.com/docs/engines/codex-series-private-beta
-    DEFAULT_ENGINE = "code-davinci-002"
-    ENGINE_MAX_TOKENS = 4096  # Max tokens for BOTH the prompt and the completion.
-
-    def __init__(self, experiment_state=None):
-        super().__init__()
-        if not os.getenv("OPENAI_API_KEY"):
-            raise ValueError(
-                "OPENAI_API_KEY is not set. Please set this in the shell via `export OPENAI_API_KEY=...`"
-            )
-        openai.api_key = os.environ["OPENAI_API_KEY"]
-
-        # Used for computing approximate token counts for queries
-        self.tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
-        self.tokenizer.model_max_length = self.ENGINE_MAX_TOKENS
-        os.environ["TOKENIZERS_PARALLELISM"] = str(False)
-
-    def query_completion(
-        self,
-        prompt: str,
-        n_samples: int,
-        temperature: float = 0.75,
-        max_tokens: int = 256,  # Max tokens for completion only.
-        engine: str = DEFAULT_ENGINE,
-        line_separator: str = DEFAULT_LINE_SEPARATOR,
-        top_p=None,
-        logprobs=None,
-        max_attempts_rate_limit=5,
-        rate_limit_seconds=30,
-    ):
-        pause_for_rate_limit = False
-        completion = None
-        for idx in range(max_attempts_rate_limit):
-            if pause_for_rate_limit:
-                print(
-                    f"ERR: OpenAI rate limit. On attempt {idx}/{max_attempts_rate_limit} after waiting {rate_limit_seconds}s."
-                )
-                time.sleep(rate_limit_seconds)
-                rate_limit_seconds *= 2  # Exponential backoff
-            try:
-                completion = openai.Completion.create(
-                    engine=engine,
-                    prompt=prompt,
-                    temperature=temperature if top_p is None else 1.0,
-                    top_p=top_p if temperature is None else 1.0,
-                    n=n_samples,
-                    stop=line_separator,
-                    max_tokens=max_tokens,
-                    logprobs=logprobs,
-                )
-                return completion
-            except InvalidRequestError as e:
-                print(e)
-                return e
-            except RateLimitError as e:
-                print(e)
-                pause_for_rate_limit = True
-                completion = e
-            except APIConnectionError as e:
-                print(e)
-                pause_for_rate_limit = True
-                completion = e
-
-        return completion
-
-    def count_tokens_gpt2(self, text):
-        # TODO(gg): Consider preprocessing to collapse whitespace, which could
-        # bring the behavior more in line with the Codex tokenizer.
-        return len(self.tokenizer(text, truncation=False)["input_ids"])
-
-
 class Prompt(object):
     TASK_TYPES = [LANGUAGE, PROGRAMS]
 
     DEFAULT_PREFIX_PROGRAM = ""
     DEFAULT_PREFIX_LANGUAGE = "-- "  # Haskell-style comment
+
+    # https://platform.openai.com/docs/api-reference/chat
+    ROLE_ASSISTANT = "assistant"
+    ROLE_SYSTEM = "system"
+    ROLE_USER = "user"
 
     def __init__(
         self,
@@ -164,41 +98,55 @@ class Prompt(object):
         return self.json()
 
     def __str__(self):
-        prompt_text = ""
+        return self.line_separator.join([x["content"] for x in self.to_message_list()])
+
+    def to_message_list(self):
+        prompt_list = []
         if self.prepend_dsl_description:
-            prompt_text += self.dsl_description
+            prompt_list += [self.chat_message(self.dsl_description)]
         # Write the body tasks
-        prompt_text += "\nHere are some example programs:\n"
+        prompt_list += [self.chat_message("Here are some example programs:")]
         for task_data in self.body_task_data:
             if LANGUAGE in self.body_task_types:
-                prompt_text += (
-                    self.prefix_language
-                    + task_data["task_language"]
-                    + self.line_separator
-                )
+                prompt_list += [
+                    self.chat_message(self.prefix_language + task_data["task_language"])
+                ]
             if PROGRAMS in self.body_task_types:
-                prompt_text += (
-                    self.prefix_program
-                    + task_data["task_program"]
-                    + self.line_separator
-                )
+                prompt_list += [
+                    self.chat_message(
+                        self.prefix_program + task_data["task_program"],
+                        role=self.ROLE_ASSISTANT,
+                    )
+                ]
         # Write the final task
         if LANGUAGE in self.final_task_types:
-            prompt_text += (
-                self.prefix_language
-                + self.final_task_data["task_language"]
-                + self.line_separator
-            )
+            prompt_list += [
+                self.chat_message(
+                    self.prefix_language + self.final_task_data["task_language"],
+                )
+            ]
         if PROGRAMS in self.final_task_types:
-            prompt_text += (
-                self.prefix_program
-                + self.final_task_data["task_program"]
-                + self.line_separator
-            )
-        return prompt_text
+            prompt_list += [
+                self.chat_message(
+                    self.prefix_program + self.final_task_data["task_program"],
+                    role=self.ROLE_ASSISTANT,
+                )
+            ]
+        return prompt_list
 
     def serialize(self):
         return self.__str__()
+
+    def chat_message(self, text, role=None):
+        role = role or self.ROLE_USER
+        return {
+            "role": role,
+            "content": text,
+        }
+
+    def to_chat_format(self):
+        messages = self.to_message_list()
+        return messages
 
     def to_dict(self):
         return {
@@ -287,3 +235,142 @@ class Prompt(object):
             dsl_description += f"- {dsl_fn}\n"
 
         return dsl_description
+
+
+class GPTBase(object):
+    # https://platform.openai.com/docs/models
+    ENGINE_CODEX = "code-davinci-002"
+    ENGINE_GPT_3_5_TURBO = "gpt-3.5-turbo-0301"
+    ENGINE_GPT_4 = "gpt-4-0314"
+    ENGINE_DEFAULT = ENGINE_CODEX
+
+    # Max tokens for BOTH the prompt and the completion.
+    MAX_TOKENS_PER_ENGINE = {
+        ENGINE_CODEX: 4096,  # 8001
+        ENGINE_GPT_3_5_TURBO: 4096,
+        ENGINE_GPT_4: 8192,
+    }
+
+    # Models that use chat completion format
+    CHAT_ENGINES = [ENGINE_GPT_3_5_TURBO, ENGINE_GPT_4]
+
+    # OpenAI organization IDs
+    ORG_MIT_CODE = "org-8jXkUFeFDJqIpWtgvtpuPjwm"  # Use for all other models
+    ORG_PERSONAL = "org-fYb48minYCuDB6m3hu9SJVW8"  # Use for Codex
+
+    def __init__(self, experiment_state=None, engine=None):
+        super().__init__()
+        if not os.getenv("OPENAI_API_KEY"):
+            raise ValueError(
+                "OPENAI_API_KEY is not set. Please set this in the shell via `export OPENAI_API_KEY=...`"
+            )
+        openai.api_key = os.environ["OPENAI_API_KEY"]
+
+        self.ENGINE = engine or self.ENGINE_DEFAULT
+        self.ENGINE_MAX_TOKENS = self.MAX_TOKENS_PER_ENGINE[self.ENGINE]
+
+        # Used for computing approximate token counts for queries
+        self.tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
+        self.tokenizer.model_max_length = self.ENGINE_MAX_TOKENS
+        os.environ["TOKENIZERS_PARALLELISM"] = str(False)
+
+    def query_completion(
+        self,
+        prompt: Union[Prompt, str],
+        n_samples: int,
+        temperature: float = 0.75,
+        max_tokens: int = 256,  # Max tokens for completion only.
+        line_separator: str = DEFAULT_LINE_SEPARATOR,
+        top_p=None,
+        logprobs=None,
+        max_attempts_rate_limit=5,
+        rate_limit_seconds=30,
+    ):
+        pause_for_rate_limit = False
+        completion = None
+        for idx in range(max_attempts_rate_limit):
+            if pause_for_rate_limit:
+                print(
+                    f"ERR: OpenAI rate limit. On attempt {idx}/{max_attempts_rate_limit} after waiting {rate_limit_seconds}s."
+                )
+                time.sleep(rate_limit_seconds)
+                rate_limit_seconds *= 2  # Exponential backoff
+            try:
+                completion = self._create_completion(
+                    prompt=prompt,
+                    temperature=temperature if top_p is None else 1.0,
+                    top_p=top_p if temperature is None else 1.0,
+                    n_samples=n_samples,
+                    line_separator=line_separator,
+                    max_tokens=max_tokens,
+                    logprobs=logprobs,
+                )
+                return completion
+            except InvalidRequestError as e:
+                print(e)
+                return e
+            except RateLimitError as e:
+                print(e)
+                pause_for_rate_limit = True
+                completion = e
+            except APIConnectionError as e:
+                print(e)
+                pause_for_rate_limit = True
+                completion = e
+
+        return completion
+
+    def is_chat_format(self):
+        return self.ENGINE in self.CHAT_ENGINES
+
+    def _create_completion(
+        self,
+        prompt,
+        temperature,
+        top_p,
+        n_samples,
+        line_separator,
+        max_tokens,
+        logprobs,
+    ):
+        if self.is_chat_format():
+
+            # Convert prompt text to ChatCompletion format
+            if isinstance(prompt, Prompt):
+                messages = prompt.to_chat_format()
+            else:
+                messages = [{"role": "user", "content": str(prompt)}]
+
+            openai.organization = self.ORG_MIT_CODE
+            completion = openai.ChatCompletion.create(
+                model=self.ENGINE,
+                messages=messages,
+                temperature=temperature if top_p is None else 1.0,
+                top_p=top_p if temperature is None else 1.0,
+                n=n_samples,
+                stop=line_separator,
+                max_tokens=max_tokens,
+            )
+
+            # Convert ChatCompletion -> Completion format
+            for choice in completion["choices"]:
+                choice["text"] = choice["message"]["content"]
+        else:
+            openai.organization = self.ORG_PERSONAL
+            completion = openai.Completion.create(
+                model=self.ENGINE,
+                prompt=str(prompt),
+                temperature=temperature if top_p is None else 1.0,
+                top_p=top_p if temperature is None else 1.0,
+                n=n_samples,
+                stop=line_separator,
+                max_tokens=max_tokens,
+                logprobs=logprobs,
+            )
+
+        return completion
+
+    def count_tokens_gpt2(self, text):
+        # TODO(gg): Consider preprocessing to collapse whitespace, which could
+        # bring the behavior more in line with the Codex tokenizer.
+        return len(self.tokenizer(text, truncation=False)["input_ids"])

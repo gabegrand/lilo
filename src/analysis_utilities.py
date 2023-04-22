@@ -42,6 +42,7 @@ class IterativeExperimentAnalyzer:
         "drawings_furniture": "furniture",
         "re2": "REGEX",
         "clevr": "CLEVR",
+        "logo": "LOGO",
     }
     EXPERIMENT_TYPES_CAMERA = {
         ExperimentType.ORACLE: "oracle (test)",
