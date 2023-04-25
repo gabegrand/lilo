@@ -17,7 +17,7 @@ ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.LIBRARY_NAMER]
 class LibraryNamerPrompt(BasePrompt):
 
     TEXT_DSL_HEADER = (
-        "Our goal is to write human-readable names for the following anonymous functions:"
+        "You are writing software documentation. Your goal is to write human-readable names for the following library functions:"
         + DEFAULT_LINE_SEPARATOR
     )
     TEXT_ABSTRACTION_HEADER = (
@@ -57,6 +57,8 @@ class LibraryNamerPrompt(BasePrompt):
             + "\n"
             f"Your `readable_name` should be underscore-separated and should not contain any spaces."
             + "\n"
+            f"It should also be unique (not existing in the function library above)."
+            + "\n"
             f"If you cannot come up with a good name, please set `readable_name` to `null`."
             + "\n\n"
             "{" + "\n"
@@ -90,7 +92,11 @@ class LibraryNamerPrompt(BasePrompt):
         self.chat_history += [message]
 
     def to_message_list(self):
-        message_list = [self.chat_message(self.TEXT_DSL_HEADER + self.text_header)]
+        message_list = [
+            self.chat_message(
+                self.TEXT_DSL_HEADER + self.line_separator + self.text_header
+            )
+        ]
         message_list += self.chat_history
         return message_list
 
@@ -124,7 +130,7 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
         top_p: float = 0.1,
         max_tokens: int = 256,
         # Prompt construction
-        n_usage_examples: int = 5,
+        n_usage_examples: int = 10,
         # Utilities
         verbose: bool = True,
     ):
@@ -133,13 +139,14 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
 
         # TODO: Optional load from cache
 
-        # Build prompt header
-        prompt_text_header = self._build_prompt_header(
-            experiment_state, abstractions_to_name
-        )
-        prompt = LibraryNamerPrompt(prompt_text_header)
-
+        abstraction_to_readable = {}
         for abstraction in abstractions_to_name:
+
+            # Build prompt header
+            prompt_text_header = self._build_prompt_header(
+                experiment_state, abstractions_to_name
+            )
+            prompt = LibraryNamerPrompt(prompt_text_header)
 
             # Build abstraction prompt
             fn_name_numeric = self._get_numeric_name(experiment_state, abstraction)
@@ -164,33 +171,42 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 max_tokens=max_tokens,
                 stop=None,
             )
-            if verbose:
-                print(completion)
 
             # Parse response
             parse_results = self._parse_completion(completion)
             selected_result = self._select_result(parse_results)
 
+            if verbose:
+                print(parse_results)
+
             # Update function name
+            # TODO: avoid duplicates?
+            # TODO: clear prior function names?
             if selected_result is not None:
+                readable_name = selected_result["data"]["readable_name"]
                 grammar.set_function_name(
                     str(abstraction),
                     name_class=LAPSGrammar.HUMAN_READABLE,
                     name=selected_result["data"]["readable_name"],
                 )
 
-                # Update prompt
-                prompt.add_abstraction_reply(selected_result["data"])
+                abstraction_to_readable[str(abstraction)] = readable_name
 
-                print(
-                    f"✅ Successfully named {fn_name_numeric} -> {selected_result['data']['readable_name']}"
-                )
-                print(selected_result)
+                print(f"✅ Successfully named {fn_name_numeric} -> {readable_name}")
+                print(json.dumps(selected_result, indent=4))
 
             else:
+                abstraction_to_readable[str(abstraction)] = None
                 print(f"❌ Failed to name {fn_name_numeric}")
 
+        readable_names = [x for x in abstraction_to_readable.values() if x is not None]
+
         # TODO: Log/save outputs
+        print("-" * 12)
+        print(
+            f"Completed library naming: {len(readable_names)} / {len(abstraction_to_readable)} abstractions successfully named."
+        )
+        print(self._build_prompt_header(experiment_state, abstractions_to_name))
 
     def _parse_completion(self, completion):
         parse_results = []
@@ -258,7 +274,13 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
 
     def _get_abstraction_definition(self, experiment_state, abstraction):
         grammar = experiment_state.models[model_loaders.GRAMMAR]
-        fn_name_numeric = self._get_numeric_name(experiment_state, abstraction)
+        fn_name = grammar.get_name(
+            str(abstraction),
+            name_classes=[
+                LAPSGrammar.HUMAN_READABLE,
+                LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+            ],
+        )
         fn_body = str(
             grammar.show_program(
                 abstraction.betaNormalForm(),
@@ -268,7 +290,7 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 ],
             )
         )
-        return f"{fn_name_numeric} :: {abstraction.infer()}\n{fn_body}"
+        return f"{fn_name} :: {abstraction.infer()}\n{fn_body}"
 
     def _build_prompt_header(self, experiment_state, abstractions_to_name):
         prompt_list = []
