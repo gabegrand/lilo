@@ -98,7 +98,10 @@ class Prompt(object):
         return self.json()
 
     def __str__(self):
-        return self.line_separator.join([x["content"] for x in self.to_message_list()])
+        return (
+            self.line_separator.join([x["content"] for x in self.to_message_list()])
+            + "\n"
+        )
 
     def to_message_list(self):
         prompt_list = []
