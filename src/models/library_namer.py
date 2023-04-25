@@ -26,7 +26,6 @@ class LibraryNamerPrompt(BasePrompt):
     TEXT_EXAMPLES_HEADER = (
         "Here are some examples of its usage:" + DEFAULT_LINE_SEPARATOR
     )
-    TEXT_ABSTRACTION_FOOTER = ""
 
     def __init__(
         self,
@@ -81,11 +80,14 @@ class LibraryNamerPrompt(BasePrompt):
             + self.line_separator
             + self.make_abstraction_footer(fn_name_numeric)
         )
-
         self.chat_history += [message]
 
-    def add_abstraction_reply(self, text_reply):
-        pass
+    def add_abstraction_reply(self, fn_naming_data):
+        message = self.chat_message(
+            text=json.dumps(fn_naming_data, indent=4),
+            role="assistant",
+        )
+        self.chat_history += [message]
 
     def to_message_list(self):
         message_list = [self.chat_message(self.TEXT_DSL_HEADER + self.text_header)]
@@ -100,6 +102,10 @@ class LibraryNamerPrompt(BasePrompt):
 class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
     name = "gpt_library_namer"
 
+    ERROR_JSON = "error_json"
+    ERROR_MISSING_FIELD = "error_missing_field"
+    ERROR_NULL_NAME = "error_null_name"
+
     @staticmethod
     def load_model(experiment_state, **kwargs):
         return GPTLibraryNamer(experiment_state=experiment_state, **kwargs)
@@ -113,13 +119,19 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
         task_split: str,
         task_batch_ids: list,
         # Querying
-        n_samples_per_abstraction: int = 3,
+        best_of: int = 1,
+        n_samples_per_abstraction: int = 5,
         top_p: float = 0.1,
         max_tokens: int = 256,
         # Prompt construction
-        n_usage_examples: int = 10,
+        n_usage_examples: int = 5,
+        # Utilities
+        verbose: bool = True,
     ):
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
         abstractions_to_name = self._get_abstractions_to_name(experiment_state)
+
+        # TODO: Optional load from cache
 
         # Build prompt header
         prompt_text_header = self._build_prompt_header(
@@ -141,7 +153,8 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 text_abstraction_definition, text_abstraction_examples, fn_name_numeric
             )
 
-            print(prompt)
+            if verbose:
+                print(prompt)
 
             # Query
             completion = self.query_completion(
@@ -151,20 +164,91 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 max_tokens=max_tokens,
                 stop=None,
             )
-
-            print(completion)
-
-            import pdb
-
-            pdb.set_trace()
+            if verbose:
+                print(completion)
 
             # Parse response
+            parse_results = self._parse_completion(completion)
+            selected_result = self._select_result(parse_results)
 
             # Update function name
+            if selected_result is not None:
+                grammar.set_function_name(
+                    str(abstraction),
+                    name_class=LAPSGrammar.HUMAN_READABLE,
+                    name=selected_result["data"]["readable_name"],
+                )
 
-            prompt.add_abstraction_reply(None)
+                # Update prompt
+                prompt.add_abstraction_reply(selected_result["data"])
 
-        # Log/save outputs
+                print(
+                    f"✅ Successfully named {fn_name_numeric} -> {selected_result['data']['readable_name']}"
+                )
+                print(selected_result)
+
+            else:
+                print(f"❌ Failed to name {fn_name_numeric}")
+
+        # TODO: Log/save outputs
+
+    def _parse_completion(self, completion):
+        parse_results = []
+        for choice in completion["choices"]:
+            try:
+                data = json.loads(choice["text"])
+            except:
+                parse_results.append(
+                    {
+                        "index": choice["index"],
+                        "text": choice["text"],
+                        "valid": False,
+                        "error": GPTLibraryNamer.ERROR_JSON,
+                    }
+                )
+                continue
+
+            if not (
+                ("anonymous_name" in data)
+                and ("readable_name" in data)
+                and ("description" in data)
+            ):
+                parse_results.append(
+                    {
+                        "index": choice["index"],
+                        "text": choice["text"],
+                        "valid": False,
+                        "error": GPTLibraryNamer.ERROR_MISSING_FIELD,
+                    }
+                )
+                continue
+
+            if not data["readable_name"]:
+                parse_results.append(
+                    {
+                        "index": choice["index"],
+                        "text": choice["text"],
+                        "valid": False,
+                        "error": GPTLibraryNamer.ERROR_NULL_NAME,
+                    }
+                )
+                continue
+
+            parse_results.append(
+                {
+                    "index": choice["index"],
+                    "text": choice["text"],
+                    "valid": True,
+                    "data": data,
+                }
+            )
+        return parse_results
+
+    def _select_result(self, parse_results):
+        for result in parse_results:
+            # For now, just return the first valid result
+            if result["valid"]:
+                return result
 
     def _get_numeric_name(self, experiment_state, abstraction):
         grammar = experiment_state.models[model_loaders.GRAMMAR]
