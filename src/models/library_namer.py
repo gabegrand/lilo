@@ -13,9 +13,256 @@ from src.task_loaders import ALL, TRAIN
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.LIBRARY_NAMER]
 
+
+class LibraryNamerPrompt(BasePrompt):
+
+    TEXT_DSL_HEADER = (
+        "Our goal is to write human-readable names for the following anonymous functions:"
+        + DEFAULT_LINE_SEPARATOR
+    )
+    TEXT_ABSTRACTION_HEADER = (
+        "Consider the following anonymous function:" + DEFAULT_LINE_SEPARATOR
+    )
+    TEXT_EXAMPLES_HEADER = (
+        "Here are some examples of its usage:" + DEFAULT_LINE_SEPARATOR
+    )
+    TEXT_ABSTRACTION_FOOTER = ""
+
+    def __init__(
+        self,
+        text_header,
+        line_separator: str = DEFAULT_LINE_SEPARATOR,
+    ):
+        self.text_header = text_header
+        self.chat_history = []
+
+        self.line_separator = line_separator
+
+    def __str__(self):
+        return (
+            self.DEFAULT_MESSAGE_SEPARATOR.join(
+                [x["content"] for x in self.to_message_list()]
+            )
+            + "\n"
+        )
+
+    def to_dict(self):
+        pass
+
+    def load_from_dict(self):
+        pass
+
+    def make_abstraction_footer(self, fn_name_numeric):
+        return (
+            f"Please write a human-readable name and description for `{fn_name_numeric}` in the JSON format shown below."
+            + "\n"
+            f"Your `readable_name` should be underscore-separated and should not contain any spaces."
+            + "\n"
+            f"If you cannot come up with a good name, please set `readable_name` to `null`."
+            + "\n\n"
+            "{" + "\n"
+            f'    "anonymous_name": "{fn_name_numeric}",' + "\n"
+            f'    "readable_name": TODO,' + "\n"
+            f'    "description": TODO' + "\n"
+            "}"
+        )
+
+    def add_abstraction_prompt(
+        self, text_abstraction_definition, text_abstraction_examples, fn_name_numeric
+    ):
+        message = self.chat_message(
+            self.TEXT_ABSTRACTION_HEADER
+            + self.line_separator
+            + text_abstraction_definition
+            + self.line_separator
+            + self.TEXT_EXAMPLES_HEADER
+            + self.line_separator
+            + text_abstraction_examples
+            + self.line_separator
+            + self.make_abstraction_footer(fn_name_numeric)
+        )
+
+        self.chat_history += [message]
+
+    def add_abstraction_reply(self, text_reply):
+        pass
+
+    def to_message_list(self):
+        message_list = [self.chat_message(self.TEXT_DSL_HEADER + self.text_header)]
+        message_list += self.chat_history
+        return message_list
+
+    def to_chat_format(self):
+        return self.to_message_list()
+
+
+@ModelRegistry.register
+class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
+    name = "gpt_library_namer"
+
+    @staticmethod
+    def load_model(experiment_state, **kwargs):
+        return GPTLibraryNamer(experiment_state=experiment_state, **kwargs)
+
+    def __init__(self, experiment_state=None, engine=None):
+        super().__init__(engine=engine)
+
+    def generate_library_names(
+        self,
+        experiment_state,
+        task_split: str,
+        task_batch_ids: list,
+        # Querying
+        n_samples_per_abstraction: int = 3,
+        top_p: float = 0.1,
+        max_tokens: int = 256,
+        # Prompt construction
+        n_usage_examples: int = 10,
+    ):
+        abstractions_to_name = self._get_abstractions_to_name(experiment_state)
+
+        # Build prompt header
+        prompt_text_header = self._build_prompt_header(
+            experiment_state, abstractions_to_name
+        )
+        prompt = LibraryNamerPrompt(prompt_text_header)
+
+        for abstraction in abstractions_to_name:
+
+            # Build abstraction prompt
+            fn_name_numeric = self._get_numeric_name(experiment_state, abstraction)
+            (
+                text_abstraction_definition,
+                text_abstraction_examples,
+            ) = self._build_prompt_abstraction(
+                experiment_state, abstraction, n_usage_examples=n_usage_examples
+            )
+            prompt.add_abstraction_prompt(
+                text_abstraction_definition, text_abstraction_examples, fn_name_numeric
+            )
+
+            print(prompt)
+
+            # Query
+            completion = self.query_completion(
+                prompt,
+                n_samples=n_samples_per_abstraction,
+                top_p=top_p,
+                max_tokens=max_tokens,
+                stop=None,
+            )
+
+            print(completion)
+
+            import pdb
+
+            pdb.set_trace()
+
+            # Parse response
+
+            # Update function name
+
+            prompt.add_abstraction_reply(None)
+
+        # Log/save outputs
+
+    def _get_numeric_name(self, experiment_state, abstraction):
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        return grammar.get_name(
+            str(abstraction), name_classes=[LAPSGrammar.NUMERIC_FUNCTION_NAMES]
+        )
+
+    def _get_abstraction_definition(self, experiment_state, abstraction):
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        fn_name_numeric = self._get_numeric_name(experiment_state, abstraction)
+        fn_body = str(
+            grammar.show_program(
+                abstraction.betaNormalForm(),
+                name_classes=[
+                    LAPSGrammar.HUMAN_READABLE,
+                    LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                ],
+            )
+        )
+        return f"{fn_name_numeric} :: {abstraction.infer()}\n{fn_body}"
+
+    def _build_prompt_header(self, experiment_state, abstractions_to_name):
+        prompt_list = []
+        for abstraction in abstractions_to_name:
+            prompt_list += [
+                self._get_abstraction_definition(experiment_state, abstraction)
+            ]
+
+        return (DEFAULT_LINE_SEPARATOR * 2).join(prompt_list)
+
+    def _build_prompt_abstraction(
+        self, experiment_state, abstraction, n_usage_examples
+    ):
+        rng = experiment_state.metadata[RANDOM_GENERATOR]
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        text_abstraction_definition = (
+            self._get_abstraction_definition(experiment_state, abstraction)
+            + DEFAULT_LINE_SEPARATOR
+        )
+
+        prompt_list = []
+        example_usages = self._get_example_usages(
+            experiment_state, abstraction, n_usage_examples
+        )
+        for task, program in example_usages.items():
+            task_language = rng.choice(
+                experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
+            )
+            task_program = grammar.show_program(
+                program,
+                name_classes=[
+                    LAPSGrammar.HUMAN_READABLE,
+                    LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                ],
+                debug=True,
+            )
+            prompt_list += [BasePrompt.DEFAULT_PREFIX_LANGUAGE + str(task_language)]
+            prompt_list += [
+                BasePrompt.DEFAULT_PREFIX_PROGRAM
+                + str(task_program)
+                + DEFAULT_LINE_SEPARATOR
+            ]
+
+        text_abstraction_examples = DEFAULT_LINE_SEPARATOR.join(prompt_list)
+
+        return text_abstraction_definition, text_abstraction_examples
+
+    def _get_example_usages(self, experiment_state, abstraction, n_usage_examples):
+        """
+        :ret: [(task, example) for n_usage_examples using the abstraction]
+        """
+        rng = experiment_state.metadata[RANDOM_GENERATOR]
+        example_usages = dict()
+        tasks = list(experiment_state.task_frontiers[TRAIN].keys())
+        rng.shuffle(tasks)
+        for task in tasks:
+            frontier = experiment_state.task_frontiers[TRAIN][task]
+            for e in frontier.entries:
+                if str(abstraction) in e.tokens and not task in example_usages:
+                    example_usages[task] = e.program
+                    if len(example_usages) == n_usage_examples:
+                        return example_usages
+        return example_usages
+
+    def _get_abstractions_to_name(self, experiment_state):
+        """
+        :ret: [array of abstraction expressions to name]
+        """
+        # Get abstractions.
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        abstractions = [p for p in grammar.primitives if p.isInvented]
+        abstractions = sorted(abstractions, key=lambda p: str(p))
+        return abstractions
+
+
 DEFAULT_HEADER = ""
 
-
+# Deprecated: Use GPTLibraryNamer
 @ModelRegistry.register
 class CodexLibraryNamer(GPTBase, model_loaders.ModelLoader):
     name = "codex_library_namer"

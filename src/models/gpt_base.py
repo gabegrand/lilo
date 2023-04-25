@@ -23,6 +23,20 @@ DEFAULT_LINE_SEPARATOR = "\n"
 
 
 class BasePrompt(metaclass=ABCMeta):
+    TASK_TYPES = [LANGUAGE, PROGRAMS]
+
+    DEFAULT_MESSAGE_SEPARATOR = (
+        DEFAULT_LINE_SEPARATOR + "======" + DEFAULT_LINE_SEPARATOR
+    )
+
+    DEFAULT_PREFIX_PROGRAM = ""
+    DEFAULT_PREFIX_LANGUAGE = "-- "  # Haskell-style comment
+
+    # https://platform.openai.com/docs/api-reference/chat
+    ROLE_ASSISTANT = "assistant"
+    ROLE_SYSTEM = "system"
+    ROLE_USER = "user"
+
     @abstractmethod
     def __str__(self):
         pass
@@ -57,16 +71,6 @@ class BasePrompt(metaclass=ABCMeta):
 
 
 class Prompt(BasePrompt):
-    TASK_TYPES = [LANGUAGE, PROGRAMS]
-
-    DEFAULT_PREFIX_PROGRAM = ""
-    DEFAULT_PREFIX_LANGUAGE = "-- "  # Haskell-style comment
-
-    # https://platform.openai.com/docs/api-reference/chat
-    ROLE_ASSISTANT = "assistant"
-    ROLE_SYSTEM = "system"
-    ROLE_USER = "user"
-
     def __init__(
         self,
         experiment_state,
@@ -76,8 +80,8 @@ class Prompt(BasePrompt):
         final_task_types: list = [LANGUAGE],
         final_task_split: str = TRAIN,
         line_separator: str = DEFAULT_LINE_SEPARATOR,
-        prefix_language: str = DEFAULT_PREFIX_LANGUAGE,
-        prefix_program: str = DEFAULT_PREFIX_PROGRAM,
+        prefix_language: str = BasePrompt.DEFAULT_PREFIX_LANGUAGE,
+        prefix_program: str = BasePrompt.DEFAULT_PREFIX_PROGRAM,
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
         prepend_dsl_description: bool = False,
     ):
@@ -302,6 +306,7 @@ class GPTBase(object):
         n_samples: int,
         temperature: float = 0.75,
         max_tokens: int = 256,  # Max tokens for completion only.
+        stop: str = DEFAULT_LINE_SEPARATOR,
         line_separator: str = DEFAULT_LINE_SEPARATOR,
         top_p=None,
         logprobs=None,
@@ -323,6 +328,7 @@ class GPTBase(object):
                     temperature=temperature if top_p is None else 1.0,
                     top_p=top_p if temperature is None else 1.0,
                     n_samples=n_samples,
+                    stop=stop,
                     line_separator=line_separator,
                     max_tokens=max_tokens,
                     logprobs=logprobs,
@@ -351,6 +357,7 @@ class GPTBase(object):
         temperature,
         top_p,
         n_samples,
+        stop,
         line_separator,
         max_tokens,
         logprobs,
@@ -370,7 +377,7 @@ class GPTBase(object):
                 temperature=temperature if top_p is None else 1.0,
                 top_p=top_p if temperature is None else 1.0,
                 n=n_samples,
-                stop=line_separator,
+                stop=stop,
                 max_tokens=max_tokens,
             )
 
@@ -385,7 +392,7 @@ class GPTBase(object):
                 temperature=temperature if top_p is None else 1.0,
                 top_p=top_p if temperature is None else 1.0,
                 n=n_samples,
-                stop=line_separator,
+                stop=stop,
                 max_tokens=max_tokens,
                 logprobs=logprobs,
             )
