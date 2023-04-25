@@ -103,6 +103,7 @@ class CodexLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 output_name_class=output_name_class,
             )
             prompt = fixed_prompt_header + invention_prompt
+            print(prompt)
             if debug:
                 # TODO (catwong): open space for debugging.
                 pass
@@ -113,7 +114,6 @@ class CodexLibraryNamer(GPTBase, model_loaders.ModelLoader):
                     top_p=0.1,
                     temperature=None,
                     max_tokens=max_tokens,
-                    separator=separator,
                     logprobs=1,
                 )
                 if completion is not None:
