@@ -49,7 +49,7 @@ DEFAULT_GPT_PARAMS = {
     "n_samples_per_query": 5,
     "temperature": 0.40,
     "max_tokens_completion_beta": 2.0,
-    "function_name_classes": ["human_readable", "default_no_inline", "numeric"],
+    "function_name_classes": ["human_readable", "default"],
     "final_task_origin": "default",
     "body_task_types": ["programs"],
     "final_task_types": ["programs"],
@@ -59,7 +59,7 @@ DEFAULT_GPT_PARAMS = {
 DEFAULT_GPT_SOLVER_PARAMS = {
     "temperature": 0.90,
     "max_tokens_completion_beta": 4.0,
-    "function_name_classes": ["human_readable", "default_no_inline", "numeric"],
+    "function_name_classes": ["human_readable", "default"],
 }
 
 
