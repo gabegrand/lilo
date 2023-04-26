@@ -55,7 +55,13 @@ class LibraryNamerPrompt(BasePrompt):
 
     def _fn_docstring(self, abstraction):
         definitions = self.abstraction_definitions[abstraction]
-        return f"{definitions['fn_name']} :: {definitions['fn_type']}\n{definitions['fn_body']}"
+        docstring = (
+            f"{definitions['fn_name']} :: {definitions['fn_type']}\n"
+            + f"{definitions['fn_body']}"
+        )
+        if definitions["fn_description"] is not None:
+            docstring += f"\ndescription: {definitions['fn_description']}"
+        return docstring
 
     def _build_library_header(self):
         text_list = [self.TEXT_LIBRARY_HEADER + self.line_separator]
@@ -151,6 +157,10 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
         abstraction_to_readable = {}
         for abstraction in abstraction_definitions.keys():
 
+            # Update to have latest names
+            abstraction_definitions = self._get_abstraction_definitions(
+                experiment_state
+            )
             usage_examples = self._get_usage_examples(
                 experiment_state, abstraction, n_usage_examples
             )
@@ -188,6 +198,10 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                     str(abstraction),
                     name_class=LAPSGrammar.HUMAN_READABLE,
                     name=selected_result["data"]["readable_name"],
+                )
+                grammar.set_function_description(
+                    name=str(abstraction),
+                    description=selected_result["data"]["description"],
                 )
 
                 abstraction_to_readable[str(abstraction)] = selected_result["data"]
@@ -278,10 +292,12 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 ],
             )
         )
+        fn_description = grammar.get_function_description(abstraction)
         return {
             "fn_name": fn_name,
             "fn_body": fn_body,
             "fn_type": abstraction.infer(),
+            "fn_description": fn_description,
         }
 
     def _get_usage_examples(self, experiment_state, abstraction, n_usage_examples):
