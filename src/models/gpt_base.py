@@ -395,7 +395,6 @@ class GPTBase(object):
                 temperature=temperature if top_p is None else 1.0,
                 top_p=top_p if temperature is None else 1.0,
                 n=n_samples,
-                best_of=best_of,
                 stop=stop,
                 max_tokens=max_tokens,
                 logprobs=logprobs,

@@ -174,6 +174,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--verbose",
+    default=False,
+    action="store_true",
+    help="Enables additional prints for certain models.",
+)
+
+parser.add_argument(
     "--overwrite_dir",
     default=False,
     action="store_true",
@@ -198,6 +205,8 @@ def main(args):
         gpt_params["use_cached"] = True
     if args.debug:
         gpt_params["debug"] = True
+    if args.verbose:
+        gpt_params["verbose"] = True
 
     for random_seed in args.random_seeds:
         config_base = build_config(

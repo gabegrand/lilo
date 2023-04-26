@@ -23,6 +23,7 @@ from src.models.model_loaders import (
     GRAMMAR,
     INITIALIZE_GROUND_TRUTH,
     LIBRARY_LEARNER,
+    LIBRARY_NAMER,
     LLM_SOLVER,
     PROGRAM_REWRITER,
     SAMPLE_GENERATOR,
@@ -353,6 +354,9 @@ def build_config_body(
             _gpt_params.update(block["params"])
             _gpt_params.update(gpt_params)
             block["params"] = _gpt_params
+        if block.get("model_type") == LIBRARY_NAMER:
+            _gpt_params = block["params"]
+            _gpt_params.update(gpt_params)
         if block.get("model_type") == LIBRARY_LEARNER:
             _stitch_params = DEFAULT_STITCH_PARAMS
             _stitch_params.update(block["params"])

@@ -144,17 +144,23 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
         max_tokens: int = 256,
         # Prompt construction
         n_usage_examples: int = 10,
+        # Resume from prior runs
+        resume_strategy: str = None,
         # Utilities
         verbose: bool = True,
     ):
         assert task_split == TRAIN
         grammar = experiment_state.models[model_loaders.GRAMMAR]
 
+        # Optional load from results JSON
+        if self._maybe_load_from_checkpoint(
+            experiment_state, task_split, resume_strategy
+        ):
+            return
+
         abstraction_definitions = self._get_abstraction_definitions(experiment_state)
-
-        # TODO: Optional load from cache
-
         abstraction_to_readable = {}
+
         for abstraction in abstraction_definitions.keys():
 
             # Update to have latest names
@@ -187,11 +193,10 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
             selected_result = self._select_result(parse_results)
 
             if verbose:
-                print(parse_results)
+                print(f"GPT ({self.ENGINE}) completion:")
+                print(json.dumps(parse_results, indent=4))
 
             # Update function name
-            # TODO: avoid duplicates?
-            # TODO: clear prior function names?
             if selected_result is not None:
                 readable_name = selected_result["data"]["readable_name"]
                 grammar.set_function_name(
@@ -205,6 +210,9 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 )
 
                 abstraction_to_readable[str(abstraction)] = selected_result["data"]
+                abstraction_to_readable[str(abstraction)][
+                    "usage_examples"
+                ] = usage_examples
 
                 print(
                     f"✅ Successfully named {abstraction_definitions[abstraction]['fn_name']} -> {readable_name}"
@@ -226,7 +234,7 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
         print(
             f"Completed library naming: {n_abstractions_named} / {len(abstraction_definitions)} abstractions successfully named."
         )
-        print(abstraction_to_readable)
+        print(json.dumps(abstraction_to_readable, indent=4))
 
         results = {
             "params": {
@@ -255,6 +263,57 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
             json.dump(results, f, indent=4)
         if verbose:
             print(f"Wrote results: {results_filepath}")
+
+    def _maybe_load_from_checkpoint(
+        self, experiment_state, task_split, resume_strategy
+    ):
+        if (resume_strategy == "first" and experiment_state.is_first_iteration()) or (
+            resume_strategy == "every"
+        ):
+            # If RESUME_CHECKPOINT_DIRECTORY not defined, default to self checkpoint directory
+            results_filepath_ext = os.path.join(
+                os.getcwd(),
+                experiment_state.get_checkpoint_directory_maybe_resume(),
+                task_split,
+                self.results_file,
+            )
+            if os.path.exists(results_filepath_ext):
+                with open(results_filepath_ext, "r") as f:
+                    results_json = json.load(f)
+
+                # Update experiment state from file
+                grammar = experiment_state.models[model_loaders.GRAMMAR]
+
+                for abstraction, data in results_json["abstractions"].items():
+                    if data is not None:
+                        grammar.set_function_name(
+                            str(abstraction),
+                            name_class=LAPSGrammar.HUMAN_READABLE,
+                            name=data["readable_name"],
+                        )
+                        grammar.set_function_description(
+                            name=str(abstraction),
+                            description=data["description"],
+                        )
+
+                # Copy external results file to checkpoint directory
+                results_filepath = os.path.join(
+                    os.getcwd(),
+                    experiment_state.get_checkpoint_directory(),
+                    task_split,
+                    self.results_file,
+                )
+                os.makedirs(os.path.dirname(results_filepath), exist_ok=True)
+                with open(results_filepath, "w") as f:
+                    json.dump(results_json, f, indent=4)
+
+                print(f"{self.name}: Loaded results from {results_filepath_ext}")
+                return True
+            else:
+                print(f"{self.name}: Results not found at {results_filepath_ext}")
+                if experiment_state.is_first_iteration():
+                    raise ValueError("Unable to resume first iteration.")
+                return False
 
     def _get_numeric_name(self, experiment_state, abstraction):
         grammar = experiment_state.models[model_loaders.GRAMMAR]
@@ -318,6 +377,7 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 if str(abstraction) in e.tokens:
                     usage_examples += [
                         {
+                            "task_name": task.name,
                             "program": grammar.show_program(
                                 e.program,
                                 name_classes=[
