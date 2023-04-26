@@ -1,5 +1,5 @@
 """
-library_namer.py | Author : Catherine Wong.
+library_namer.py | Author : Catherine Wong and Gabe Grand.
 
 Queries Codex to generate names for library functions.
 """
@@ -46,10 +46,16 @@ class LibraryNamerPrompt(BasePrompt):
         )
 
     def to_dict(self):
-        pass
+        return {
+            "text_header": self.text_header,
+            "chat_history": self.chat_history,
+        }
 
-    def load_from_dict(self):
-        pass
+    @staticmethod
+    def load_from_dict(d):
+        return LibraryNamerPrompt(
+            text_header=d["text_header"],
+        )
 
     def make_abstraction_footer(self, fn_name_numeric):
         return (
@@ -84,13 +90,6 @@ class LibraryNamerPrompt(BasePrompt):
         )
         self.chat_history += [message]
 
-    def add_abstraction_reply(self, fn_naming_data):
-        message = self.chat_message(
-            text=json.dumps(fn_naming_data, indent=4),
-            role="assistant",
-        )
-        self.chat_history += [message]
-
     def to_message_list(self):
         message_list = [
             self.chat_message(
@@ -107,6 +106,8 @@ class LibraryNamerPrompt(BasePrompt):
 @ModelRegistry.register
 class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
     name = "gpt_library_namer"
+
+    results_file = "gpt_library_namer_results.json"
 
     ERROR_JSON = "error_json"
     ERROR_MISSING_FIELD = "error_missing_field"
@@ -134,6 +135,7 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
         # Utilities
         verbose: bool = True,
     ):
+        assert task_split == TRAIN
         grammar = experiment_state.models[model_loaders.GRAMMAR]
         abstractions_to_name = self._get_abstractions_to_name(experiment_state)
 
@@ -190,7 +192,7 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                     name=selected_result["data"]["readable_name"],
                 )
 
-                abstraction_to_readable[str(abstraction)] = readable_name
+                abstraction_to_readable[str(abstraction)] = selected_result["data"]
 
                 print(f"✅ Successfully named {fn_name_numeric} -> {readable_name}")
                 print(json.dumps(selected_result, indent=4))
@@ -199,14 +201,44 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 abstraction_to_readable[str(abstraction)] = None
                 print(f"❌ Failed to name {fn_name_numeric}")
 
-        readable_names = [x for x in abstraction_to_readable.values() if x is not None]
+        n_abstractions_named = len(
+            [x for x in abstraction_to_readable.values() if x is not None]
+        )
 
         # TODO: Log/save outputs
         print("-" * 12)
         print(
-            f"Completed library naming: {len(readable_names)} / {len(abstraction_to_readable)} abstractions successfully named."
+            f"Completed library naming: {len(n_abstractions_named)} / {len(abstractions_to_name)} abstractions successfully named."
         )
         print(self._build_prompt_header(experiment_state, abstractions_to_name))
+
+        results = {
+            "params": {
+                "best_of": best_of,
+                "n_samples_per_abstraction": n_samples_per_abstraction,
+                "n_usage_examples": n_usage_examples,
+                "top_p": top_p,
+                "max_tokens": max_tokens,
+            },
+            "summary": {
+                "n_abstractions_named": n_abstractions_named,
+                "n_abstractions_total": abstractions_to_name,
+            },
+            "abstractions": abstraction_to_readable,
+        }
+
+        # Save results to file
+        results_filepath = os.path.join(
+            os.getcwd(),
+            experiment_state.get_checkpoint_directory(),
+            task_split,
+            self.results_file,
+        )
+        os.makedirs(os.path.dirname(results_filepath), exist_ok=True)
+        with open(results_filepath, "w") as f:
+            json.dump(results, f, indent=4)
+        if verbose:
+            print(f"Wrote results: {results_filepath}")
 
     def _parse_completion(self, completion):
         parse_results = []
