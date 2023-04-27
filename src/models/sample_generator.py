@@ -15,7 +15,7 @@ from openai.openai_object import OpenAIObject
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
-from dreamcoder.program import EtaLongVisitor, InferenceFailure, ParseFailure, Program
+from dreamcoder.program import EtaLongVisitor, Program
 from dreamcoder.task import Task
 from dreamcoder.type import Type, TypeConstructor
 from src.experiment_iterator import RANDOM_GENERATOR
@@ -572,14 +572,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                     program_str_gpt, input_name_class=function_name_classes
                 )
                 p = Program.parse(program_str)
-            except (
-                ParseFailure,
-                IndexError,
-                AssertionError,
-                KeyError,
-                ValueError,
-                AttributeError,
-            ) as e:
+            except Exception as e:
                 if verbose:
                     print(f"Failed to parse ({type(e)}): {program_str_gpt}")
                 parse_results.append(
@@ -593,7 +586,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
             # CHECK 2: Does the program typecheck?
             try:
                 p_type = p.infer()
-            except (InferenceFailure, IndexError, AttributeError):
+            except Exception:
                 if verbose:
                     print(f"Type inference failure for: {str(p)}")
                 parse_results.append(
