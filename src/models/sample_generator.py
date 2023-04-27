@@ -576,6 +576,7 @@ class GPTSampleGenerator(GPTBase, model_loaders.ModelLoader):
                 ParseFailure,
                 IndexError,
                 AssertionError,
+                KeyError,
                 ValueError,
                 AttributeError,
             ) as e:

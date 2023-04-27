@@ -42,6 +42,7 @@ class GPTSolver(GPTSampleGenerator):
         # Sampling
         n_samples_per_query: int = None,
         n_queries_per_task: int = None,
+        early_stop_on_solution: bool = True,
         max_retries: int = None,
         add_samples: bool = False,
         # Prompt construction
@@ -176,17 +177,19 @@ class GPTSolver(GPTSampleGenerator):
                         }
                     )
 
+                    task_solved = False
                     for result_data in parse_results:
                         result_data["query_i"] = query_i
+
+                        if result_data["valid"]:
+                            parse_results_valid.append(result_data)
 
                         if result_data.get("tasks_solved"):
                             # Sanity check
                             assert len(result_data["tasks_solved"]) == 1
                             assert result_data["tasks_solved"][0] == task_id
                             task_to_solutions[task_id].append(result_data)
-
-                        if result_data["valid"]:
-                            parse_results_valid.append(result_data)
+                            task_solved = True
 
                     # Print query results
                     if verbose:
@@ -220,6 +223,9 @@ class GPTSolver(GPTSampleGenerator):
                     print(f"Tasks solved so far: {n_tasks_solved}/{task_i}", flush=True)
 
                     # Query succeeded: break from retry loop
+                    break
+
+                if task_solved and early_stop_on_solution:
                     break
 
             tasks_solved = [
