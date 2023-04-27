@@ -82,7 +82,10 @@ class Prompt(BasePrompt):
         line_separator: str = DEFAULT_LINE_SEPARATOR,
         prefix_language: str = BasePrompt.DEFAULT_PREFIX_LANGUAGE,
         prefix_program: str = BasePrompt.DEFAULT_PREFIX_PROGRAM,
-        function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+        function_name_classes: list = [
+            LAPSGrammar.HUMAN_READABLE,
+            LAPSGrammar.DEFAULT_FUNCTION_NAMES,
+        ],
         prepend_dsl_description: bool = False,
     ):
         assert isinstance(body_task_ids, list)
@@ -142,7 +145,9 @@ class Prompt(BasePrompt):
     def to_message_list(self):
         prompt_list = []
         if self.prepend_dsl_description:
-            prompt_list += [self.chat_message(self.dsl_description)]
+            prompt_list += [
+                self.chat_message(self.dsl_description, role=self.ROLE_SYSTEM)
+            ]
         # Write the body tasks
         prompt_list += [self.chat_message("Here are some example programs:")]
         for task_data in self.body_task_data:
@@ -240,25 +245,34 @@ class Prompt(BasePrompt):
         }
 
     def _get_dsl_description(self):
-        dsl_fns = [
-            self.grammar.get_name(
-                production_key=production_key, name_classes=self.function_name_classes
+        dsl_fns = []
+        for primitive in self.grammar.primitives:
+            fn_name = self.grammar.get_name(
+                production_key=str(primitive), name_classes=self.function_name_classes
             )
-            for production_key in self.grammar.function_names
-        ]
-        # Print dsl_fns sorted by length and alphabetically
-        dsl_fns = sorted(dsl_fns, key=lambda x: (len(x), x))
+            fn_type = primitive.infer()
+            fn_body = str(primitive)
+            fn_description = self.grammar.get_function_description(str(primitive))
+            dsl_fns.append((primitive, fn_name, fn_type, fn_body, fn_description))
 
-        dsl_description = ""
+        dsl_description = (
+            "You are an expert programmer working in a language based on lambda calculus.\n"
+            + "Your goal is to write programs that accomplish the tasks specified by the user.\n"
+        )
         if "dsl_description_prefix" in self.experiment_state.metadata:
             dsl_description += (
-                self.experiment_state.metadata["dsl_description_prefix"] + "\n\n"
+                self.experiment_state.metadata["dsl_description_prefix"] + "\n"
             )
 
-        dsl_description += "Write programs using the available functions:\n"
+        dsl_description += "\nWrite programs using the available functions:\n\n"
 
-        for dsl_fn in dsl_fns:
-            dsl_description += f"- {dsl_fn}\n"
+        for primitive, fn_name, fn_type, fn_body, fn_description in dsl_fns:
+            docstring = f"{fn_name} :: {fn_type}"
+            if primitive.isInvented:
+                docstring += f"\n{fn_body}"
+            if fn_description is not None:
+                docstring += f"\ndescription: {fn_description}"
+            dsl_description += docstring + "\n\n"
 
         return dsl_description
 
