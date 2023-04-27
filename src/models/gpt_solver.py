@@ -220,7 +220,9 @@ class GPTSolver(GPTSampleGenerator):
                             if len(results) > 0
                         ]
                     )
-                    print(f"Tasks solved so far: {n_tasks_solved}/{task_i}", flush=True)
+                    print(
+                        f"Tasks solved so far: {n_tasks_solved}/{task_i+1}", flush=True
+                    )
 
                     # Query succeeded: break from retry loop
                     break
