@@ -7,11 +7,37 @@ import os
 
 import dill
 
+from dreamcoder.domains.logo.makeLogoTasks import drawLogo
+from dreamcoder.task import Task
 from src.task_loaders import *
 
 ROOT_DIR = os.getcwd()
 DEFAULT_DATA_DIRECTORY = os.path.join(ROOT_DIR, "data/compositional_graphics")
 OCAML_SPECIAL_HANDLER_LOGO = "LOGO"  # Special string flag for OCaml handling.
+
+
+class CompositionalGraphicsTask(Task):
+    """Wrapper around dreamcoder.task.Task that overrides `check()` to use `drawLogo()`"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @staticmethod
+    def from_task(t):
+        task = CompositionalGraphicsTask(
+            t.name, t.request, t.examples, features=t.features, cache=t.cache
+        )
+        for attr in dir(t):
+            if not hasattr(task, attr):
+                task.__setattr__(attr, getattr(t, attr))
+        return task
+
+    def check(self, e, timeout=None):
+        for _, y in self.examples:
+            yh = drawLogo(e, timeout=timeout, resolution=28)
+            if yh != y:
+                return False
+        return True
 
 
 @TaskLoaderRegistry.register
@@ -33,12 +59,15 @@ class CompositionalGraphics200Loader(TaskDataLoader):
             )
             for task_file in task_files:
                 with open(task_file, "rb") as f:
-                    t = dill.load(f)
+                    task_dill = dill.load(f)
+                    t = CompositionalGraphicsTask.from_task(task_dill)
+
                     t.nearest_name = None
                     # Add the task serializer.
                     t.ocaml_serializer = None
                     # Add supervision.
                     t.supervisedSolution = t.groundTruthProgram
+
                     tasks[split].append(t)
         return tasks
 
