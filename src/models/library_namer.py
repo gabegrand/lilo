@@ -9,6 +9,7 @@ import numpy as np
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.type import *
+from src.experiment_iterator import SKIPPED_MODEL_FN
 from src.models.gpt_base import *
 from src.models.laps_grammar import LAPSGrammar
 from src.task_loaders import ALL, TRAIN
@@ -156,7 +157,9 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
         if self._maybe_load_from_checkpoint(
             experiment_state, task_split, resume_strategy
         ):
-            return
+            return {
+                SKIPPED_MODEL_FN: True,
+            }
 
         abstraction_definitions = self._get_abstraction_definitions(experiment_state)
         abstraction_to_readable = {}

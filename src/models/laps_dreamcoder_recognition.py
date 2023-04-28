@@ -5,7 +5,7 @@ Utility wrapper function around the DreamCoder recognition model. Elevates commo
 """
 import src.models.model_loaders as model_loaders
 from dreamcoder.recognition import RecognitionModel
-from src.experiment_iterator import INIT_FRONTIERS_FROM_CHECKPOINT
+from src.experiment_iterator import INIT_FRONTIERS_FROM_CHECKPOINT, SKIPPED_MODEL_FN
 from src.task_loaders import *
 
 AmortizedSynthesisModelRegistry = model_loaders.ModelLoaderRegistries[
@@ -64,7 +64,9 @@ class LAPSDreamCoderRecognition:
                 print(
                     f"infer_programs_for_tasks: Restored frontiers from checkpoint and skipped enumeration."
                 )
-                return
+                return {
+                    SKIPPED_MODEL_FN: True,
+                }
 
         tasks_to_attempt = experiment_state.get_tasks_for_ids(
             task_split=task_split, task_ids=task_batch_ids, include_samples=False

@@ -21,7 +21,7 @@ from dreamcoder.grammar import Grammar
 from dreamcoder.program import Program
 from dreamcoder.type import Type
 from dreamcoder.utilities import ParseFailure, get_root_dir
-from src.experiment_iterator import INIT_FRONTIERS_FROM_CHECKPOINT
+from src.experiment_iterator import INIT_FRONTIERS_FROM_CHECKPOINT, SKIPPED_MODEL_FN
 
 
 class LAPSGrammar(Grammar):
@@ -345,7 +345,9 @@ class LAPSGrammar(Grammar):
                 print(
                     f"infer_programs_for_tasks: Restored frontiers from checkpoint and skipped enumeration."
                 )
-                return
+                return {
+                    SKIPPED_MODEL_FN: True,
+                }
 
         tasks_to_attempt = experiment_state.get_tasks_for_ids(
             task_split=task_split, task_ids=task_batch_ids, include_samples=False

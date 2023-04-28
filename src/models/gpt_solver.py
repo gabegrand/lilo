@@ -12,7 +12,7 @@ from openai.error import InvalidRequestError
 from openai.openai_object import OpenAIObject
 
 import src.models.model_loaders as model_loaders
-from src.experiment_iterator import RANDOM_GENERATOR
+from src.experiment_iterator import RANDOM_GENERATOR, SKIPPED_MODEL_FN
 from src.models.gpt_base import DEFAULT_LINE_SEPARATOR, Prompt
 from src.models.laps_grammar import LAPSGrammar
 from src.models.sample_generator import GPTSampleGenerator
@@ -95,7 +95,9 @@ class GPTSolver(GPTSampleGenerator):
                     json.dump(results_json, f, indent=4)
 
                 print(f"Loaded GPT results from: {results_filepath_ext}")
-                return
+                return {
+                    SKIPPED_MODEL_FN: True,
+                }
             else:
                 print(f"GPT results not found at: {results_filepath_ext}")
                 if experiment_state.is_first_iteration():
