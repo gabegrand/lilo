@@ -447,8 +447,17 @@ class ExperimentState:
                 if d_curr is None or d_curr[SKIPPED_MODEL_FN]:
                     assert d_prev is not None
                     return d_prev
-                else:
+                elif d_prev is None:
                     assert d_curr is not None
+                    return d_curr
+                else:
+                    if (d_curr[MODEL_TYPE] != d_prev[MODEL_TYPE]) or (
+                        d_curr[EXPERIMENT_BLOCK_TYPE_MODEL_FN]
+                        != d_prev[EXPERIMENT_BLOCK_TYPE_MODEL_FN]
+                    ):
+                        print(
+                            f"WARNING: {d_curr[MODEL_TYPE]}.{d_curr[EXPERIMENT_BLOCK_TYPE_MODEL_FN]} differed from prior timing data {d_prev[MODEL_TYPE]}:{d_prev[EXPERIMENT_BLOCK_TYPE_MODEL_FN]}, probably because the experiment template was changed. Timing metrics may be incorrect."
+                        )
                     return d_curr
 
             loop_block_runtimes_combined = [
