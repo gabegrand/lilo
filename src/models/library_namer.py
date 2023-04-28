@@ -311,8 +311,8 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 return True
             else:
                 print(f"{self.name}: Results not found at {results_filepath_ext}")
-                if experiment_state.is_first_iteration():
-                    raise ValueError("Unable to resume first iteration.")
+                # if experiment_state.is_first_iteration():
+                #     raise ValueError("Unable to resume first iteration.")
                 return False
 
     def _get_numeric_name(self, experiment_state, abstraction):
@@ -326,7 +326,8 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
         abstractions = [p for p in grammar.primitives if p.isInvented]
 
         abstraction_definitions = {}
-        for abstraction in sorted(abstractions, key=lambda p: str(p)):
+        # for abstraction in sorted(abstractions, key=lambda p: str(p)):
+        for abstraction in abstractions:
             abstraction_definitions[abstraction] = self._get_abstraction_definition(
                 experiment_state, abstraction
             )
@@ -344,7 +345,9 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
         )
         fn_body = str(
             grammar.show_program(
-                abstraction.betaNormalForm(),
+                str(abstraction)[
+                    1:
+                ],  # Remove leading `#` so that any inlined abstractions are replaced with their fn_name
                 name_classes=[
                     LAPSGrammar.HUMAN_READABLE,
                     LAPSGrammar.NUMERIC_FUNCTION_NAMES,

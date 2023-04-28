@@ -126,13 +126,8 @@ class LAPSGrammar(Grammar):
         """
         Creates a {production_key : {name_class : name}} dictionary containing alternate names for productions in the grammar.
         """
-        # Sort the function names such that the inventions are always at the end.
-        inventions = sorted(
-            [p for p in self.primitives if p.isInvented], key=lambda p: str(p)
-        )
-        base_dsl = sorted(
-            [p for p in self.primitives if not p.isInvented], key=lambda p: str(p)
-        )
+        inventions = [p for p in self.primitives if p.isInvented]
+        base_dsl = [p for p in self.primitives if not p.isInvented]
 
         function_names = {
             str(p): {
