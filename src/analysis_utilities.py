@@ -69,10 +69,11 @@ class IterativeExperimentAnalyzer:
         self,
         experiment_name,
         experiment_dir: str = DEFAULT_EXPERIMENT_DIR,
-        compute_likelihoods: bool = True,
-        allow_incomplete_results: bool = False,
+        experiment_types: List = None,
         batch_size="all",
         seeds: List[str] = None,
+        compute_likelihoods: bool = True,
+        allow_incomplete_results: bool = False,
     ):
 
         self.dir_base = os.path.join("../", experiment_dir, "outputs", experiment_name)
@@ -87,6 +88,7 @@ class IterativeExperimentAnalyzer:
         self.domains = [d for d in self.DOMAIN_NAMES_CAMERA.keys() if d in self.domains]
         print(f"Available domains: {self.domains}")
 
+        self.experiment_types = experiment_types
         self.batch_size = batch_size
         self.seeds = seeds
 
@@ -101,7 +103,9 @@ class IterativeExperimentAnalyzer:
         )
         experiment_types = []
         for path in experiment_type_paths:
-            experiment_types.append(os.path.split(path)[-1])
+            e_type = os.path.split(path)[-1]
+            if self.experiment_types is None or e_type in self.experiment_types:
+                experiment_types.append(e_type)
         return experiment_types
 
     def get_available_seeds(self, domain, experiment_type):

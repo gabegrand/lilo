@@ -440,7 +440,7 @@ class ExperimentState:
         with open(checkpoint_filepath, "w") as f:
             json.dump(metrics_json, f, indent=4)
 
-        print(f"Wrote {metrics_json}")
+        print(f"Wrote {checkpoint_filepath}")
 
     def aws_s3_sync(self, s3_base_path):
         assert s3_base_path.startswith("s3://")

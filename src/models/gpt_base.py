@@ -7,6 +7,7 @@ Base class containing utilities for working with the GPT language model.
 import json
 import os
 import time
+from abc import ABCMeta, abstractmethod
 from typing import Union
 
 import openai
@@ -21,8 +22,12 @@ from src.task_loaders import LANGUAGE, PROGRAMS, TEST, TRAIN
 DEFAULT_LINE_SEPARATOR = "\n"
 
 
-class Prompt(object):
+class BasePrompt(metaclass=ABCMeta):
     TASK_TYPES = [LANGUAGE, PROGRAMS]
+
+    DEFAULT_MESSAGE_SEPARATOR = (
+        DEFAULT_LINE_SEPARATOR + "======" + DEFAULT_LINE_SEPARATOR
+    )
 
     DEFAULT_PREFIX_PROGRAM = ""
     DEFAULT_PREFIX_LANGUAGE = "-- "  # Haskell-style comment
@@ -32,6 +37,40 @@ class Prompt(object):
     ROLE_SYSTEM = "system"
     ROLE_USER = "user"
 
+    @abstractmethod
+    def __str__(self):
+        pass
+
+    @abstractmethod
+    def to_dict(self):
+        pass
+
+    @abstractmethod
+    def load_from_dict(self):
+        pass
+
+    @abstractmethod
+    def to_chat_format(self):
+        pass
+
+    def __repr__(self):
+        return self.json()
+
+    def json(self):
+        return json.dumps(self.to_dict(), indent=4)
+
+    def serialize(self):
+        return self.__str__()
+
+    def chat_message(self, text, role=None):
+        role = role or self.ROLE_USER
+        return {
+            "role": role,
+            "content": text,
+        }
+
+
+class Prompt(BasePrompt):
     def __init__(
         self,
         experiment_state,
@@ -41,9 +80,12 @@ class Prompt(object):
         final_task_types: list = [LANGUAGE],
         final_task_split: str = TRAIN,
         line_separator: str = DEFAULT_LINE_SEPARATOR,
-        prefix_language: str = DEFAULT_PREFIX_LANGUAGE,
-        prefix_program: str = DEFAULT_PREFIX_PROGRAM,
-        function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+        prefix_language: str = BasePrompt.DEFAULT_PREFIX_LANGUAGE,
+        prefix_program: str = BasePrompt.DEFAULT_PREFIX_PROGRAM,
+        function_name_classes: list = [
+            LAPSGrammar.HUMAN_READABLE,
+            LAPSGrammar.DEFAULT_FUNCTION_NAMES,
+        ],
         prepend_dsl_description: bool = False,
     ):
         assert isinstance(body_task_ids, list)
@@ -94,9 +136,6 @@ class Prompt(object):
     def __len__(self):
         return len(self.body_task_data) + 1
 
-    def __repr__(self):
-        return self.json()
-
     def __str__(self):
         return (
             self.line_separator.join([x["content"] for x in self.to_message_list()])
@@ -106,7 +145,9 @@ class Prompt(object):
     def to_message_list(self):
         prompt_list = []
         if self.prepend_dsl_description:
-            prompt_list += [self.chat_message(self.dsl_description)]
+            prompt_list += [
+                self.chat_message(self.dsl_description, role=self.ROLE_SYSTEM)
+            ]
         # Write the body tasks
         prompt_list += [self.chat_message("Here are some example programs:")]
         for task_data in self.body_task_data:
@@ -137,16 +178,6 @@ class Prompt(object):
             ]
         return prompt_list
 
-    def serialize(self):
-        return self.__str__()
-
-    def chat_message(self, text, role=None):
-        role = role or self.ROLE_USER
-        return {
-            "role": role,
-            "content": text,
-        }
-
     def to_chat_format(self):
         messages = self.to_message_list()
         return messages
@@ -162,9 +193,6 @@ class Prompt(object):
         self.dsl_description = d["dsl_description"]
         self.body_task_data = d["body_task_data"]
         self.final_task_data = d["final_task_data"]
-
-    def json(self):
-        return json.dumps(self.to_dict(), indent=4)
 
     def get_last_program(self):
         if PROGRAMS in self.final_task_types:
@@ -217,25 +245,34 @@ class Prompt(object):
         }
 
     def _get_dsl_description(self):
-        dsl_fns = [
-            self.grammar.get_name(
-                production_key=production_key, name_classes=self.function_name_classes
+        dsl_fns = []
+        for primitive in self.grammar.primitives:
+            fn_name = self.grammar.get_name(
+                production_key=str(primitive), name_classes=self.function_name_classes
             )
-            for production_key in self.grammar.function_names
-        ]
-        # Print dsl_fns sorted by length and alphabetically
-        dsl_fns = sorted(dsl_fns, key=lambda x: (len(x), x))
+            fn_type = primitive.infer()
+            fn_body = str(primitive)
+            fn_description = self.grammar.get_function_description(str(primitive))
+            dsl_fns.append((primitive, fn_name, fn_type, fn_body, fn_description))
 
-        dsl_description = ""
+        dsl_description = (
+            "You are an expert programmer working in a language based on lambda calculus.\n"
+            + "Your goal is to write programs that accomplish the tasks specified by the user.\n"
+        )
         if "dsl_description_prefix" in self.experiment_state.metadata:
             dsl_description += (
-                self.experiment_state.metadata["dsl_description_prefix"] + "\n\n"
+                self.experiment_state.metadata["dsl_description_prefix"] + "\n"
             )
 
-        dsl_description += "Write programs using the available functions:\n"
+        dsl_description += "\nWrite programs using the available functions:\n\n"
 
-        for dsl_fn in dsl_fns:
-            dsl_description += f"- {dsl_fn}\n"
+        for primitive, fn_name, fn_type, fn_body, fn_description in dsl_fns:
+            docstring = f"{fn_name} :: {fn_type}"
+            if primitive.isInvented:
+                docstring += f"\n{fn_body}"
+            if fn_description is not None:
+                docstring += f"\ndescription: {fn_description}"
+            dsl_description += docstring + "\n\n"
 
         return dsl_description
 
@@ -281,8 +318,10 @@ class GPTBase(object):
         self,
         prompt: Union[Prompt, str],
         n_samples: int,
+        best_of: int = 1,
         temperature: float = 0.75,
         max_tokens: int = 256,  # Max tokens for completion only.
+        stop: str = DEFAULT_LINE_SEPARATOR,
         line_separator: str = DEFAULT_LINE_SEPARATOR,
         top_p=None,
         logprobs=None,
@@ -304,6 +343,8 @@ class GPTBase(object):
                     temperature=temperature if top_p is None else 1.0,
                     top_p=top_p if temperature is None else 1.0,
                     n_samples=n_samples,
+                    stop=stop,
+                    best_of=best_of,
                     line_separator=line_separator,
                     max_tokens=max_tokens,
                     logprobs=logprobs,
@@ -332,6 +373,8 @@ class GPTBase(object):
         temperature,
         top_p,
         n_samples,
+        best_of,
+        stop,
         line_separator,
         max_tokens,
         logprobs,
@@ -339,7 +382,7 @@ class GPTBase(object):
         if self.is_chat_format():
 
             # Convert prompt text to ChatCompletion format
-            if isinstance(prompt, Prompt):
+            if isinstance(prompt, BasePrompt):
                 messages = prompt.to_chat_format()
             else:
                 messages = [{"role": "user", "content": str(prompt)}]
@@ -351,7 +394,7 @@ class GPTBase(object):
                 temperature=temperature if top_p is None else 1.0,
                 top_p=top_p if temperature is None else 1.0,
                 n=n_samples,
-                stop=line_separator,
+                stop=stop,
                 max_tokens=max_tokens,
             )
 
@@ -366,7 +409,7 @@ class GPTBase(object):
                 temperature=temperature if top_p is None else 1.0,
                 top_p=top_p if temperature is None else 1.0,
                 n=n_samples,
-                stop=line_separator,
+                stop=stop,
                 max_tokens=max_tokens,
                 logprobs=logprobs,
             )

@@ -101,6 +101,7 @@ class LAPSGrammar(Grammar):
         self.function_names = self._init_function_names(
             initialize_parameters_from_grammar
         )
+        self.function_descriptions = dict()
         self.maximum_frontier = self.DEFAULT_MAXIMUM_FRONTIER
 
     def _add_base_primitive(self, base_primitive, use_default_as_human_readable=False):
@@ -125,13 +126,8 @@ class LAPSGrammar(Grammar):
         """
         Creates a {production_key : {name_class : name}} dictionary containing alternate names for productions in the grammar.
         """
-        # Sort the function names such that the inventions are always at the end.
-        inventions = sorted(
-            [p for p in self.primitives if p.isInvented], key=lambda p: str(p)
-        )
-        base_dsl = sorted(
-            [p for p in self.primitives if not p.isInvented], key=lambda p: str(p)
-        )
+        inventions = [p for p in self.primitives if p.isInvented]
+        base_dsl = [p for p in self.primitives if not p.isInvented]
 
         function_names = {
             str(p): {
@@ -161,6 +157,12 @@ class LAPSGrammar(Grammar):
                         function_names[p][
                             name_class
                         ] = initialize_from_grammar.function_names[p][name_class]
+
+            # Restore function descriptions
+            if hasattr(initialize_from_grammar, "function_descriptions"):
+                self.function_descriptions = (
+                    initialize_from_grammar.function_descriptions
+                )
 
         # Initialize counter to avoid function name duplication
         for p in function_names:
@@ -222,6 +224,18 @@ class LAPSGrammar(Grammar):
             self.all_function_names_counts[base_name] += 1
         self.all_function_names_to_productions[name] = production_key
         return name
+
+    def set_function_description(self, name, description):
+        if name not in self.function_names:
+            raise KeyError(
+                f"Function name {name} not in production keys: {self.function_names.keys()}"
+            )
+        self.function_descriptions[name] = description
+
+    def get_function_description(self, name, input_name_class=[DEFAULT_FUNCTION_NAMES]):
+        # Convert name to DEFAULT_FUNCTION_NAMES
+        original_name = self.show_program(name, input_name_class=input_name_class)
+        return self.function_descriptions.get(original_name, None)
 
     def show_program(
         self,

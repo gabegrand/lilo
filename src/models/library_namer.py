@@ -1,8 +1,10 @@
 """
-library_namer.py | Author : Catherine Wong.
+library_namer.py | Author : Catherine Wong and Gabe Grand.
 
 Queries Codex to generate names for library functions.
 """
+from typing import Dict, List
+
 import numpy as np
 
 import src.models.model_loaders as model_loaders
@@ -13,9 +15,454 @@ from src.task_loaders import ALL, TRAIN
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.LIBRARY_NAMER]
 
+
+class LibraryNamerPrompt(BasePrompt):
+
+    TEXT_LIBRARY_HEADER = "You are writing software documentation. Your goal is to write human-readable names for the following library functions:"
+    TEXT_ABSTRACTION_HEADER = "Consider the following anonymous function:"
+    TEXT_EXAMPLES_HEADER = "Here are some examples of its usage:"
+
+    def __init__(
+        self,
+        abstraction_definitions: Dict,
+        abstraction_target: str,
+        usage_examples: List[Dict],
+        line_separator: str = DEFAULT_LINE_SEPARATOR,
+    ):
+        self.abstraction_definitions = abstraction_definitions
+        self.abstraction_target = abstraction_target
+        self.usage_examples = usage_examples
+        self.line_separator = line_separator
+
+    def __str__(self):
+        return (
+            self.DEFAULT_MESSAGE_SEPARATOR.join(
+                [x["content"] for x in self.to_message_list()]
+            )
+            + "\n"
+        )
+
+    def to_dict(self):
+        return {
+            "abstraction_definitions": self.abstraction_definitions,
+            "abstraction_target": self.abstraction_target,
+            "usage_examples": self.usage_examples,
+        }
+
+    @staticmethod
+    def load_from_dict(d):
+        return LibraryNamerPrompt(**d)
+
+    def _fn_docstring(self, abstraction):
+        definitions = self.abstraction_definitions[abstraction]
+        docstring = (
+            f"{definitions['fn_name']} :: {definitions['fn_type']}\n"
+            + f"{definitions['fn_body']}"
+        )
+        if definitions["fn_description"] is not None:
+            docstring += f"\ndescription: {definitions['fn_description']}"
+        return docstring
+
+    def _build_library_header(self):
+        text_list = [self.TEXT_LIBRARY_HEADER + self.line_separator]
+        for abstraction in self.abstraction_definitions.keys():
+            text_list += [self._fn_docstring(abstraction) + self.line_separator]
+        return self.line_separator.join(text_list)
+
+    def _build_target_prompt(self):
+        text_list = [self.TEXT_ABSTRACTION_HEADER + self.line_separator]
+        text_list += [self._fn_docstring(self.abstraction_target) + self.line_separator]
+        text_list += [self.TEXT_EXAMPLES_HEADER + self.line_separator]
+        for example in self.usage_examples:
+            text_list += [
+                self.DEFAULT_PREFIX_LANGUAGE
+                + example["language"]
+                + self.line_separator
+                + self.DEFAULT_PREFIX_PROGRAM
+                + example["program"]
+                + self.line_separator
+            ]
+        text_list += [
+            self.make_abstraction_footer(
+                self.abstraction_definitions[self.abstraction_target]["fn_name"]
+            )
+        ]
+        return self.line_separator.join(text_list)
+
+    def make_abstraction_footer(self, fn_name_numeric):
+        return (
+            f"Please write a human-readable name and description for `{fn_name_numeric}` in the JSON format shown below."
+            + "\n"
+            f"Your `readable_name` should be underscore-separated and should not contain any spaces."
+            + "\n"
+            f"It should also be unique (not existing in the function library above)."
+            + "\n"
+            f"If you cannot come up with a good name, please set `readable_name` to `null`."
+            + "\n\n"
+            "{" + "\n"
+            f'    "anonymous_name": "{fn_name_numeric}",' + "\n"
+            f'    "readable_name": TODO,' + "\n"
+            f'    "description": TODO' + "\n"
+            "}"
+        )
+
+    def to_message_list(self):
+        message_list = [self.chat_message(self._build_library_header())]
+        message_list += [self.chat_message(self._build_target_prompt())]
+        return message_list
+
+    def to_chat_format(self):
+        return self.to_message_list()
+
+
+@ModelRegistry.register
+class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
+    name = "gpt_library_namer"
+
+    results_file = "gpt_library_namer_results.json"
+
+    ERROR_JSON = "error_json"
+    ERROR_MISSING_FIELD = "error_missing_field"
+    ERROR_NULL_NAME = "error_null_name"
+
+    @staticmethod
+    def load_model(experiment_state, **kwargs):
+        return GPTLibraryNamer(experiment_state=experiment_state, **kwargs)
+
+    def __init__(self, experiment_state=None, engine=None):
+        super().__init__(engine=engine)
+
+    def generate_library_names(
+        self,
+        experiment_state,
+        task_split: str,
+        task_batch_ids: list,
+        # Querying
+        best_of: int = 1,
+        n_samples_per_abstraction: int = 5,
+        top_p: float = 0.1,
+        max_tokens: int = 256,
+        # Prompt construction
+        n_usage_examples: int = 10,
+        # Resume from prior runs
+        resume_strategy: str = None,
+        # Utilities
+        verbose: bool = True,
+    ):
+        assert task_split == TRAIN
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+
+        # Optional load from results JSON
+        if self._maybe_load_from_checkpoint(
+            experiment_state, task_split, resume_strategy
+        ):
+            return
+
+        abstraction_definitions = self._get_abstraction_definitions(experiment_state)
+        abstraction_to_readable = {}
+
+        for abstraction in abstraction_definitions.keys():
+
+            # Update to have latest names
+            abstraction_definitions = self._get_abstraction_definitions(
+                experiment_state
+            )
+            usage_examples = self._get_usage_examples(
+                experiment_state, abstraction, n_usage_examples
+            )
+            prompt = LibraryNamerPrompt(
+                abstraction_definitions=abstraction_definitions,
+                abstraction_target=abstraction,
+                usage_examples=usage_examples,
+            )
+
+            if verbose:
+                print(prompt)
+
+            # Query
+            completion = self.query_completion(
+                prompt,
+                n_samples=n_samples_per_abstraction,
+                top_p=top_p,
+                max_tokens=max_tokens,
+                stop=None,
+            )
+
+            # Parse response
+            parse_results = self._parse_completion(completion)
+            selected_result = self._select_result(parse_results)
+
+            if verbose:
+                print(f"GPT ({self.ENGINE}) completion:")
+                print(json.dumps(parse_results, indent=4))
+
+            # Update function name
+            if selected_result is not None:
+                readable_name = selected_result["data"]["readable_name"]
+                grammar.set_function_name(
+                    str(abstraction),
+                    name_class=LAPSGrammar.HUMAN_READABLE,
+                    name=selected_result["data"]["readable_name"],
+                )
+                grammar.set_function_description(
+                    name=str(abstraction),
+                    description=selected_result["data"]["description"],
+                )
+
+                abstraction_to_readable[str(abstraction)] = selected_result["data"]
+                abstraction_to_readable[str(abstraction)][
+                    "usage_examples"
+                ] = usage_examples
+
+                print(
+                    f"✅ Successfully named {abstraction_definitions[abstraction]['fn_name']} -> {readable_name}"
+                )
+                print(json.dumps(selected_result, indent=4))
+
+            else:
+                abstraction_to_readable[str(abstraction)] = None
+                print(
+                    f"❌ Failed to name {abstraction_definitions[abstraction]['fn_name']}"
+                )
+
+        n_abstractions_named = len(
+            [x for x in abstraction_to_readable.values() if x is not None]
+        )
+
+        # TODO: Log/save outputs
+        print("-" * 12)
+        print(
+            f"Completed library naming: {n_abstractions_named} / {len(abstraction_definitions)} abstractions successfully named."
+        )
+        print(json.dumps(abstraction_to_readable, indent=4))
+
+        results = {
+            "params": {
+                "best_of": best_of,
+                "n_samples_per_abstraction": n_samples_per_abstraction,
+                "n_usage_examples": n_usage_examples,
+                "top_p": top_p,
+                "max_tokens": max_tokens,
+            },
+            "summary": {
+                "n_abstractions_named": n_abstractions_named,
+                "n_abstractions_total": len(abstraction_definitions),
+            },
+            "abstractions": abstraction_to_readable,
+        }
+
+        # Save results to file
+        results_filepath = os.path.join(
+            os.getcwd(),
+            experiment_state.get_checkpoint_directory(),
+            task_split,
+            self.results_file,
+        )
+        os.makedirs(os.path.dirname(results_filepath), exist_ok=True)
+        with open(results_filepath, "w") as f:
+            json.dump(results, f, indent=4)
+        if verbose:
+            print(f"Wrote results: {results_filepath}")
+
+    def _maybe_load_from_checkpoint(
+        self, experiment_state, task_split, resume_strategy
+    ):
+        if (resume_strategy == "first" and experiment_state.is_first_iteration()) or (
+            resume_strategy == "every"
+        ):
+            # If RESUME_CHECKPOINT_DIRECTORY not defined, default to self checkpoint directory
+            results_filepath_ext = os.path.join(
+                os.getcwd(),
+                experiment_state.get_checkpoint_directory_maybe_resume(),
+                task_split,
+                self.results_file,
+            )
+            if os.path.exists(results_filepath_ext):
+                with open(results_filepath_ext, "r") as f:
+                    results_json = json.load(f)
+
+                # Update experiment state from file
+                grammar = experiment_state.models[model_loaders.GRAMMAR]
+
+                for abstraction, data in results_json["abstractions"].items():
+                    if data is not None:
+                        grammar.set_function_name(
+                            str(abstraction),
+                            name_class=LAPSGrammar.HUMAN_READABLE,
+                            name=data["readable_name"],
+                        )
+                        grammar.set_function_description(
+                            name=str(abstraction),
+                            description=data["description"],
+                        )
+
+                # Copy external results file to checkpoint directory
+                results_filepath = os.path.join(
+                    os.getcwd(),
+                    experiment_state.get_checkpoint_directory(),
+                    task_split,
+                    self.results_file,
+                )
+                os.makedirs(os.path.dirname(results_filepath), exist_ok=True)
+                with open(results_filepath, "w") as f:
+                    json.dump(results_json, f, indent=4)
+
+                print(f"{self.name}: Loaded results from {results_filepath_ext}")
+                return True
+            else:
+                print(f"{self.name}: Results not found at {results_filepath_ext}")
+                # if experiment_state.is_first_iteration():
+                #     raise ValueError("Unable to resume first iteration.")
+                return False
+
+    def _get_numeric_name(self, experiment_state, abstraction):
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        return grammar.get_name(
+            str(abstraction), name_classes=[LAPSGrammar.NUMERIC_FUNCTION_NAMES]
+        )
+
+    def _get_abstraction_definitions(self, experiment_state):
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        abstractions = [p for p in grammar.primitives if p.isInvented]
+
+        abstraction_definitions = {}
+        # for abstraction in sorted(abstractions, key=lambda p: str(p)):
+        for abstraction in abstractions:
+            abstraction_definitions[abstraction] = self._get_abstraction_definition(
+                experiment_state, abstraction
+            )
+
+        return abstraction_definitions
+
+    def _get_abstraction_definition(self, experiment_state, abstraction):
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        fn_name = grammar.get_name(
+            str(abstraction),
+            name_classes=[
+                LAPSGrammar.HUMAN_READABLE,
+                LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+            ],
+        )
+        fn_body = str(
+            grammar.show_program(
+                str(abstraction)[
+                    1:
+                ],  # Remove leading `#` so that any inlined abstractions are replaced with their fn_name
+                name_classes=[
+                    LAPSGrammar.HUMAN_READABLE,
+                    LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                ],
+            )
+        )
+        fn_description = grammar.get_function_description(abstraction)
+        return {
+            "fn_name": fn_name,
+            "fn_body": fn_body,
+            "fn_type": abstraction.infer(),
+            "fn_description": fn_description,
+        }
+
+    def _get_usage_examples(self, experiment_state, abstraction, n_usage_examples):
+        rng = experiment_state.metadata[RANDOM_GENERATOR]
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+
+        tasks = list(experiment_state.task_frontiers[TRAIN].keys())
+        rng.shuffle(tasks)
+
+        usage_examples = []
+
+        for task in tasks:
+            frontier = experiment_state.task_frontiers[TRAIN][task]
+            task_language = rng.choice(
+                experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
+            )
+            for e in frontier.entries:
+                if str(abstraction) in e.tokens:
+                    usage_examples += [
+                        {
+                            "task_name": task.name,
+                            "program": grammar.show_program(
+                                e.program,
+                                name_classes=[
+                                    LAPSGrammar.HUMAN_READABLE,
+                                    LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                                ],
+                                debug=True,
+                            ),
+                            "language": task_language,
+                        }
+                    ]
+
+                    if len(usage_examples) == n_usage_examples:
+                        return usage_examples
+
+                    # Go to next task
+                    break
+
+        return usage_examples
+
+    def _parse_completion(self, completion):
+        parse_results = []
+        for choice in completion["choices"]:
+            try:
+                data = json.loads(choice["text"])
+            except:
+                parse_results.append(
+                    {
+                        "index": choice["index"],
+                        "text": choice["text"],
+                        "valid": False,
+                        "error": GPTLibraryNamer.ERROR_JSON,
+                    }
+                )
+                continue
+
+            if not (
+                ("anonymous_name" in data)
+                and ("readable_name" in data)
+                and ("description" in data)
+            ):
+                parse_results.append(
+                    {
+                        "index": choice["index"],
+                        "text": choice["text"],
+                        "valid": False,
+                        "error": GPTLibraryNamer.ERROR_MISSING_FIELD,
+                    }
+                )
+                continue
+
+            if not data["readable_name"]:
+                parse_results.append(
+                    {
+                        "index": choice["index"],
+                        "text": choice["text"],
+                        "valid": False,
+                        "error": GPTLibraryNamer.ERROR_NULL_NAME,
+                    }
+                )
+                continue
+
+            parse_results.append(
+                {
+                    "index": choice["index"],
+                    "text": choice["text"],
+                    "valid": True,
+                    "data": data,
+                }
+            )
+        return parse_results
+
+    def _select_result(self, parse_results):
+        for result in parse_results:
+            # For now, just return the first valid result
+            if result["valid"]:
+                return result
+
+
 DEFAULT_HEADER = ""
 
-
+# Deprecated: Use GPTLibraryNamer
 @ModelRegistry.register
 class CodexLibraryNamer(GPTBase, model_loaders.ModelLoader):
     name = "codex_library_namer"
@@ -103,6 +550,7 @@ class CodexLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 output_name_class=output_name_class,
             )
             prompt = fixed_prompt_header + invention_prompt
+            print(prompt)
             if debug:
                 # TODO (catwong): open space for debugging.
                 pass
@@ -113,7 +561,6 @@ class CodexLibraryNamer(GPTBase, model_loaders.ModelLoader):
                     top_p=0.1,
                     temperature=None,
                     max_tokens=max_tokens,
-                    separator=separator,
                     logprobs=1,
                 )
                 if completion is not None:

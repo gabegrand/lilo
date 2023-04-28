@@ -23,6 +23,7 @@ from src.models.model_loaders import (
     GRAMMAR,
     INITIALIZE_GROUND_TRUTH,
     LIBRARY_LEARNER,
+    LIBRARY_NAMER,
     LLM_SOLVER,
     PROGRAM_REWRITER,
     SAMPLE_GENERATOR,
@@ -49,7 +50,7 @@ DEFAULT_GPT_PARAMS = {
     "n_samples_per_query": 5,
     "temperature": 0.40,
     "max_tokens_completion_beta": 2.0,
-    "function_name_classes": ["human_readable", "default_no_inline", "numeric"],
+    "function_name_classes": ["human_readable", "default"],
     "final_task_origin": "default",
     "body_task_types": ["programs"],
     "final_task_types": ["programs"],
@@ -59,7 +60,7 @@ DEFAULT_GPT_PARAMS = {
 DEFAULT_GPT_SOLVER_PARAMS = {
     "temperature": 0.90,
     "max_tokens_completion_beta": 4.0,
-    "function_name_classes": ["human_readable", "default_no_inline", "numeric"],
+    "function_name_classes": ["human_readable", "default"],
 }
 
 
@@ -81,21 +82,21 @@ def get_domain_metadata(domain: str):
             "tasks_loader": "compositional_graphics_200",
             "task_language_loader": "compositional_graphics_200_synthetic",
             "ocaml_special_handler": "LOGO",
-            "dsl_description_prefix": "",
+            "dsl_description_prefix": "This is a domain-specific language for Logo turtle graphics.",
             "global_batch_sizes": [5, 10, 15, 25, 50, 100, 200],
         },
         "clevr": {
             "tasks_loader": "clevr",
             "task_language_loader": "clevr_synthetic",
             "ocaml_special_handler": "clevr",
-            "dsl_description_prefix": "",
+            "dsl_description_prefix": "This is a domain-specific language for CLEVR: A Diagnostic Dataset for Compositional Language and Elementary Visual Reasoning.",
             "global_batch_sizes": [5, 10, 15, 25, 50, 100, 191],
         },
         "re2": {
             "tasks_loader": "re2",
             "task_language_loader": "re2_synthetic",
             "ocaml_special_handler": "re2",
-            "dsl_description_prefix": "Lambda calculus DSL for regular expressions.",
+            "dsl_description_prefix": "This is a domain-specific language for regular expressions that specify string transformations.",
             "global_batch_sizes": [5, 10, 15, 25, 50, 100, 200, 300, 400, 491],
         },
     }
@@ -353,6 +354,9 @@ def build_config_body(
             _gpt_params.update(block["params"])
             _gpt_params.update(gpt_params)
             block["params"] = _gpt_params
+        if block.get("model_type") == LIBRARY_NAMER:
+            _gpt_params = block["params"]
+            _gpt_params.update(gpt_params)
         if block.get("model_type") == LIBRARY_LEARNER:
             _stitch_params = DEFAULT_STITCH_PARAMS
             _stitch_params.update(block["params"])
