@@ -7,6 +7,7 @@ import json
 import os
 import subprocess
 import time
+from itertools import zip_longest
 
 import numpy as np
 
@@ -431,12 +432,40 @@ class ExperimentState:
                 self.models[model].checkpoint(self, self.get_checkpoint_directory())
 
     def checkpoint_metrics(self, loop_block_runtimes):
-        metrics_json = {
-            METRICS_LOOP_BLOCK_RUNTIMES: loop_block_runtimes,
-        }
         checkpoint_filepath = os.path.join(
             self.get_checkpoint_directory(), METRICS_CHECKPOINT
         )
+        if os.path.exists(checkpoint_filepath):
+            with open(checkpoint_filepath, "r") as f:
+                metrics_json_prev = json.load(f)
+                loop_block_runtimes_prev = metrics_json_prev[
+                    METRICS_LOOP_BLOCK_RUNTIMES
+                ]
+
+            def _combine_runtime_data(d_curr, d_prev):
+                """Ensures that skipped runs do not override prior timing data."""
+                if d_curr is None or d_curr[SKIPPED_MODEL_FN]:
+                    assert d_prev is not None
+                    return d_prev
+                else:
+                    assert d_curr is not None
+                    return d_curr
+
+            loop_block_runtimes_combined = [
+                _combine_runtime_data(*d)
+                for d in zip_longest(loop_block_runtimes, loop_block_runtimes_prev)
+            ]
+        else:
+            loop_block_runtimes_combined = loop_block_runtimes
+
+        # Remove the SKIPPED_MODEL_FN key from output metrics
+        loop_block_runtimes_combined = [
+            {k: v for k, v in d.items() if k is not SKIPPED_MODEL_FN}
+            for d in loop_block_runtimes_combined
+        ]
+        metrics_json = {
+            METRICS_LOOP_BLOCK_RUNTIMES: loop_block_runtimes_combined,
+        }
         with open(checkpoint_filepath, "w") as f:
             json.dump(metrics_json, f, indent=4)
 
@@ -612,6 +641,7 @@ AWS_S3_SYNC_BASE_PATH = "aws_s3_sync_base_path"
 TIME_START = "time_start"
 TIME_END = "time_end"
 TIME_ELAPSED = "time_elapsed"
+SKIPPED_MODEL_FN = "skipped_model_fn"
 
 
 class ExperimentIterator:
@@ -785,13 +815,19 @@ class ExperimentIterator:
         model_fn = getattr(experiment_state.models[model_type], model_fn_name)
 
         t_start = time.time()
-        model_fn(
+        run_results = model_fn(
             experiment_state=experiment_state,
             task_split=task_split,
             task_batch_ids=task_batch_ids,
             **curr_loop_block[PARAMS],
         )
         t_end = time.time()
+
+        # Running model_fn was skipped (due to load from checkpoint)
+        # Don't overwrite timing metrics from previous run
+        skipped_model_fn = isinstance(run_results, dict) and run_results.get(
+            SKIPPED_MODEL_FN
+        )
 
         self.loop_block_runtimes.append(
             {
@@ -804,6 +840,7 @@ class ExperimentIterator:
                 TIME_START: t_start,
                 TIME_END: t_end,
                 TIME_ELAPSED: t_end - t_start,
+                SKIPPED_MODEL_FN: skipped_model_fn,
             }
         )
         experiment_state.checkpoint_metrics(
