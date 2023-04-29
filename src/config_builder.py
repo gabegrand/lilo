@@ -84,6 +84,8 @@ def get_domain_metadata(domain: str):
             "ocaml_special_handler": "LOGO",
             "dsl_description_prefix": "This is a domain-specific language for Logo turtle graphics.",
             "global_batch_sizes": [5, 10, 15, 25, 50, 100, 200],
+            "n_tasks_train": 200,
+            "n_tasks_test": 111,
         },
         "clevr": {
             "tasks_loader": "clevr",
@@ -91,6 +93,8 @@ def get_domain_metadata(domain: str):
             "ocaml_special_handler": "clevr",
             "dsl_description_prefix": "This is a domain-specific language for CLEVR: A Diagnostic Dataset for Compositional Language and Elementary Visual Reasoning.",
             "global_batch_sizes": [5, 10, 15, 25, 50, 100, 191],
+            "n_tasks_train": 191,
+            "n_tasks_test": 103,
         },
         "re2": {
             "tasks_loader": "re2",
@@ -98,6 +102,8 @@ def get_domain_metadata(domain: str):
             "ocaml_special_handler": "re2",
             "dsl_description_prefix": "This is a domain-specific language for regular expressions that specify string transformations.",
             "global_batch_sizes": [5, 10, 15, 25, 50, 100, 200, 300, 400, 491],
+            "n_tasks_train": 491,
+            "n_tasks_test": 500,
         },
     }
 

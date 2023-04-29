@@ -14,7 +14,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-from src.config_builder import DEFAULT_EXPERIMENT_DIR, ExperimentType
+from src.config_builder import (
+    DEFAULT_EXPERIMENT_DIR,
+    ExperimentType,
+    get_domain_metadata,
+)
 from src.experiment_iterator import (
     EXPERIMENT_BLOCK_TYPE_MODEL_FN,
     LOOP_BLOCKS,
@@ -620,6 +624,29 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         assert len(test_solver_block) == 1
         test_solver_block = test_solver_block[0]
         return test_solver_block.get(RUN_EVERY_N_ITERATIONS, 1)
+
+    def get_synthesis_summary_for_domain(
+        self, domain, experiment_types: List[ExperimentType] = None
+    ):
+        # Create n_solved column
+        df = self.get_synthesis_results_for_domain(domain, experiment_types)
+        df_summary = (
+            df[df.programs.astype(bool)]
+            .groupby(["experiment_type", "seed", "iteration", "split"])
+            .task.count()
+            .reset_index(name="n_solved")
+        )
+
+        # Compute % solved
+        domain_meta = get_domain_metadata(domain)
+        percent_solved = []
+        for _, row in df_summary.iterrows():
+            percent_solved.append(
+                row["n_solved"] / domain_meta[f"n_tasks_{row['split']}"]
+            )
+        df_summary["percent_solved"] = percent_solved
+
+        return df_summary
 
     def get_synthesis_results_for_domain(
         self, domain, experiment_types: List[ExperimentType] = None
