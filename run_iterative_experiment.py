@@ -146,6 +146,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--init_grammar_from_checkpoint",
+    default=False,
+    action="store_true",
+    help="Initialize the grammar from a checkpoint (location automatically inferred). Occurs by default when --init_frontiers_from_checkpoint=True",
+)
+
+parser.add_argument(
     "--resume_checkpoint_directory",
     default=None,
     type=str,
@@ -227,6 +234,7 @@ def main(args):
             increment_task_batcher=True,
             init_frontiers_from_checkpoint=args.init_frontiers_from_checkpoint,
             init_frontiers_every_iteration=args.init_frontiers_every_iteration,
+            init_grammar_from_checkpoint=args.init_grammar_from_checkpoint,
             resume_checkpoint_directory=args.resume_checkpoint_directory,
             s3_sync=(not args.no_s3_sync),
         )
@@ -279,6 +287,7 @@ def main(args):
                 increment_task_batcher=True,
                 init_frontiers_from_checkpoint=args.init_frontiers_from_checkpoint,
                 init_frontiers_every_iteration=args.init_frontiers_every_iteration,
+                init_grammar_from_checkpoint=args.init_grammar_from_checkpoint,
                 resume_checkpoint_directory=args.resume_checkpoint_directory,
                 s3_sync=(not args.no_s3_sync),
             )

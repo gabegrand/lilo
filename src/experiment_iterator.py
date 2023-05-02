@@ -29,6 +29,7 @@ TASKS_LOADER = "tasks_loader"
 TASK_LANGUAGE_LOADER = "task_language_loader"
 INIT_FRONTIERS_FROM_CHECKPOINT = "init_frontiers_from_checkpoint"
 INIT_FRONTIERS_EVERY_ITERATION = "init_frontiers_every_iteration"
+INIT_GRAMMAR_FROM_CHECKPOINT = "init_grammar_from_checkpoint"
 FRONTIERS_CHECKPOINT = "frontiers.json"
 SAMPLES_CHECKPOINT = "samples.json"
 
@@ -206,6 +207,9 @@ class ExperimentState:
         print(f"====================================")
 
     def maybe_resume_from_checkpoint(self):
+        if self.metadata[INIT_GRAMMAR_FROM_CHECKPOINT]:
+            self.init_grammar_from_checkpoint()
+
         if self.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
 
             # Restore frontiers if it's the first iteration or if config specifies to restore every iteration
@@ -216,13 +220,7 @@ class ExperimentState:
 
                 # Load the current grammar
                 if self.curr_iteration > 0:
-                    grammar = self.models[
-                        model_loaders.GRAMMAR
-                    ].load_model_from_checkpoint(self, self.get_checkpoint_directory())
-                    if not grammar:
-                        return False
-                    self.models[model_loaders.GRAMMAR] = grammar
-                    print(f"Loaded grammar from: {self.get_checkpoint_directory()}")
+                    self.init_grammar_from_checkpoint()
 
                 # Load the frontiers
                 use_resume_checkpoint = (
@@ -233,6 +231,15 @@ class ExperimentState:
                 )
 
                 return frontiers_loaded
+
+    def init_grammar_from_checkpoint(self):
+        grammar = self.models[model_loaders.GRAMMAR].load_model_from_checkpoint(
+            self, self.get_checkpoint_directory_maybe_resume()
+        )
+        if not grammar:
+            raise ValueError(f"Failed to load grammar from checkpoint.")
+        self.models[model_loaders.GRAMMAR] = grammar
+        print(f"Loaded grammar from: {self.get_checkpoint_directory_maybe_resume()}")
 
     def get_checkpoint_directory(self):
         checkpoint_directory = os.path.join(
