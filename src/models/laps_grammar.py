@@ -989,6 +989,12 @@ class LAPSGrammar(Grammar):
         with open(self.get_checkpoint_filepath(checkpoint_directory)) as f:
             json_grammar = json.load(f)
 
+        grammar = self.from_json(json_grammar)
+        experiment_state.models[model_loaders.GRAMMAR] = grammar
+        return grammar
+
+    @staticmethod
+    def from_json(json_grammar):
         reloaded_primitives = [
             Program.parse(production["expression"])
             for production in json_grammar["productions"]
@@ -1010,5 +1016,4 @@ class LAPSGrammar(Grammar):
             productions=productions,
             continuationType=continuation_type,
         )
-        experiment_state.models[model_loaders.GRAMMAR] = grammar
         return grammar
