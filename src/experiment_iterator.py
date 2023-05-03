@@ -46,6 +46,7 @@ TIMESTAMP = "timestamp"
 TIMESTAMPED_EXPERIMENT_ID = "timestamped_experiment_id"
 OCAML_SPECIAL_HANDLER = "ocaml_special_handler"
 RANDOM_SEED = "random_seed"
+RANDOM_SEED_WILDCARD = "{RANDOM_SEED}"
 RANDOM_GENERATOR = "random_generator"
 
 
@@ -250,9 +251,12 @@ class ExperimentState:
 
     def get_resume_checkpoint_directory(self):
         if self.metadata.get(RESUME_CHECKPOINT_DIRECTORY):
-            return os.path.join(
-                self.metadata[RESUME_CHECKPOINT_DIRECTORY], str(self.curr_iteration)
-            )
+            resume_checkpoint_directory = self.metadata[RESUME_CHECKPOINT_DIRECTORY]
+            if RANDOM_SEED_WILDCARD in resume_checkpoint_directory:
+                resume_checkpoint_directory = resume_checkpoint_directory.replace(
+                    RANDOM_SEED_WILDCARD, f"seed_{self.metadata[RANDOM_SEED]}"
+                )
+            return os.path.join(resume_checkpoint_directory, str(self.curr_iteration))
         else:
             return None
 
