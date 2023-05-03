@@ -3,6 +3,7 @@ utils.py | Author : Catherine Wong
 General purpose utilities.
 """
 import datetime
+import json
 import os
 import subprocess
 from pathlib import Path
@@ -104,7 +105,7 @@ def cleaned_args_dict(args):
                 arg_name = None if arg_value else arg_name
                 arg_value = ""
         elif type(arg_value) == list:
-            arg_value = " ".join(arg_value)
+            arg_value = " ".join([str(x) for x in arg_value])
 
         if arg_name is not None:
             arg_name = "--" + arg_name
@@ -234,6 +235,11 @@ def get_git_commit_sha():
         .decode("ascii")
         .strip()
     )
+
+
+def write_command_to_file(source_python_file, args, save_path):
+    with open(save_path, "w") as f:
+        json.dump(args.__dict__, f, indent=2)
 
 
 def generate_experiment_replication_log_information(

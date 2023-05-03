@@ -43,6 +43,7 @@ from src.config_builder import build_config, get_domain_metadata
 from src.experiment_iterator import EXPORT_DIRECTORY
 from src.logging_utils import OutputLogger
 from src.task_loaders import ALL, RandomShuffleOrderedTaskBatcher
+from src.utils import write_command_to_file
 
 parser = argparse.ArgumentParser()
 
@@ -267,6 +268,14 @@ def main(args):
         os.makedirs(os.path.dirname(config_base_write_path), exist_ok=True)
         with open(config_base_write_path, "w") as f:
             json.dump(config_base, f, indent=4)
+
+        write_command_to_file(
+            source_python_file=os.path.basename(__file__),
+            args=args,
+            save_path=os.path.join(
+                config_base["metadata"]["export_directory"], "run_args.txt"
+            ),
+        )
 
         for global_batch_size in global_batch_sizes:
             config = build_config(
