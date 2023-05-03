@@ -11,7 +11,7 @@ class OutputLogger:
         file_handler_format="%(asctime)s %(levelname)s:%(message)s",
     ):
         logging.basicConfig(
-            level=logging.DEBUG,
+            level=logging.INFO,
             format=stream_handler_format,
             handlers=[
                 logging.FileHandler(log_path, mode="w"),

@@ -444,7 +444,7 @@ class ExperimentState:
 
     def checkpoint_metrics(self, loop_block_runtimes):
         checkpoint_filepath = os.path.join(
-            self.get_checkpoint_directory(), METRICS_CHECKPOINT
+            self.get_checkpoint_directory_maybe_resume(), METRICS_CHECKPOINT
         )
         if os.path.exists(checkpoint_filepath):
             with open(checkpoint_filepath, "r") as f:
