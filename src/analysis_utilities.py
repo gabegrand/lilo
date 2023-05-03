@@ -639,13 +639,13 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         )
 
         # Compute % solved
-        domain_meta = get_domain_metadata(domain)
-        percent_solved = []
-        for _, row in df_summary.iterrows():
-            percent_solved.append(
-                row["n_solved"] / domain_meta[f"n_tasks_{row['split']}"]
-            )
-        df_summary["percent_solved"] = percent_solved
+        # domain_meta = get_domain_metadata(domain)
+        # percent_solved = []
+        # for _, row in df_summary.iterrows():
+        #     percent_solved.append(
+        #         row["n_solved"] / domain_meta[f"n_tasks_{row['split']}"]
+        #     )
+        # df_summary["percent_solved"] = percent_solved
 
         return df_summary
 
@@ -740,6 +740,8 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
             ["experiment_type", "seed", "iteration", "split"]
         ):
 
+            n_tasks_split = get_domain_metadata(domain)[f"n_tasks_{split}"]
+
             ts = range(0, enumeration_timeout + time_interval, time_interval)
             n_solved = []
 
@@ -747,6 +749,9 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
                 n_solved.append(len(df_tmp[df_tmp.best_search_time <= t]))
 
             df_tmp_results = pd.DataFrame({"time": list(ts), "n_solved": n_solved})
+            df_tmp_results["percent_solved"] = (
+                df_tmp_results["n_solved"] / n_tasks_split
+            )
             df_tmp_results["experiment_type"] = experiment_type
             df_tmp_results["seed"] = seed
             df_tmp_results["iteration"] = iteration
