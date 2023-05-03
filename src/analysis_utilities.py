@@ -639,13 +639,13 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         )
 
         # Compute % solved
-        # domain_meta = get_domain_metadata(domain)
-        # percent_solved = []
-        # for _, row in df_summary.iterrows():
-        #     percent_solved.append(
-        #         row["n_solved"] / domain_meta[f"n_tasks_{row['split']}"]
-        #     )
-        # df_summary["percent_solved"] = percent_solved
+        domain_meta = get_domain_metadata(domain)
+        percent_solved = []
+        for _, row in df_summary.iterrows():
+            percent_solved.append(
+                row["n_solved"] / domain_meta[f"n_tasks_{row['split']}"]
+            )
+        df_summary["percent_solved"] = percent_solved
 
         return df_summary
 
