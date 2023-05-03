@@ -1,3 +1,11 @@
+"""
+run_library_evaluation.py | Author: Gabe Grand.
+
+Evaluate and compare unconditional synthesis performance of the final library across
+multiple experiment conditions.
+
+"""
+
 import argparse
 import json
 import os
