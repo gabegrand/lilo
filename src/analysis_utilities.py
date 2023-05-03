@@ -626,22 +626,20 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         test_solver_block = test_solver_block[0]
         return test_solver_block.get(RUN_EVERY_N_ITERATIONS, 1)
 
-    def get_synthesis_summary_for_domain(
-        self, domain, experiment_types: List[ExperimentType] = None
-    ):
+    def get_synthesis_summary(self):
         # Create n_solved column
-        df = self.get_synthesis_results_for_domain(domain, experiment_types)
+        df = self.get_synthesis_results()
         df_summary = (
             df[df.programs.astype(bool)]
-            .groupby(["experiment_type", "seed", "iteration", "split"])
+            .groupby(["domain", "experiment_type", "seed", "iteration", "split"])
             .task.count()
             .reset_index(name="n_solved")
         )
 
         # Compute % solved
-        domain_meta = get_domain_metadata(domain)
         percent_solved = []
         for _, row in df_summary.iterrows():
+            domain_meta = get_domain_metadata(row["domain"])
             percent_solved.append(
                 row["n_solved"] / domain_meta[f"n_tasks_{row['split']}"]
             )
@@ -649,11 +647,16 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
 
         return df_summary
 
-    def get_synthesis_results_for_domain(
-        self, domain, experiment_types: List[ExperimentType] = None
-    ):
-        if experiment_types is None:
-            experiment_types = self.get_available_experiment_types(domain)
+    def get_synthesis_results(self):
+        df_list = []
+        for domain in self.domains:
+            df = self.get_synthesis_results_for_domain(domain)
+            df["domain"] = domain
+            df_list.append(df)
+        return pd.concat(df_list).reset_index(drop=True)
+
+    def get_synthesis_results_for_domain(self, domain):
+        experiment_types = self.get_available_experiment_types(domain)
         df_list = []
         for experiment_type in experiment_types:
             df = self.get_synthesis_results_for_experiment_type(domain, experiment_type)
