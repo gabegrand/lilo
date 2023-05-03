@@ -14,6 +14,7 @@ import shutil
 from run_experiment import init_experiment_state_and_iterator, run_experiment
 from src.config_builder import build_config
 from src.experiment_iterator import EXPORT_DIRECTORY
+from src.logging_utils import OutputLogger
 from src.task_loaders import ALL
 
 parser = argparse.ArgumentParser()
@@ -156,7 +157,12 @@ def main(args):
                 json.dump(config_base, f, indent=4)
 
             print(f"Evaluating: {resume_checkpoint_directory}")
-            run_experiment(args, experiment_state, experiment_iterator)
+
+            log_path = os.path.join(
+                config_base["metadata"]["export_directory"], "run.log"
+            )
+            with OutputLogger(log_path=log_path):
+                run_experiment(args, experiment_state, experiment_iterator)
 
 
 if __name__ == "__main__":
