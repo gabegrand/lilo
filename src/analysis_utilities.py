@@ -27,7 +27,7 @@ from src.experiment_iterator import (
     MODEL_TYPE,
     RUN_EVERY_N_ITERATIONS,
 )
-from src.models.model_loaders import AMORTIZED_SYNTHESIS, LLM_SOLVER
+from src.models.model_loaders import AMORTIZED_SYNTHESIS, GRAMMAR, LLM_SOLVER
 from src.task_loaders import TASK_SPLIT, TEST, TRAIN
 
 
@@ -615,7 +615,8 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         loop_blocks = config_base["experiment_iterator"][LOOP_BLOCKS]
         test_solver_block = list(
             filter(
-                lambda x: x.get(MODEL_TYPE) in [AMORTIZED_SYNTHESIS, LLM_SOLVER]
+                lambda x: x.get(MODEL_TYPE)
+                in [GRAMMAR, AMORTIZED_SYNTHESIS, LLM_SOLVER]
                 and x.get(EXPERIMENT_BLOCK_TYPE_MODEL_FN) == "infer_programs_for_tasks"
                 and x.get(TASK_SPLIT) == TEST,
                 loop_blocks,
@@ -739,6 +740,8 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
             ["experiment_type", "seed", "iteration", "split"]
         ):
 
+            n_tasks_split = get_domain_metadata(domain)[f"n_tasks_{split}"]
+
             ts = range(0, enumeration_timeout + time_interval, time_interval)
             n_solved = []
 
@@ -746,6 +749,9 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
                 n_solved.append(len(df_tmp[df_tmp.best_search_time <= t]))
 
             df_tmp_results = pd.DataFrame({"time": list(ts), "n_solved": n_solved})
+            df_tmp_results["percent_solved"] = (
+                df_tmp_results["n_solved"] / n_tasks_split
+            )
             df_tmp_results["experiment_type"] = experiment_type
             df_tmp_results["seed"] = seed
             df_tmp_results["iteration"] = iteration
