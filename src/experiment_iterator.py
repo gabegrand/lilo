@@ -455,13 +455,7 @@ class ExperimentState:
 
             def _combine_runtime_data(d_curr, d_prev):
                 """Ensures that skipped runs do not override prior timing data."""
-                if d_curr is None or d_curr[SKIPPED_MODEL_FN]:
-                    assert d_prev is not None
-                    return d_prev
-                elif d_prev is None:
-                    assert d_curr is not None
-                    return d_curr
-                else:
+                if d_curr is not None and d_prev is not None:
                     if (d_curr[MODEL_TYPE] != d_prev[MODEL_TYPE]) or (
                         d_curr[EXPERIMENT_BLOCK_TYPE_MODEL_FN]
                         != d_prev[EXPERIMENT_BLOCK_TYPE_MODEL_FN]
@@ -469,6 +463,21 @@ class ExperimentState:
                         print(
                             f"WARNING: {d_curr[MODEL_TYPE]}.{d_curr[EXPERIMENT_BLOCK_TYPE_MODEL_FN]} differed from prior timing data {d_prev[MODEL_TYPE]}:{d_prev[EXPERIMENT_BLOCK_TYPE_MODEL_FN]}, probably because the experiment template was changed. Timing metrics may be incorrect."
                         )
+
+                if d_curr is None:
+                    assert d_prev is not None
+                    return d_prev
+
+                if d_curr[SKIPPED_MODEL_FN]:
+                    if d_prev is not None:
+                        return d_prev
+                    else:
+                        print(
+                            f"Error combining timing metrics: {d_curr[MODEL_TYPE]}.{d_curr[EXPERIMENT_BLOCK_TYPE_MODEL_FN]} was skipped but no prior timing data found."
+                        )
+                        return d_curr
+                else:
+                    assert d_curr is not None
                     return d_curr
 
             loop_block_runtimes_combined = [
