@@ -622,7 +622,11 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
                 loop_blocks,
             )
         )
-        assert len(test_solver_block) == 1
+        assert len(test_solver_block) > 0
+        if len(test_solver_block) > 1:
+            print(
+                f"WARNING: found {len(test_solver_block)} test solver blocks; using first one"
+            )
         test_solver_block = test_solver_block[0]
         return test_solver_block.get(RUN_EVERY_N_ITERATIONS, 1)
 
