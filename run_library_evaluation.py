@@ -161,8 +161,13 @@ def main(args):
             log_path = os.path.join(
                 config_base["metadata"]["export_directory"], "run.log"
             )
-            with OutputLogger(log_path=log_path):
-                run_experiment(args, experiment_state, experiment_iterator)
+            with OutputLogger(log_path=log_path) as logger:
+                try:
+                    run_experiment(args, experiment_state, experiment_iterator)
+                except:
+                    logger.exception(
+                        f"Exception encountered while running experiment. See logs at: {log_path}"
+                    )
 
 
 if __name__ == "__main__":

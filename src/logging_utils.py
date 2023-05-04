@@ -41,6 +41,9 @@ class OutputLogger:
         if msg and not msg.isspace():
             self.logger.log(self.level, msg)
 
+    def exception(self, msg):
+        self.logger.exception(msg)
+
     def flush(self):
         pass
 
