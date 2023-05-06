@@ -86,6 +86,7 @@ class Prompt(BasePrompt):
             LAPSGrammar.HUMAN_READABLE,
             LAPSGrammar.DEFAULT_FUNCTION_NAMES,
         ],
+        include_abstractions: bool = True,
         prepend_dsl_description: bool = False,
     ):
         assert isinstance(body_task_ids, list)
@@ -117,7 +118,10 @@ class Prompt(BasePrompt):
 
         self.body_task_data = [
             self._get_task_data(
-                task_split=TRAIN, task_id=task_id, task_types=body_task_types
+                task_split=TRAIN,
+                task_id=task_id,
+                task_types=body_task_types,
+                beta_reduce_program=(not include_abstractions),
             )
             for task_id in body_task_ids
         ]
@@ -126,11 +130,14 @@ class Prompt(BasePrompt):
             task_id=final_task_id,
             task_types=final_task_types,
             task_split=final_task_split,
+            beta_reduce_program=(not include_abstractions),
         )
 
         self.prepend_dsl_description = prepend_dsl_description
         self.dsl_description = (
-            self._get_dsl_description() if prepend_dsl_description else ""
+            self._get_dsl_description(include_abstractions=include_abstractions)
+            if prepend_dsl_description
+            else ""
         )
 
     def __len__(self):
@@ -212,6 +219,7 @@ class Prompt(BasePrompt):
         task_types: list,
         task_split: str = TRAIN,
         use_mdl_program: bool = True,
+        beta_reduce_program: bool = False,
     ):
         frontier = self.experiment_state.get_frontiers_for_ids(task_split, [task_id])[0]
 
@@ -222,6 +230,8 @@ class Prompt(BasePrompt):
                 task_program = self.rng.choice(self.grammar.get_mdl_programs(programs))
             else:
                 task_program = self.rng.choice(programs)
+            if beta_reduce_program:
+                task_program = task_program.betaNormalForm()
             task_program = self.grammar.show_program(
                 task_program, name_classes=self.function_name_classes
             )
@@ -244,14 +254,30 @@ class Prompt(BasePrompt):
             "task_language": task_language,
         }
 
-    def _get_dsl_description(self):
+    def _get_dsl_description(self, include_abstractions: bool = True):
         dsl_fns = []
         for primitive in self.grammar.primitives:
+            if primitive.isInvented and (not include_abstractions):
+                # Optionally, skip abstractions
+                continue
             fn_name = self.grammar.get_name(
                 production_key=str(primitive), name_classes=self.function_name_classes
             )
             fn_type = primitive.infer()
-            fn_body = str(primitive)
+            if primitive.isInvented:
+                fn_body = str(
+                    self.grammar.show_program(
+                        str(primitive)[
+                            1:
+                        ],  # Remove leading `#` so that any inlined abstractions are replaced with their fn_name
+                        name_classes=[
+                            LAPSGrammar.HUMAN_READABLE,
+                            LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                        ],
+                    )
+                )
+            else:
+                fn_body = str(primitive)
             fn_description = self.grammar.get_function_description(str(primitive))
             dsl_fns.append((primitive, fn_name, fn_type, fn_body, fn_description))
 

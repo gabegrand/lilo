@@ -42,6 +42,7 @@ class GPTSolver(GPTSampleGenerator):
         # Sampling
         n_samples_per_query: int = None,
         n_queries_per_task: int = None,
+        n_queries_per_task_base_dsl: int = 0,
         early_stop_on_solution: bool = True,
         max_retries: int = None,
         add_samples: bool = False,
@@ -108,7 +109,10 @@ class GPTSolver(GPTSampleGenerator):
         parse_results_valid = []
 
         for task_i, task_id in enumerate(task_batch_ids):
-            for query_i in range(n_queries_per_task):
+            for query_i in range(n_queries_per_task + n_queries_per_task_base_dsl):
+
+                # After `n_queries_per_task`, run some `n_queries_per_task_base_dsl` with no abstractions
+                include_abstractions = query_i < n_queries_per_task
 
                 prompt = self.construct_initial_prompt(
                     experiment_state=experiment_state,
@@ -117,6 +121,7 @@ class GPTSolver(GPTSampleGenerator):
                     body_task_types=body_task_types,
                     final_task_types=final_task_types,
                     function_name_classes=function_name_classes,
+                    include_abstractions=include_abstractions,
                     prepend_dsl_description=prepend_dsl_description,
                     line_separator=line_separator,
                     max_tokens_completion_beta=max_tokens_completion_beta,
@@ -172,6 +177,7 @@ class GPTSolver(GPTSampleGenerator):
                         {
                             "task_id": task_id,
                             "query_i": query_i,
+                            "include_abstractions": include_abstractions,
                             "token_stats": token_stats,
                             "prompt": prompt.to_dict(),
                             "completion": completion.to_dict_recursive(),
@@ -182,6 +188,7 @@ class GPTSolver(GPTSampleGenerator):
                     task_solved = False
                     for result_data in parse_results:
                         result_data["query_i"] = query_i
+                        result_data["include_abstractions"] = include_abstractions
 
                         if result_data["valid"]:
                             parse_results_valid.append(result_data)
@@ -215,6 +222,14 @@ class GPTSolver(GPTSampleGenerator):
                         flush=True,
                     )
 
+                    if (
+                        n_queries_per_task_base_dsl > 0
+                        and query_i >= n_queries_per_task
+                    ):
+                        print(
+                            f"Queried using Base DSL: {LAPSGrammar.DEFAULT_FUNCTION_NAMES}"
+                        )
+
                     n_tasks_solved = len(
                         [
                             t
@@ -241,6 +256,7 @@ class GPTSolver(GPTSampleGenerator):
                 "params": {
                     "n_samples_per_query": n_samples_per_query,
                     "n_queries_per_task": n_queries_per_task,
+                    "n_queries_per_task_base_dsl": n_queries_per_task_base_dsl,
                     "temperature": temperature,
                     "engine": self.ENGINE,
                     "line_separator": line_separator,
@@ -252,9 +268,23 @@ class GPTSolver(GPTSampleGenerator):
                     "n_tasks_solved": len(tasks_solved),
                     "tasks_solved": list(tasks_solved),
                 },
+                "task_to_solutions": task_to_solutions,
                 "parse_results_valid": parse_results_valid,
                 "results_by_query": results_by_query,
             }
+
+            if n_queries_per_task_base_dsl:
+                tasks_solved_base_dsl = [
+                    t
+                    for t, results in task_to_solutions.items()
+                    if len(results) > 0
+                    and len(list(filter(lambda x: x["include_abstractions"], results)))
+                    == 0
+                ]
+                results["summary"]["n_tasks_solved_base_dsl"] = len(
+                    tasks_solved_base_dsl
+                )
+                results["summary"]["tasks_solved_base_dsl"] = tasks_solved_base_dsl
 
             # Save results to file
             results_filepath = os.path.join(
@@ -287,6 +317,7 @@ class GPTSolver(GPTSampleGenerator):
         body_task_types,
         final_task_types,
         function_name_classes,
+        include_abstractions,
         prepend_dsl_description,
         line_separator,
         max_tokens_completion_beta,
@@ -317,6 +348,7 @@ class GPTSolver(GPTSampleGenerator):
                 final_task_types=final_task_types,
                 final_task_split=task_split,
                 function_name_classes=function_name_classes,
+                include_abstractions=include_abstractions,
                 prepend_dsl_description=prepend_dsl_description,
                 line_separator=line_separator,
             )
