@@ -11,7 +11,12 @@ from abc import ABCMeta, abstractmethod
 from typing import Union
 
 import openai
-from openai.error import APIConnectionError, InvalidRequestError, RateLimitError
+from openai.error import (
+    APIConnectionError,
+    APIError,
+    InvalidRequestError,
+    RateLimitError,
+)
 from transformers import GPT2TokenizerFast
 
 from src.experiment_iterator import RANDOM_GENERATOR
@@ -379,11 +384,7 @@ class GPTBase(object):
             except InvalidRequestError as e:
                 print(e)
                 return e
-            except RateLimitError as e:
-                print(e)
-                pause_for_rate_limit = True
-                completion = e
-            except APIConnectionError as e:
+            except (RateLimitError, APIConnectionError, APIError) as e:
                 print(e)
                 pause_for_rate_limit = True
                 completion = e
