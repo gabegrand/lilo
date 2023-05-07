@@ -57,7 +57,7 @@
                 "params": {
                     "n_samples_per_query": 4,
                     "n_queries_per_task": 4,
-                    "temperature": 0.0,
+                    "temperature": 0.9,
                     "max_tokens_completion_beta": 4.0,
                     "body_task_types": ["language", "programs"],
                     "final_task_types": ["language"],
@@ -74,7 +74,7 @@
                 "params": {
                     "n_samples_per_query": 4,
                     "n_queries_per_task": 4,
-                    "temperature": 0.0,
+                    "temperature": 0.9,
                     "max_tokens_completion_beta": 4.0,
                     "body_task_types": ["language", "programs"],
                     "final_task_types": ["language"],

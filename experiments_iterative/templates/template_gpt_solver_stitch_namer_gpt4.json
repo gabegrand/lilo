@@ -11,8 +11,20 @@
             "model_type": "llm_solver",
             "model_loader": "gpt_solver",
             "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "library_learner",
+            "model_loader": "stitch_proposer",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "library_namer",
+            "model_loader": "gpt_library_namer",
+            "model_initializer_fn": "load_model",
             "params": {
-                "engine": "gpt-3.5-turbo-0301"
+                "engine": "gpt-4-0314"
             }
         }
     ],
@@ -62,7 +74,7 @@
                     "body_task_types": ["language", "programs"],
                     "final_task_types": ["language"],
                     "prepend_dsl_description": true,
-                    "verbose": true
+                    "verbose": false
                 }
             },
             {
@@ -79,7 +91,7 @@
                     "body_task_types": ["language", "programs"],
                     "final_task_types": ["language"],
                     "prepend_dsl_description": true,
-                    "verbose": true
+                    "verbose": false
                 },
                 "run_every_n_iterations": 3
             },
@@ -91,6 +103,32 @@
                 "models_to_checkpoint": [
                     "grammar"
                 ]
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "library_learner",
+                "model_fn": "get_compressed_grammar_mdl_prior_rank",
+                "task_splits": [
+                    "train"
+                ],
+                "task_batch_sizes": [
+                    "all"
+                ],
+                "params": {
+                    "include_samples": true,
+                    "use_mdl_program": false,
+                    "beta_reduce_programs": true,
+                    "update_grammar": true,
+                    "replace_existing_abstractions": true
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "library_namer",
+                "model_fn": "generate_library_names",
+                "task_split": "train",
+                "task_batch_size": "all",
+                "params": {}
             },
             {
                 "experiment_block_type": "checkpoint",
