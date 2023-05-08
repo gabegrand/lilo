@@ -101,7 +101,7 @@ class GPTSolver(GPTSampleGenerator):
                 }
             else:
                 print(f"GPT results not found at: {results_filepath_ext}")
-                if experiment_state.is_first_iteration():
+                if experiment_state.is_first_iteration() and task_split == TRAIN:
                     raise ValueError("Unable to resume first iteration.")
 
         task_to_solutions = defaultdict(list)

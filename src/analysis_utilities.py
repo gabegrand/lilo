@@ -38,6 +38,7 @@ class IterativeExperimentAnalyzer:
         "description_length": "Test program description length",
         "experiment_type": "Model",
         "n_frontiers": "Number of training programs (including samples)",
+        "percent_solved": "Tasks solved (%)",
     }
     DOMAIN_NAMES_CAMERA = {
         "drawings_nuts_bolts": "nuts & bolts",
@@ -550,6 +551,8 @@ class IterativeExperimentAnalyzer:
         ].replace({k.value: v for k, v in self.EXPERIMENT_TYPES_CAMERA.items()})
         if "domain" in df.columns:
             df["domain"] = df["domain"].replace(self.DOMAIN_NAMES_CAMERA)
+        if self.COL_NAMES_CAMERA["percent_solved"] in df.columns:
+            df[self.COL_NAMES_CAMERA["percent_solved"]] *= 100
         return df
 
     def plot_description_length(
@@ -603,8 +606,41 @@ class IterativeExperimentAnalyzer:
 
 
 class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
+    DOMAIN_NAMES_CAMERA = {
+        "re2": "REGEX",
+        "clevr": "CLEVR",
+        "logo": "LOGO",
+    }
+    EXPERIMENT_TYPES_CAMERA = {
+        ExperimentType.DREAMCODER: "DreamCoder",
+        ExperimentType.GPT_SOLVER: "LLM Solver",
+        ExperimentType.GPT_SOLVER_STITCH: "LLM Solver + Stitch",
+        ExperimentType.GPT_SOLVER_STITCH_NAMER: "LILO",
+        ExperimentType.GPT_SOLVER_STITCH_NAMER_HYBRID_DSL: "LILO (+ Hybrid DSL)",
+        ExperimentType.GPT_SOLVER_STITCH_NAMER_SEARCH: "LILO (+ Search)",
+    }
+    EXPERIMENT_TYPES_PALETTE = {
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.DREAMCODER]: "#306BAC",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER]: "#8FAD88",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_STITCH]: "#306BAC",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_STITCH_NAMER]: "#B56576",
+        EXPERIMENT_TYPES_CAMERA[
+            ExperimentType.GPT_SOLVER_STITCH_NAMER_HYBRID_DSL
+        ]: "#E56B6F",
+        EXPERIMENT_TYPES_CAMERA[
+            ExperimentType.GPT_SOLVER_STITCH_NAMER_SEARCH
+        ]: "#EAAC8B",
+    }
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.DOMAIN_NAMES_CAMERA = SynthesisExperimentAnalyzer.DOMAIN_NAMES_CAMERA
+        self.EXPERIMENT_TYPES_CAMERA = (
+            SynthesisExperimentAnalyzer.EXPERIMENT_TYPES_CAMERA
+        )
+        self.EXPERIMENT_TYPES_PALETTE = (
+            SynthesisExperimentAnalyzer.EXPERIMENT_TYPES_PALETTE
+        )
 
     def get_enumeration_timeout(self, domain, experiment_type, seed):
         config_base = self.get_config(domain, experiment_type, seed)
