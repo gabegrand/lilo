@@ -63,6 +63,11 @@
                     "n_queries_per_task": 4,
                     "temperature": 0.9,
                     "max_tokens_completion_beta": 4.0,
+                    "function_name_classes": [
+                        "human_readable",
+                        "default_no_inline",
+                        "numeric"
+                    ],
                     "body_task_types": ["language", "programs"],
                     "final_task_types": ["language"],
                     "prepend_dsl_description": true,
@@ -80,13 +85,17 @@
                     "n_queries_per_task": 4,
                     "temperature": 0.9,
                     "max_tokens_completion_beta": 4.0,
+                    "function_name_classes": [
+                        "human_readable",
+                        "default_no_inline",
+                        "numeric"
+                    ],
                     "body_task_types": ["language", "programs"],
                     "final_task_types": ["language"],
                     "prepend_dsl_description": true,
                     "verbose": false
                 },
-                "run_every_n_iterations": 3,
-                "first_iteration": 3
+                "run_every_n_iterations": 3
             },
             {
                 "experiment_block_type": "checkpoint",
