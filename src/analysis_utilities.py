@@ -554,7 +554,16 @@ class IterativeExperimentAnalyzer:
         df[self.COL_NAMES_CAMERA["experiment_type"]] = df[
             self.COL_NAMES_CAMERA["experiment_type"]
         ].astype(experiment_dtype)
-        df = df.sort_values(by=self.COL_NAMES_CAMERA["experiment_type"])
+        df = df.sort_values(
+            by=[
+                self.COL_NAMES_CAMERA["experiment_type"],
+                "domain",
+                "seed",
+                "split",
+                "iteration",
+            ],
+            ascending=[True, False, True, False, True],
+        )
 
         # Replace experiment type names
         df[self.COL_NAMES_CAMERA["experiment_type"]] = df[
@@ -630,16 +639,16 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         ExperimentType.BASE_DSL: "Base DSL",
         ExperimentType.DREAMCODER: "DreamCoder",
         ExperimentType.GPT_SOLVER: "LLM Solver",
-        ExperimentType.GPT_SOLVER_STITCH: "LLM Solver + Stitch",
+        ExperimentType.GPT_SOLVER_STITCH: "LLM Solver (+ Stitch)",
         ExperimentType.GPT_SOLVER_STITCH_NAMER: "LILO",
         ExperimentType.GPT_SOLVER_STITCH_NAMER_HYBRID_DSL: "LILO (+ Hybrid DSL)",
         ExperimentType.GPT_SOLVER_STITCH_NAMER_SEARCH: "LILO (+ Search)",
     }
     EXPERIMENT_TYPES_PALETTE = {
         EXPERIMENT_TYPES_CAMERA[ExperimentType.BASE_DSL]: "#8FAD88",
-        EXPERIMENT_TYPES_CAMERA[ExperimentType.DREAMCODER]: "#306BAC",
-        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER]: "#8FAD88",
-        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_STITCH]: "#306BAC",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.DREAMCODER]: "#1E8531",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER]: "#306BAC",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_STITCH]: "#8999D2",
         EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_STITCH_NAMER]: "#B56576",
         EXPERIMENT_TYPES_CAMERA[
             ExperimentType.GPT_SOLVER_STITCH_NAMER_HYBRID_DSL
@@ -676,10 +685,10 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
             )
         )
         assert len(test_solver_block) > 0
-        if len(test_solver_block) > 1:
-            print(
-                f"WARNING: found {len(test_solver_block)} test solver blocks; using first one"
-            )
+        # if len(test_solver_block) > 1:
+        #     logging.warning(
+        #         f"Found {len(test_solver_block)} test solver blocks; using first one to compute {RUN_EVERY_N_ITERATIONS}"
+        #     )
         test_solver_block = test_solver_block[0]
         return test_solver_block.get(RUN_EVERY_N_ITERATIONS, 1)
 
