@@ -134,6 +134,17 @@ class LAPSDreamCoderRecognition:
                 f"require_ground_truth_frontiers=True and no non-empty frontiers in {task_split}. skipping optimize_model_for_frontiers"
             )
             return
+
+        # Skip training if resume
+        if experiment_state.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
+            if experiment_state.maybe_resume_from_checkpoint():
+                print(
+                    f"optimize_model_for_frontiers: Skipped recognition network training."
+                )
+                return {
+                    SKIPPED_MODEL_FN: True,
+                }
+
         # Initialize I/O example encoders.
         example_encoder = self._maybe_initialize_example_encoder(
             task_encoder_types, experiment_state

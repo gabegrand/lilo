@@ -7,6 +7,7 @@ Updates GRAMMAR based on Stitch compression.
 """
 
 import json
+import logging
 from collections import defaultdict
 
 import stitch_core as stitch
@@ -14,6 +15,7 @@ import stitch_core as stitch
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.program import Invented, Program
+from src.experiment_iterator import RANDOM_GENERATOR
 from src.models.laps_grammar import LAPSGrammar
 from src.models.stitch_base import StitchBase
 from src.task_loaders import ALL
@@ -112,10 +114,16 @@ class StitchProposerLibraryLearner(StitchBase, model_loaders.ModelLoader):
                 include_samples=False,
                 include_ground_truth_tasks=True,
             )
-            if len(matching_tasks) > 1:
-                raise ValueError(f"Multiple tasks associated with task_id {task_id}")
-            elif len(matching_tasks) == 1:
-                task = matching_tasks[0]
+            if matching_tasks:
+                if len(matching_tasks) > 1:
+                    logging.warning(
+                        f"Found multiple ({len(matching_tasks)}) tasks associated with task_id {task_id}"
+                    )
+                    rng = experiment_state.metadata[RANDOM_GENERATOR]
+                    task = rng.choice(matching_tasks)
+                else:
+                    task = matching_tasks[0]
+
                 frontier = Frontier(
                     frontier=[
                         FrontierEntry(
