@@ -38,6 +38,7 @@ class IterativeExperimentAnalyzer:
         "description_length": "Test program description length",
         "experiment_type": "Model",
         "n_frontiers": "Number of training programs (including samples)",
+        "percent_solved": "Tasks solved (%)",
     }
     DOMAIN_NAMES_CAMERA = {
         "drawings_nuts_bolts": "nuts & bolts",
@@ -545,11 +546,37 @@ class IterativeExperimentAnalyzer:
 
     def format_dataframe_camera(self, df):
         df = df.rename(mapper=self.COL_NAMES_CAMERA, axis="columns")
+
+        # Sort experiment types
+        experiment_dtype = pd.CategoricalDtype(
+            categories=[x.value for x in list(ExperimentType)], ordered=True
+        )
+        df[self.COL_NAMES_CAMERA["experiment_type"]] = df[
+            self.COL_NAMES_CAMERA["experiment_type"]
+        ].astype(experiment_dtype)
+        df = df.sort_values(
+            by=[
+                self.COL_NAMES_CAMERA["experiment_type"],
+                "domain",
+                "seed",
+                "split",
+                "iteration",
+            ],
+            ascending=[True, False, True, False, True],
+        )
+
+        # Replace experiment type names
         df[self.COL_NAMES_CAMERA["experiment_type"]] = df[
             self.COL_NAMES_CAMERA["experiment_type"]
         ].replace({k.value: v for k, v in self.EXPERIMENT_TYPES_CAMERA.items()})
+
+        # Replace domain names
         if "domain" in df.columns:
             df["domain"] = df["domain"].replace(self.DOMAIN_NAMES_CAMERA)
+
+        # Convert percentages
+        if self.COL_NAMES_CAMERA["percent_solved"] in df.columns:
+            df[self.COL_NAMES_CAMERA["percent_solved"]] *= 100
         return df
 
     def plot_description_length(
@@ -603,8 +630,43 @@ class IterativeExperimentAnalyzer:
 
 
 class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
+    DOMAIN_NAMES_CAMERA = {
+        "re2": "REGEX",
+        "clevr": "CLEVR",
+        "logo": "LOGO",
+    }
+    EXPERIMENT_TYPES_CAMERA = {
+        ExperimentType.BASE_DSL: "Base DSL",
+        ExperimentType.DREAMCODER: "DreamCoder",
+        ExperimentType.GPT_SOLVER: "LLM Solver",
+        ExperimentType.GPT_SOLVER_STITCH: "LLM Solver (+ Stitch)",
+        ExperimentType.GPT_SOLVER_STITCH_NAMER: "LILO",
+        ExperimentType.GPT_SOLVER_STITCH_NAMER_HYBRID_DSL: "LILO (+ Hybrid DSL)",
+        ExperimentType.GPT_SOLVER_STITCH_NAMER_SEARCH: "LILO (+ Search)",
+    }
+    EXPERIMENT_TYPES_PALETTE = {
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.BASE_DSL]: "#8FAD88",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.DREAMCODER]: "#1E8531",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER]: "#306BAC",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_STITCH]: "#8999D2",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_STITCH_NAMER]: "#B56576",
+        EXPERIMENT_TYPES_CAMERA[
+            ExperimentType.GPT_SOLVER_STITCH_NAMER_HYBRID_DSL
+        ]: "#E56B6F",
+        EXPERIMENT_TYPES_CAMERA[
+            ExperimentType.GPT_SOLVER_STITCH_NAMER_SEARCH
+        ]: "#EAAC8B",
+    }
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.DOMAIN_NAMES_CAMERA = SynthesisExperimentAnalyzer.DOMAIN_NAMES_CAMERA
+        self.EXPERIMENT_TYPES_CAMERA = (
+            SynthesisExperimentAnalyzer.EXPERIMENT_TYPES_CAMERA
+        )
+        self.EXPERIMENT_TYPES_PALETTE = (
+            SynthesisExperimentAnalyzer.EXPERIMENT_TYPES_PALETTE
+        )
 
     def get_enumeration_timeout(self, domain, experiment_type, seed):
         config_base = self.get_config(domain, experiment_type, seed)
@@ -623,10 +685,10 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
             )
         )
         assert len(test_solver_block) > 0
-        if len(test_solver_block) > 1:
-            print(
-                f"WARNING: found {len(test_solver_block)} test solver blocks; using first one"
-            )
+        # if len(test_solver_block) > 1:
+        #     logging.warning(
+        #         f"Found {len(test_solver_block)} test solver blocks; using first one to compute {RUN_EVERY_N_ITERATIONS}"
+        #     )
         test_solver_block = test_solver_block[0]
         return test_solver_block.get(RUN_EVERY_N_ITERATIONS, 1)
 
@@ -724,10 +786,18 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         df_out["solved"] = df_out["programs"].apply(lambda x: len(x) > 0)
         return df_out
 
-    def get_search_time_results_for_domain(
-        self, domain, experiment_types=None, time_interval=1
-    ):
-        df = self.get_synthesis_results_for_domain(domain, experiment_types)
+    def get_search_time_results(self, time_interval=1):
+        df_list = []
+        for domain in self.domains:
+            df = self.get_search_time_results_for_domain(
+                domain=domain, time_interval=time_interval
+            )
+            df["domain"] = domain
+            df_list.append(df)
+        return pd.concat(df_list).reset_index(drop=True)
+
+    def get_search_time_results_for_domain(self, domain, time_interval=1):
+        df = self.get_synthesis_results_for_domain(domain)
 
         enumeration_timeouts = [
             self.get_enumeration_timeout(domain, experiment_type, seed)

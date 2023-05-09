@@ -65,6 +65,7 @@ DEFAULT_GPT_SOLVER_PARAMS = {
 
 
 class ExperimentType(str, Enum):
+    # Partial synthesis experiments
     ORACLE = "oracle"
     ORACLE_TRAIN_TEST = "oracle_train_test"
     STITCH = "stitch"
@@ -74,6 +75,14 @@ class ExperimentType(str, Enum):
         "stitch_codex_language_origin_random_test"
     )
     STITCH_CODEX_DSL_DESCRIPTION = "stitch_codex_dsl_description"
+    # Full synthesis experiments
+    BASE_DSL = "base_dsl"
+    DREAMCODER = "baseline_dreamcoder"
+    GPT_SOLVER = "gpt_solver"
+    GPT_SOLVER_STITCH = "gpt_solver_stitch"
+    GPT_SOLVER_STITCH_NAMER = "gpt_solver_stitch_namer"
+    GPT_SOLVER_STITCH_NAMER_HYBRID_DSL = "gpt_solver_stitch_namer_hybrid_dsl"
+    GPT_SOLVER_STITCH_NAMER_SEARCH = "gpt_solver_stitch_namer_search"
 
 
 def get_domain_metadata(domain: str):
