@@ -546,11 +546,26 @@ class IterativeExperimentAnalyzer:
 
     def format_dataframe_camera(self, df):
         df = df.rename(mapper=self.COL_NAMES_CAMERA, axis="columns")
+
+        # Sort experiment types
+        experiment_dtype = pd.CategoricalDtype(
+            categories=[x.value for x in list(ExperimentType)], ordered=True
+        )
+        df[self.COL_NAMES_CAMERA["experiment_type"]] = df[
+            self.COL_NAMES_CAMERA["experiment_type"]
+        ].astype(experiment_dtype)
+        df = df.sort_values(by=self.COL_NAMES_CAMERA["experiment_type"])
+
+        # Replace experiment type names
         df[self.COL_NAMES_CAMERA["experiment_type"]] = df[
             self.COL_NAMES_CAMERA["experiment_type"]
         ].replace({k.value: v for k, v in self.EXPERIMENT_TYPES_CAMERA.items()})
+
+        # Replace domain names
         if "domain" in df.columns:
             df["domain"] = df["domain"].replace(self.DOMAIN_NAMES_CAMERA)
+
+        # Convert percentages
         if self.COL_NAMES_CAMERA["percent_solved"] in df.columns:
             df[self.COL_NAMES_CAMERA["percent_solved"]] *= 100
         return df
@@ -612,6 +627,7 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         "logo": "LOGO",
     }
     EXPERIMENT_TYPES_CAMERA = {
+        ExperimentType.BASE_DSL: "Base DSL",
         ExperimentType.DREAMCODER: "DreamCoder",
         ExperimentType.GPT_SOLVER: "LLM Solver",
         ExperimentType.GPT_SOLVER_STITCH: "LLM Solver + Stitch",
@@ -620,6 +636,7 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         ExperimentType.GPT_SOLVER_STITCH_NAMER_SEARCH: "LILO (+ Search)",
     }
     EXPERIMENT_TYPES_PALETTE = {
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.BASE_DSL]: "#8FAD88",
         EXPERIMENT_TYPES_CAMERA[ExperimentType.DREAMCODER]: "#306BAC",
         EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER]: "#8FAD88",
         EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_STITCH]: "#306BAC",
@@ -760,10 +777,18 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         df_out["solved"] = df_out["programs"].apply(lambda x: len(x) > 0)
         return df_out
 
-    def get_search_time_results_for_domain(
-        self, domain, experiment_types=None, time_interval=1
-    ):
-        df = self.get_synthesis_results_for_domain(domain, experiment_types)
+    def get_search_time_results(self, time_interval=1):
+        df_list = []
+        for domain in self.domains:
+            df = self.get_search_time_results_for_domain(
+                domain=domain, time_interval=time_interval
+            )
+            df["domain"] = domain
+            df_list.append(df)
+        return pd.concat(df_list).reset_index(drop=True)
+
+    def get_search_time_results_for_domain(self, domain, time_interval=1):
+        df = self.get_synthesis_results_for_domain(domain)
 
         enumeration_timeouts = [
             self.get_enumeration_timeout(domain, experiment_type, seed)

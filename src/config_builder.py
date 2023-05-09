@@ -76,6 +76,7 @@ class ExperimentType(str, Enum):
     )
     STITCH_CODEX_DSL_DESCRIPTION = "stitch_codex_dsl_description"
     # Full synthesis experiments
+    BASE_DSL = "base_dsl"
     DREAMCODER = "baseline_dreamcoder"
     GPT_SOLVER = "gpt_solver"
     GPT_SOLVER_STITCH = "gpt_solver_stitch"
