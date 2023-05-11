@@ -645,7 +645,7 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         ExperimentType.GPT_SOLVER_STITCH_NAMER_SEARCH: "LILO (+ Search)",
     }
     EXPERIMENT_TYPES_PALETTE = {
-        EXPERIMENT_TYPES_CAMERA[ExperimentType.BASE_DSL]: "#8FAD88",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.BASE_DSL]: "#306BAC",
         EXPERIMENT_TYPES_CAMERA[ExperimentType.DREAMCODER]: "#1E8531",
         EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER]: "#306BAC",
         EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_STITCH]: "#8999D2",
