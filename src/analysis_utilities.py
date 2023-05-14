@@ -212,6 +212,7 @@ class IterativeExperimentAnalyzer:
         df_runtime["time_end"] = pd.to_datetime(
             df_runtime["time_end"], unit="s", utc=True
         )
+        df_runtime = df_runtime.rename({"task_split": "split"}, axis="columns")
         return df_runtime
 
     def get_default_split(self, experiment_type):
@@ -545,38 +546,43 @@ class IterativeExperimentAnalyzer:
         return pd.concat(df_list, axis=0).reset_index(drop=True)
 
     def format_dataframe_camera(self, df):
-        df = df.rename(mapper=self.COL_NAMES_CAMERA, axis="columns")
+        df = df.copy()
 
-        # Sort experiment types
-        experiment_dtype = pd.CategoricalDtype(
-            categories=[x.value for x in list(ExperimentType)], ordered=True
-        )
-        df[self.COL_NAMES_CAMERA["experiment_type"]] = df[
-            self.COL_NAMES_CAMERA["experiment_type"]
-        ].astype(experiment_dtype)
-        df = df.sort_values(
-            by=[
-                self.COL_NAMES_CAMERA["experiment_type"],
-                "domain",
-                "seed",
-                "split",
-                "iteration",
-            ],
-            ascending=[True, False, True, False, True],
-        )
-
-        # Replace experiment type names
-        df[self.COL_NAMES_CAMERA["experiment_type"]] = df[
-            self.COL_NAMES_CAMERA["experiment_type"]
-        ].replace({k.value: v for k, v in self.EXPERIMENT_TYPES_CAMERA.items()})
-
-        # Replace domain names
+        # Sort and rename domain
         if "domain" in df.columns:
+            domain_dtype = pd.CategoricalDtype(
+                categories=list(self.DOMAIN_NAMES_CAMERA.keys()), ordered=True
+            )
+            df["domain"] = df["domain"].astype(domain_dtype)
             df["domain"] = df["domain"].replace(self.DOMAIN_NAMES_CAMERA)
 
+        # Sort and rename experiment_type
+        if "experiment_type" in df.columns:
+            experiment_dtype = pd.CategoricalDtype(
+                categories=[x.value for x in list(ExperimentType)], ordered=True
+            )
+            df["experiment_type"] = df["experiment_type"].astype(experiment_dtype)
+            df["experiment_type"] = df["experiment_type"].replace(
+                {k.value: v for k, v in self.EXPERIMENT_TYPES_CAMERA.items()}
+            )
+
+        sort_columns = [
+            col_name
+            for col_name in ["domain", "experiment_type", "seed", "split", "iteration"]
+            if col_name in df.columns
+        ]
+
+        df = df.sort_values(
+            by=sort_columns,
+            ascending=False,
+        )
+
         # Convert percentages
-        if self.COL_NAMES_CAMERA["percent_solved"] in df.columns:
-            df[self.COL_NAMES_CAMERA["percent_solved"]] *= 100
+        if "percent_solved" in df.columns:
+            df["percent_solved"] *= 100
+
+        df = df.rename(mapper=self.COL_NAMES_CAMERA, axis="columns")
+
         return df
 
     def plot_description_length(
@@ -837,3 +843,62 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
             df_list.append(df_tmp_results)
 
         return pd.concat(df_list).reset_index(drop=True)
+
+    def get_gpt_solver_results(self):
+        token_usage_list = []
+
+        for domain in self.domains:
+            for experiment_type in self.get_available_experiment_types(domain):
+
+                # Skip non-GPT experiments
+                if experiment_type in [ExperimentType.DREAMCODER]:
+                    continue
+
+                for seed in self.get_available_seeds(domain, experiment_type):
+                    print(domain, experiment_type, seed)
+
+                    run_every_n = self.get_test_solver_run_every_n(
+                        domain, experiment_type, seed
+                    )
+
+                    for iteration in self.get_available_iterations(
+                        domain, experiment_type, seed
+                    ):
+                        for split in [TRAIN, TEST]:
+
+                            if split == TEST and (iteration % run_every_n) != 0:
+                                continue
+
+                            run_path = self.get_run_path(
+                                domain, experiment_type, seed, self.batch_size
+                            )
+
+                            json_path = os.path.join(
+                                run_path,
+                                str(iteration),
+                                split,
+                                "gpt_solver_results.json",
+                            )
+
+                            if not os.path.exists(json_path):
+                                print(f"WARNING: Missing path {json_path}")
+                                if self.allow_incomplete_results:
+                                    return None
+
+                            with open(json_path, "r") as f:
+                                data = json.load(f)
+
+                            for query_data in data["results_by_query"]:
+                                token_usage = query_data["completion"]["usage"]
+                                token_usage["domain"] = domain
+                                token_usage["experiment_type"] = experiment_type
+                                token_usage["seed"] = seed
+                                token_usage["iteration"] = iteration
+                                token_usage["split"] = split
+                                token_usage["task_id"] = query_data["task_id"]
+                                token_usage["query_i"] = query_data["query_i"]
+                                token_usage_list.append(token_usage)
+
+        df_token_usage = pd.DataFrame(token_usage_list)
+
+        return df_token_usage
