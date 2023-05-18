@@ -550,31 +550,51 @@ class IterativeExperimentAnalyzer:
 
         # Sort and rename domain
         if "domain" in df.columns:
+            df["domain"] = df["domain"].replace(self.DOMAIN_NAMES_CAMERA)
             domain_dtype = pd.CategoricalDtype(
-                categories=list(self.DOMAIN_NAMES_CAMERA.keys()), ordered=True
+                categories=[
+                    x
+                    for x in self.DOMAIN_NAMES_CAMERA.values()
+                    if x in df["domain"].unique()
+                ],
+                ordered=True,
             )
             df["domain"] = df["domain"].astype(domain_dtype)
-            df["domain"] = df["domain"].replace(self.DOMAIN_NAMES_CAMERA)
 
         # Sort and rename experiment_type
         if "experiment_type" in df.columns:
-            experiment_dtype = pd.CategoricalDtype(
-                categories=[x.value for x in list(ExperimentType)], ordered=True
-            )
-            df["experiment_type"] = df["experiment_type"].astype(experiment_dtype)
             df["experiment_type"] = df["experiment_type"].replace(
                 {k.value: v for k, v in self.EXPERIMENT_TYPES_CAMERA.items()}
             )
+            experiment_dtype = pd.CategoricalDtype(
+                categories=list(
+                    [
+                        x
+                        for x in self.EXPERIMENT_TYPES_CAMERA.values()
+                        if x in df["experiment_type"].unique()
+                    ]
+                ),
+                ordered=True,
+            )
+            df["experiment_type"] = df["experiment_type"].astype(experiment_dtype)
 
-        sort_columns = [
-            col_name
-            for col_name in ["domain", "experiment_type", "seed", "split", "iteration"]
-            if col_name in df.columns
-        ]
+        sort_by, sort_ascending = zip(
+            *[
+                (col_name, ascending)
+                for col_name, ascending in [
+                    ("domain", True),
+                    ("experiment_type", True),
+                    ("seed", True),
+                    ("split", True),
+                    ("iteration", True),
+                ]
+                if col_name in df.columns
+            ]
+        )
 
         df = df.sort_values(
-            by=sort_columns,
-            ascending=False,
+            by=list(sort_by),
+            ascending=list(sort_ascending),
         )
 
         # Convert percentages
