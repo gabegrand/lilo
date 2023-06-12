@@ -1,0 +1,22 @@
+{
+    "loop_block_runtimes": [
+        {
+            "curr_iteration": 4,
+            "model_type": "amortized_synthesis",
+            "model_fn": "optimize_model_for_frontiers",
+            "task_split": "train",
+            "time_start": 1686536481.7887876,
+            "time_end": 1686537135.8136654,
+            "time_elapsed": 654.0248777866364
+        },
+        {
+            "curr_iteration": 4,
+            "model_type": "amortized_synthesis",
+            "model_fn": "infer_programs_for_tasks",
+            "task_split": "train",
+            "time_start": 1686537135.8149834,
+            "time_end": 1686538168.9899137,
+            "time_elapsed": 1033.1749303340912
+        }
+    ]
+}
