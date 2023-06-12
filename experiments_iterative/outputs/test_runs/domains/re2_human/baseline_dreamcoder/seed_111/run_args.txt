@@ -1,0 +1,31 @@
+{
+  "experiment_name": "test_runs",
+  "experiment_type": "baseline_dreamcoder",
+  "domain": "re2_human",
+  "task_batcher": "random_shuffle_ordered_task_batcher",
+  "iterations": 1,
+  "enumeration_timeout": 10,
+  "recognition_train_steps": 100,
+  "encoder": "re2",
+  "stitch_params": "{\"iterations\": 10, \"max_arity\": 3}",
+  "gpt_params": "{}",
+  "no_likelihoods": false,
+  "global_batch_sizes": [
+    96
+  ],
+  "global_batch_size_all": false,
+  "random_seeds": [
+    111
+  ],
+  "init_iteration": 0,
+  "init_frontiers_from_checkpoint": false,
+  "init_frontiers_every_iteration": false,
+  "init_grammar_from_checkpoint": false,
+  "resume_checkpoint_directory": null,
+  "use_cached": false,
+  "resume_strategy": null,
+  "debug": false,
+  "verbose": false,
+  "overwrite_dir": false,
+  "no_s3_sync": true
+}

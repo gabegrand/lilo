@@ -1,0 +1,617 @@
+{
+    "DSL": {
+        "logVariable": 0.0,
+        "productions": [
+            {
+                "expression": "_rdot",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_rempty",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_a",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_b",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_c",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_d",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_e",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_f",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_g",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_h",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_i",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_j",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_k",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_l",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_m",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_n",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_o",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_p",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_q",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_r",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_s",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_t",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_u",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_v",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_w",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_x",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_y",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_z",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_rnot",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_ror",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_rconcat",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_rmatch",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_rsplit",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_rflatten",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_rtail",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_rappend",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "_rrevcdr",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "if",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "cons",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "car",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "cdr",
+                "logProbability": 0.0
+            },
+            {
+                "expression": "map",
+                "logProbability": 0.0
+            }
+        ]
+    },
+    "frontiers": [
+        {
+            "task": "re2_train_11_if_the_word_starts_with_any_letter_replace_that_with_r_u",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _r (cons _u (cdr (_rsplit _rdot $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _r (cons _u (cdr (_rsplit _rempty $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _r _u) (cdr (_rsplit _rdot $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _r _u) (cdr (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _r (cdr (_rsplit _rempty (_rflatten (cons _r (cons _u (cdr (_rsplit _rempty $0))))))))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_34_if_the_word_ends_with_any_letter_add_d_after_that",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _d (_rsplit _a $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _d (_rsplit _b $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _d (_rsplit _c $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _d (_rsplit _d $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _d (_rsplit _f $0))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_60_if_the_word_starts_with_any_letter_replace_that_with_e_e",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _e (cons _e (cdr (_rsplit _rdot $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _e (cons _e (cdr (_rsplit _rempty $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _e _e) (cdr (_rsplit _rdot $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _e _e) (cdr (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (car (map (lambda (_rflatten (cons _e (cons _e (cdr (_rsplit _rempty $1)))))) (_rsplit _rempty $0))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_66_if_the_word_starts_with_any_letter_any_letter_add_j_before_that",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _j (_rsplit _a $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _j (_rsplit _b $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _j (_rsplit _c $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _j (_rsplit _f $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _j (_rsplit _n $0))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_81_if_the_word_starts_with_any_letter_replace_that_with_c_v",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _c (cons _v (cdr (_rsplit _rdot $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _c (cons _v (cdr (_rsplit _rempty $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _c _v) (cdr (_rsplit _rdot $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _c _v) (cdr (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _c (cdr (_rsplit _rempty (_rflatten (cons _c (cons _v (cdr (_rsplit _rempty $0))))))))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_135_if_there_is_any_letter_replace_that_with_f_n",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _f _n)) (_rsplit _rdot $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _f _n)) (_rsplit _rempty $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _f _n)) (_rappend _p (_rrevcdr (_rsplit _rempty $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _f _n)) (cons _m (cdr (_rsplit _rempty $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _f _n)) (cons _w (cdr (_rsplit _rempty $0))))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_144_if_the_word_ends_with_any_letter_add_p_after_that",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _p (_rsplit _a $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _p (_rsplit _b $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _p (_rsplit _c $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _p (_rsplit _rdot $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _p (_rsplit _rempty $0))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_208_if_the_word_starts_with_any_letter_any_letter_replace_that_with_w",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _w (cdr (cdr (_rsplit _rdot $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _w (cdr (cdr (_rsplit _rempty $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _w (cdr (cdr (_rsplit (_rnot _a) $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _w (cdr (cdr (_rsplit (_rnot _b) $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _w (cdr (cdr (_rsplit (_rnot _rdot) $0))))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_268_if_the_word_starts_with_any_letter_replace_that_with_x_e",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _x (cons _e (cdr (_rsplit _rdot $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _x (cons _e (cdr (_rsplit _rempty $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _x _e) (cdr (_rsplit _rdot $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _x _e) (cdr (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _x (cdr (_rsplit _rempty (_rflatten (cons _e (cons _e (cdr (_rsplit _rempty $0))))))))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_289_if_the_word_starts_with_any_letter_replace_that_with_j_o",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _j (cons _o (cdr (_rsplit _rdot $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _j (cons _o (cdr (_rsplit _rempty $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _j _o) (cdr (_rsplit _rdot $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _j _o) (cdr (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _j (cdr (_rsplit _rempty (_rflatten (cons _j (cons _o (cdr (_rsplit _rempty $0))))))))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_298_if_the_word_ends_with_consonant_add_p_after_that",
+            "programs": [
+                {
+                    "program": "(lambda (if (_rmatch (_rtail (_rsplit _rempty $0)) _e) $0 (_rflatten (_rappend _p (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (if (_rmatch _e (_rtail (_rsplit _rempty $0))) $0 (_rflatten (_rappend _p (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (if (_rmatch _e (_rtail (cdr (_rsplit _rempty $0)))) $0 (_rflatten (_rappend _p (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (if (_rmatch (_rtail (_rsplit _rempty $0)) _e) (_rsplit _rempty $0) (_rappend _p (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (if (_rmatch _e (_rtail (_rsplit _rempty $0))) (_rsplit _rempty $0) (_rappend _p (_rsplit _rempty $0)))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_316_if_the_word_starts_with_any_letter_replace_that_with_r_r",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _r (cons _r (cdr (_rsplit _rdot $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _r (cons _r (cdr (_rsplit _rempty $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _r _r) (cdr (_rsplit _rdot $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _r _r) (cdr (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (car (map (lambda (_rflatten (cons _r (cons _r (cdr (_rsplit _rempty $1)))))) (_rsplit _rempty $0))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_355_if_the_word_starts_with_any_letter_replace_that_with_g_l",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _g (cons _l (cdr (_rsplit _rdot $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _g (cons _l (cdr (_rsplit _rempty $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _g _l) (cdr (_rsplit _rdot $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _g _l) (cdr (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _g (cdr (_rsplit _rempty (_rflatten (cons _g (cons _l (cdr (_rsplit _rempty $0))))))))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_356_if_the_word_starts_with_any_letter_replace_that_with_m",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _m (cdr (_rsplit _rdot $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _m (cdr (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _m (cdr (_rsplit (_rnot _a) $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _m (cdr (_rsplit (_rnot _b) $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _m (cdr (_rsplit (_rnot _rdot) $0)))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_442_if_there_is_any_letter_replace_that_with_h_r",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _h _r)) (_rsplit _rdot $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _h _r)) (_rsplit _rempty $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _h _r)) (_rappend _p (_rrevcdr (_rsplit _rempty $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _h _r)) (_rappend _x (_rrevcdr (_rsplit _rempty $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _h _r)) (cons _r (cdr (_rsplit _rempty $0))))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_443_if_the_word_ends_with_any_letter_add_k_after_that",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _k (_rsplit _a $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _k (_rsplit _b $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _k (_rsplit _c $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _k (_rsplit _n $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _k (_rsplit _r $0))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_463_if_the_word_starts_with_any_letter_replace_that_with_a",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _a (cdr (_rsplit _rdot $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _a (cdr (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _a (cdr (_rsplit (_rnot _a) $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _a (cdr (_rsplit (_rnot _b) $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _a (cdr (_rsplit (_rnot _rdot) $0)))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_466_if_the_word_ends_with_any_letter_add_u_after_that",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _u (_rsplit _a $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _u (_rsplit _b $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _u (_rsplit _c $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _u (_rsplit _l $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _u (_rsplit _m $0))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_468_if_the_word_ends_with_any_letter_replace_that_with_x_p",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _p (_rappend _x (_rrevcdr (_rsplit _rdot $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _p (_rappend _x (_rrevcdr (_rsplit _rempty $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _x _p) (_rrevcdr (_rsplit _rdot $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _x _p) (_rrevcdr (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _p (_rappend _x (_rrevcdr (_rappend _p (_rrevcdr (_rsplit _rempty $0))))))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_472_if_the_word_starts_with_any_letter_add_v_before_that",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _v (_rsplit _a $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _v (_rsplit _b $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _v (_rsplit _c $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _v (_rsplit _f $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _v (_rsplit _n $0))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_487_if_the_word_starts_with_consonant_add_a_before_that",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _a (_rsplit _a $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _a (_rsplit _b $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _a (_rsplit _c $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _a (_rsplit _j $0))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _a (_rsplit _rdot $0))))"
+                }
+            ]
+        },
+        {
+            "task": "re2_train_491_if_the_word_ends_with_any_letter_replace_that_with_o_j",
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _j (_rappend _o (_rrevcdr (_rsplit _rdot $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _j (_rappend _o (_rrevcdr (_rsplit _rempty $0))))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _o _j) (_rrevcdr (_rsplit _rdot $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _o _j) (_rrevcdr (_rsplit _rempty $0)))))"
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _j (_rappend _o (_rrevcdr (_rappend _j (_rrevcdr (_rsplit _rempty $0))))))))"
+                }
+            ]
+        }
+    ]
+}

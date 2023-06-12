@@ -1,0 +1,3438 @@
+{
+    "mean_log_likelihood": -15.80968134159923,
+    "log_likelihoods_by_task": {
+        "test": {
+            "re2_test_0_if_the_word_ends_with_s_replace_that_with_m": [
+                -7.634443570769506,
+                -10.481273294518674,
+                -11.14726972169107,
+                -13.925499399681055,
+                -14.262463560555855
+            ],
+            "re2_test_1_if_there_is_any_letter_t_double_that": [],
+            "re2_test_2_if_the_word_starts_with_any_letter_consonant_replace_that_with_q_f": [],
+            "re2_test_3_if_there_is_consonant_vowel_add_f_before_that": [],
+            "re2_test_4_if_the_word_starts_with_any_letter_replace_that_with_k_a": [
+                -10.756262817139222,
+                -14.269088968060784,
+                -14.860131985467426,
+                -14.860131985467426,
+                -14.860131985467428
+            ],
+            "re2_test_5_if_there_is_any_letter_add_u_after_that": [
+                -10.826233526330352,
+                -14.339059677251917,
+                -15.657995065520304,
+                -15.657995065520304,
+                -17.457172180511197
+            ],
+            "re2_test_6_if_the_word_starts_with_vowel_replace_that_with_g_p": [],
+            "re2_test_7_if_the_word_starts_with_any_letter_vowel_replace_that_with_y_l": [],
+            "re2_test_8_if_the_word_ends_with_consonant_replace_that_with_g": [],
+            "re2_test_9_if_there_is_t_vowel_replace_that_with_g": [],
+            "re2_test_10_if_the_word_starts_with_any_letter_replace_that_with_w_t": [
+                -10.674745959467232,
+                -14.187572110388794,
+                -14.778615127795439,
+                -16.01569557154274,
+                -18.517304242706004
+            ],
+            "re2_test_11_if_there_is_c_any_letter_replace_that_with_m": [],
+            "re2_test_12_if_the_word_starts_with_consonant_any_letter_replace_that_with_s_d": [],
+            "re2_test_13_if_the_word_ends_with_any_letter_replace_that_with_a": [
+                -6.7124287248114625,
+                -10.225254875733027,
+                -10.225254875733027,
+                -10.816297893139668,
+                -12.418433868639767
+            ],
+            "re2_test_14_if_the_word_ends_with_any_letter_replace_that_with_l_k": [
+                -12.292305149405026,
+                -14.651580880428718,
+                -18.716424096523735,
+                -18.728671070133707,
+                -18.810611311583436
+            ],
+            "re2_test_15_if_there_is_consonant_add_h_after_that": [],
+            "re2_test_16_if_there_is_any_letter_add_j_after_that": [
+                -10.641000313200012,
+                -15.472761852389963,
+                -15.472761852389963,
+                -15.472761852389963,
+                -16.86317256621464
+            ],
+            "re2_test_17_if_there_is_vowel_t_replace_that_with_t_n": [],
+            "re2_test_18_if_there_is_any_letter_d_replace_that_with_p_y": [],
+            "re2_test_19_if_there_is_consonant_a_add_p_after_that": [],
+            "re2_test_20_if_the_word_ends_with_vowel_consonant_replace_that_with_k_x": [],
+            "re2_test_21_if_the_word_ends_with_consonant_add_r_before_that": [
+                -16.83425292567692,
+                -18.09129237025596,
+                -18.715504478645794,
+                -19.128031083995566,
+                -20.93812209400513
+            ],
+            "re2_test_22_if_there_is_any_letter_add_w_before_that": [
+                -10.831773706705967,
+                -14.344599857627532,
+                -14.344599857627532,
+                -15.66353524589592,
+                -16.03787916147883
+            ],
+            "re2_test_23_if_there_is_h_any_letter_add_k_after_that": [],
+            "re2_test_24_if_the_word_starts_with_any_letter_any_letter_add_s_after_that": [],
+            "re2_test_25_if_there_is_t_replace_that_with_c_n": [
+                -16.33283147787678,
+                -19.845657628798346,
+                -19.845657628798346,
+                -20.43670064620499,
+                -21.53893693264964
+            ],
+            "re2_test_26_if_there_is_consonant_consonant_replace_that_with_k": [],
+            "re2_test_27_if_there_is_consonant_replace_that_with_w_h": [],
+            "re2_test_28_if_the_word_ends_with_any_letter_consonant_replace_that_with_w": [],
+            "re2_test_29_if_the_word_starts_with_consonant_replace_that_with_m_x": [
+                -11.560652244274687,
+                -15.07347839519625,
+                -15.07347839519625,
+                -15.664521412602891,
+                -15.664521412602893
+            ],
+            "re2_test_30_if_the_word_ends_with_any_letter_replace_that_with_v_n": [
+                -11.896755998873221,
+                -14.256031729896915,
+                -16.000625167201427,
+                -17.10286145364608,
+                -18.414033883326066
+            ],
+            "re2_test_31_if_there_is_vowel_consonant_replace_that_with_g_u": [],
+            "re2_test_32_if_the_word_starts_with_vowel_consonant_add_u_before_that": [],
+            "re2_test_33_if_the_word_starts_with_consonant_replace_that_with_a_h": [
+                -10.94799017222005,
+                -14.460816323141616,
+                -15.051859340548257,
+                -15.051859340548258,
+                -17.166500720459805
+            ],
+            "re2_test_34_if_there_is_consonant_s_replace_that_with_y_v": [],
+            "re2_test_35_if_there_is_vowel_replace_that_with_v_p": [],
+            "re2_test_36_if_the_word_starts_with_consonant_replace_that_with_l_r": [
+                -10.67571653324207,
+                -14.779585701570277,
+                -14.779585701570278,
+                -14.779585701570278,
+                -18.774983957183736
+            ],
+            "re2_test_37_if_there_is_u_replace_that_with_w": [
+                -11.035715888335087,
+                -14.54854203925665,
+                -15.139585056663291,
+                -15.139585056663295,
+                -16.241821343107944
+            ],
+            "re2_test_38_if_there_is_r_replace_that_with_k": [
+                -10.987981071498437,
+                -14.500807222420002,
+                -14.500807222420002,
+                -15.091850239826643,
+                -15.091850239826643
+            ],
+            "re2_test_39_if_there_is_any_letter_i_replace_that_with_e": [],
+            "re2_test_40_if_the_word_starts_with_vowel_add_n_before_that": [],
+            "re2_test_41_if_the_word_starts_with_consonant_consonant_replace_that_with_f_j": [],
+            "re2_test_42_if_the_word_starts_with_consonant_replace_that_with_m_p": [
+                -11.357119661449095,
+                -15.4609888297773,
+                -15.460988829777301,
+                -15.460988829777301,
+                -15.460988829777301
+            ],
+            "re2_test_43_if_the_word_starts_with_any_letter_replace_that_with_p_x": [
+                -11.45093841666675,
+                -14.963764567588315,
+                -15.554807584994956,
+                -15.554807584994958,
+                -17.669448964906504
+            ],
+            "re2_test_44_if_the_word_starts_with_consonant_vowel_replace_that_with_r_u": [],
+            "re2_test_45_if_there_is_n_replace_that_with_i": [
+                -10.38435460712259,
+                -13.897180758044156,
+                -13.897180758044156,
+                -14.488223775450797,
+                -14.488223775450797
+            ],
+            "re2_test_46_if_there_is_consonant_replace_that_with_p_l": [],
+            "re2_test_47_if_the_word_starts_with_any_letter_replace_that_with_q_n": [
+                -10.960257358993227,
+                -21.12411784586427,
+                -21.226851964739875,
+                -21.657634880832333,
+                -22.04804104563957
+            ],
+            "re2_test_48_if_the_word_starts_with_any_letter_replace_that_with_t_n": [
+                -10.720208333543988,
+                -14.233034484465554,
+                -14.824077501872194,
+                -14.824077501872196,
+                -14.824077501872196
+            ],
+            "re2_test_49_if_the_word_ends_with_consonant_consonant_replace_that_with_l": [],
+            "re2_test_50_if_the_word_starts_with_vowel_any_letter_replace_that_with_r_y": [],
+            "re2_test_51_if_there_is_t_replace_that_with_x": [
+                -10.988210324135848,
+                -14.50103647505741,
+                -15.092079492464052,
+                -15.092079492464054,
+                -16.194315778908706
+            ],
+            "re2_test_52_if_the_word_starts_with_any_letter_any_letter_replace_that_with_v_j": [
+                -12.01083068443002,
+                -16.11469985275823,
+                -16.11469985275823,
+                -16.11469985275823,
+                -16.11469985275823
+            ],
+            "re2_test_53_if_the_word_starts_with_consonant_replace_that_with_l_v": [
+                -11.259842285692594,
+                -15.363711454020798,
+                -15.3637114540208,
+                -19.35910970963426,
+                -21.652887867952902
+            ],
+            "re2_test_54_if_there_is_g_replace_that_with_p": [
+                -10.921992647883885,
+                -14.434818798805447,
+                -15.02586181621209,
+                -15.02586181621209,
+                -16.128098102656747
+            ],
+            "re2_test_55_if_the_word_starts_with_vowel_consonant_replace_that_with_j_g": [],
+            "re2_test_56_if_the_word_starts_with_any_letter_replace_that_with_c_x": [
+                -11.36899817521702,
+                -15.472867343545227,
+                -15.472867343545229,
+                -15.472867343545229,
+                -17.587508723456775
+            ],
+            "re2_test_57_if_the_word_starts_with_any_letter_replace_that_with_r_w": [
+                -10.556891288007243,
+                -14.069717438928807,
+                -14.069717438928807,
+                -15.897840900082752,
+                -15.897840900082752
+            ],
+            "re2_test_58_if_the_word_starts_with_any_letter_replace_that_with_f_a": [
+                -10.584636549462013,
+                -18.421968245964315,
+                -18.68390397340368,
+                -19.767519602426365,
+                -20.497383938416732
+            ],
+            "re2_test_59_if_there_is_any_letter_add_g_after_that": [
+                -10.607149770221323,
+                -15.438911309411274,
+                -15.438911309411274,
+                -15.438911309411274,
+                -15.813255224994185
+            ],
+            "re2_test_60_if_the_word_starts_with_vowel_replace_that_with_l_c": [],
+            "re2_test_61_if_the_word_starts_with_consonant_replace_that_with_d_x": [
+                -11.587413585335286,
+                -15.691282753663492,
+                -15.691282753663492,
+                -15.691282753663492,
+                -15.691282753663494
+            ],
+            "re2_test_62_if_there_is_n_any_letter_replace_that_with_x": [],
+            "re2_test_63_if_there_is_e_add_h_after_that": [
+                -16.30181281028991,
+                -19.81463896121147,
+                -20.40568197861812,
+                -20.40568197861812,
+                -20.40568197861812
+            ],
+            "re2_test_64_if_the_word_starts_with_any_letter_replace_that_with_y_j": [
+                -10.857084709617675,
+                -14.369910860539237,
+                -14.369910860539237,
+                -14.960953877945881,
+                -14.960953877945881
+            ],
+            "re2_test_65_if_there_is_vowel_add_n_before_that": [],
+            "re2_test_66_if_the_word_starts_with_vowel_replace_that_with_g_y": [],
+            "re2_test_67_if_there_is_any_letter_s_remove_that": [],
+            "re2_test_68_if_the_word_starts_with_vowel_replace_that_with_a_c": [],
+            "re2_test_69_if_there_is_e_add_f_before_that": [
+                -12.429737398269493,
+                -15.938459187531873,
+                -16.533606566597697,
+                -20.04232835586008,
+                -22.867712955883068
+            ],
+            "re2_test_70_if_the_word_ends_with_s_add_g_after_that": [],
+            "re2_test_71_if_the_word_starts_with_consonant_replace_that_with_c_m": [
+                -11.275179419999366,
+                -15.379048588327572,
+                -15.379048588327572,
+                -15.379048588327572,
+                -15.379048588327572
+            ],
+            "re2_test_72_if_the_word_starts_with_any_letter_replace_that_with_i_a": [
+                -9.627380464168356,
+                -13.140206615089918,
+                -13.73124963249656,
+                -13.731249632496562,
+                -14.968330076243863
+            ],
+            "re2_test_73_if_the_word_ends_with_any_letter_add_a_after_that": [
+                -6.986350968675031,
+                -10.499177119596593,
+                -10.499177119596593,
+                -11.090220137003236,
+                -11.090220137003238
+            ],
+            "re2_test_74_if_the_word_ends_with_consonant_replace_that_with_c_v": [
+                -11.874713899004563,
+                -15.387540049926127,
+                -17.21566351108007,
+                -18.391991783457406,
+                -18.502733888790907
+            ],
+            "re2_test_75_if_there_is_vowel_consonant_replace_that_with_c": [],
+            "re2_test_76_if_there_is_d_replace_that_with_k_i": [
+                -16.591878038617693,
+                -20.695747206945896,
+                -20.695747206945896,
+                -20.695747206945896,
+                -20.695747206945896
+            ],
+            "re2_test_77_if_there_is_vowel_vowel_add_v_after_that": [],
+            "re2_test_78_if_there_is_i_any_letter_replace_that_with_y": [],
+            "re2_test_79_if_the_word_starts_with_any_letter_replace_that_with_p_j": [
+                -10.951271924677377,
+                -15.055141093005581,
+                -15.055141093005583,
+                -15.055141093005583,
+                -15.055141093005583
+            ],
+            "re2_test_80_if_there_is_c_replace_that_with_q": [
+                -10.942786525309764,
+                -14.455612676231327,
+                -14.455612676231327,
+                -15.04665569363797,
+                -15.04665569363797
+            ],
+            "re2_test_81_if_there_is_l_add_w_after_that": [
+                -16.863538163119856,
+                -20.967407331448058,
+                -20.967407331448058,
+                -20.967407331448058,
+                -23.202806318862663
+            ],
+            "re2_test_82_if_there_is_e_add_m_after_that": [
+                -15.898641281168846,
+                -22.82789504952004,
+                -25.204796041180042,
+                -26.340721200441603,
+                -26.340721200441603
+            ],
+            "re2_test_83_if_the_word_ends_with_s_add_f_after_that": [],
+            "re2_test_84_if_there_is_e_any_letter_replace_that_with_r_a": [],
+            "re2_test_85_if_the_word_starts_with_any_letter_replace_that_with_c_y": [
+                -11.071278377331728,
+                -15.175147545659934,
+                -15.175147545659934,
+                -15.175147545659936,
+                -19.1705458012734
+            ],
+            "re2_test_86_if_there_is_d_add_b_after_that": [
+                -16.944358525289083,
+                -21.048227693617292,
+                -23.160616241940357,
+                -26.67344239286192,
+                -26.67344239286192
+            ],
+            "re2_test_87_if_there_is_t_replace_that_with_m": [
+                -10.894391568918191,
+                -14.407217719839755,
+                -14.407217719839755,
+                -16.10049702369105,
+                -16.10049702369105
+            ],
+            "re2_test_88_if_there_is_c_any_letter_replace_that_with_o_x": [],
+            "re2_test_89_if_there_is_consonant_e_add_v_before_that": [],
+            "re2_test_90_if_there_is_consonant_replace_that_with_r_r": [],
+            "re2_test_91_if_the_word_ends_with_vowel_any_letter_replace_that_with_l": [],
+            "re2_test_92_if_there_is_vowel_vowel_replace_that_with_w_b": [],
+            "re2_test_93_if_the_word_starts_with_consonant_replace_that_with_g_w": [
+                -10.812060866040861,
+                -14.324887016962423,
+                -14.324887016962423,
+                -14.915930034369067,
+                -14.915930034369067
+            ],
+            "re2_test_94_if_the_word_ends_with_s_replace_that_with_t": [],
+            "re2_test_95_if_there_is_consonant_vowel_replace_that_with_m": [],
+            "re2_test_96_if_there_is_i_replace_that_with_i_f": [
+                -15.476052250949254,
+                -19.57992141927746,
+                -19.57992141927746,
+                -19.57992141927746,
+                -22.636509487591756
+            ],
+            "re2_test_97_if_the_word_starts_with_vowel_consonant_add_s_after_that": [],
+            "re2_test_98_if_there_is_i_consonant_replace_that_with_t_f": [],
+            "re2_test_99_if_the_word_starts_with_consonant_add_o_before_that": [],
+            "re2_test_100_if_the_word_ends_with_any_letter_add_m_after_that": [
+                -7.908365814633075,
+                -11.42119196555464,
+                -11.42119196555464,
+                -12.012234982961282,
+                -12.219721709485707
+            ],
+            "re2_test_101_if_the_word_ends_with_any_letter_any_letter_add_k_before_that": [
+                -20.930309816743147,
+                -22.811561369712017,
+                -24.105678761952536
+            ],
+            "re2_test_102_if_there_is_any_letter_any_letter_replace_that_with_k_g": [],
+            "re2_test_103_if_there_is_e_any_letter_replace_that_with_e_h": [],
+            "re2_test_104_if_there_is_m_add_i_before_that": [
+                -12.158716023615154,
+                -15.671542174536718,
+                -16.26258519194336,
+                -16.26258519194336,
+                -16.353672523516856
+            ],
+            "re2_test_105_if_there_is_l_add_e_before_that": [
+                -12.293670393875528,
+                -16.3923777957463,
+                -16.397539562203733,
+                -16.397539562203733,
+                -16.39753956220374
+            ],
+            "re2_test_106_if_there_is_vowel_r_add_h_after_that": [],
+            "re2_test_107_if_there_is_vowel_any_letter_replace_that_with_t_g": [],
+            "re2_test_108_if_the_word_starts_with_consonant_replace_that_with_h_y": [],
+            "re2_test_109_if_the_word_ends_with_any_letter_replace_that_with_i_u": [
+                -11.039057370823718,
+                -13.39833310184741,
+                -14.551883521745282,
+                -16.749639181679434,
+                -17.446462836968685
+            ],
+            "re2_test_110_if_the_word_starts_with_consonant_any_letter_replace_that_with_a_t": [],
+            "re2_test_111_if_there_is_r_any_letter_add_u_before_that": [],
+            "re2_test_112_if_there_is_i_any_letter_add_p_before_that": [
+                -12.049002196007217,
+                -15.326520516978288,
+                -16.152871364335425,
+                -16.152871364335425,
+                -22.486977753620792
+            ],
+            "re2_test_113_if_the_word_ends_with_consonant_consonant_add_s_before_that": [],
+            "re2_test_114_if_there_is_vowel_add_w_before_that": [],
+            "re2_test_115_if_the_word_starts_with_consonant_vowel_replace_that_with_n_s": [],
+            "re2_test_116_if_the_word_starts_with_consonant_replace_that_with_w_o": [
+                -10.914794984916467,
+                -14.427621135838033,
+                -15.018664153244673,
+                -15.018664153244673,
+                -15.018664153244673
+            ],
+            "re2_test_117_if_the_word_starts_with_vowel_any_letter_replace_that_with_u": [],
+            "re2_test_118_if_the_word_starts_with_any_letter_consonant_replace_that_with_n_y": [],
+            "re2_test_119_if_the_word_starts_with_consonant_replace_that_with_f_i": [],
+            "re2_test_120_if_there_is_any_letter_vowel_add_l_before_that": [],
+            "re2_test_121_if_the_word_starts_with_any_letter_replace_that_with_w_n": [
+                -11.082147176602263,
+                -14.594973327523826,
+                -14.594973327523826,
+                -15.186016344930467,
+                -15.18601634493047
+            ],
+            "re2_test_122_if_there_is_any_letter_replace_that_with_h_j": [
+                -12.138847625743024,
+                -14.107307544620399,
+                -16.242716794071228,
+                -16.242716794071228,
+                -18.30896174219219
+            ],
+            "re2_test_123_if_the_word_ends_with_consonant_replace_that_with_g_x": [
+                -11.831230548862978,
+                -13.088269993442017,
+                -14.19050627988667,
+                -15.935099717191184,
+                -18.349536711041388
+            ],
+            "re2_test_124_if_the_word_ends_with_any_letter_replace_that_with_m": [
+                -7.634443570769506,
+                -10.481273294518674,
+                -11.14726972169107,
+                -13.925499399681055,
+                -14.262463560555855
+            ],
+            "re2_test_125_if_there_is_n_consonant_add_y_after_that": [],
+            "re2_test_126_if_there_is_any_letter_add_w_after_that": [
+                -10.831773706705967,
+                -14.344599857627532,
+                -15.663535245895918,
+                -15.66353524589592,
+                -15.66353524589592
+            ],
+            "re2_test_127_if_the_word_starts_with_any_letter_replace_that_with_m_d": [
+                -11.493594830117631,
+                -15.006420981039195,
+                -15.597463998445836,
+                -15.597463998445837,
+                -15.597463998445837
+            ],
+            "re2_test_128_if_the_word_ends_with_vowel_any_letter_replace_that_with_v_f": [],
+            "re2_test_129_if_there_is_vowel_s_replace_that_with_l": [],
+            "re2_test_130_if_there_is_any_letter_vowel_add_f_after_that": [],
+            "re2_test_131_if_the_word_ends_with_vowel_any_letter_replace_that_with_g_t": [],
+            "re2_test_132_if_the_word_starts_with_any_letter_replace_that_with_b_b": [
+                -10.70628377049782,
+                -14.810152938826025,
+                -14.810152938826025,
+                -14.810152938826025,
+                -14.810152938826025
+            ],
+            "re2_test_133_if_there_is_u_replace_that_with_m_v": [
+                -16.939754073472606,
+                -20.452580224394172,
+                -20.452580224394172,
+                -21.043623241800816,
+                -21.043623241800816
+            ],
+            "re2_test_134_if_there_is_vowel_any_letter_add_s_before_that": [],
+            "re2_test_135_if_the_word_starts_with_consonant_vowel_replace_that_with_l_t": [],
+            "re2_test_136_if_there_is_a_add_m_before_that": [
+                -12.154139356587743,
+                -15.427081010531401,
+                -15.666965507509307,
+                -16.258008524915947,
+                -22.59211491420132
+            ],
+            "re2_test_137_if_there_is_consonant_any_letter_add_j_after_that": [],
+            "re2_test_138_if_there_is_i_vowel_replace_that_with_d": [],
+            "re2_test_139_if_the_word_ends_with_consonant_add_l_after_that": [
+                -7.812116716602139,
+                -11.324942867523703,
+                -11.324942867523703,
+                -11.915985884930345,
+                -11.915985884930345
+            ],
+            "re2_test_140_if_there_is_vowel_r_replace_that_with_s": [],
+            "re2_test_141_if_the_word_ends_with_vowel_any_letter_add_i_after_that": [],
+            "re2_test_142_if_the_word_ends_with_consonant_consonant_replace_that_with_v": [],
+            "re2_test_143_if_the_word_ends_with_consonant_consonant_replace_that_with_u": [],
+            "re2_test_144_if_the_word_starts_with_any_letter_replace_that_with_e_p": [
+                -10.670884950809773,
+                -14.183711101731339,
+                -14.183711101731339,
+                -14.77475411913798,
+                -14.77475411913798
+            ],
+            "re2_test_145_if_there_is_m_add_r_before_that": [
+                -12.381286344761762,
+                -15.894112495683325,
+                -16.48515551308997,
+                -16.48515551308997,
+                -16.57624284466346
+            ],
+            "re2_test_146_if_there_is_s_consonant_add_n_after_that": [],
+            "re2_test_147_if_the_word_ends_with_vowel_consonant_replace_that_with_u": [],
+            "re2_test_148_if_there_is_consonant_vowel_replace_that_with_y_d": [],
+            "re2_test_149_if_there_is_any_letter_add_x_before_that": [
+                -11.140666805189387,
+                -14.653492956110949,
+                -15.972428344379336,
+                -15.972428344379338,
+                -15.972428344379338
+            ],
+            "re2_test_150_if_the_word_ends_with_any_letter_any_letter_add_d_before_that": [],
+            "re2_test_151_if_there_is_d_vowel_remove_that": [],
+            "re2_test_152_if_there_is_consonant_replace_that_with_l_a": [],
+            "re2_test_153_if_there_is_o_any_letter_replace_that_with_t_f": [],
+            "re2_test_154_if_there_is_e_replace_that_with_h": [
+                -11.18834157372397,
+                -14.701167724645535,
+                -14.701167724645535,
+                -15.292210742052175,
+                -15.292210742052177
+            ],
+            "re2_test_155_if_there_is_vowel_replace_that_with_f_c": [],
+            "re2_test_156_if_there_is_i_any_letter_replace_that_with_c": [],
+            "re2_test_157_if_there_is_h_replace_that_with_t": [
+                -11.297563098039257,
+                -14.810389248960819,
+                -15.401432266367463,
+                -15.401432266367463,
+                -16.503668552812115
+            ],
+            "re2_test_158_if_the_word_ends_with_d_replace_that_with_o": [
+                -11.161201935428027,
+                -14.674028086349592,
+                -15.265071103756233,
+                -16.36730739020089,
+                -17.496053372670378
+            ],
+            "re2_test_159_if_the_word_ends_with_consonant_any_letter_add_c_before_that": [],
+            "re2_test_160_if_the_word_starts_with_consonant_any_letter_add_h_after_that": [],
+            "re2_test_161_if_the_word_starts_with_consonant_add_d_before_that": [
+                -8.947532249160568,
+                -12.46035840008213,
+                -12.46035840008213,
+                -13.051401417488773,
+                -13.051401417488774
+            ],
+            "re2_test_162_if_the_word_ends_with_consonant_replace_that_with_y_x": [],
+            "re2_test_163_if_the_word_starts_with_consonant_replace_that_with_f_l": [
+                -11.410402297389123,
+                -15.514271465717327,
+                -15.514271465717327,
+                -15.514271465717327,
+                -15.514271465717329
+            ],
+            "re2_test_164_if_the_word_starts_with_any_letter_vowel_add_h_before_that": [],
+            "re2_test_165_if_the_word_starts_with_consonant_replace_that_with_r_e": [],
+            "re2_test_166_if_the_word_starts_with_any_letter_consonant_replace_that_with_t": [],
+            "re2_test_167_if_there_is_consonant_add_b_before_that": [],
+            "re2_test_168_if_the_word_starts_with_consonant_any_letter_add_a_before_that": [
+                -7.998756062141924,
+                -10.963128566866521,
+                -11.511582213063488,
+                -12.08195215941954,
+                -12.438350822102198
+            ],
+            "re2_test_169_if_there_is_n_vowel_replace_that_with_m_s": [],
+            "re2_test_170_if_the_word_starts_with_any_letter_replace_that_with_h_f": [
+                -11.909822924541123,
+                -16.013692092869327,
+                -16.013692092869327,
+                -16.013692092869327,
+                -19.74715462104343
+            ],
+            "re2_test_171_if_the_word_starts_with_consonant_replace_that_with_e_j": [],
+            "re2_test_172_if_the_word_starts_with_consonant_any_letter_replace_that_with_l": [],
+            "re2_test_173_if_the_word_starts_with_consonant_replace_that_with_j_n": [],
+            "re2_test_174_if_there_is_vowel_vowel_replace_that_with_m_l": [],
+            "re2_test_175_if_there_is_vowel_replace_that_with_a_q": [],
+            "re2_test_176_if_the_word_ends_with_any_letter_add_m_before_that": [
+                -17.529120783460947,
+                -18.786160228039982,
+                -21.632989951789156,
+                -21.632989951789156,
+                -22.298986378961544
+            ],
+            "re2_test_177_if_the_word_starts_with_any_letter_a_replace_that_with_x_b": [],
+            "re2_test_178_if_the_word_ends_with_any_letter_replace_that_with_p_q": [
+                -11.730432084912993,
+                -17.978177215419734,
+                -18.02148791382454,
+                -18.13783755105796,
+                -18.248738247091403
+            ],
+            "re2_test_179_if_the_word_starts_with_vowel_replace_that_with_o_s": [],
+            "re2_test_180_if_there_is_e_replace_that_with_r_u": [
+                -15.669393610382764,
+                -19.773262778710972,
+                -19.773262778710972,
+                -19.773262778710972,
+                -19.773262778710972
+            ],
+            "re2_test_181_if_there_is_m_replace_that_with_r": [
+                -10.776536897458202,
+                -14.289363048379766,
+                -14.880406065786408,
+                -14.88040606578641,
+                -15.982642352231064
+            ],
+            "re2_test_182_if_the_word_starts_with_consonant_consonant_add_w_after_that": [],
+            "re2_test_183_if_the_word_starts_with_vowel_consonant_add_g_after_that": [
+                -16.831412422697085,
+                -20.344238573618643,
+                -20.935281591025287,
+                -20.935281591025287,
+                -23.074431480408954
+            ],
+            "re2_test_184_if_there_is_consonant_t_add_s_before_that": [],
+            "re2_test_185_if_the_word_ends_with_consonant_replace_that_with_t_c": [],
+            "re2_test_186_if_there_is_vowel_replace_that_with_m_x": [],
+            "re2_test_187_if_there_is_r_add_v_after_that": [
+                -15.770632881545938,
+                -19.874502049874145,
+                -19.874502049874145,
+                -19.874502049874145,
+                -19.874502049874145
+            ],
+            "re2_test_188_if_there_is_any_letter_vowel_replace_that_with_q": [],
+            "re2_test_189_if_there_is_i_replace_that_with_w_d": [
+                -16.165359521311693,
+                -19.678185672233255,
+                -20.269228689639895,
+                -20.269228689639903,
+                -20.269228689639903
+            ],
+            "re2_test_190_if_the_word_starts_with_consonant_any_letter_replace_that_with_h_t": [
+                -12.353578869332269,
+                -16.457448037660477,
+                -16.457448037660477,
+                -16.457448037660477,
+                -20.431917287889764
+            ],
+            "re2_test_191_if_there_is_n_replace_that_with_c_q": [
+                -16.57288050332602,
+                -20.08570665424758,
+                -20.08570665424758,
+                -20.67674967165423,
+                -20.67674967165423
+            ],
+            "re2_test_192_if_there_is_any_letter_add_u_before_that": [
+                -10.826233526330352,
+                -14.339059677251917,
+                -14.339059677251917,
+                -16.16718313840586,
+                -17.457172180511197
+            ],
+            "re2_test_193_if_there_is_i_consonant_replace_that_with_j_v": [],
+            "re2_test_194_if_there_is_consonant_e_add_y_before_that": [],
+            "re2_test_195_if_there_is_t_add_r_after_that": [
+                -15.422216472015391,
+                -18.935042622936955,
+                -19.526085640343602,
+                -19.526085640343602,
+                -22.242248716051304
+            ],
+            "re2_test_196_if_the_word_ends_with_vowel_any_letter_add_t_after_that": [],
+            "re2_test_197_if_there_is_vowel_r_add_j_before_that": [],
+            "re2_test_198_if_there_is_l_vowel_replace_that_with_x_n": [],
+            "re2_test_199_if_the_word_starts_with_vowel_replace_that_with_c_x": [],
+            "re2_test_200_if_the_word_ends_with_consonant_add_w_after_that": [
+                -7.693291471367312,
+                -11.206117622288875,
+                -11.206117622288875,
+                -11.797160639695518,
+                -14.509463338678497
+            ],
+            "re2_test_201_if_there_is_i_replace_that_with_s_p": [
+                -15.78593817403277,
+                -19.29876432495433,
+                -19.889807342360974,
+                -19.889807342360974,
+                -19.889807342360974
+            ],
+            "re2_test_202_if_the_word_ends_with_any_letter_consonant_add_t_before_that": [],
+            "re2_test_203_if_there_is_vowel_replace_that_with_g": [],
+            "re2_test_204_if_the_word_ends_with_any_letter_replace_that_with_r_r": [
+                -10.787374357827678,
+                -12.044413802406718,
+                -14.300200508749244,
+                -14.891243526155884,
+                -16.72052648983
+            ],
+            "re2_test_205_if_the_word_starts_with_vowel_consonant_replace_that_with_y_v": [],
+            "re2_test_206_if_there_is_consonant_vowel_replace_that_with_o_q": [],
+            "re2_test_207_if_there_is_p_replace_that_with_x_c": [
+                -17.063561560999545,
+                -21.167430729327748,
+                -21.167430729327748,
+                -21.167430729327748,
+                -26.36971632101074
+            ],
+            "re2_test_208_if_there_is_a_replace_that_with_h": [
+                -10.95256143840525,
+                -14.465387589326811,
+                -14.465387589326811,
+                -15.056430606733453,
+                -15.056430606733455
+            ],
+            "re2_test_209_if_there_is_i_any_letter_replace_that_with_q_c": [],
+            "re2_test_210_if_the_word_starts_with_any_letter_o_replace_that_with_t_b": [],
+            "re2_test_211_if_there_is_c_replace_that_with_k": [
+                -11.491194860224796,
+                -15.004021011146362,
+                -15.595064028553004,
+                -16.697300314997655,
+                -16.697300314997655
+            ],
+            "re2_test_212_if_there_is_vowel_n_replace_that_with_s_i": [],
+            "re2_test_213_if_the_word_starts_with_any_letter_consonant_add_t_after_that": [],
+            "re2_test_214_if_there_is_any_letter_l_remove_that": [],
+            "re2_test_215_if_the_word_ends_with_any_letter_consonant_add_l_after_that": [],
+            "re2_test_216_if_the_word_ends_with_consonant_any_letter_replace_that_with_t": [],
+            "re2_test_217_if_there_is_u_add_k_after_that": [
+                -17.041325829204965,
+                -21.145194997533174,
+                -21.145194997533174,
+                -21.145194997533174,
+                -21.145194997533174
+            ],
+            "re2_test_218_if_the_word_ends_with_any_letter_replace_that_with_m_r": [
+                -11.482242215611704,
+                -12.739281660190743,
+                -16.84315082851895,
+                -16.84315082851895,
+                -18.11026220539805
+            ],
+            "re2_test_219_if_the_word_starts_with_consonant_add_h_before_that": [
+                -9.323942437221033,
+                -12.288314941945629,
+                -13.289283863038658,
+                -13.297917010183362,
+                -13.763537197181307
+            ],
+            "re2_test_220_if_there_is_any_letter_vowel_add_x_after_that": [],
+            "re2_test_221_if_the_word_starts_with_vowel_replace_that_with_v_o": [],
+            "re2_test_222_if_the_word_starts_with_consonant_replace_that_with_w_y": [
+                -11.04785810312363,
+                -14.560684254045194,
+                -15.151727271451835,
+                -15.151727271451838,
+                -19.255596439780042
+            ],
+            "re2_test_223_if_the_word_starts_with_any_letter_add_w_after_that": [
+                -17.804099713059237,
+                -20.097877871377882,
+                -21.3169258639808,
+                -21.3169258639808,
+                -21.907968881387443
+            ],
+            "re2_test_224_if_the_word_starts_with_consonant_consonant_replace_that_with_v": [],
+            "re2_test_225_if_there_is_consonant_any_letter_replace_that_with_k": [],
+            "re2_test_226_if_there_is_t_any_letter_add_j_after_that": [],
+            "re2_test_227_if_there_is_vowel_t_remove_that": [],
+            "re2_test_228_if_there_is_a_replace_that_with_g_w": [
+                -15.694323233473275,
+                -19.207149384394835,
+                -19.79819240180148,
+                -19.79819240180148,
+                -25.00047799348447
+            ],
+            "re2_test_229_if_there_is_any_letter_vowel_replace_that_with_h_d": [],
+            "re2_test_230_if_the_word_ends_with_any_letter_add_p_before_that": [
+                -17.41940695585301,
+                -18.67644640043205,
+                -19.300658508821883,
+                -19.713185114171655,
+                -19.778682686876703
+            ],
+            "re2_test_231_if_there_is_any_letter_replace_that_with_g": [
+                -7.142687154453638,
+                -10.005988774766214,
+                -11.974448693643591,
+                -13.278950727924116,
+                -13.331008864489577
+            ],
+            "re2_test_232_if_the_word_starts_with_any_letter_add_u_before_that": [
+                -8.70015638445859,
+                -11.664528889183186,
+                -12.674130957420921,
+                -12.954517931288523,
+                -13.139751144418865
+            ],
+            "re2_test_233_if_there_is_vowel_any_letter_add_a_after_that": [],
+            "re2_test_234_if_there_is_any_letter_vowel_replace_that_with_e_x": [],
+            "re2_test_235_if_the_word_ends_with_any_letter_consonant_add_h_before_that": [],
+            "re2_test_236_if_the_word_starts_with_consonant_replace_that_with_i_k": [],
+            "re2_test_237_if_the_word_starts_with_consonant_vowel_replace_that_with_v_d": [],
+            "re2_test_238_if_there_is_vowel_replace_that_with_p_s": [],
+            "re2_test_239_if_there_is_i_any_letter_replace_that_with_b_n": [],
+            "re2_test_240_if_there_is_vowel_any_letter_replace_that_with_m_y": [],
+            "re2_test_241_if_there_is_any_letter_consonant_add_l_after_that": [],
+            "re2_test_242_if_there_is_a_replace_that_with_j": [
+                -10.143542172512465,
+                -13.656368323434029,
+                -14.24741134084067,
+                -14.24741134084067,
+                -18.721804561661916
+            ],
+            "re2_test_243_if_there_is_any_letter_any_letter_replace_that_with_h": [],
+            "re2_test_244_if_there_is_n_replace_that_with_c_e": [
+                -16.2236099535615,
+                -20.327479121889702,
+                -20.327479121889702,
+                -20.32747912188971,
+                -20.32747912188971
+            ],
+            "re2_test_245_if_there_is_l_replace_that_with_x_k": [
+                -17.48012453367444,
+                -20.992950684596003,
+                -21.583993702002644,
+                -21.58399370200265,
+                -22.686229988447298
+            ],
+            "re2_test_246_if_the_word_starts_with_any_letter_replace_that_with_x_h": [
+                -11.96382377339575,
+                -15.476649924317316,
+                -15.476649924317316,
+                -16.067692941723955,
+                -16.067692941723955
+            ],
+            "re2_test_247_if_the_word_starts_with_consonant_any_letter_add_j_after_that": [],
+            "re2_test_248_if_the_word_ends_with_any_letter_consonant_add_c_before_that": [],
+            "re2_test_249_if_the_word_ends_with_d_replace_that_with_s": [],
+            "re2_test_250_if_there_is_vowel_consonant_replace_that_with_s": [],
+            "re2_test_251_if_the_word_starts_with_vowel_replace_that_with_w_e": [],
+            "re2_test_252_if_the_word_starts_with_vowel_add_a_after_that": [],
+            "re2_test_253_if_the_word_ends_with_d_replace_that_with_b": [
+                -11.11789123702322,
+                -14.630717387944786,
+                -15.221760405351427,
+                -15.221760405351427,
+                -15.221760405351429
+            ],
+            "re2_test_254_if_the_word_starts_with_vowel_replace_that_with_d": [],
+            "re2_test_255_if_there_is_vowel_replace_that_with_a": [],
+            "re2_test_256_if_the_word_starts_with_consonant_replace_that_with_v_y": [
+                -11.15219034105589,
+                -14.665016491977456,
+                -15.256059509384096,
+                -15.256059509384098,
+                -17.370700889295644
+            ],
+            "re2_test_257_if_there_is_vowel_consonant_add_a_after_that": [],
+            "re2_test_258_if_there_is_any_letter_consonant_add_e_before_that": [],
+            "re2_test_259_if_there_is_any_letter_replace_that_with_y_p": [
+                -11.827908963118103,
+                -13.79636888199548,
+                -15.93177813144631,
+                -15.931778131446311,
+                -17.309195032917042
+            ],
+            "re2_test_260_if_there_is_r_remove_that": [
+                -9.080700118581147,
+                -12.593526269502712,
+                -12.593526269502712,
+                -13.184569286909353,
+                -13.184569286909353
+            ],
+            "re2_test_261_if_the_word_ends_with_s_replace_that_with_b_r": [],
+            "re2_test_262_if_there_is_d_replace_that_with_g_y": [
+                -16.654272721090045,
+                -20.758141889418255
+            ],
+            "re2_test_263_if_there_is_any_letter_consonant_add_h_after_that": [],
+            "re2_test_264_if_the_word_ends_with_vowel_consonant_replace_that_with_f": [],
+            "re2_test_265_if_there_is_any_letter_i_replace_that_with_m_n": [],
+            "re2_test_266_if_the_word_starts_with_consonant_replace_that_with_e_o": [
+                -10.44363461754291,
+                -13.956460768464472,
+                -13.956460768464472,
+                -14.547503785871115,
+                -15.649740072315772
+            ],
+            "re2_test_267_if_the_word_starts_with_any_letter_vowel_replace_that_with_l": [],
+            "re2_test_268_if_the_word_starts_with_any_letter_consonant_replace_that_with_a": [
+                -9.909568901700142,
+                -9.909568901700142,
+                -13.422395052621706,
+                -14.725631672804266,
+                -15.115674356473004
+            ],
+            "re2_test_269_if_there_is_any_letter_vowel_add_t_after_that": [],
+            "re2_test_270_if_the_word_ends_with_any_letter_replace_that_with_e": [
+                -6.948208860130185,
+                -10.461035011051749,
+                -10.461035011051749,
+                -12.289158472205695,
+                -13.76438072744137
+            ],
+            "re2_test_271_if_the_word_starts_with_consonant_vowel_replace_that_with_p": [
+                -30.05672656931919,
+                -30.05672656931919,
+                -32.4336275609792,
+                -32.680163991868106,
+                -32.92820820256085
+            ],
+            "re2_test_272_if_the_word_starts_with_consonant_replace_that_with_f_x": [
+                -11.600470150637713,
+                -15.70433931896592,
+                -15.70433931896592,
+                -15.704339318965921,
+                -17.818980698877468
+            ],
+            "re2_test_273_if_there_is_consonant_any_letter_add_x_after_that": [],
+            "re2_test_274_if_the_word_starts_with_vowel_any_letter_replace_that_with_v_p": [],
+            "re2_test_275_if_the_word_ends_with_consonant_add_x_after_that": [
+                -8.00218456985073,
+                -11.515010720772294,
+                -12.106053738178936,
+                -12.106053738178936,
+                -14.293240398762276
+            ],
+            "re2_test_276_if_there_is_l_any_letter_add_q_before_that": [],
+            "re2_test_277_if_there_is_consonant_consonant_replace_that_with_i": [],
+            "re2_test_278_if_there_is_l_vowel_replace_that_with_s_f": [],
+            "re2_test_279_if_the_word_starts_with_consonant_add_q_before_that": [],
+            "re2_test_280_if_there_is_n_any_letter_replace_that_with_d_j": [],
+            "re2_test_281_if_the_word_starts_with_any_letter_replace_that_with_w_x": [
+                -11.345577901008923,
+                -14.858404051930487,
+                -14.858404051930487,
+                -15.449447069337127,
+                -15.44944706933713
+            ],
+            "re2_test_282_if_there_is_g_remove_that": [
+                -9.335869696614767,
+                -12.848695847536328,
+                -13.439738864942973,
+                -14.541975151387625,
+                -14.541975151387625
+            ],
+            "re2_test_283_if_there_is_b_replace_that_with_a_m": [
+                -15.96882099720984,
+                -20.07269016553805,
+                -20.07269016553805,
+                -20.07269016553805,
+                -20.07269016553805
+            ],
+            "re2_test_284_if_the_word_starts_with_consonant_vowel_replace_that_with_c": [],
+            "re2_test_285_if_there_is_consonant_replace_that_with_f_w": [],
+            "re2_test_286_if_there_is_s_any_letter_replace_that_with_h_y": [],
+            "re2_test_287_if_the_word_ends_with_vowel_any_letter_add_q_before_that": [],
+            "re2_test_288_if_there_is_any_letter_h_replace_that_with_w": [],
+            "re2_test_289_if_there_is_consonant_any_letter_add_e_after_that": [],
+            "re2_test_290_if_the_word_ends_with_any_letter_any_letter_add_x_after_that": [
+                -8.00218456985073,
+                -11.515010720772294,
+                -12.106053738178936,
+                -12.106053738178936,
+                -14.293240398762276
+            ],
+            "re2_test_291_if_the_word_starts_with_consonant_vowel_replace_that_with_x": [],
+            "re2_test_292_if_there_is_m_add_q_after_that": [
+                -16.934146541572687,
+                -21.038015709900897,
+                -21.038015709900897,
+                -21.038015709900897,
+                -23.17716559928456
+            ],
+            "re2_test_293_if_there_is_c_replace_that_with_x": [
+                -11.37356944140222,
+                -15.477438609730424,
+                -15.477438609730426,
+                -19.58130777805863,
+                -19.58130777805863
+            ],
+            "re2_test_294_if_there_is_c_any_letter_remove_that": [],
+            "re2_test_295_if_there_is_vowel_consonant_replace_that_with_n_q": [],
+            "re2_test_296_if_the_word_starts_with_consonant_consonant_replace_that_with_n_f": [],
+            "re2_test_297_if_the_word_starts_with_vowel_consonant_replace_that_with_q": [],
+            "re2_test_298_if_there_is_any_letter_replace_that_with_o_m": [
+                -11.804559672518877,
+                -13.773019591396253,
+                -15.317385823440441,
+                -18.38052152573976,
+                -18.432579662305226
+            ],
+            "re2_test_299_if_there_is_n_any_letter_replace_that_with_t": [],
+            "re2_test_300_if_there_is_a_any_letter_remove_that": [],
+            "re2_test_301_if_there_is_c_add_f_after_that": [
+                -16.92762047069519,
+                -20.44044662161675,
+                -21.0314896390234,
+                -21.0314896390234,
+                -21.0314896390234
+            ],
+            "re2_test_302_if_the_word_ends_with_vowel_any_letter_replace_that_with_r_r": [],
+            "re2_test_303_if_there_is_consonant_vowel_replace_that_with_h_q": [],
+            "re2_test_304_if_the_word_ends_with_any_letter_replace_that_with_j": [
+                -7.228595833997788,
+                -10.075425557746955,
+                -10.075425557746955,
+                -13.450768087012417,
+                -19.672940340027044
+            ],
+            "re2_test_305_if_the_word_starts_with_any_letter_replace_that_with_w_e": [
+                -10.565524435151946,
+                -14.07835058607351,
+                -14.66939360348015,
+                -14.669393603480154,
+                -14.669393603480154
+            ],
+            "re2_test_306_if_there_is_u_replace_that_with_f_n": [
+                -16.920702115980134,
+                -20.433528266901696,
+                -21.024571284308337,
+                -21.024571284308337,
+                -22.12680757075299
+            ],
+            "re2_test_307_if_the_word_starts_with_consonant_add_j_before_that": [
+                -8.514923171328249,
+                -12.027749322249813,
+                -12.027749322249813,
+                -13.72102862610111,
+                -13.855872783403758
+            ],
+            "re2_test_308_if_the_word_starts_with_consonant_any_letter_replace_that_with_n_d": [
+                -12.384569898406836,
+                -16.48843906673504,
+                -16.48843906673504,
+                -16.488439066735047,
+                -20.227128181645607
+            ],
+            "re2_test_309_if_the_word_starts_with_consonant_any_letter_replace_that_with_y_k": [],
+            "re2_test_310_if_there_is_h_replace_that_with_f": [
+                -11.91439419072632,
+                -15.427220341647883,
+                -16.018263359054522,
+                -16.01826335905453,
+                -17.12049964549918
+            ],
+            "re2_test_311_if_there_is_any_letter_replace_that_with_t_v": [
+                -11.453768541736139,
+                -13.422228460613514,
+                -15.557637710064345,
+                -16.935054611535076,
+                -19.93950634506636
+            ],
+            "re2_test_312_if_the_word_starts_with_any_letter_replace_that_with_x": [
+                -9.864815465397632,
+                -9.864815465397632,
+                -13.377641616319194,
+                -13.377641616319194,
+                -13.968684633725838
+            ],
+            "re2_test_313_if_the_word_ends_with_consonant_replace_that_with_a_x": [
+                -11.34891398265534,
+                -12.60595342723438,
+                -15.452783150983546,
+                -15.452783150983546,
+                -15.452783150983548
+            ],
+            "re2_test_314_if_there_is_r_any_letter_replace_that_with_l": [],
+            "re2_test_315_if_there_is_n_add_r_after_that": [
+                -16.237018906285456,
+                -20.34088807461366,
+                -20.34088807461366,
+                -20.34088807461366,
+                -22.649649933186335
+            ],
+            "re2_test_316_if_the_word_ends_with_consonant_replace_that_with_e_s": [
+                -11.032854840880256,
+                -14.545680991801818,
+                -14.54568099180182,
+                -16.373804452955763,
+                -17.383406521193496
+            ],
+            "re2_test_317_if_there_is_vowel_replace_that_with_b_c": [],
+            "re2_test_318_if_the_word_starts_with_consonant_vowel_replace_that_with_m_h": [],
+            "re2_test_319_if_the_word_starts_with_consonant_replace_that_with_c_d": [],
+            "re2_test_320_if_there_is_any_letter_replace_that_with_b": [
+                -7.202110574924438,
+                -10.065412195237016,
+                -12.033872114114391,
+                -13.397797568865718,
+                -13.449855705431181
+            ],
+            "re2_test_321_if_the_word_starts_with_consonant_vowel_replace_that_with_e_g": [],
+            "re2_test_322_if_there_is_r_replace_that_with_n_d": [
+                -16.43339221653506,
+                -19.946218367456623,
+                -19.946218367456623,
+                -20.537261384863264,
+                -20.537261384863264
+            ],
+            "re2_test_323_if_there_is_vowel_replace_that_with_v": [],
+            "re2_test_324_if_the_word_ends_with_s_replace_that_with_l_j": [],
+            "re2_test_325_if_the_word_starts_with_vowel_replace_that_with_a_o": [],
+            "re2_test_326_if_the_word_starts_with_vowel_replace_that_with_p": [],
+            "re2_test_327_if_there_is_t_vowel_double_that": [],
+            "re2_test_328_if_there_is_any_letter_vowel_replace_that_with_d": [],
+            "re2_test_329_if_there_is_vowel_replace_that_with_u_y": [],
+            "re2_test_330_if_there_is_vowel_replace_that_with_h_l": [],
+            "re2_test_331_if_there_is_consonant_replace_that_with_f_g": [],
+            "re2_test_332_if_the_word_ends_with_consonant_replace_that_with_q_q": [
+                -11.50318175164613,
+                -12.760221196225169,
+                -15.607050919974336,
+                -17.794237580557674,
+                -17.910587217791097
+            ],
+            "re2_test_333_if_the_word_ends_with_consonant_any_letter_replace_that_with_w_a": [],
+            "re2_test_334_if_the_word_starts_with_consonant_vowel_replace_that_with_x_l": [],
+            "re2_test_335_if_there_is_any_letter_o_replace_that_with_x_l": [],
+            "re2_test_336_if_there_is_any_letter_replace_that_with_p_f": [
+                -12.071627912148768,
+                -14.040087831026145,
+                -16.175497080476973,
+                -16.175497080476976,
+                -17.552913981947707
+            ],
+            "re2_test_337_if_there_is_any_letter_r_remove_that": [],
+            "re2_test_338_if_the_word_starts_with_any_letter_vowel_add_u_after_that": [],
+            "re2_test_339_if_the_word_ends_with_consonant_consonant_replace_that_with_d_d": [],
+            "re2_test_340_if_the_word_ends_with_consonant_add_m_before_that": [
+                -17.529120783460947,
+                -18.786160228039982,
+                -19.410372336429816,
+                -19.888396514484636,
+                -21.632989951789156
+            ],
+            "re2_test_341_if_the_word_ends_with_consonant_add_u_before_that": [],
+            "re2_test_342_if_the_word_starts_with_any_letter_replace_that_with_k_t": [
+                -11.10126447677323,
+                -15.205133645101434,
+                -15.205133645101435,
+                -15.205133645101435,
+                -19.200531900714893
+            ],
+            "re2_test_343_if_there_is_vowel_add_d_after_that": [],
+            "re2_test_344_if_there_is_vowel_any_letter_add_q_after_that": [],
+            "re2_test_345_if_the_word_starts_with_consonant_replace_that_with_w_h": [
+                -11.654930674912332,
+                -15.167756825833896,
+                -15.75879984324054,
+                -15.75879984324054,
+                -17.873441223152085
+            ],
+            "re2_test_346_if_there_is_t_add_y_before_that": [
+                -12.295239973554112,
+                -15.913183287131778,
+                -20.017052455459982,
+                -20.01705245545999,
+                -20.01705245545999
+            ],
+            "re2_test_347_if_there_is_t_replace_that_with_j_w": [
+                -16.073175436085968,
+                -19.586001587007534,
+                -20.177044604414178,
+                -20.177044604414178,
+                -20.177044604414178
+            ],
+            "re2_test_348_if_the_word_starts_with_consonant_vowel_replace_that_with_q_c": [
+                -11.998802296602777,
+                -16.102671464930985,
+                -16.102671464930985,
+                -16.102671464930985,
+                -16.102671464930985
+            ],
+            "re2_test_349_if_there_is_u_add_k_before_that": [
+                -13.066983852944643,
+                -16.579810003866207,
+                -17.041325829204972,
+                -17.170853021272848,
+                -17.170853021272848
+            ],
+            "re2_test_350_if_there_is_vowel_replace_that_with_d": [],
+            "re2_test_351_if_there_is_o_replace_that_with_w_b": [
+                -16.338797339027323,
+                -20.442666507355526,
+                -20.442666507355526,
+                -20.442666507355526,
+                -20.442666507355533
+            ],
+            "re2_test_352_if_the_word_starts_with_vowel_replace_that_with_d_g": [],
+            "re2_test_353_if_there_is_d_replace_that_with_j": [
+                -11.092318359531108,
+                -15.196187527859314,
+                -15.196187527859314,
+                -15.196187527859314,
+                -19.67058074868056
+            ],
+            "re2_test_354_if_the_word_ends_with_any_letter_consonant_replace_that_with_t": [
+                -11.989613595354761,
+                -17.19571905012762,
+                -17.19571905012762,
+                -18.040620398817072,
+                -18.040620398817072
+            ],
+            "re2_test_355_if_there_is_vowel_any_letter_replace_that_with_r_y": [],
+            "re2_test_356_if_there_is_any_letter_replace_that_with_g_k": [
+                -11.913269727683504,
+                -13.881729646560878,
+                -15.426095878605066,
+                -18.70067575494462,
+                -18.752733891510083
+            ],
+            "re2_test_357_if_there_is_consonant_add_h_before_that": [],
+            "re2_test_358_if_there_is_r_add_w_before_that": [
+                -12.166212001495998,
+                -15.666300643613678,
+                -15.679038152417561,
+                -15.679038152417563,
+                -16.270081169824206
+            ],
+            "re2_test_359_if_there_is_l_any_letter_add_n_after_that": [],
+            "re2_test_360_if_the_word_ends_with_consonant_replace_that_with_u_e": [
+                -11.27026083911503,
+                -12.52730028369407,
+                -13.629536570138722,
+                -15.374130007443236,
+                -18.835642024911586
+            ],
+            "re2_test_361_if_the_word_ends_with_any_letter_replace_that_with_i_x": [
+                -11.353490649682753,
+                -12.610530094261792,
+                -15.457359818010959,
+                -15.457359818010959,
+                -17.871796811861163
+            ],
+            "re2_test_362_if_there_is_g_replace_that_with_q": [
+                -10.694742314617022,
+                -14.207568465538584,
+                -14.798611482945228,
+                -14.798611482945228,
+                -21.98781049555444
+            ],
+            "re2_test_363_if_the_word_ends_with_consonant_any_letter_add_t_before_that": [],
+            "re2_test_364_if_there_is_consonant_vowel_add_x_after_that": [],
+            "re2_test_365_if_the_word_ends_with_any_letter_any_letter_add_h_after_that": [
+                -8.31153734375414,
+                -11.824363494675703,
+                -11.824363494675703,
+                -12.415406512082345,
+                -14.017542487582443
+            ],
+            "re2_test_366_if_the_word_ends_with_consonant_consonant_replace_that_with_p": [],
+            "re2_test_367_if_there_is_any_letter_c_replace_that_with_i": [],
+            "re2_test_368_if_there_is_consonant_replace_that_with_q_o": [],
+            "re2_test_369_if_there_is_g_replace_that_with_w": [
+                -10.816632132226058,
+                -14.329458283147622,
+                -14.920501300554262,
+                -14.920501300554266,
+                -18.433327451475826
+            ],
+            "re2_test_370_if_the_word_ends_with_consonant_replace_that_with_t_d": [
+                -11.626858228132292,
+                -12.883897672711333,
+                -13.986133959155985,
+                -17.498960110077547,
+                -20.640915290002933
+            ],
+            "re2_test_371_if_the_word_ends_with_any_letter_replace_that_with_r_i": [
+                -10.564804036681073,
+                -11.821843481260112,
+                -15.925712649588316,
+                -15.925712649588318,
+                -15.925712649588318
+            ],
+            "re2_test_372_if_there_is_consonant_e_replace_that_with_d_l": [],
+            "re2_test_373_if_there_is_vowel_replace_that_with_h_j": [],
+            "re2_test_374_if_there_is_r_any_letter_replace_that_with_s": [],
+            "re2_test_375_if_there_is_r_add_p_after_that": [
+                -15.771661159271504,
+                -19.875530327599712,
+                -19.875530327599712,
+                -19.875530327599712,
+                -19.875530327599712
+            ],
+            "re2_test_376_if_there_is_consonant_vowel_add_b_after_that": [],
+            "re2_test_377_if_there_is_vowel_replace_that_with_r_e": [],
+            "re2_test_378_if_there_is_r_replace_that_with_n": [
+                -10.606924928269198,
+                -14.119751079190761,
+                -14.710794096597402,
+                -14.710794096597406,
+                -15.813030383042058
+            ],
+            "re2_test_379_if_there_is_any_letter_r_add_c_after_that": [
+                -15.689720917821775,
+                -19.20254706874334,
+                -19.20254706874334,
+                -19.793590086149983,
+                -22.627607833317676
+            ],
+            "re2_test_380_if_the_word_starts_with_consonant_add_k_after_that": [
+                -18.230618230365234,
+                -20.524396388683876,
+                -22.33448739869344,
+                -22.33448739869344,
+                -25.159321805075752
+            ],
+            "re2_test_381_if_there_is_any_letter_replace_that_with_i_d": [
+                -11.250846995523645,
+                -13.21930691440102,
+                -14.763673146445209,
+                -15.35471616385185,
+                -15.354716163851851
+            ],
+            "re2_test_382_if_the_word_starts_with_consonant_replace_that_with_y_n": [
+                -11.093320477200388,
+                -14.606146628121953,
+                -14.606146628121953,
+                -15.197189645528594,
+                -15.197189645528594
+            ],
+            "re2_test_383_if_there_is_any_letter_g_add_q_before_that": [],
+            "re2_test_384_if_the_word_starts_with_consonant_add_h_after_that": [
+                -18.42234558544606,
+                -20.716123743764705,
+                -21.93517173636763,
+                -22.526214753774266,
+                -22.52621475377427
+            ],
+            "re2_test_385_if_the_word_ends_with_consonant_replace_that_with_a_m": [
+                -11.255095227437684,
+                -14.76792137835925,
+                -15.358964395765891,
+                -15.358964395765891,
+                -17.88311521722403
+            ],
+            "re2_test_386_if_there_is_d_replace_that_with_e_p": [
+                -16.501923505260834,
+                -20.014749656182396,
+                -20.605792673589043,
+                -20.605792673589043,
+                -20.605792673589043
+            ],
+            "re2_test_387_if_there_is_consonant_any_letter_replace_that_with_b": [],
+            "re2_test_388_if_there_is_consonant_i_replace_that_with_d_f": [],
+            "re2_test_389_if_the_word_ends_with_any_letter_replace_that_with_d_m": [
+                -12.203871414456328,
+                -14.563147145480023,
+                -15.716697565377894,
+                -16.307740582784533,
+                -18.831891404242675
+            ],
+            "re2_test_390_if_there_is_i_replace_that_with_j_j": [
+                -15.54197704997342,
+                -19.64584621830162,
+                -19.64584621830162,
+                -19.64584621830162,
+                -19.64584621830162
+            ],
+            "re2_test_391_if_the_word_ends_with_consonant_any_letter_add_u_before_that": [],
+            "re2_test_392_if_the_word_starts_with_any_letter_replace_that_with_h_y": [
+                -11.666103975510458,
+                -15.769973143838664,
+                -15.769973143838664,
+                -15.769973143838664,
+                -15.769973143838666
+            ],
+            "re2_test_393_if_there_is_p_replace_that_with_j": [
+                -10.955843190862572,
+                -14.468669341784137,
+                -15.059712359190778,
+                -15.059712359190778,
+                -19.53410558001202
+            ],
+            "re2_test_394_if_the_word_starts_with_consonant_replace_that_with_v_o": [],
+            "re2_test_395_if_there_is_any_letter_any_letter_replace_that_with_q": [],
+            "re2_test_396_if_there_is_vowel_vowel_add_v_before_that": [],
+            "re2_test_397_if_the_word_starts_with_any_letter_replace_that_with_c_j": [
+                -10.869331683227648,
+                -14.973200851555854,
+                -14.973200851555854,
+                -14.973200851555854,
+                -14.973200851555854
+            ],
+            "re2_test_398_if_there_is_consonant_e_replace_that_with_x": [],
+            "re2_test_399_if_there_is_any_letter_l_add_r_after_that": [],
+            "re2_test_400_if_there_is_vowel_vowel_replace_that_with_c": [],
+            "re2_test_401_if_there_is_consonant_replace_that_with_d_c": [],
+            "re2_test_402_if_there_is_vowel_replace_that_with_k": [],
+            "re2_test_403_if_there_is_consonant_replace_that_with_d_y": [],
+            "re2_test_404_if_there_is_any_letter_t_replace_that_with_x": [],
+            "re2_test_405_if_there_is_u_any_letter_replace_that_with_m": [],
+            "re2_test_406_if_there_is_any_letter_c_replace_that_with_o": [],
+            "re2_test_407_if_the_word_ends_with_any_letter_replace_that_with_w": [
+                -7.4193692275037435,
+                -10.26619895125291,
+                -10.26619895125291,
+                -10.932195378425307,
+                -12.625474682276604
+            ],
+            "re2_test_408_if_there_is_a_replace_that_with_i_e": [
+                -14.745422966919493,
+                -18.258249117841054,
+                -18.8492921352477,
+                -19.951528421692352,
+                -24.051577726930688
+            ],
+            "re2_test_409_if_there_is_consonant_add_o_after_that": [],
+            "re2_test_410_if_the_word_ends_with_consonant_add_v_before_that": [
+                -17.418378678127446,
+                -18.317422807277502,
+                -19.712156836446088,
+                -20.93120482904901,
+                -21.522247846455652
+            ],
+            "re2_test_411_if_the_word_starts_with_consonant_replace_that_with_p_u": [
+                -11.136505137807717,
+                -14.64933128872928,
+                -15.240374306135921,
+                -15.240374306135923,
+                -16.342610592580577
+            ],
+            "re2_test_412_if_there_is_vowel_add_b_before_that": [],
+            "re2_test_413_if_the_word_starts_with_consonant_replace_that_with_v_n": [],
+            "re2_test_414_if_there_is_consonant_replace_that_with_e": [],
+            "re2_test_415_if_there_is_consonant_replace_that_with_r": [],
+            "re2_test_416_if_there_is_vowel_t_replace_that_with_g": [],
+            "re2_test_417_if_there_is_g_add_r_after_that": [
+                -15.696846285162652,
+                -19.20967243608421,
+                -19.80071545349086,
+                -19.80071545349086,
+                -22.379563622624932
+            ],
+            "re2_test_418_if_the_word_ends_with_consonant_consonant_add_k_after_that": [],
+            "re2_test_419_if_the_word_starts_with_any_letter_replace_that_with_i_t": [
+                -9.972382123802364,
+                -13.485208274723925,
+                -13.485208274723925,
+                -14.07625129213057,
+                -14.07625129213057
+            ],
+            "re2_test_420_if_the_word_starts_with_any_letter_any_letter_replace_that_with_p": [
+                -10.72186992005025,
+                -10.721869920050251,
+                -14.825739088378455,
+                -14.825739088378457,
+                -14.825739088378457
+            ],
+            "re2_test_421_if_there_is_any_letter_t_replace_that_with_w": [],
+            "re2_test_422_if_the_word_starts_with_vowel_consonant_add_b_before_that": [],
+            "re2_test_423_if_there_is_r_replace_that_with_a_s": [
+                -15.19620747682927,
+                -18.70903362775083,
+                -19.300076645157475,
+                -19.300076645157475,
+                -19.300076645157475
+            ],
+            "re2_test_424_if_the_word_starts_with_consonant_add_s_after_that": [
+                -17.56115353444885,
+                -19.854931692767494,
+                -20.736522479658245,
+                -21.07397968537041,
+                -21.07397968537041
+            ],
+            "re2_test_425_if_the_word_starts_with_consonant_replace_that_with_l_n": [],
+            "re2_test_426_if_the_word_ends_with_consonant_replace_that_with_g_e": [
+                -11.051177083006001,
+                -12.30821652758504,
+                -13.410452814029693,
+                -16.92327896495126,
+                -16.92327896495126
+            ],
+            "re2_test_427_if_there_is_s_replace_that_with_t": [
+                -10.436371047042039,
+                -13.949197197963604,
+                -14.540240215370245,
+                -14.540240215370245,
+                -18.05306636629181
+            ],
+            "re2_test_428_if_the_word_starts_with_consonant_replace_that_with_u_x": [],
+            "re2_test_429_if_there_is_any_letter_g_add_w_after_that": [],
+            "re2_test_430_if_the_word_ends_with_consonant_any_letter_replace_that_with_w": [
+                -12.351552438413034,
+                -15.051019569671162,
+                -15.1983821621622,
+                -16.45542160674124,
+                -17.61564254362664
+            ],
+            "re2_test_431_if_the_word_starts_with_any_letter_consonant_replace_that_with_x_u": [],
+            "re2_test_432_if_the_word_starts_with_consonant_consonant_replace_that_with_i_i": [],
+            "re2_test_433_if_there_is_vowel_replace_that_with_l_s": [],
+            "re2_test_434_if_the_word_starts_with_any_letter_replace_that_with_j_s": [
+                -10.60296523040916,
+                -14.115791381330723,
+                -14.706834398737366,
+                -14.706834398737367,
+                -14.706834398737367
+            ],
+            "re2_test_435_if_there_is_y_replace_that_with_c": [
+                -11.075849643516927,
+                -14.588675794438489,
+                -15.179718811845133,
+                -15.179718811845133,
+                -15.179718811845133
+            ],
+            "re2_test_436_if_there_is_consonant_replace_that_with_k": [],
+            "re2_test_437_if_there_is_u_replace_that_with_s": [
+                -10.792769709724698,
+                -14.305595860646262,
+                -14.896638878052903,
+                -14.896638878052906,
+                -15.998875164497555
+            ],
+            "re2_test_438_if_there_is_any_letter_any_letter_replace_that_with_o_b": [],
+            "re2_test_439_if_there_is_s_vowel_add_p_after_that": [],
+            "re2_test_440_if_there_is_t_any_letter_double_that": [],
+            "re2_test_441_if_there_is_any_letter_consonant_add_w_before_that": [],
+            "re2_test_442_if_the_word_starts_with_any_letter_vowel_replace_that_with_m": [],
+            "re2_test_443_if_the_word_ends_with_vowel_any_letter_add_p_before_that": [],
+            "re2_test_444_if_there_is_consonant_replace_that_with_y_f": [],
+            "re2_test_445_if_the_word_starts_with_any_letter_vowel_replace_that_with_b_u": [],
+            "re2_test_446_if_the_word_starts_with_consonant_consonant_replace_that_with_o_x": [],
+            "re2_test_447_if_there_is_vowel_replace_that_with_r_d": [],
+            "re2_test_448_if_there_is_vowel_replace_that_with_b_x": [],
+            "re2_test_449_if_the_word_ends_with_any_letter_replace_that_with_n_l": [
+                -11.911249006175789,
+                -13.168288450754828,
+                -14.27052473719948,
+                -15.42407515709735,
+                -18.539268995962132
+            ],
+            "re2_test_450_if_there_is_vowel_add_o_after_that": [],
+            "re2_test_451_if_the_word_starts_with_any_letter_consonant_replace_that_with_k_r": [],
+            "re2_test_452_if_the_word_ends_with_consonant_any_letter_add_d_before_that": [],
+            "re2_test_453_if_the_word_starts_with_any_letter_consonant_add_v_before_that": [],
+            "re2_test_454_if_there_is_vowel_add_a_after_that": [],
+            "re2_test_455_if_there_is_s_replace_that_with_i_y": [
+                -15.691750958973069,
+                -19.79562012730127,
+                -19.79562012730127,
+                -19.795620127301277,
+                -20.897856413745927
+            ],
+            "re2_test_456_if_there_is_a_any_letter_replace_that_with_c": [],
+            "re2_test_457_if_the_word_starts_with_consonant_any_letter_replace_that_with_b_e": [
+                -11.460910956616315,
+                -15.56478012494452,
+                -17.679421504856066,
+                -19.53924937517381,
+                -19.76746356393698
+            ],
+            "re2_test_458_if_there_is_c_any_letter_replace_that_with_g_w": [],
+            "re2_test_459_if_the_word_ends_with_any_letter_replace_that_with_o_o": [
+                -11.50318175164613,
+                -13.862457482669821,
+                -16.844131363721637,
+                -17.794237580557674,
+                -17.794237580557674
+            ],
+            "re2_test_460_if_the_word_starts_with_any_letter_any_letter_replace_that_with_g": [
+                -10.391885467907779,
+                -10.391885467907779,
+                -13.904711618829344,
+                -14.495754636235985,
+                -14.495754636235985
+            ],
+            "re2_test_461_if_the_word_ends_with_any_letter_s_replace_that_with_p_u": [],
+            "re2_test_462_if_there_is_vowel_replace_that_with_i": [],
+            "re2_test_463_if_the_word_starts_with_consonant_replace_that_with_m": [
+                -9.770996710179976,
+                -9.770996710179976,
+                -13.28382286110154,
+                -13.874865878508182,
+                -13.874865878508182
+            ],
+            "re2_test_464_if_the_word_starts_with_vowel_replace_that_with_u_l": [],
+            "re2_test_465_if_there_is_t_any_letter_replace_that_with_f": [],
+            "re2_test_466_if_there_is_consonant_any_letter_replace_that_with_n_u": [],
+            "re2_test_467_if_the_word_starts_with_consonant_replace_that_with_s_a": [],
+            "re2_test_468_if_the_word_starts_with_consonant_any_letter_replace_that_with_o": [
+                -10.494619586783386,
+                -10.494619586783386,
+                -14.00744573770495,
+                -15.310682357887508,
+                -15.700725041556247
+            ],
+            "re2_test_469_if_the_word_starts_with_any_letter_consonant_add_f_before_that": [],
+            "re2_test_470_if_the_word_ends_with_vowel_consonant_add_s_before_that": [],
+            "re2_test_471_if_the_word_starts_with_consonant_replace_that_with_s_s": [
+                -10.550792445304728,
+                -14.063618596226291,
+                -14.063618596226291,
+                -15.75689790007759,
+                -15.891742057380236
+            ],
+            "re2_test_472_if_the_word_starts_with_vowel_replace_that_with_y_k": [],
+            "re2_test_473_if_the_word_starts_with_any_letter_replace_that_with_n_i": [
+                -10.379783340937394,
+                -13.892609491858957,
+                -14.483652509265598,
+                -14.4836525092656,
+                -15.720732953012902
+            ],
+            "re2_test_474_if_the_word_ends_with_any_letter_replace_that_with_y_r": [
+                -11.278341172944065,
+                -12.535380617523105,
+                -15.382210341272271,
+                -16.484446627716924,
+                -16.639249785851312
+            ],
+            "re2_test_475_if_there_is_n_any_letter_replace_that_with_s": [],
+            "re2_test_476_if_there_is_p_vowel_replace_that_with_m_e": [],
+            "re2_test_477_if_there_is_vowel_replace_that_with_v_r": [],
+            "re2_test_478_if_there_is_t_replace_that_with_g_j": [
+                -15.848551499601328,
+                -19.361377650522886,
+                -19.95242066792953,
+                -19.95242066792953,
+                -19.952420667929538
+            ],
+            "re2_test_479_if_the_word_starts_with_consonant_any_letter_replace_that_with_x": [
+                -10.92540250287584,
+                -10.925402502875842,
+                -14.438228653797406,
+                -15.029271671204048,
+                -15.029271671204048
+            ],
+            "re2_test_480_if_there_is_consonant_any_letter_replace_that_with_w_q": [],
+            "re2_test_481_if_there_is_vowel_add_j_after_that": [],
+            "re2_test_482_if_the_word_starts_with_consonant_vowel_replace_that_with_w": [],
+            "re2_test_483_if_the_word_ends_with_vowel_any_letter_replace_that_with_i_s": [],
+            "re2_test_484_if_the_word_starts_with_c_replace_that_with_b": [
+                -26.21638952336974,
+                -27.821138970673303,
+                -28.510167681688387,
+                -29.72921567429131,
+                -30.32025869169795
+            ],
+            "re2_test_485_if_there_is_s_replace_that_with_v_p": [
+                -16.592634247629896,
+                -20.10546039855146,
+                -20.696503415958105,
+                -20.696503415958105,
+                -20.696503415958105
+            ],
+            "re2_test_486_if_there_is_vowel_consonant_replace_that_with_y": [],
+            "re2_test_487_if_there_is_t_consonant_replace_that_with_h": [],
+            "re2_test_488_if_the_word_ends_with_consonant_replace_that_with_l": [],
+            "re2_test_489_if_there_is_consonant_any_letter_add_l_after_that": [],
+            "re2_test_490_if_the_word_starts_with_consonant_e_replace_that_with_j": [],
+            "re2_test_491_if_the_word_starts_with_any_letter_vowel_replace_that_with_c_m": [],
+            "re2_test_492_if_there_is_consonant_replace_that_with_r_o": [],
+            "re2_test_493_if_the_word_ends_with_any_letter_add_n_before_that": [
+                -17.35950881427194,
+                -18.616548258850976,
+                -19.718784545295637,
+                -20.872334965193506,
+                -20.91032641716962
+            ],
+            "re2_test_494_if_the_word_starts_with_vowel_replace_that_with_c_u": [],
+            "re2_test_495_if_there_is_vowel_n_replace_that_with_q": [],
+            "re2_test_496_if_the_word_ends_with_any_letter_consonant_add_h_after_that": [
+                -8.31153734375414,
+                -11.824363494675703,
+                -11.824363494675703,
+                -12.415406512082345,
+                -12.415406512082345
+            ],
+            "re2_test_497_if_the_word_starts_with_any_letter_replace_that_with_l_g": [
+                -10.930886111275688,
+                -15.034755279603893,
+                -15.034755279603893,
+                -15.034755279603894,
+                -15.034755279603894
+            ],
+            "re2_test_498_if_there_is_vowel_r_add_u_before_that": [],
+            "re2_test_499_if_there_is_consonant_replace_that_with_q_f": []
+        }
+    },
+    "mean_description_length": 6.238423645320197,
+    "description_lengths_by_task": {
+        "test": {
+            "re2_test_0_if_the_word_ends_with_s_replace_that_with_m": [
+                3,
+                4,
+                5,
+                5,
+                5
+            ],
+            "re2_test_1_if_there_is_any_letter_t_double_that": [],
+            "re2_test_2_if_the_word_starts_with_any_letter_consonant_replace_that_with_q_f": [],
+            "re2_test_3_if_there_is_consonant_vowel_add_f_before_that": [],
+            "re2_test_4_if_the_word_starts_with_any_letter_replace_that_with_k_a": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_5_if_there_is_any_letter_add_u_after_that": [
+                5,
+                7,
+                7,
+                7,
+                8
+            ],
+            "re2_test_6_if_the_word_starts_with_vowel_replace_that_with_g_p": [],
+            "re2_test_7_if_the_word_starts_with_any_letter_vowel_replace_that_with_y_l": [],
+            "re2_test_8_if_the_word_ends_with_consonant_replace_that_with_g": [],
+            "re2_test_9_if_there_is_t_vowel_replace_that_with_g": [],
+            "re2_test_10_if_the_word_starts_with_any_letter_replace_that_with_w_t": [
+                4,
+                6,
+                6,
+                7,
+                7
+            ],
+            "re2_test_11_if_there_is_c_any_letter_replace_that_with_m": [],
+            "re2_test_12_if_the_word_starts_with_consonant_any_letter_replace_that_with_s_d": [],
+            "re2_test_13_if_the_word_ends_with_any_letter_replace_that_with_a": [
+                3,
+                5,
+                5,
+                5,
+                5
+            ],
+            "re2_test_14_if_the_word_ends_with_any_letter_replace_that_with_l_k": [
+                4,
+                5,
+                6,
+                6,
+                6
+            ],
+            "re2_test_15_if_there_is_consonant_add_h_after_that": [],
+            "re2_test_16_if_there_is_any_letter_add_j_after_that": [
+                5,
+                7,
+                7,
+                7,
+                7
+            ],
+            "re2_test_17_if_there_is_vowel_t_replace_that_with_t_n": [],
+            "re2_test_18_if_there_is_any_letter_d_replace_that_with_p_y": [],
+            "re2_test_19_if_there_is_consonant_a_add_p_after_that": [],
+            "re2_test_20_if_the_word_ends_with_vowel_consonant_replace_that_with_k_x": [],
+            "re2_test_21_if_the_word_ends_with_consonant_add_r_before_that": [
+                7,
+                8,
+                8,
+                7,
+                9
+            ],
+            "re2_test_22_if_there_is_any_letter_add_w_before_that": [
+                5,
+                7,
+                7,
+                7,
+                7
+            ],
+            "re2_test_23_if_there_is_h_any_letter_add_k_after_that": [],
+            "re2_test_24_if_the_word_starts_with_any_letter_any_letter_add_s_after_that": [],
+            "re2_test_25_if_there_is_t_replace_that_with_c_n": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_26_if_there_is_consonant_consonant_replace_that_with_k": [],
+            "re2_test_27_if_there_is_consonant_replace_that_with_w_h": [],
+            "re2_test_28_if_the_word_ends_with_any_letter_consonant_replace_that_with_w": [],
+            "re2_test_29_if_the_word_starts_with_consonant_replace_that_with_m_x": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_30_if_the_word_ends_with_any_letter_replace_that_with_v_n": [
+                4,
+                5,
+                6,
+                6,
+                6
+            ],
+            "re2_test_31_if_there_is_vowel_consonant_replace_that_with_g_u": [],
+            "re2_test_32_if_the_word_starts_with_vowel_consonant_add_u_before_that": [],
+            "re2_test_33_if_the_word_starts_with_consonant_replace_that_with_a_h": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_34_if_there_is_consonant_s_replace_that_with_y_v": [],
+            "re2_test_35_if_there_is_vowel_replace_that_with_v_p": [],
+            "re2_test_36_if_the_word_starts_with_consonant_replace_that_with_l_r": [
+                4,
+                6,
+                6,
+                6,
+                9
+            ],
+            "re2_test_37_if_there_is_u_replace_that_with_w": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_38_if_there_is_r_replace_that_with_k": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_39_if_there_is_any_letter_i_replace_that_with_e": [],
+            "re2_test_40_if_the_word_starts_with_vowel_add_n_before_that": [],
+            "re2_test_41_if_the_word_starts_with_consonant_consonant_replace_that_with_f_j": [],
+            "re2_test_42_if_the_word_starts_with_consonant_replace_that_with_m_p": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_43_if_the_word_starts_with_any_letter_replace_that_with_p_x": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_44_if_the_word_starts_with_consonant_vowel_replace_that_with_r_u": [],
+            "re2_test_45_if_there_is_n_replace_that_with_i": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_46_if_there_is_consonant_replace_that_with_p_l": [],
+            "re2_test_47_if_the_word_starts_with_any_letter_replace_that_with_q_n": [
+                4,
+                7,
+                7,
+                7,
+                7
+            ],
+            "re2_test_48_if_the_word_starts_with_any_letter_replace_that_with_t_n": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_49_if_the_word_ends_with_consonant_consonant_replace_that_with_l": [],
+            "re2_test_50_if_the_word_starts_with_vowel_any_letter_replace_that_with_r_y": [],
+            "re2_test_51_if_there_is_t_replace_that_with_x": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_52_if_the_word_starts_with_any_letter_any_letter_replace_that_with_v_j": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_53_if_the_word_starts_with_consonant_replace_that_with_l_v": [
+                4,
+                6,
+                6,
+                9,
+                9
+            ],
+            "re2_test_54_if_there_is_g_replace_that_with_p": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_55_if_the_word_starts_with_vowel_consonant_replace_that_with_j_g": [],
+            "re2_test_56_if_the_word_starts_with_any_letter_replace_that_with_c_x": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_57_if_the_word_starts_with_any_letter_replace_that_with_r_w": [
+                4,
+                6,
+                6,
+                7,
+                7
+            ],
+            "re2_test_58_if_the_word_starts_with_any_letter_replace_that_with_f_a": [
+                4,
+                9,
+                9,
+                9,
+                7
+            ],
+            "re2_test_59_if_there_is_any_letter_add_g_after_that": [
+                5,
+                7,
+                7,
+                7,
+                7
+            ],
+            "re2_test_60_if_the_word_starts_with_vowel_replace_that_with_l_c": [],
+            "re2_test_61_if_the_word_starts_with_consonant_replace_that_with_d_x": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_62_if_there_is_n_any_letter_replace_that_with_x": [],
+            "re2_test_63_if_there_is_e_add_h_after_that": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_64_if_the_word_starts_with_any_letter_replace_that_with_y_j": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_65_if_there_is_vowel_add_n_before_that": [],
+            "re2_test_66_if_the_word_starts_with_vowel_replace_that_with_g_y": [],
+            "re2_test_67_if_there_is_any_letter_s_remove_that": [],
+            "re2_test_68_if_the_word_starts_with_vowel_replace_that_with_a_c": [],
+            "re2_test_69_if_there_is_e_add_f_before_that": [
+                4,
+                6,
+                6,
+                8,
+                10
+            ],
+            "re2_test_70_if_the_word_ends_with_s_add_g_after_that": [],
+            "re2_test_71_if_the_word_starts_with_consonant_replace_that_with_c_m": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_72_if_the_word_starts_with_any_letter_replace_that_with_i_a": [
+                4,
+                6,
+                6,
+                6,
+                7
+            ],
+            "re2_test_73_if_the_word_ends_with_any_letter_add_a_after_that": [
+                3,
+                5,
+                5,
+                5,
+                5
+            ],
+            "re2_test_74_if_the_word_ends_with_consonant_replace_that_with_c_v": [
+                4,
+                6,
+                7,
+                6,
+                6
+            ],
+            "re2_test_75_if_there_is_vowel_consonant_replace_that_with_c": [],
+            "re2_test_76_if_there_is_d_replace_that_with_k_i": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_77_if_there_is_vowel_vowel_add_v_after_that": [],
+            "re2_test_78_if_there_is_i_any_letter_replace_that_with_y": [],
+            "re2_test_79_if_the_word_starts_with_any_letter_replace_that_with_p_j": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_80_if_there_is_c_replace_that_with_q": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_81_if_there_is_l_add_w_after_that": [
+                6,
+                8,
+                8,
+                8,
+                10
+            ],
+            "re2_test_82_if_there_is_e_add_m_after_that": [
+                6,
+                10,
+                10,
+                12,
+                12
+            ],
+            "re2_test_83_if_the_word_ends_with_s_add_f_after_that": [],
+            "re2_test_84_if_there_is_e_any_letter_replace_that_with_r_a": [],
+            "re2_test_85_if_the_word_starts_with_any_letter_replace_that_with_c_y": [
+                4,
+                6,
+                6,
+                6,
+                9
+            ],
+            "re2_test_86_if_there_is_d_add_b_after_that": [
+                6,
+                8,
+                10,
+                12,
+                12
+            ],
+            "re2_test_87_if_there_is_t_replace_that_with_m": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_88_if_there_is_c_any_letter_replace_that_with_o_x": [],
+            "re2_test_89_if_there_is_consonant_e_add_v_before_that": [],
+            "re2_test_90_if_there_is_consonant_replace_that_with_r_r": [],
+            "re2_test_91_if_the_word_ends_with_vowel_any_letter_replace_that_with_l": [],
+            "re2_test_92_if_there_is_vowel_vowel_replace_that_with_w_b": [],
+            "re2_test_93_if_the_word_starts_with_consonant_replace_that_with_g_w": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_94_if_the_word_ends_with_s_replace_that_with_t": [],
+            "re2_test_95_if_there_is_consonant_vowel_replace_that_with_m": [],
+            "re2_test_96_if_there_is_i_replace_that_with_i_f": [
+                6,
+                8,
+                8,
+                8,
+                10
+            ],
+            "re2_test_97_if_the_word_starts_with_vowel_consonant_add_s_after_that": [],
+            "re2_test_98_if_there_is_i_consonant_replace_that_with_t_f": [],
+            "re2_test_99_if_the_word_starts_with_consonant_add_o_before_that": [],
+            "re2_test_100_if_the_word_ends_with_any_letter_add_m_after_that": [
+                3,
+                5,
+                5,
+                5,
+                6
+            ],
+            "re2_test_101_if_the_word_ends_with_any_letter_any_letter_add_k_before_that": [
+                8,
+                9,
+                10
+            ],
+            "re2_test_102_if_there_is_any_letter_any_letter_replace_that_with_k_g": [],
+            "re2_test_103_if_there_is_e_any_letter_replace_that_with_e_h": [],
+            "re2_test_104_if_there_is_m_add_i_before_that": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_105_if_there_is_l_add_e_before_that": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_106_if_there_is_vowel_r_add_h_after_that": [],
+            "re2_test_107_if_there_is_vowel_any_letter_replace_that_with_t_g": [],
+            "re2_test_108_if_the_word_starts_with_consonant_replace_that_with_h_y": [],
+            "re2_test_109_if_the_word_ends_with_any_letter_replace_that_with_i_u": [
+                4,
+                5,
+                6,
+                6,
+                6
+            ],
+            "re2_test_110_if_the_word_starts_with_consonant_any_letter_replace_that_with_a_t": [],
+            "re2_test_111_if_there_is_r_any_letter_add_u_before_that": [],
+            "re2_test_112_if_there_is_i_any_letter_add_p_before_that": [
+                4,
+                6,
+                6,
+                6,
+                10
+            ],
+            "re2_test_113_if_the_word_ends_with_consonant_consonant_add_s_before_that": [],
+            "re2_test_114_if_there_is_vowel_add_w_before_that": [],
+            "re2_test_115_if_the_word_starts_with_consonant_vowel_replace_that_with_n_s": [],
+            "re2_test_116_if_the_word_starts_with_consonant_replace_that_with_w_o": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_117_if_the_word_starts_with_vowel_any_letter_replace_that_with_u": [],
+            "re2_test_118_if_the_word_starts_with_any_letter_consonant_replace_that_with_n_y": [],
+            "re2_test_119_if_the_word_starts_with_consonant_replace_that_with_f_i": [],
+            "re2_test_120_if_there_is_any_letter_vowel_add_l_before_that": [],
+            "re2_test_121_if_the_word_starts_with_any_letter_replace_that_with_w_n": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_122_if_there_is_any_letter_replace_that_with_h_j": [
+                4,
+                5,
+                6,
+                6,
+                6
+            ],
+            "re2_test_123_if_the_word_ends_with_consonant_replace_that_with_g_x": [
+                4,
+                5,
+                5,
+                6,
+                6
+            ],
+            "re2_test_124_if_the_word_ends_with_any_letter_replace_that_with_m": [
+                3,
+                4,
+                5,
+                5,
+                5
+            ],
+            "re2_test_125_if_there_is_n_consonant_add_y_after_that": [],
+            "re2_test_126_if_there_is_any_letter_add_w_after_that": [
+                5,
+                7,
+                7,
+                7,
+                7
+            ],
+            "re2_test_127_if_the_word_starts_with_any_letter_replace_that_with_m_d": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_128_if_the_word_ends_with_vowel_any_letter_replace_that_with_v_f": [],
+            "re2_test_129_if_there_is_vowel_s_replace_that_with_l": [],
+            "re2_test_130_if_there_is_any_letter_vowel_add_f_after_that": [],
+            "re2_test_131_if_the_word_ends_with_vowel_any_letter_replace_that_with_g_t": [],
+            "re2_test_132_if_the_word_starts_with_any_letter_replace_that_with_b_b": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_133_if_there_is_u_replace_that_with_m_v": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_134_if_there_is_vowel_any_letter_add_s_before_that": [],
+            "re2_test_135_if_the_word_starts_with_consonant_vowel_replace_that_with_l_t": [],
+            "re2_test_136_if_there_is_a_add_m_before_that": [
+                4,
+                6,
+                6,
+                6,
+                10
+            ],
+            "re2_test_137_if_there_is_consonant_any_letter_add_j_after_that": [],
+            "re2_test_138_if_there_is_i_vowel_replace_that_with_d": [],
+            "re2_test_139_if_the_word_ends_with_consonant_add_l_after_that": [
+                3,
+                5,
+                5,
+                5,
+                5
+            ],
+            "re2_test_140_if_there_is_vowel_r_replace_that_with_s": [],
+            "re2_test_141_if_the_word_ends_with_vowel_any_letter_add_i_after_that": [],
+            "re2_test_142_if_the_word_ends_with_consonant_consonant_replace_that_with_v": [],
+            "re2_test_143_if_the_word_ends_with_consonant_consonant_replace_that_with_u": [],
+            "re2_test_144_if_the_word_starts_with_any_letter_replace_that_with_e_p": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_145_if_there_is_m_add_r_before_that": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_146_if_there_is_s_consonant_add_n_after_that": [],
+            "re2_test_147_if_the_word_ends_with_vowel_consonant_replace_that_with_u": [],
+            "re2_test_148_if_there_is_consonant_vowel_replace_that_with_y_d": [],
+            "re2_test_149_if_there_is_any_letter_add_x_before_that": [
+                5,
+                7,
+                7,
+                7,
+                7
+            ],
+            "re2_test_150_if_the_word_ends_with_any_letter_any_letter_add_d_before_that": [],
+            "re2_test_151_if_there_is_d_vowel_remove_that": [],
+            "re2_test_152_if_there_is_consonant_replace_that_with_l_a": [],
+            "re2_test_153_if_there_is_o_any_letter_replace_that_with_t_f": [],
+            "re2_test_154_if_there_is_e_replace_that_with_h": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_155_if_there_is_vowel_replace_that_with_f_c": [],
+            "re2_test_156_if_there_is_i_any_letter_replace_that_with_c": [],
+            "re2_test_157_if_there_is_h_replace_that_with_t": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_158_if_the_word_ends_with_d_replace_that_with_o": [
+                4,
+                6,
+                6,
+                6,
+                7
+            ],
+            "re2_test_159_if_the_word_ends_with_consonant_any_letter_add_c_before_that": [],
+            "re2_test_160_if_the_word_starts_with_consonant_any_letter_add_h_after_that": [],
+            "re2_test_161_if_the_word_starts_with_consonant_add_d_before_that": [
+                3,
+                5,
+                5,
+                5,
+                5
+            ],
+            "re2_test_162_if_the_word_ends_with_consonant_replace_that_with_y_x": [],
+            "re2_test_163_if_the_word_starts_with_consonant_replace_that_with_f_l": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_164_if_the_word_starts_with_any_letter_vowel_add_h_before_that": [],
+            "re2_test_165_if_the_word_starts_with_consonant_replace_that_with_r_e": [],
+            "re2_test_166_if_the_word_starts_with_any_letter_consonant_replace_that_with_t": [],
+            "re2_test_167_if_there_is_consonant_add_b_before_that": [],
+            "re2_test_168_if_the_word_starts_with_consonant_any_letter_add_a_before_that": [
+                3,
+                6,
+                5,
+                6,
+                6
+            ],
+            "re2_test_169_if_there_is_n_vowel_replace_that_with_m_s": [],
+            "re2_test_170_if_the_word_starts_with_any_letter_replace_that_with_h_f": [
+                4,
+                6,
+                6,
+                6,
+                9
+            ],
+            "re2_test_171_if_the_word_starts_with_consonant_replace_that_with_e_j": [],
+            "re2_test_172_if_the_word_starts_with_consonant_any_letter_replace_that_with_l": [],
+            "re2_test_173_if_the_word_starts_with_consonant_replace_that_with_j_n": [],
+            "re2_test_174_if_there_is_vowel_vowel_replace_that_with_m_l": [],
+            "re2_test_175_if_there_is_vowel_replace_that_with_a_q": [],
+            "re2_test_176_if_the_word_ends_with_any_letter_add_m_before_that": [
+                7,
+                8,
+                9,
+                9,
+                10
+            ],
+            "re2_test_177_if_the_word_starts_with_any_letter_a_replace_that_with_x_b": [],
+            "re2_test_178_if_the_word_ends_with_any_letter_replace_that_with_p_q": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_179_if_the_word_starts_with_vowel_replace_that_with_o_s": [],
+            "re2_test_180_if_there_is_e_replace_that_with_r_u": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_181_if_there_is_m_replace_that_with_r": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_182_if_the_word_starts_with_consonant_consonant_add_w_after_that": [],
+            "re2_test_183_if_the_word_starts_with_vowel_consonant_add_g_after_that": [
+                6,
+                8,
+                8,
+                8,
+                10
+            ],
+            "re2_test_184_if_there_is_consonant_t_add_s_before_that": [],
+            "re2_test_185_if_the_word_ends_with_consonant_replace_that_with_t_c": [],
+            "re2_test_186_if_there_is_vowel_replace_that_with_m_x": [],
+            "re2_test_187_if_there_is_r_add_v_after_that": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_188_if_there_is_any_letter_vowel_replace_that_with_q": [],
+            "re2_test_189_if_there_is_i_replace_that_with_w_d": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_190_if_the_word_starts_with_consonant_any_letter_replace_that_with_h_t": [
+                4,
+                6,
+                6,
+                6,
+                7
+            ],
+            "re2_test_191_if_there_is_n_replace_that_with_c_q": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_192_if_there_is_any_letter_add_u_before_that": [
+                5,
+                7,
+                7,
+                8,
+                8
+            ],
+            "re2_test_193_if_there_is_i_consonant_replace_that_with_j_v": [],
+            "re2_test_194_if_there_is_consonant_e_add_y_before_that": [],
+            "re2_test_195_if_there_is_t_add_r_after_that": [
+                6,
+                8,
+                8,
+                8,
+                10
+            ],
+            "re2_test_196_if_the_word_ends_with_vowel_any_letter_add_t_after_that": [],
+            "re2_test_197_if_there_is_vowel_r_add_j_before_that": [],
+            "re2_test_198_if_there_is_l_vowel_replace_that_with_x_n": [],
+            "re2_test_199_if_the_word_starts_with_vowel_replace_that_with_c_x": [],
+            "re2_test_200_if_the_word_ends_with_consonant_add_w_after_that": [
+                3,
+                5,
+                5,
+                5,
+                6
+            ],
+            "re2_test_201_if_there_is_i_replace_that_with_s_p": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_202_if_the_word_ends_with_any_letter_consonant_add_t_before_that": [],
+            "re2_test_203_if_there_is_vowel_replace_that_with_g": [],
+            "re2_test_204_if_the_word_ends_with_any_letter_replace_that_with_r_r": [
+                4,
+                5,
+                6,
+                6,
+                6
+            ],
+            "re2_test_205_if_the_word_starts_with_vowel_consonant_replace_that_with_y_v": [],
+            "re2_test_206_if_there_is_consonant_vowel_replace_that_with_o_q": [],
+            "re2_test_207_if_there_is_p_replace_that_with_x_c": [
+                6,
+                8,
+                8,
+                8,
+                10
+            ],
+            "re2_test_208_if_there_is_a_replace_that_with_h": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_209_if_there_is_i_any_letter_replace_that_with_q_c": [],
+            "re2_test_210_if_the_word_starts_with_any_letter_o_replace_that_with_t_b": [],
+            "re2_test_211_if_there_is_c_replace_that_with_k": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_212_if_there_is_vowel_n_replace_that_with_s_i": [],
+            "re2_test_213_if_the_word_starts_with_any_letter_consonant_add_t_after_that": [],
+            "re2_test_214_if_there_is_any_letter_l_remove_that": [],
+            "re2_test_215_if_the_word_ends_with_any_letter_consonant_add_l_after_that": [],
+            "re2_test_216_if_the_word_ends_with_consonant_any_letter_replace_that_with_t": [],
+            "re2_test_217_if_there_is_u_add_k_after_that": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_218_if_the_word_ends_with_any_letter_replace_that_with_m_r": [
+                4,
+                5,
+                7,
+                7,
+                6
+            ],
+            "re2_test_219_if_the_word_starts_with_consonant_add_h_before_that": [
+                3,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_220_if_there_is_any_letter_vowel_add_x_after_that": [],
+            "re2_test_221_if_the_word_starts_with_vowel_replace_that_with_v_o": [],
+            "re2_test_222_if_the_word_starts_with_consonant_replace_that_with_w_y": [
+                4,
+                6,
+                6,
+                6,
+                8
+            ],
+            "re2_test_223_if_the_word_starts_with_any_letter_add_w_after_that": [
+                7,
+                7,
+                9,
+                9,
+                9
+            ],
+            "re2_test_224_if_the_word_starts_with_consonant_consonant_replace_that_with_v": [],
+            "re2_test_225_if_there_is_consonant_any_letter_replace_that_with_k": [],
+            "re2_test_226_if_there_is_t_any_letter_add_j_after_that": [],
+            "re2_test_227_if_there_is_vowel_t_remove_that": [],
+            "re2_test_228_if_there_is_a_replace_that_with_g_w": [
+                6,
+                8,
+                8,
+                8,
+                10
+            ],
+            "re2_test_229_if_there_is_any_letter_vowel_replace_that_with_h_d": [],
+            "re2_test_230_if_the_word_ends_with_any_letter_add_p_before_that": [
+                7,
+                8,
+                8,
+                7,
+                8
+            ],
+            "re2_test_231_if_there_is_any_letter_replace_that_with_g": [
+                3,
+                4,
+                5,
+                5,
+                5
+            ],
+            "re2_test_232_if_the_word_starts_with_any_letter_add_u_before_that": [
+                3,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_233_if_there_is_vowel_any_letter_add_a_after_that": [],
+            "re2_test_234_if_there_is_any_letter_vowel_replace_that_with_e_x": [],
+            "re2_test_235_if_the_word_ends_with_any_letter_consonant_add_h_before_that": [],
+            "re2_test_236_if_the_word_starts_with_consonant_replace_that_with_i_k": [],
+            "re2_test_237_if_the_word_starts_with_consonant_vowel_replace_that_with_v_d": [],
+            "re2_test_238_if_there_is_vowel_replace_that_with_p_s": [],
+            "re2_test_239_if_there_is_i_any_letter_replace_that_with_b_n": [],
+            "re2_test_240_if_there_is_vowel_any_letter_replace_that_with_m_y": [],
+            "re2_test_241_if_there_is_any_letter_consonant_add_l_after_that": [],
+            "re2_test_242_if_there_is_a_replace_that_with_j": [
+                4,
+                6,
+                6,
+                6,
+                8
+            ],
+            "re2_test_243_if_there_is_any_letter_any_letter_replace_that_with_h": [],
+            "re2_test_244_if_there_is_n_replace_that_with_c_e": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_245_if_there_is_l_replace_that_with_x_k": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_246_if_the_word_starts_with_any_letter_replace_that_with_x_h": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_247_if_the_word_starts_with_consonant_any_letter_add_j_after_that": [],
+            "re2_test_248_if_the_word_ends_with_any_letter_consonant_add_c_before_that": [],
+            "re2_test_249_if_the_word_ends_with_d_replace_that_with_s": [],
+            "re2_test_250_if_there_is_vowel_consonant_replace_that_with_s": [],
+            "re2_test_251_if_the_word_starts_with_vowel_replace_that_with_w_e": [],
+            "re2_test_252_if_the_word_starts_with_vowel_add_a_after_that": [],
+            "re2_test_253_if_the_word_ends_with_d_replace_that_with_b": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_254_if_the_word_starts_with_vowel_replace_that_with_d": [],
+            "re2_test_255_if_there_is_vowel_replace_that_with_a": [],
+            "re2_test_256_if_the_word_starts_with_consonant_replace_that_with_v_y": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_257_if_there_is_vowel_consonant_add_a_after_that": [],
+            "re2_test_258_if_there_is_any_letter_consonant_add_e_before_that": [],
+            "re2_test_259_if_there_is_any_letter_replace_that_with_y_p": [
+                4,
+                5,
+                6,
+                6,
+                7
+            ],
+            "re2_test_260_if_there_is_r_remove_that": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_261_if_the_word_ends_with_s_replace_that_with_b_r": [],
+            "re2_test_262_if_there_is_d_replace_that_with_g_y": [
+                6,
+                8
+            ],
+            "re2_test_263_if_there_is_any_letter_consonant_add_h_after_that": [],
+            "re2_test_264_if_the_word_ends_with_vowel_consonant_replace_that_with_f": [],
+            "re2_test_265_if_there_is_any_letter_i_replace_that_with_m_n": [],
+            "re2_test_266_if_the_word_starts_with_consonant_replace_that_with_e_o": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_267_if_the_word_starts_with_any_letter_vowel_replace_that_with_l": [],
+            "re2_test_268_if_the_word_starts_with_any_letter_consonant_replace_that_with_a": [
+                4,
+                4,
+                6,
+                8,
+                6
+            ],
+            "re2_test_269_if_there_is_any_letter_vowel_add_t_after_that": [],
+            "re2_test_270_if_the_word_ends_with_any_letter_replace_that_with_e": [
+                3,
+                5,
+                5,
+                6,
+                6
+            ],
+            "re2_test_271_if_the_word_starts_with_consonant_vowel_replace_that_with_p": [
+                13,
+                13,
+                13,
+                13,
+                13
+            ],
+            "re2_test_272_if_the_word_starts_with_consonant_replace_that_with_f_x": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_273_if_there_is_consonant_any_letter_add_x_after_that": [],
+            "re2_test_274_if_the_word_starts_with_vowel_any_letter_replace_that_with_v_p": [],
+            "re2_test_275_if_the_word_ends_with_consonant_add_x_after_that": [
+                3,
+                5,
+                5,
+                5,
+                5
+            ],
+            "re2_test_276_if_there_is_l_any_letter_add_q_before_that": [],
+            "re2_test_277_if_there_is_consonant_consonant_replace_that_with_i": [],
+            "re2_test_278_if_there_is_l_vowel_replace_that_with_s_f": [],
+            "re2_test_279_if_the_word_starts_with_consonant_add_q_before_that": [],
+            "re2_test_280_if_there_is_n_any_letter_replace_that_with_d_j": [],
+            "re2_test_281_if_the_word_starts_with_any_letter_replace_that_with_w_x": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_282_if_there_is_g_remove_that": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_283_if_there_is_b_replace_that_with_a_m": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_284_if_the_word_starts_with_consonant_vowel_replace_that_with_c": [],
+            "re2_test_285_if_there_is_consonant_replace_that_with_f_w": [],
+            "re2_test_286_if_there_is_s_any_letter_replace_that_with_h_y": [],
+            "re2_test_287_if_the_word_ends_with_vowel_any_letter_add_q_before_that": [],
+            "re2_test_288_if_there_is_any_letter_h_replace_that_with_w": [],
+            "re2_test_289_if_there_is_consonant_any_letter_add_e_after_that": [],
+            "re2_test_290_if_the_word_ends_with_any_letter_any_letter_add_x_after_that": [
+                3,
+                5,
+                5,
+                5,
+                5
+            ],
+            "re2_test_291_if_the_word_starts_with_consonant_vowel_replace_that_with_x": [],
+            "re2_test_292_if_there_is_m_add_q_after_that": [
+                6,
+                8,
+                8,
+                8,
+                10
+            ],
+            "re2_test_293_if_there_is_c_replace_that_with_x": [
+                4,
+                6,
+                6,
+                8,
+                8
+            ],
+            "re2_test_294_if_there_is_c_any_letter_remove_that": [],
+            "re2_test_295_if_there_is_vowel_consonant_replace_that_with_n_q": [],
+            "re2_test_296_if_the_word_starts_with_consonant_consonant_replace_that_with_n_f": [],
+            "re2_test_297_if_the_word_starts_with_vowel_consonant_replace_that_with_q": [],
+            "re2_test_298_if_there_is_any_letter_replace_that_with_o_m": [
+                4,
+                5,
+                6,
+                6,
+                6
+            ],
+            "re2_test_299_if_there_is_n_any_letter_replace_that_with_t": [],
+            "re2_test_300_if_there_is_a_any_letter_remove_that": [],
+            "re2_test_301_if_there_is_c_add_f_after_that": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_302_if_the_word_ends_with_vowel_any_letter_replace_that_with_r_r": [],
+            "re2_test_303_if_there_is_consonant_vowel_replace_that_with_h_q": [],
+            "re2_test_304_if_the_word_ends_with_any_letter_replace_that_with_j": [
+                3,
+                4,
+                4,
+                5,
+                7
+            ],
+            "re2_test_305_if_the_word_starts_with_any_letter_replace_that_with_w_e": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_306_if_there_is_u_replace_that_with_f_n": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_307_if_the_word_starts_with_consonant_add_j_before_that": [
+                3,
+                5,
+                5,
+                5,
+                6
+            ],
+            "re2_test_308_if_the_word_starts_with_consonant_any_letter_replace_that_with_n_d": [
+                4,
+                6,
+                6,
+                6,
+                7
+            ],
+            "re2_test_309_if_the_word_starts_with_consonant_any_letter_replace_that_with_y_k": [],
+            "re2_test_310_if_there_is_h_replace_that_with_f": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_311_if_there_is_any_letter_replace_that_with_t_v": [
+                4,
+                5,
+                6,
+                7,
+                7
+            ],
+            "re2_test_312_if_the_word_starts_with_any_letter_replace_that_with_x": [
+                4,
+                4,
+                6,
+                6,
+                6
+            ],
+            "re2_test_313_if_the_word_ends_with_consonant_replace_that_with_a_x": [
+                4,
+                5,
+                6,
+                6,
+                6
+            ],
+            "re2_test_314_if_there_is_r_any_letter_replace_that_with_l": [],
+            "re2_test_315_if_there_is_n_add_r_after_that": [
+                6,
+                8,
+                8,
+                8,
+                10
+            ],
+            "re2_test_316_if_the_word_ends_with_consonant_replace_that_with_e_s": [
+                4,
+                6,
+                6,
+                7,
+                7
+            ],
+            "re2_test_317_if_there_is_vowel_replace_that_with_b_c": [],
+            "re2_test_318_if_the_word_starts_with_consonant_vowel_replace_that_with_m_h": [],
+            "re2_test_319_if_the_word_starts_with_consonant_replace_that_with_c_d": [],
+            "re2_test_320_if_there_is_any_letter_replace_that_with_b": [
+                3,
+                4,
+                5,
+                5,
+                5
+            ],
+            "re2_test_321_if_the_word_starts_with_consonant_vowel_replace_that_with_e_g": [],
+            "re2_test_322_if_there_is_r_replace_that_with_n_d": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_323_if_there_is_vowel_replace_that_with_v": [],
+            "re2_test_324_if_the_word_ends_with_s_replace_that_with_l_j": [],
+            "re2_test_325_if_the_word_starts_with_vowel_replace_that_with_a_o": [],
+            "re2_test_326_if_the_word_starts_with_vowel_replace_that_with_p": [],
+            "re2_test_327_if_there_is_t_vowel_double_that": [],
+            "re2_test_328_if_there_is_any_letter_vowel_replace_that_with_d": [],
+            "re2_test_329_if_there_is_vowel_replace_that_with_u_y": [],
+            "re2_test_330_if_there_is_vowel_replace_that_with_h_l": [],
+            "re2_test_331_if_there_is_consonant_replace_that_with_f_g": [],
+            "re2_test_332_if_the_word_ends_with_consonant_replace_that_with_q_q": [
+                4,
+                5,
+                6,
+                6,
+                6
+            ],
+            "re2_test_333_if_the_word_ends_with_consonant_any_letter_replace_that_with_w_a": [],
+            "re2_test_334_if_the_word_starts_with_consonant_vowel_replace_that_with_x_l": [],
+            "re2_test_335_if_there_is_any_letter_o_replace_that_with_x_l": [],
+            "re2_test_336_if_there_is_any_letter_replace_that_with_p_f": [
+                4,
+                5,
+                6,
+                6,
+                7
+            ],
+            "re2_test_337_if_there_is_any_letter_r_remove_that": [],
+            "re2_test_338_if_the_word_starts_with_any_letter_vowel_add_u_after_that": [],
+            "re2_test_339_if_the_word_ends_with_consonant_consonant_replace_that_with_d_d": [],
+            "re2_test_340_if_the_word_ends_with_consonant_add_m_before_that": [
+                7,
+                8,
+                8,
+                8,
+                9
+            ],
+            "re2_test_341_if_the_word_ends_with_consonant_add_u_before_that": [],
+            "re2_test_342_if_the_word_starts_with_any_letter_replace_that_with_k_t": [
+                4,
+                6,
+                6,
+                6,
+                9
+            ],
+            "re2_test_343_if_there_is_vowel_add_d_after_that": [],
+            "re2_test_344_if_there_is_vowel_any_letter_add_q_after_that": [],
+            "re2_test_345_if_the_word_starts_with_consonant_replace_that_with_w_h": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_346_if_there_is_t_add_y_before_that": [
+                4,
+                6,
+                8,
+                8,
+                8
+            ],
+            "re2_test_347_if_there_is_t_replace_that_with_j_w": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_348_if_the_word_starts_with_consonant_vowel_replace_that_with_q_c": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_349_if_there_is_u_add_k_before_that": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_350_if_there_is_vowel_replace_that_with_d": [],
+            "re2_test_351_if_there_is_o_replace_that_with_w_b": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_352_if_the_word_starts_with_vowel_replace_that_with_d_g": [],
+            "re2_test_353_if_there_is_d_replace_that_with_j": [
+                4,
+                6,
+                6,
+                6,
+                8
+            ],
+            "re2_test_354_if_the_word_ends_with_any_letter_consonant_replace_that_with_t": [
+                5,
+                7,
+                7,
+                7,
+                7
+            ],
+            "re2_test_355_if_there_is_vowel_any_letter_replace_that_with_r_y": [],
+            "re2_test_356_if_there_is_any_letter_replace_that_with_g_k": [
+                4,
+                5,
+                6,
+                6,
+                6
+            ],
+            "re2_test_357_if_there_is_consonant_add_h_before_that": [],
+            "re2_test_358_if_there_is_r_add_w_before_that": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_359_if_there_is_l_any_letter_add_n_after_that": [],
+            "re2_test_360_if_the_word_ends_with_consonant_replace_that_with_u_e": [
+                4,
+                5,
+                5,
+                6,
+                7
+            ],
+            "re2_test_361_if_the_word_ends_with_any_letter_replace_that_with_i_x": [
+                4,
+                5,
+                6,
+                6,
+                6
+            ],
+            "re2_test_362_if_there_is_g_replace_that_with_q": [
+                4,
+                6,
+                6,
+                6,
+                7
+            ],
+            "re2_test_363_if_the_word_ends_with_consonant_any_letter_add_t_before_that": [],
+            "re2_test_364_if_there_is_consonant_vowel_add_x_after_that": [],
+            "re2_test_365_if_the_word_ends_with_any_letter_any_letter_add_h_after_that": [
+                3,
+                5,
+                5,
+                5,
+                5
+            ],
+            "re2_test_366_if_the_word_ends_with_consonant_consonant_replace_that_with_p": [],
+            "re2_test_367_if_there_is_any_letter_c_replace_that_with_i": [],
+            "re2_test_368_if_there_is_consonant_replace_that_with_q_o": [],
+            "re2_test_369_if_there_is_g_replace_that_with_w": [
+                4,
+                6,
+                6,
+                6,
+                8
+            ],
+            "re2_test_370_if_the_word_ends_with_consonant_replace_that_with_t_d": [
+                4,
+                5,
+                5,
+                7,
+                7
+            ],
+            "re2_test_371_if_the_word_ends_with_any_letter_replace_that_with_r_i": [
+                4,
+                5,
+                7,
+                7,
+                7
+            ],
+            "re2_test_372_if_there_is_consonant_e_replace_that_with_d_l": [],
+            "re2_test_373_if_there_is_vowel_replace_that_with_h_j": [],
+            "re2_test_374_if_there_is_r_any_letter_replace_that_with_s": [],
+            "re2_test_375_if_there_is_r_add_p_after_that": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_376_if_there_is_consonant_vowel_add_b_after_that": [],
+            "re2_test_377_if_there_is_vowel_replace_that_with_r_e": [],
+            "re2_test_378_if_there_is_r_replace_that_with_n": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_379_if_there_is_any_letter_r_add_c_after_that": [
+                6,
+                8,
+                8,
+                8,
+                10
+            ],
+            "re2_test_380_if_the_word_starts_with_consonant_add_k_after_that": [
+                7,
+                7,
+                9,
+                9,
+                9
+            ],
+            "re2_test_381_if_there_is_any_letter_replace_that_with_i_d": [
+                4,
+                5,
+                6,
+                6,
+                6
+            ],
+            "re2_test_382_if_the_word_starts_with_consonant_replace_that_with_y_n": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_383_if_there_is_any_letter_g_add_q_before_that": [],
+            "re2_test_384_if_the_word_starts_with_consonant_add_h_after_that": [
+                7,
+                7,
+                9,
+                9,
+                9
+            ],
+            "re2_test_385_if_the_word_ends_with_consonant_replace_that_with_a_m": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_386_if_there_is_d_replace_that_with_e_p": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_387_if_there_is_consonant_any_letter_replace_that_with_b": [],
+            "re2_test_388_if_there_is_consonant_i_replace_that_with_d_f": [],
+            "re2_test_389_if_the_word_ends_with_any_letter_replace_that_with_d_m": [
+                4,
+                5,
+                6,
+                6,
+                6
+            ],
+            "re2_test_390_if_there_is_i_replace_that_with_j_j": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_391_if_the_word_ends_with_consonant_any_letter_add_u_before_that": [],
+            "re2_test_392_if_the_word_starts_with_any_letter_replace_that_with_h_y": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_393_if_there_is_p_replace_that_with_j": [
+                4,
+                6,
+                6,
+                6,
+                8
+            ],
+            "re2_test_394_if_the_word_starts_with_consonant_replace_that_with_v_o": [],
+            "re2_test_395_if_there_is_any_letter_any_letter_replace_that_with_q": [],
+            "re2_test_396_if_there_is_vowel_vowel_add_v_before_that": [],
+            "re2_test_397_if_the_word_starts_with_any_letter_replace_that_with_c_j": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_398_if_there_is_consonant_e_replace_that_with_x": [],
+            "re2_test_399_if_there_is_any_letter_l_add_r_after_that": [],
+            "re2_test_400_if_there_is_vowel_vowel_replace_that_with_c": [],
+            "re2_test_401_if_there_is_consonant_replace_that_with_d_c": [],
+            "re2_test_402_if_there_is_vowel_replace_that_with_k": [],
+            "re2_test_403_if_there_is_consonant_replace_that_with_d_y": [],
+            "re2_test_404_if_there_is_any_letter_t_replace_that_with_x": [],
+            "re2_test_405_if_there_is_u_any_letter_replace_that_with_m": [],
+            "re2_test_406_if_there_is_any_letter_c_replace_that_with_o": [],
+            "re2_test_407_if_the_word_ends_with_any_letter_replace_that_with_w": [
+                3,
+                4,
+                4,
+                5,
+                5
+            ],
+            "re2_test_408_if_there_is_a_replace_that_with_i_e": [
+                6,
+                8,
+                8,
+                8,
+                10
+            ],
+            "re2_test_409_if_there_is_consonant_add_o_after_that": [],
+            "re2_test_410_if_the_word_ends_with_consonant_add_v_before_that": [
+                7,
+                7,
+                7,
+                9,
+                9
+            ],
+            "re2_test_411_if_the_word_starts_with_consonant_replace_that_with_p_u": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_412_if_there_is_vowel_add_b_before_that": [],
+            "re2_test_413_if_the_word_starts_with_consonant_replace_that_with_v_n": [],
+            "re2_test_414_if_there_is_consonant_replace_that_with_e": [],
+            "re2_test_415_if_there_is_consonant_replace_that_with_r": [],
+            "re2_test_416_if_there_is_vowel_t_replace_that_with_g": [],
+            "re2_test_417_if_there_is_g_add_r_after_that": [
+                6,
+                8,
+                8,
+                8,
+                10
+            ],
+            "re2_test_418_if_the_word_ends_with_consonant_consonant_add_k_after_that": [],
+            "re2_test_419_if_the_word_starts_with_any_letter_replace_that_with_i_t": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_420_if_the_word_starts_with_any_letter_any_letter_replace_that_with_p": [
+                4,
+                4,
+                6,
+                6,
+                6
+            ],
+            "re2_test_421_if_there_is_any_letter_t_replace_that_with_w": [],
+            "re2_test_422_if_the_word_starts_with_vowel_consonant_add_b_before_that": [],
+            "re2_test_423_if_there_is_r_replace_that_with_a_s": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_424_if_the_word_starts_with_consonant_add_s_after_that": [
+                7,
+                7,
+                9,
+                9,
+                9
+            ],
+            "re2_test_425_if_the_word_starts_with_consonant_replace_that_with_l_n": [],
+            "re2_test_426_if_the_word_ends_with_consonant_replace_that_with_g_e": [
+                4,
+                5,
+                5,
+                7,
+                7
+            ],
+            "re2_test_427_if_there_is_s_replace_that_with_t": [
+                4,
+                6,
+                6,
+                6,
+                8
+            ],
+            "re2_test_428_if_the_word_starts_with_consonant_replace_that_with_u_x": [],
+            "re2_test_429_if_there_is_any_letter_g_add_w_after_that": [],
+            "re2_test_430_if_the_word_ends_with_consonant_any_letter_replace_that_with_w": [
+                5,
+                7,
+                6,
+                7,
+                8
+            ],
+            "re2_test_431_if_the_word_starts_with_any_letter_consonant_replace_that_with_x_u": [],
+            "re2_test_432_if_the_word_starts_with_consonant_consonant_replace_that_with_i_i": [],
+            "re2_test_433_if_there_is_vowel_replace_that_with_l_s": [],
+            "re2_test_434_if_the_word_starts_with_any_letter_replace_that_with_j_s": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_435_if_there_is_y_replace_that_with_c": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_436_if_there_is_consonant_replace_that_with_k": [],
+            "re2_test_437_if_there_is_u_replace_that_with_s": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_438_if_there_is_any_letter_any_letter_replace_that_with_o_b": [],
+            "re2_test_439_if_there_is_s_vowel_add_p_after_that": [],
+            "re2_test_440_if_there_is_t_any_letter_double_that": [],
+            "re2_test_441_if_there_is_any_letter_consonant_add_w_before_that": [],
+            "re2_test_442_if_the_word_starts_with_any_letter_vowel_replace_that_with_m": [],
+            "re2_test_443_if_the_word_ends_with_vowel_any_letter_add_p_before_that": [],
+            "re2_test_444_if_there_is_consonant_replace_that_with_y_f": [],
+            "re2_test_445_if_the_word_starts_with_any_letter_vowel_replace_that_with_b_u": [],
+            "re2_test_446_if_the_word_starts_with_consonant_consonant_replace_that_with_o_x": [],
+            "re2_test_447_if_there_is_vowel_replace_that_with_r_d": [],
+            "re2_test_448_if_there_is_vowel_replace_that_with_b_x": [],
+            "re2_test_449_if_the_word_ends_with_any_letter_replace_that_with_n_l": [
+                4,
+                5,
+                5,
+                6,
+                6
+            ],
+            "re2_test_450_if_there_is_vowel_add_o_after_that": [],
+            "re2_test_451_if_the_word_starts_with_any_letter_consonant_replace_that_with_k_r": [],
+            "re2_test_452_if_the_word_ends_with_consonant_any_letter_add_d_before_that": [],
+            "re2_test_453_if_the_word_starts_with_any_letter_consonant_add_v_before_that": [],
+            "re2_test_454_if_there_is_vowel_add_a_after_that": [],
+            "re2_test_455_if_there_is_s_replace_that_with_i_y": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_456_if_there_is_a_any_letter_replace_that_with_c": [],
+            "re2_test_457_if_the_word_starts_with_consonant_any_letter_replace_that_with_b_e": [
+                4,
+                6,
+                6,
+                7,
+                7
+            ],
+            "re2_test_458_if_there_is_c_any_letter_replace_that_with_g_w": [],
+            "re2_test_459_if_the_word_ends_with_any_letter_replace_that_with_o_o": [
+                4,
+                5,
+                7,
+                6,
+                6
+            ],
+            "re2_test_460_if_the_word_starts_with_any_letter_any_letter_replace_that_with_g": [
+                4,
+                4,
+                6,
+                6,
+                6
+            ],
+            "re2_test_461_if_the_word_ends_with_any_letter_s_replace_that_with_p_u": [],
+            "re2_test_462_if_there_is_vowel_replace_that_with_i": [],
+            "re2_test_463_if_the_word_starts_with_consonant_replace_that_with_m": [
+                4,
+                4,
+                6,
+                6,
+                6
+            ],
+            "re2_test_464_if_the_word_starts_with_vowel_replace_that_with_u_l": [],
+            "re2_test_465_if_there_is_t_any_letter_replace_that_with_f": [],
+            "re2_test_466_if_there_is_consonant_any_letter_replace_that_with_n_u": [],
+            "re2_test_467_if_the_word_starts_with_consonant_replace_that_with_s_a": [],
+            "re2_test_468_if_the_word_starts_with_consonant_any_letter_replace_that_with_o": [
+                4,
+                4,
+                6,
+                8,
+                6
+            ],
+            "re2_test_469_if_the_word_starts_with_any_letter_consonant_add_f_before_that": [],
+            "re2_test_470_if_the_word_ends_with_vowel_consonant_add_s_before_that": [],
+            "re2_test_471_if_the_word_starts_with_consonant_replace_that_with_s_s": [
+                4,
+                6,
+                6,
+                6,
+                7
+            ],
+            "re2_test_472_if_the_word_starts_with_vowel_replace_that_with_y_k": [],
+            "re2_test_473_if_the_word_starts_with_any_letter_replace_that_with_n_i": [
+                4,
+                6,
+                6,
+                6,
+                7
+            ],
+            "re2_test_474_if_the_word_ends_with_any_letter_replace_that_with_y_r": [
+                4,
+                5,
+                6,
+                6,
+                7
+            ],
+            "re2_test_475_if_there_is_n_any_letter_replace_that_with_s": [],
+            "re2_test_476_if_there_is_p_vowel_replace_that_with_m_e": [],
+            "re2_test_477_if_there_is_vowel_replace_that_with_v_r": [],
+            "re2_test_478_if_there_is_t_replace_that_with_g_j": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_479_if_the_word_starts_with_consonant_any_letter_replace_that_with_x": [
+                4,
+                4,
+                6,
+                6,
+                6
+            ],
+            "re2_test_480_if_there_is_consonant_any_letter_replace_that_with_w_q": [],
+            "re2_test_481_if_there_is_vowel_add_j_after_that": [],
+            "re2_test_482_if_the_word_starts_with_consonant_vowel_replace_that_with_w": [],
+            "re2_test_483_if_the_word_ends_with_vowel_any_letter_replace_that_with_i_s": [],
+            "re2_test_484_if_the_word_starts_with_c_replace_that_with_b": [
+                10,
+                10,
+                10,
+                12,
+                12
+            ],
+            "re2_test_485_if_there_is_s_replace_that_with_v_p": [
+                6,
+                8,
+                8,
+                8,
+                8
+            ],
+            "re2_test_486_if_there_is_vowel_consonant_replace_that_with_y": [],
+            "re2_test_487_if_there_is_t_consonant_replace_that_with_h": [],
+            "re2_test_488_if_the_word_ends_with_consonant_replace_that_with_l": [],
+            "re2_test_489_if_there_is_consonant_any_letter_add_l_after_that": [],
+            "re2_test_490_if_the_word_starts_with_consonant_e_replace_that_with_j": [],
+            "re2_test_491_if_the_word_starts_with_any_letter_vowel_replace_that_with_c_m": [],
+            "re2_test_492_if_there_is_consonant_replace_that_with_r_o": [],
+            "re2_test_493_if_the_word_ends_with_any_letter_add_n_before_that": [
+                7,
+                8,
+                8,
+                9,
+                8
+            ],
+            "re2_test_494_if_the_word_starts_with_vowel_replace_that_with_c_u": [],
+            "re2_test_495_if_there_is_vowel_n_replace_that_with_q": [],
+            "re2_test_496_if_the_word_ends_with_any_letter_consonant_add_h_after_that": [
+                3,
+                5,
+                5,
+                5,
+                5
+            ],
+            "re2_test_497_if_the_word_starts_with_any_letter_replace_that_with_l_g": [
+                4,
+                6,
+                6,
+                6,
+                6
+            ],
+            "re2_test_498_if_there_is_vowel_r_add_u_before_that": [],
+            "re2_test_499_if_there_is_consonant_replace_that_with_q_f": []
+        }
+    }
+}
