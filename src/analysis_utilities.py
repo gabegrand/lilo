@@ -74,6 +74,7 @@ class IterativeExperimentAnalyzer:
         self,
         experiment_name,
         experiment_dir: str = DEFAULT_EXPERIMENT_DIR,
+        domains: List[str] = None,
         experiment_types: List = None,
         batch_size="all",
         seeds: List[str] = None,
@@ -89,6 +90,11 @@ class IterativeExperimentAnalyzer:
             os.path.split(path)[-1]
             for path in glob.glob(os.path.join(self.dir_domains, "*"))
         ]
+
+        # Optionally restrict set of domains for analysis
+        if domains is not None:
+            self.domains = [d for d in self.domains if d in domains]
+
         # Reorder the domains by DOMAIN_NAMES_CAMERA
         self.domains = [d for d in self.DOMAIN_NAMES_CAMERA.keys() if d in self.domains]
         print(f"Available domains: {self.domains}")
