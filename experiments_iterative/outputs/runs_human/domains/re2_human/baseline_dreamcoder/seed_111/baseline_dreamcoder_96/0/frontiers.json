@@ -2,7 +2,7 @@
     "_summary": {
         "n_tasks_solved": {
             "train": 16,
-            "test": 62
+            "test": 101
         }
     },
     "train": {
@@ -403,12 +403,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _n (cdr (_rsplit _rdot (_rflatten (cons _a (cons _a (cdr (_rsplit _rdot $0))))))))))",
+                    "program": "(lambda (_rflatten (cons _n (cons _rempty (cons _a (cdr (_rsplit _rdot $0)))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 1.3203136920928955
+            "best_search_time": 1.470357894897461
         },
         "re2_train_22_if_the_word_ends_with_consonant_any_letter_replace_that_with_j_g": {
             "request": {
@@ -663,12 +663,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _d (_rsplit _k $0))))",
+                    "program": "(lambda (_rflatten (_rappend _d (_rsplit _i $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 0.0006580352783203125
+            "best_search_time": 0.0006647109985351562
         },
         "re2_train_35_if_there_is_any_letter_replace_that_with_q_j": {
             "request": {
@@ -805,22 +805,22 @@
                     "origin": null
                 },
                 {
+                    "program": "(lambda (_rflatten (_rappend _rempty (map (lambda (_rconcat $0 _v)) (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (car (map (lambda (_rflatten (map (lambda (_rconcat $0 _v)) (_rsplit _rdot $1)))) (_rsplit _rdot $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda (_rtail (map (lambda (_rconcat $1 _v)) (_rsplit _rdot $1)))) (_rsplit _rdot $0))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (car (cdr (map (lambda (_rflatten (map (lambda (_rconcat $0 _v)) (_rsplit _rdot $1)))) (_rsplit _rdot $0)))))",
+                    "program": "(lambda (_rflatten (map (lambda (car (map (lambda (_rconcat $1 _v)) (_rsplit _rdot $1)))) (_rsplit _rdot $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 0.0007007122039794922
+            "best_search_time": 0.0007109642028808594
         },
         "re2_train_42_if_the_word_starts_with_consonant_vowel_add_g_before_that": {
             "request": {
@@ -983,32 +983,12 @@
             "task": "re2_train_50_if_the_word_ends_with_consonant_add_o_after_that ((lambda (_rflatten (_rappend (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0)) _o) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rrevcdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
             "programs": [
                 {
-                    "program": "(lambda (if (_rmatch _e (_rtail (_rsplit _rdot $0))) $0 (_rflatten (_rappend _o (_rsplit _f $0)))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (if (_rmatch _e (_rtail (_rsplit _rdot $0))) $0 (_rflatten (_rappend _o (_rsplit _k $0)))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (if (_rmatch _e (_rtail (_rsplit _rdot $0))) $0 (_rflatten (_rappend _o (_rsplit _o $0)))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
                     "program": "(lambda (if (_rmatch _e (_rtail (_rsplit _rdot $0))) $0 (_rflatten (_rappend _o (_rsplit _rdot $0)))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (if (_rmatch _e (_rtail (_rsplit _rdot $0))) $0 (_rflatten (_rappend _o (_rsplit _s $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 900.904515504837
+            "best_search_time": 624.8895106315613
         },
         "re2_train_51_if_the_word_ends_with_vowel_any_letter_replace_that_with_w": {
             "request": {
@@ -1070,7 +1050,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 0.0006971359252929688
+            "best_search_time": 0.0006835460662841797
         },
         "re2_train_53_if_the_word_ends_with_any_letter_replace_that_with_t_m": {
             "request": {
@@ -1415,12 +1395,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons (_rconcat _w _i) (cdr (_rsplit (_rnot _r) $0)))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _w _i) (cdr (_rsplit (_rnot _p) $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 0.0007450580596923828
+            "best_search_time": 0.0006735324859619141
         },
         "re2_train_72_if_the_word_ends_with_d_replace_that_with_i_u": {
             "request": {
@@ -2017,12 +1997,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _q (cdr (_rsplit _rdot (_rflatten (cons _a (cons _a (cdr (_rsplit _rdot $0))))))))))",
+                    "program": "(lambda (_rflatten (cons _q (cons _a (cons _rempty (cdr (_rsplit _rdot $0)))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 1.4023182392120361
+            "best_search_time": 1.5888259410858154
         },
         "re2_train_104_if_there_is_vowel_any_letter_replace_that_with_x_v": {
             "request": {
@@ -2501,7 +2481,7 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _r _v)) (cons _b (cdr (_rsplit _rdot $0))))))",
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _r _v)) (_rappend _j (_rrevcdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -2516,7 +2496,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 0.0007033348083496094
+            "best_search_time": 0.0007050037384033203
         },
         "re2_train_130_if_there_is_e_any_letter_replace_that_with_c_t": {
             "request": {
@@ -3262,7 +3242,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 0.000762939453125
+            "best_search_time": 0.0006711483001708984
         },
         "re2_train_170_if_there_is_consonant_replace_that_with_b_q": {
             "request": {
@@ -3571,12 +3551,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _o (_rappend _a (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _o (_rrevcdr (_rsplit _rdot $0))))))))))",
+                    "program": "(lambda (_rflatten (_rappend _o (_rappend _a (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _a (_rrevcdr (_rsplit _rdot $0))))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 1.4669487476348877
+            "best_search_time": 1.6340749263763428
         },
         "re2_train_187_if_there_is_consonant_replace_that_with_m_b": {
             "request": {
@@ -4325,12 +4305,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w _t)) (_rappend _d (_rrevcdr (_rsplit _rdot $0))))))",
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w _t)) (_rappend _a (_rrevcdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w _t)) (_rappend _f (_rrevcdr (_rsplit _rdot $0))))))",
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w _t)) (_rappend _o (_rrevcdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -4340,7 +4320,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 0.0007293224334716797
+            "best_search_time": 0.0007071495056152344
         },
         "re2_train_230_if_there_is_m_replace_that_with_l": {
             "request": {
@@ -6336,17 +6316,17 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _rempty (cons _e (cons _a (cdr (cdr (_rsplit _rdot $0))))))))",
+                    "program": "(lambda (_rflatten (cons _e (cons _rempty (cons _a (cdr (cdr (_rsplit _rdot $0))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _e (cons _a (cdr (cdr (map (lambda $0) (_rsplit _rdot $0))))))))",
+                    "program": "(lambda (_rflatten (cons _rempty (cons _e (cons _a (cdr (cdr (_rsplit _rdot $0))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 3.1350979804992676
+            "best_search_time": 3.447988748550415
         },
         "re2_train_342_if_there_is_consonant_replace_that_with_y_y": {
             "request": {
@@ -7290,7 +7270,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 0.0006792545318603516
+            "best_search_time": 0.0006778240203857422
         },
         "re2_train_394_if_there_is_t_replace_that_with_k": {
             "request": {
@@ -7347,12 +7327,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _e (cdr (_rsplit _rdot (_rflatten (cons _e (cons _s (cdr (_rsplit _rdot $0))))))))))",
+                    "program": "(lambda (_rflatten (cons _e (cons _rempty (cons _s (cdr (_rsplit _rdot $0)))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 1.5630595684051514
+            "best_search_time": 1.696805715560913
         },
         "re2_train_396_if_the_word_starts_with_vowel_add_g_before_that": {
             "request": {
@@ -8047,22 +8027,22 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _j (_rappend _b (_rrevcdr (_rappend _b (_rrevcdr (_rrevcdr (_rsplit _rdot $0)))))))))",
+                    "program": "(lambda (_rflatten (_rappend _j (_rappend _b (_rrevcdr (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _j (_rrevcdr (_rsplit _rdot $0)))))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _j (_rappend _b (_rrevcdr (_rrevcdr (_rappend _b (_rrevcdr (_rsplit _rdot $0)))))))))",
+                    "program": "(lambda (_rflatten (_rappend _j (_rappend _b (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _j (_rrevcdr (_rrevcdr (_rsplit _rdot $0)))))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _j (_rappend _b (_rrevcdr (_rrevcdr (_rappend _j (_rrevcdr (_rsplit _rdot $0)))))))))",
+                    "program": "(lambda (_rflatten (_rappend _j (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _j (_rappend _b (_rrevcdr (_rrevcdr (_rsplit _rdot $0)))))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 3.218658924102783
+            "best_search_time": 3.4846487045288086
         },
         "re2_train_435_if_there_is_vowel_add_d_before_that": {
             "request": {
@@ -8767,12 +8747,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _v (_rsplit _f $0))))",
+                    "program": "(lambda (_rflatten (cons _v (_rsplit _g $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 0.0006613731384277344
+            "best_search_time": 0.000701904296875
         },
         "re2_train_473_if_there_is_o_replace_that_with_l": {
             "request": {
@@ -9279,7 +9259,17 @@
             "task": "re2_test_0_if_the_word_ends_with_s_replace_that_with_m ((lambda (_rflatten (_rappend (if (_rmatch _s (_rtail (_rsplit _s $0))) _m (_rtail (_rsplit _s $0))) (_rrevcdr (_rsplit _s $0))))))",
             "programs": [
                 {
+                    "program": "(lambda (_rflatten (_rappend _m (_rrevcdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (_rappend _m (_rrevcdr (_rsplit _s $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _m (cons _rempty (_rrevcdr (_rsplit _s $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -9287,9 +9277,14 @@
                     "program": "(lambda (_rflatten (_rappend _m (map (lambda $0) (_rrevcdr (_rsplit _s $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cdr (_rappend _m (cons _t (_rrevcdr (_rsplit _s $0)))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
                 }
             ],
-            "best_search_time": 186.94628810882568
+            "best_search_time": 45.557350397109985
         },
         "re2_test_1_if_there_is_any_letter_t_double_that": {
             "request": {
@@ -9360,8 +9355,34 @@
                 ]
             },
             "task": "re2_test_4_if_the_word_starts_with_any_letter_replace_that_with_k_a ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _k _a) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _k (cons _a (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _k (cons _a (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _k _a) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (car (map (lambda _k) (_rsplit _rdot $0))) (cons _a (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _k (_rtail (_rappend _a (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 39.86105751991272
         },
         "re2_test_5_if_there_is_any_letter_add_u_after_that": {
             "request": {
@@ -9480,22 +9501,22 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons (_rconcat _w _t) (cdr (_rsplit (_rnot _g) $0)))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (cons (_rconcat _w _t) (cdr (_rsplit (_rnot _p) $0)))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
                     "program": "(lambda (_rflatten (cons (_rconcat _w _t) (cdr (map (lambda $0) (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (_rtail (map (lambda _t) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (car (map (lambda _t) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 22.90142583847046
+            "best_search_time": 11.650078773498535
         },
         "re2_test_11_if_there_is_c_any_letter_replace_that_with_m": {
             "request": {
@@ -9550,12 +9571,32 @@
             "task": "re2_test_13_if_the_word_ends_with_any_letter_replace_that_with_a ((lambda (_rflatten (_rappend (if (_rmatch _rdot (_rtail (_rsplit _rdot $0))) _a (_rtail (_rsplit _rdot $0))) (_rrevcdr (_rsplit _rdot $0))))))",
             "programs": [
                 {
+                    "program": "(lambda (_rflatten (_rappend _a (_rrevcdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (_rappend _a (_rrevcdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _a (_rrevcdr (_rsplit (_rnot _g) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _a (_rrevcdr (_rsplit (_rnot _r) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _a (_rrevcdr (_rsplit (_rtail (_rsplit _rdot $0)) $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 528.8566520214081
+            "best_search_time": 11.677636861801147
         },
         "re2_test_14_if_the_word_ends_with_any_letter_replace_that_with_l_k": {
             "request": {
@@ -9572,8 +9613,29 @@
                 ]
             },
             "task": "re2_test_14_if_the_word_ends_with_any_letter_replace_that_with_l_k ((lambda (_rflatten (_rappend (if (_rmatch _rdot (_rtail (_rsplit _rdot $0))) (_rconcat _l _k) (_rtail (_rsplit _rdot $0))) (_rrevcdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _k (_rappend _l (_rrevcdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _k (_rappend _l (_rrevcdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _l _k) (_rrevcdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _l _k) (_rrevcdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 164.7662808895111
         },
         "re2_test_15_if_there_is_consonant_add_h_after_that": {
             "request": {
@@ -9615,12 +9677,27 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _rempty (map (lambda (_rconcat $0 _j)) (_rsplit _rdot $0)))))",
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat $0 (_rtail (_rappend _j (_rrevcdr (_rsplit _rdot $1)))))) (_rsplit _rdot $0))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat $0 (_rtail (_rappend _j (_rrevcdr (_rrevcdr (_rsplit _rdot $1))))))) (_rsplit _rdot $0))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat $0 (_rtail (_rappend _j (_rappend _b (_rrevcdr (_rsplit _rdot $1))))))) (_rsplit _rdot $0))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat $0 (_rtail (_rappend _j (_rappend _j (_rrevcdr (_rsplit _rdot $1))))))) (_rsplit _rdot $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 78.28670525550842
+            "best_search_time": 32.34499001502991
         },
         "re2_test_17_if_there_is_vowel_t_replace_that_with_t_n": {
             "request": {
@@ -9734,27 +9811,27 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w $0)) (_rsplit _rempty $0))))",
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w (car (map (lambda $1) (_rsplit _rdot $1))))) (_rsplit _rdot $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w (_rtail (_rappend $0 (_rsplit _rdot $1))))) (_rsplit _rdot $0))))",
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w (if (_rmatch $0 _l) $0 $0))) (_rsplit _rdot $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w (_rtail (map (lambda $1) (_rsplit _rdot $1))))) (_rsplit _rdot $0))))",
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w (if (_rmatch $0 _v) $0 $0))) (_rsplit _rdot $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w (_rtail (_rappend $0 (_rrevcdr (_rsplit _rdot $1)))))) (_rsplit _rdot $0))))",
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w (if (_rmatch _p _v) $0 $0))) (_rsplit _rdot $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 22.964484930038452
+            "best_search_time": 36.30593252182007
         },
         "re2_test_23_if_there_is_h_any_letter_add_k_after_that": {
             "request": {
@@ -9879,8 +9956,19 @@
                 ]
             },
             "task": "re2_test_29_if_the_word_starts_with_consonant_replace_that_with_m_x ((lambda (_rflatten (cons (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _m _x) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (cdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _m _x) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _m _x) (cdr (_rsplit (_rnot _g) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 731.7191672325134
         },
         "re2_test_30_if_the_word_ends_with_any_letter_replace_that_with_v_n": {
             "request": {
@@ -9897,8 +9985,24 @@
                 ]
             },
             "task": "re2_test_30_if_the_word_ends_with_any_letter_replace_that_with_v_n ((lambda (_rflatten (_rappend (if (_rmatch _rdot (_rtail (_rsplit _rdot $0))) (_rconcat _v _n) (_rtail (_rsplit _rdot $0))) (_rrevcdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _n (_rappend _v (_rrevcdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _n (_rappend _v (_rrevcdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _v _n) (_rrevcdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 120.92255663871765
         },
         "re2_test_31_if_there_is_vowel_consonant_replace_that_with_g_u": {
             "request": {
@@ -9951,8 +10055,34 @@
                 ]
             },
             "task": "re2_test_33_if_the_word_starts_with_consonant_replace_that_with_a_h ((lambda (_rflatten (cons (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _a _h) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (cdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _a _h) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _a _h) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _a _h) (cdr (_rsplit (_rnot _d) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _a _h) (cdr (_rsplit (_rnot _g) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _a _h) (cdr (_rsplit (_rnot _x) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 261.1520001888275
         },
         "re2_test_34_if_there_is_consonant_s_replace_that_with_y_v": {
             "request": {
@@ -10005,8 +10135,34 @@
                 ]
             },
             "task": "re2_test_36_if_the_word_starts_with_consonant_replace_that_with_l_r ((lambda (_rflatten (cons (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _l _r) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (cdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _l _r) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _l _r) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _l _r) (cdr (_rsplit (_rnot _d) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _l _r) (cdr (_rsplit (_rnot _g) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _l _r) (cdr (_rsplit (_rnot _x) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 49.702232360839844
         },
         "re2_test_37_if_there_is_u_replace_that_with_w": {
             "request": {
@@ -10131,8 +10287,34 @@
                 ]
             },
             "task": "re2_test_43_if_the_word_starts_with_any_letter_replace_that_with_p_x ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _p _x) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _p (cons _x (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _p (cons _x (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _p (cons _x (cdr (_rsplit (_rnot _d) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _p (cons _x (cdr (_rsplit (_rnot _g) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _p (cons _x (cdr (_rsplit (_rnot _x) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 277.8316059112549
         },
         "re2_test_44_if_the_word_starts_with_consonant_vowel_replace_that_with_r_u": {
             "request": {
@@ -10230,7 +10412,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 15.265647172927856
+            "best_search_time": 20.0856294631958
         },
         "re2_test_48_if_the_word_starts_with_any_letter_replace_that_with_t_n": {
             "request": {
@@ -10259,12 +10441,22 @@
                     "origin": null
                 },
                 {
+                    "program": "(lambda (_rflatten (cons (_rconcat _t _n) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (cons _t (cons _n (cdr (_rsplit (_rnot _g) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _rempty _t) (cons _n (cdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 140.50623536109924
+            "best_search_time": 24.22118616104126
         },
         "re2_test_49_if_the_word_ends_with_consonant_consonant_replace_that_with_l": {
             "request": {
@@ -10347,7 +10539,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 523.831125497818
+            "best_search_time": 49.39155888557434
         },
         "re2_test_53_if_the_word_starts_with_consonant_replace_that_with_l_v": {
             "request": {
@@ -10436,8 +10628,34 @@
                 ]
             },
             "task": "re2_test_57_if_the_word_starts_with_any_letter_replace_that_with_r_w ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _r _w) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _r (cons _w (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _r _w) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _r (_rtail (_rappend _w (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _r (_rtail (map (lambda _w) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _r (car (map (lambda _w) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 43.687952518463135
         },
         "re2_test_58_if_the_word_starts_with_any_letter_replace_that_with_f_a": {
             "request": {
@@ -10456,12 +10674,32 @@
             "task": "re2_test_58_if_the_word_starts_with_any_letter_replace_that_with_f_a ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _f _a) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
             "programs": [
                 {
+                    "program": "(lambda (_rflatten (cons _f (cons _a (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (cons _f (cons _a (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _f _a) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _f _a) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _f (_rtail (_rappend _a (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 518.8146493434906
+            "best_search_time": 36.65303134918213
         },
         "re2_test_59_if_there_is_any_letter_add_g_after_that": {
             "request": {
@@ -10568,8 +10806,34 @@
                 ]
             },
             "task": "re2_test_64_if_the_word_starts_with_any_letter_replace_that_with_y_j ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _y _j) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _y (cons _j (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _y (cons _j (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _y _j) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _y _j) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _y (cons _j (cdr (_rsplit (_rnot _d) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 58.94683027267456
         },
         "re2_test_65_if_there_is_vowel_add_n_before_that": {
             "request": {
@@ -10694,8 +10958,14 @@
                 ]
             },
             "task": "re2_test_71_if_the_word_starts_with_consonant_replace_that_with_c_m ((lambda (_rflatten (cons (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _c _m) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (cdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _c _m) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 402.5760669708252
         },
         "re2_test_72_if_the_word_starts_with_any_letter_replace_that_with_i_a": {
             "request": {
@@ -10712,8 +10982,34 @@
                 ]
             },
             "task": "re2_test_72_if_the_word_starts_with_any_letter_replace_that_with_i_a ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _i _a) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _i (cons _a (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _i _a) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _rempty _i) (cons _a (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _i (_rtail (_rappend _a (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _i (_rtail (_rappend _a (_rrevcdr (_rsplit _rdot $0))))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 36.66786861419678
         },
         "re2_test_73_if_the_word_ends_with_any_letter_add_a_after_that": {
             "request": {
@@ -10732,12 +11028,12 @@
             "task": "re2_test_73_if_the_word_ends_with_any_letter_add_a_after_that ((lambda (_rflatten (_rappend (if (_rmatch _rdot (_rtail (_rsplit _rdot $0))) (_rconcat (_rtail (_rsplit _rdot $0)) _a) (_rtail (_rsplit _rdot $0))) (_rrevcdr (_rsplit _rdot $0))))))",
             "programs": [
                 {
-                    "program": "(lambda (_rflatten (_rappend _a (_rsplit _k $0))))",
+                    "program": "(lambda (_rflatten (_rappend _a (_rsplit _h $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _a (_rsplit _l $0))))",
+                    "program": "(lambda (_rflatten (_rappend _a (_rsplit _j $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -10747,7 +11043,7 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _a (_rsplit _r $0))))",
+                    "program": "(lambda (_rflatten (_rappend _a (_rsplit _rdot $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -10757,7 +11053,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 38.77264070510864
+            "best_search_time": 12.071714878082275
         },
         "re2_test_74_if_the_word_ends_with_consonant_replace_that_with_c_v": {
             "request": {
@@ -10786,22 +11082,22 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _v (_rappend _c (_rrevcdr (_rsplit (_rnot _g) $0))))))",
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _c _v) (_rrevcdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _v (_rappend _c (_rrevcdr (_rsplit (_rnot _x) $0))))))",
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _c _v) (_rrevcdr (_rsplit _rempty $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _v (_rappend _c (_rrevcdr (_rsplit (_rnot _z) $0))))))",
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _rempty _v) (_rappend _c (_rrevcdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 45.13574242591858
+            "best_search_time": 28.60856294631958
         },
         "re2_test_75_if_there_is_vowel_consonant_replace_that_with_c": {
             "request": {
@@ -10890,8 +11186,34 @@
                 ]
             },
             "task": "re2_test_79_if_the_word_starts_with_any_letter_replace_that_with_p_j ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _p _j) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _p (cons _j (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _p (cons _j (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _p _j) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _p (cons _j (cdr (_rsplit (_rnot _d) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _p (cons _j (cdr (_rsplit (_rnot _g) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 174.12722373008728
         },
         "re2_test_80_if_there_is_c_replace_that_with_q": {
             "request": {
@@ -10998,8 +11320,34 @@
                 ]
             },
             "task": "re2_test_85_if_the_word_starts_with_any_letter_replace_that_with_c_y ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _c _y) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _c (cons _y (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _c (cons _y (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _c (cons _y (cdr (_rsplit (_rnot _d) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _c (cons _y (cdr (_rsplit (_rnot _g) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _c (cons _y (cdr (_rsplit (_rnot _x) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 187.0261812210083
         },
         "re2_test_86_if_there_is_d_add_b_after_that": {
             "request": {
@@ -11149,17 +11497,27 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _g (cons _w (cdr (_rsplit _rempty $0))))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _g _w) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _g (cons _w (cdr (_rsplit (_rnot _g) $0))))))",
+                    "program": "(lambda (_rflatten (cons _g (cons (_rconcat _w _rempty) (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _g (_rtail (map (lambda _w) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _g (car (map (lambda _w) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 481.11451268196106
+            "best_search_time": 54.63555145263672
         },
         "re2_test_94_if_the_word_ends_with_s_replace_that_with_t": {
             "request": {
@@ -11286,11 +11644,6 @@
             "task": "re2_test_100_if_the_word_ends_with_any_letter_add_m_after_that ((lambda (_rflatten (_rappend (if (_rmatch _rdot (_rtail (_rsplit _rdot $0))) (_rconcat (_rtail (_rsplit _rdot $0)) _m) (_rtail (_rsplit _rdot $0))) (_rrevcdr (_rsplit _rdot $0))))))",
             "programs": [
                 {
-                    "program": "(lambda (_rflatten (_rappend _m (_rsplit _h $0))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
                     "program": "(lambda (_rflatten (_rappend _m (_rsplit _k $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
@@ -11309,9 +11662,14 @@
                     "program": "(lambda (_rflatten (_rappend _m (_rsplit _s $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _m (_rsplit _z $0))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
                 }
             ],
-            "best_search_time": 38.844640254974365
+            "best_search_time": 28.634982585906982
         },
         "re2_test_101_if_the_word_ends_with_any_letter_any_letter_add_k_before_that": {
             "request": {
@@ -11482,9 +11840,24 @@
                     "program": "(lambda (_rflatten (_rappend _u (_rappend _i (_rrevcdr (_rsplit _rempty $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _rempty (_rappend _u (_rappend _i (_rrevcdr (_rsplit _rdot $0)))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _u (_rappend _i (_rappend _rempty (_rrevcdr (_rsplit _rdot $0)))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _u (_rappend _rempty (_rappend _i (_rrevcdr (_rsplit _rdot $0)))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
                 }
             ],
-            "best_search_time": 405.83475160598755
+            "best_search_time": 24.421563148498535
         },
         "re2_test_110_if_the_word_starts_with_consonant_any_letter_replace_that_with_a_t": {
             "request": {
@@ -11611,32 +11984,32 @@
             "task": "re2_test_116_if_the_word_starts_with_consonant_replace_that_with_w_o ((lambda (_rflatten (cons (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _w _o) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (cdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
             "programs": [
                 {
-                    "program": "(lambda (_rflatten (cons _w (cons _o (cdr (_rsplit _rdot $0))))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (cons _w (cons _o (cdr (_rsplit _rempty $0))))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
                     "program": "(lambda (_rflatten (cons (_rconcat _w _o) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons (_rconcat _w _o) (cdr (_rsplit _rempty $0)))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (_rtail (_rappend _o (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons (_rconcat _w _o) (cdr (_rsplit (_rnot _g) $0)))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (car (map (lambda _o) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (_rtail (_rappend _o (_rrevcdr (_rsplit _rdot $0))))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (_rtail (_rappend _o (_rappend _a (_rsplit _rdot $0))))) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 39.56749868392944
+            "best_search_time": 24.417684316635132
         },
         "re2_test_117_if_the_word_starts_with_vowel_any_letter_replace_that_with_u": {
             "request": {
@@ -11742,17 +12115,17 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons (_rconcat _w _rempty) (cons _n (cdr (_rsplit _rdot $0))))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (_rtail (map (lambda _n) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons (car (map (lambda (_rconcat _w _n)) (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0)))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (car (map (lambda _n) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 27.235161781311035
+            "best_search_time": 20.35320258140564
         },
         "re2_test_122_if_there_is_any_letter_replace_that_with_h_j": {
             "request": {
@@ -11781,12 +12154,22 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _rempty (map (lambda (_rconcat _h _j)) (_rsplit _rdot $0)))))",
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _h _j)) (_rsplit (_rnot _r) $0))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _h _j)) (_rsplit (_rnot _w) $0))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _h _j)) (_rsplit (_rnot _x) $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 52.49091100692749
+            "best_search_time": 33.55645680427551
         },
         "re2_test_123_if_the_word_ends_with_consonant_replace_that_with_g_x": {
             "request": {
@@ -11803,8 +12186,19 @@
                 ]
             },
             "task": "re2_test_123_if_the_word_ends_with_consonant_replace_that_with_g_x ((lambda (_rflatten (_rappend (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _g _x) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rrevcdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _x (_rappend _g (_rrevcdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _x (_rappend _g (_rrevcdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 598.7011377811432
         },
         "re2_test_124_if_the_word_ends_with_any_letter_replace_that_with_m": {
             "request": {
@@ -11823,12 +12217,32 @@
             "task": "re2_test_124_if_the_word_ends_with_any_letter_replace_that_with_m ((lambda (_rflatten (_rappend (if (_rmatch _rdot (_rtail (_rsplit _rdot $0))) _m (_rtail (_rsplit _rdot $0))) (_rrevcdr (_rsplit _rdot $0))))))",
             "programs": [
                 {
+                    "program": "(lambda (_rflatten (_rappend _m (_rrevcdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (_rappend _m (_rrevcdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _m (_rrevcdr (_rsplit (_rnot _d) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _m (_rrevcdr (_rsplit (_rnot _g) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _m (_rrevcdr (_rsplit (_rnot _x) $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 644.05251121521
+            "best_search_time": 40.85828757286072
         },
         "re2_test_125_if_there_is_n_consonant_add_y_after_that": {
             "request": {
@@ -11868,29 +12282,9 @@
                     "program": "(lambda (_rflatten (map (lambda (_rconcat $0 _w)) (_rsplit _rdot $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat $0 (_rconcat _w _rempty))) (_rsplit _rdot $0))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat $0 (_rtail (_rappend _w (_rsplit _rdot $1))))) (_rsplit _rdot $0))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat $0 (_rtail (map (lambda _w) (_rsplit _rdot $1))))) (_rsplit _rdot $0))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat $0 (_rtail (_rappend _w (_rrevcdr (_rsplit _rdot $1)))))) (_rsplit _rdot $0))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
                 }
             ],
-            "best_search_time": 31.180922508239746
+            "best_search_time": 51.33649945259094
         },
         "re2_test_127_if_the_word_starts_with_any_letter_replace_that_with_m_d": {
             "request": {
@@ -12009,22 +12403,22 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _b (_rsplit _rdot (_rflatten (cons _b (cdr (_rsplit _rdot $0))))))))",
+                    "program": "(lambda (_rflatten (cons _b (map (lambda $0) (cons _b (cdr (_rsplit _rdot $0)))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _b (cdr (_rsplit _rdot (_rflatten (cons _a (cons _b (cdr (_rsplit _rdot $0))))))))))",
+                    "program": "(lambda (_rflatten (cons _b (cdr (_rsplit _rdot (_rflatten (cons _b (cons _b (cdr (_rsplit _rdot $0))))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _b (cons _b (cdr (_rsplit _rdot (_rflatten (cons _a (cdr (_rsplit _rdot $0))))))))))",
+                    "program": "(lambda (_rflatten (cons _b (cons _b (cdr (_rsplit _rdot (_rflatten (cons _b (cdr (_rsplit _rdot $0))))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 19.503875970840454
+            "best_search_time": 8.123087167739868
         },
         "re2_test_133_if_there_is_u_replace_that_with_m_v": {
             "request": {
@@ -12151,7 +12545,7 @@
             "task": "re2_test_139_if_the_word_ends_with_consonant_add_l_after_that ((lambda (_rflatten (_rappend (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0)) _l) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rrevcdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
             "programs": [
                 {
-                    "program": "(lambda (_rflatten (_rappend _l (_rsplit _k $0))))",
+                    "program": "(lambda (_rflatten (_rappend _l (_rsplit _a $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -12161,12 +12555,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _l (_rsplit _m $0))))",
+                    "program": "(lambda (_rflatten (_rappend _l (_rsplit _o $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _l (_rsplit _o $0))))",
+                    "program": "(lambda (_rflatten (_rappend _l (_rsplit _rdot $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -12176,7 +12570,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 34.999027490615845
+            "best_search_time": 24.43211555480957
         },
         "re2_test_140_if_there_is_vowel_r_replace_that_with_s": {
             "request": {
@@ -12277,22 +12671,22 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _e (cons _p (cdr (_rsplit (_rnot _g) $0))))))",
+                    "program": "(lambda (_rflatten (cons _e (cons (_rtail (_rappend _p (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _e (cons _p (cdr (_rsplit (_rnot _u) $0))))))",
+                    "program": "(lambda (_rflatten (cons _e (cons (_rtail (map (lambda _p) (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _e (cons _p (cdr (_rsplit (_rnot _x) $0))))))",
+                    "program": "(lambda (_rflatten (cons _e (cons (car (map (lambda _p) (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 177.490131855011
+            "best_search_time": 28.541521787643433
         },
         "re2_test_145_if_there_is_m_add_r_before_that": {
             "request": {
@@ -12624,7 +13018,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 31.153862237930298
+            "best_search_time": 32.535236835479736
         },
         "re2_test_162_if_the_word_ends_with_consonant_replace_that_with_y_x": {
             "request": {
@@ -12659,8 +13053,34 @@
                 ]
             },
             "task": "re2_test_163_if_the_word_starts_with_consonant_replace_that_with_f_l ((lambda (_rflatten (cons (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _f _l) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (cdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _f (cons _l (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _f (cons _l (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _f _l) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _f _l) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _f _l) (cdr (_rsplit (_rnot _d) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 48.84358501434326
         },
         "re2_test_164_if_the_word_starts_with_any_letter_vowel_add_h_before_that": {
             "request": {
@@ -12751,12 +13171,7 @@
             "task": "re2_test_168_if_the_word_starts_with_consonant_any_letter_add_a_before_that ((lambda (_rflatten (cons (if (_rmatch (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) (car (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) $0))) (_rconcat _a (car (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) $0))) (car (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) $0))) (cdr (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) $0))))))",
             "programs": [
                 {
-                    "program": "(lambda (_rflatten (cons _a (_rsplit _h $0))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (cons _a (_rsplit _k $0))))",
+                    "program": "(lambda (_rflatten (cons _a (_rsplit _a $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -12771,12 +13186,17 @@
                     "origin": null
                 },
                 {
+                    "program": "(lambda (_rflatten (cons _a (_rsplit _rdot $0))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (cons _a (_rsplit _s $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 31.080177307128906
+            "best_search_time": 32.527883768081665
         },
         "re2_test_169_if_there_is_n_vowel_replace_that_with_m_s": {
             "request": {
@@ -12811,8 +13231,19 @@
                 ]
             },
             "task": "re2_test_170_if_the_word_starts_with_any_letter_replace_that_with_h_f ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _h _f) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _h (cons _f (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _h _f) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 334.38164472579956
         },
         "re2_test_171_if_the_word_starts_with_consonant_replace_that_with_e_j": {
             "request": {
@@ -12955,8 +13386,34 @@
                 ]
             },
             "task": "re2_test_178_if_the_word_ends_with_any_letter_replace_that_with_p_q ((lambda (_rflatten (_rappend (if (_rmatch _rdot (_rtail (_rsplit _rdot $0))) (_rconcat _p _q) (_rtail (_rsplit _rdot $0))) (_rrevcdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _q (_rappend _p (_rrevcdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _q (_rappend _p (_rrevcdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _p _q) (_rrevcdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _q (_rsplit _h (_rflatten (_rappend _p (_rrevcdr (_rsplit _rdot $0))))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _q (_rsplit _rdot (_rflatten (_rappend _p (_rrevcdr (_rsplit _rdot $0))))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 32.75477147102356
         },
         "re2_test_179_if_the_word_starts_with_vowel_replace_that_with_o_s": {
             "request": {
@@ -13353,32 +13810,32 @@
             "task": "re2_test_200_if_the_word_ends_with_consonant_add_w_after_that ((lambda (_rflatten (_rappend (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0)) _w) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rrevcdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
             "programs": [
                 {
+                    "program": "(lambda (_rflatten (_rappend _w (_rsplit _a $0))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (_rappend _w (_rsplit _h $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _w (_rsplit _k $0))))",
+                    "program": "(lambda (_rflatten (_rappend _w (_rsplit _o $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _w (_rsplit _l $0))))",
+                    "program": "(lambda (_rflatten (_rappend _w (_rsplit _rdot $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _w (_rsplit _u $0))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (_rappend _w (_rsplit _z $0))))",
+                    "program": "(lambda (_rflatten (_rappend _w (_rsplit _s $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 23.417224407196045
+            "best_search_time": 24.396320581436157
         },
         "re2_test_201_if_there_is_i_replace_that_with_s_p": {
             "request": {
@@ -13746,7 +14203,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 31.231035232543945
+            "best_search_time": 32.59760570526123
         },
         "re2_test_220_if_there_is_any_letter_vowel_add_x_after_that": {
             "request": {
@@ -13799,8 +14256,34 @@
                 ]
             },
             "task": "re2_test_222_if_the_word_starts_with_consonant_replace_that_with_w_y ((lambda (_rflatten (cons (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _w _y) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (cdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w _y) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w _y) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w _y) (cdr (_rsplit (_rnot _r) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (_rtail (map (lambda _y) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (car (map (lambda _y) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 16.2027747631073
         },
         "re2_test_223_if_the_word_starts_with_any_letter_add_w_after_that": {
             "request": {
@@ -13817,8 +14300,34 @@
                 ]
             },
             "task": "re2_test_223_if_the_word_starts_with_any_letter_add_w_after_that ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat (car (_rsplit _rdot $0)) _w) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons (car (_rsplit _rdot $0)) (cons _w (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat (car (_rsplit _rdot $0)) _w) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat (car (_rrevcdr (_rsplit _rdot $0))) _w) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (car (_rsplit _rdot $0)) (cons (_rconcat _w _rempty) (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat (car (map (lambda $0) (_rsplit _rdot $0))) _w) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 68.80755734443665
         },
         "re2_test_224_if_the_word_starts_with_consonant_consonant_replace_that_with_v": {
             "request": {
@@ -13973,12 +14482,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda _g) (_rsplit (_rnot _d) $0))))",
+                    "program": "(lambda (_rflatten (map (lambda _g) (_rsplit (_rnot _g) $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda _g) (_rsplit (_rnot _g) $0))))",
+                    "program": "(lambda (_rflatten (map (lambda _g) (_rsplit (_rnot _w) $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -13988,7 +14497,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 31.488454580307007
+            "best_search_time": 32.831159353256226
         },
         "re2_test_232_if_the_word_starts_with_any_letter_add_u_before_that": {
             "request": {
@@ -14032,7 +14541,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 35.09165906906128
+            "best_search_time": 32.46665072441101
         },
         "re2_test_233_if_there_is_vowel_any_letter_add_a_after_that": {
             "request": {
@@ -14283,8 +14792,14 @@
                 ]
             },
             "task": "re2_test_246_if_the_word_starts_with_any_letter_replace_that_with_x_h ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _x _h) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _x _h) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 308.54574275016785
         },
         "re2_test_247_if_the_word_starts_with_consonant_any_letter_add_j_after_that": {
             "request": {
@@ -14470,17 +14985,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons (_rconcat _v _y) (cdr (_rsplit _rdot $0)))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
                     "program": "(lambda (_rflatten (cons _v (_rsplit _rdot (_rflatten (cons _y (cdr (_rsplit _rdot $0))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 130.90051817893982
+            "best_search_time": 45.898515939712524
         },
         "re2_test_257_if_there_is_vowel_consonant_add_a_after_that": {
             "request": {
@@ -14666,12 +15176,7 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _e (cons _o (cdr (_rsplit _rempty $0))))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (cons (_rconcat _e _o) (cdr (_rsplit _rdot $0)))))",
+                    "program": "(lambda (_rflatten (cons _e (cons (_rtail (_rappend _o (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -14684,9 +15189,14 @@
                     "program": "(lambda (_rflatten (cons _e (cons (car (map (lambda _o) (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _e (cons (_rtail (_rappend _o (_rrevcdr (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
                 }
             ],
-            "best_search_time": 27.240559577941895
+            "best_search_time": 28.42897319793701
         },
         "re2_test_267_if_the_word_starts_with_any_letter_vowel_replace_that_with_l": {
             "request": {
@@ -14743,12 +15253,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _a (cdr (cdr (_rsplit (_rnot _x) $0))))))",
+                    "program": "(lambda (_rflatten (cons _a (cdr (_rsplit _rdot (_rflatten (cdr (_rsplit _rdot $0))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 43.247047424316406
+            "best_search_time": 32.541786432266235
         },
         "re2_test_269_if_there_is_any_letter_vowel_add_t_after_that": {
             "request": {
@@ -14785,12 +15295,32 @@
             "task": "re2_test_270_if_the_word_ends_with_any_letter_replace_that_with_e ((lambda (_rflatten (_rappend (if (_rmatch _rdot (_rtail (_rsplit _rdot $0))) _e (_rtail (_rsplit _rdot $0))) (_rrevcdr (_rsplit _rdot $0))))))",
             "programs": [
                 {
+                    "program": "(lambda (_rflatten (_rappend _e (_rrevcdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (_rappend _e (_rrevcdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _e (_rrevcdr (_rsplit (_rnot _d) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _e (_rrevcdr (_rsplit (_rnot _g) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _e (_rrevcdr (_rsplit (_rnot _x) $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 446.84214544296265
+            "best_search_time": 44.61962413787842
         },
         "re2_test_271_if_the_word_starts_with_consonant_vowel_replace_that_with_p": {
             "request": {
@@ -14825,8 +15355,34 @@
                 ]
             },
             "task": "re2_test_272_if_the_word_starts_with_consonant_replace_that_with_f_x ((lambda (_rflatten (cons (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _f _x) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (cdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _f (cons _x (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _f (cons _x (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _f _x) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _f _x) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _f _x) (cdr (_rsplit (_rnot _g) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 84.40533065795898
         },
         "re2_test_273_if_there_is_consonant_any_letter_add_x_after_that": {
             "request": {
@@ -14906,7 +15462,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 23.31811261177063
+            "best_search_time": 28.425174236297607
         },
         "re2_test_276_if_there_is_l_any_letter_add_q_before_that": {
             "request": {
@@ -15015,32 +15571,32 @@
             "task": "re2_test_281_if_the_word_starts_with_any_letter_replace_that_with_w_x ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _w _x) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
             "programs": [
                 {
-                    "program": "(lambda (_rflatten (cons _w (cons _x (cdr (_rsplit _rdot $0))))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _w _x) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _w (cons _x (cdr (_rsplit _rempty $0))))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _w _x) (cdr (_rsplit _rempty $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _w (cons _x (cdr (_rsplit (_rnot _g) $0))))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (_rtail (_rappend _x (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _w (cons _x (cdr (_rsplit (_rnot _r) $0))))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (_rtail (map (lambda _x) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _w (cons _x (cdr (_rsplit (_rnot _x) $0))))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (car (map (lambda _x) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 273.1722114086151
+            "best_search_time": 20.2468318939209
         },
         "re2_test_282_if_there_is_g_remove_that": {
             "request": {
@@ -15228,7 +15784,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 23.308773040771484
+            "best_search_time": 28.45041584968567
         },
         "re2_test_291_if_the_word_starts_with_consonant_vowel_replace_that_with_x": {
             "request": {
@@ -15491,22 +16047,22 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _j (_rrevcdr (_rsplit (_rnot _g) $0)))))",
+                    "program": "(lambda (_rflatten (_rappend _j (_rappend _rempty (_rrevcdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _j (_rrevcdr (_rsplit (_rnot _w) $0)))))",
+                    "program": "(lambda (_rflatten (_rappend _rempty (_rappend _j (_rrevcdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _j (_rrevcdr (_rsplit (_rnot _x) $0)))))",
+                    "program": "(lambda (_rflatten (_rappend _j (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _j (_rrevcdr (_rsplit _rdot $0)))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 11.63542103767395
+            "best_search_time": 3.9978044033050537
         },
         "re2_test_305_if_the_word_starts_with_any_letter_replace_that_with_w_e": {
             "request": {
@@ -15530,17 +16086,7 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _w (cons _e (cdr (_rsplit _rempty $0))))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
                     "program": "(lambda (_rflatten (cons (_rconcat _w _e) (cdr (_rsplit _rdot $0)))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (cons _w (cons _e (cdr (_rsplit (_rnot _r) $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -15548,9 +16094,19 @@
                     "program": "(lambda (_rflatten (cons (_rconcat _w _rempty) (cons _e (cdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (_rtail (_rappend _e (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (car (map (lambda _e) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
                 }
             ],
-            "best_search_time": 23.268194437026978
+            "best_search_time": 28.389348030090332
         },
         "re2_test_306_if_there_is_u_replace_that_with_f_n": {
             "request": {
@@ -15612,7 +16168,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 31.127132892608643
+            "best_search_time": 28.4700927734375
         },
         "re2_test_308_if_the_word_starts_with_consonant_any_letter_replace_that_with_n_d": {
             "request": {
@@ -15629,8 +16185,34 @@
                 ]
             },
             "task": "re2_test_308_if_the_word_starts_with_consonant_any_letter_replace_that_with_n_d ((lambda (_rflatten (cons (if (_rmatch (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) (car (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) $0))) (_rconcat _n _d) (car (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) $0))) (cdr (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _n (cons _d (cdr (cdr (_rsplit _rdot $0)))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _n (cons _d (cdr (cdr (_rsplit _rempty $0)))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _n (cons _d (cons _rempty (cdr (cdr (_rsplit _rdot $0))))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _n (cons _rempty (cons _d (cdr (cdr (_rsplit _rdot $0))))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _rempty (cons _n (cons _d (cdr (cdr (_rsplit _rdot $0))))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 33.033411264419556
         },
         "re2_test_309_if_the_word_starts_with_consonant_any_letter_replace_that_with_y_k": {
             "request": {
@@ -15695,7 +16277,7 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _t _v)) (cons _b (cdr (_rsplit _rdot $0))))))",
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _t _v)) (cons _v (cdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -15710,7 +16292,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 19.44156002998352
+            "best_search_time": 24.35554575920105
         },
         "re2_test_312_if_the_word_starts_with_any_letter_replace_that_with_x": {
             "request": {
@@ -15739,12 +16321,22 @@
                     "origin": null
                 },
                 {
+                    "program": "(lambda (_rflatten (cons _x (cdr (_rsplit (_rnot _d) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (cons _x (cdr (_rsplit (_rnot _g) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _x (cdr (_rsplit (_rnot _x) $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 408.24856209754944
+            "best_search_time": 40.51803255081177
         },
         "re2_test_313_if_the_word_ends_with_consonant_replace_that_with_a_x": {
             "request": {
@@ -15761,8 +16353,34 @@
                 ]
             },
             "task": "re2_test_313_if_the_word_ends_with_consonant_replace_that_with_a_x ((lambda (_rflatten (_rappend (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _a _x) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rrevcdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _x (_rappend _a (_rrevcdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _x (_rappend _a (_rrevcdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _x (_rappend _a (_rrevcdr (_rsplit (_rnot _d) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _x (_rappend _a (_rrevcdr (_rsplit (_rnot _g) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _x (_rappend _a (_rrevcdr (_rsplit (_rnot _x) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 76.30559086799622
         },
         "re2_test_314_if_there_is_r_any_letter_replace_that_with_l": {
             "request": {
@@ -15894,7 +16512,7 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda _b) (_rsplit _rempty $0))))",
+                    "program": "(lambda (_rflatten (_rappend _b (_rrevcdr (map (lambda _b) (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -15904,17 +16522,17 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda _b) (cons _q (cdr (_rsplit _rdot $0))))))",
+                    "program": "(lambda (_rflatten (map (lambda _b) (cons _b (cdr (_rsplit _rdot $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda _b) (cons (_rconcat _r _v) (cdr (_rsplit _rdot $0))))))",
+                    "program": "(lambda (_rflatten (car (map (lambda (map (lambda _b) (_rsplit _rdot $1))) (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 11.714489459991455
+            "best_search_time": 20.303332567214966
         },
         "re2_test_321_if_the_word_starts_with_consonant_vowel_replace_that_with_e_g": {
             "request": {
@@ -16129,8 +16747,34 @@
                 ]
             },
             "task": "re2_test_332_if_the_word_ends_with_consonant_replace_that_with_q_q ((lambda (_rflatten (_rappend (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _q _q) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rrevcdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _q (_rappend _q (_rrevcdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _q (_rappend _q (_rrevcdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _q _q) (_rrevcdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _q _q) (_rrevcdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _q (_rappend _q (_rrevcdr (cons _rempty (_rsplit _rdot $0)))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 38.31673789024353
         },
         "re2_test_333_if_the_word_ends_with_consonant_any_letter_replace_that_with_w_a": {
             "request": {
@@ -16208,12 +16852,27 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _rempty (map (lambda (_rconcat _p _f)) (_rsplit _rdot $0)))))",
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat $0 _f)) (map (lambda _p) (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _p _f)) (_rappend _f (_rrevcdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _p (_rtail (_rappend _f (_rrevcdr (_rsplit _rdot $1)))))) (_rsplit _rdot $0))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _p (_rtail (_rsplit _rdot $0)))) (map (lambda (_rflatten (_rappend _f (_rrevcdr (_rsplit _rdot $1))))) (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 72.30315589904785
+            "best_search_time": 47.87653160095215
         },
         "re2_test_337_if_there_is_any_letter_r_remove_that": {
             "request": {
@@ -16320,8 +16979,34 @@
                 ]
             },
             "task": "re2_test_342_if_the_word_starts_with_any_letter_replace_that_with_k_t ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _k _t) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _k (cons _t (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _k (cons _t (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _k (cons _t (cdr (_rsplit (_rnot _d) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _k (cons _t (cdr (_rsplit (_rnot _g) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _k (cons _t (cdr (_rsplit (_rnot _x) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 90.7927315235138
         },
         "re2_test_343_if_there_is_vowel_add_d_after_that": {
             "request": {
@@ -16374,8 +17059,34 @@
                 ]
             },
             "task": "re2_test_345_if_the_word_starts_with_consonant_replace_that_with_w_h ((lambda (_rflatten (cons (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _w _h) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (cdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w _h) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w _h) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (_rtail (_rappend _h (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (_rtail (map (lambda _h) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _w (car (map (lambda _h) (_rsplit _rdot $0)))) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 24.35255455970764
         },
         "re2_test_346_if_there_is_t_add_y_before_that": {
             "request": {
@@ -16428,8 +17139,24 @@
                 ]
             },
             "task": "re2_test_348_if_the_word_starts_with_consonant_vowel_replace_that_with_q_c ((lambda (_rflatten (cons (if (_rmatch (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (_ror (_ror (_ror (_ror _a _e) _i) _o) _u)) (car (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (_ror (_ror (_ror (_ror _a _e) _i) _o) _u)) $0))) (_rconcat _q _c) (car (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (_ror (_ror (_ror (_ror _a _e) _i) _o) _u)) $0))) (cdr (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (_ror (_ror (_ror (_ror _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _q (cons _c (cdr (cdr (_rsplit _rdot $0)))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _q _c) (cdr (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _q _c) (cdr (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 83.57070136070251
         },
         "re2_test_349_if_there_is_u_add_k_before_that": {
             "request": {
@@ -16548,12 +17275,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _t (_rrevcdr (_rrevcdr (_rsplit (_rnot _d) $0))))))",
+                    "program": "(lambda (_rflatten (_rappend _t (_rrevcdr (_rrevcdr (_rsplit (_rnot _g) $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _t (_rrevcdr (_rrevcdr (_rsplit (_rnot _g) $0))))))",
+                    "program": "(lambda (_rflatten (_rappend _t (_rrevcdr (_rrevcdr (_rsplit (_rnot _w) $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -16563,7 +17290,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 75.77832102775574
+            "best_search_time": 51.3955934047699
         },
         "re2_test_355_if_there_is_vowel_any_letter_replace_that_with_r_y": {
             "request": {
@@ -16670,8 +17397,34 @@
                 ]
             },
             "task": "re2_test_360_if_the_word_ends_with_consonant_replace_that_with_u_e ((lambda (_rflatten (_rappend (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _u _e) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rrevcdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _e (_rappend _u (_rrevcdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _e (_rappend _u (_rrevcdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _e (_rappend _u (_rrevcdr (_rsplit (_rnot _d) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _e (_rappend _u (_rrevcdr (_rsplit (_rnot _g) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _e (_rappend _u (_rrevcdr (_rsplit (_rtail (_rsplit _rdot $0)) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 36.87114858627319
         },
         "re2_test_361_if_the_word_ends_with_any_letter_replace_that_with_i_x": {
             "request": {
@@ -16700,22 +17453,22 @@
                     "origin": null
                 },
                 {
+                    "program": "(lambda (_rflatten (_rappend _x (_rappend _i (_rrevcdr (_rsplit (_rnot _d) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (_rappend _x (_rappend _i (_rrevcdr (_rsplit (_rnot _g) $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _x (_rappend _i (_rrevcdr (_rsplit (_rnot _w) $0))))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (_rappend _x (_rappend _i (_rrevcdr (_rsplit (_rnot _x) $0))))))",
+                    "program": "(lambda (_rflatten (_rappend _x (_rappend _i (_rrevcdr (_rsplit (_rnot _r) $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 74.38048028945923
+            "best_search_time": 37.02179789543152
         },
         "re2_test_362_if_there_is_g_replace_that_with_q": {
             "request": {
@@ -16793,6 +17546,11 @@
                     "origin": null
                 },
                 {
+                    "program": "(lambda (_rflatten (_rappend _h (_rsplit _k $0))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (_rappend _h (_rsplit _l $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
@@ -16803,17 +17561,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _h (_rsplit _r $0))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
                     "program": "(lambda (_rflatten (_rappend _h (_rsplit _s $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 27.363107919692993
+            "best_search_time": 28.545324087142944
         },
         "re2_test_366_if_the_word_ends_with_consonant_consonant_replace_that_with_p": {
             "request": {
@@ -16909,12 +17662,27 @@
                     "origin": null
                 },
                 {
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _t _d) (_rrevcdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (_rappend _d (_rsplit _rdot (_rflatten (_rappend _t (_rrevcdr (_rsplit _rdot $0))))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _d (_rappend _t (_rrevcdr (_rrevcdr (_rappend _d (_rsplit _rdot $0))))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _t (_rtail (_rappend _d (_rsplit _rdot $0)))) (_rrevcdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 49.41014122962952
+            "best_search_time": 47.5391731262207
         },
         "re2_test_371_if_the_word_ends_with_any_letter_replace_that_with_r_i": {
             "request": {
@@ -16938,27 +17706,27 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _i (_rappend _r (_rrevcdr (_rsplit _rempty $0))))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
                     "program": "(lambda (_rflatten (_rappend (_rconcat _r _i) (_rrevcdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _i (_rappend _r (_rrevcdr (_rsplit (_rnot _w) $0))))))",
+                    "program": "(lambda (_rflatten (_rappend (_rtail (map (lambda (_rconcat _r _i)) (_rsplit _rdot $0))) (_rrevcdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _i (_rappend _r (_rrevcdr (_rsplit (_rtail (_rsplit _rdot $0)) $0))))))",
+                    "program": "(lambda (_rflatten (_rappend (car (map (lambda (_rconcat _r _i)) (_rsplit _rdot $0))) (_rrevcdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _i (_rappend _r (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _i (_rrevcdr (_rsplit _rdot $0))))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 23.455493211746216
+            "best_search_time": 24.44754648208618
         },
         "re2_test_372_if_there_is_consonant_e_replace_that_with_d_l": {
             "request": {
@@ -17119,8 +17887,34 @@
                 ]
             },
             "task": "re2_test_380_if_the_word_starts_with_consonant_add_k_after_that ((lambda (_rflatten (cons (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0)) _k) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (cdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons (car (_rsplit _rdot $0)) (cons _k (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat (car (_rsplit _rdot $0)) _k) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat (car (_rsplit _rdot $0)) _k) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat (car (_rsplit _rempty $0)) _k) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat (car (_rrevcdr (_rsplit _rdot $0))) _k) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 41.764710664749146
         },
         "re2_test_381_if_there_is_any_letter_replace_that_with_i_d": {
             "request": {
@@ -17137,34 +17931,8 @@
                 ]
             },
             "task": "re2_test_381_if_there_is_any_letter_replace_that_with_i_d ((lambda (_rflatten (map (lambda (if (_rmatch _rdot $0) (_rconcat _i _d) $0)) (_rsplit _rdot $0)))))",
-            "programs": [
-                {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _i _d)) (_rsplit _rdot $0))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (_rrevcdr (map (lambda (_rconcat _i _d)) (_rappend _d (_rsplit _rdot $0))))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _i _d)) (_rrevcdr (_rappend _d (_rsplit _rdot $0))))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _i (_rtail (_rappend _d (_rsplit _rdot $1))))) (_rsplit _rdot $0))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _i (_rtail (_rappend _d (_rsplit _rdot $0))))) (map (lambda $1) (_rsplit _rdot $0)))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                }
-            ],
-            "best_search_time": 41.37008047103882
+            "programs": [],
+            "best_search_time": null
         },
         "re2_test_382_if_the_word_starts_with_consonant_replace_that_with_y_n": {
             "request": {
@@ -17193,22 +17961,22 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _y (cons _n (cdr (_rsplit (_rnot _g) $0))))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _y _n) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _y (cons _n (cdr (_rsplit (_rnot _r) $0))))))",
+                    "program": "(lambda (_rflatten (cons _y (cdr (_rsplit _rdot (_rflatten (cons _b (cons _n (cdr (_rsplit _rdot $0))))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _y (cons _n (cdr (_rsplit (_rnot _x) $0))))))",
+                    "program": "(lambda (_rflatten (cons _y (cons _n (cdr (_rsplit _rdot (_rflatten (cons _b (cdr (_rsplit _rdot $0))))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 39.088727951049805
+            "best_search_time": 32.67750382423401
         },
         "re2_test_383_if_there_is_any_letter_g_add_q_before_that": {
             "request": {
@@ -17261,8 +18029,34 @@
                 ]
             },
             "task": "re2_test_385_if_the_word_ends_with_consonant_replace_that_with_a_m ((lambda (_rflatten (_rappend (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _a _m) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rrevcdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _m (_rappend _a (_rrevcdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _m (_rappend _a (_rrevcdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _m (_rappend _a (_rappend _rempty (_rrevcdr (_rsplit _rdot $0)))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _m (_rappend _rempty (_rappend _a (_rrevcdr (_rsplit _rdot $0)))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _rempty (_rappend _m (_rappend _a (_rrevcdr (_rsplit _rdot $0)))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 32.661314249038696
         },
         "re2_test_386_if_there_is_d_replace_that_with_e_p": {
             "request": {
@@ -17333,8 +18127,34 @@
                 ]
             },
             "task": "re2_test_389_if_the_word_ends_with_any_letter_replace_that_with_d_m ((lambda (_rflatten (_rappend (if (_rmatch _rdot (_rtail (_rsplit _rdot $0))) (_rconcat _d _m) (_rtail (_rsplit _rdot $0))) (_rrevcdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _m (_rappend _d (_rrevcdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _m (_rappend _d (_rrevcdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _d _m) (_rrevcdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _m (_rappend _d (_rrevcdr (_rsplit (_rnot _g) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _m (_rappend _d (cons _rempty (_rrevcdr (_rsplit _rdot $0)))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 37.308879137039185
         },
         "re2_test_390_if_there_is_i_replace_that_with_j_j": {
             "request": {
@@ -17387,8 +18207,34 @@
                 ]
             },
             "task": "re2_test_392_if_the_word_starts_with_any_letter_replace_that_with_h_y ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _h _y) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _h (cons _y (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _h (cons _y (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _h _y) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _h _y) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _h _y) (cdr (_rsplit (_rnot _g) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 76.89939999580383
         },
         "re2_test_393_if_there_is_p_replace_that_with_j": {
             "request": {
@@ -17477,8 +18323,34 @@
                 ]
             },
             "task": "re2_test_397_if_the_word_starts_with_any_letter_replace_that_with_c_j ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _c _j) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _c (cons _j (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _c _j) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _c _j) (cdr (_rsplit (_rnot _d) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _c _j) (cdr (_rsplit (_rnot _g) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _c _j) (cdr (_rsplit (_rnot _x) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 287.0686283111572
         },
         "re2_test_398_if_there_is_consonant_e_replace_that_with_x": {
             "request": {
@@ -17669,12 +18541,12 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _w (_rrevcdr (_rsplit (_rnot _g) $0)))))",
+                    "program": "(lambda (_rflatten (_rappend _w (_rrevcdr (_rsplit (_rnot _d) $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _w (_rrevcdr (_rsplit (_rnot _r) $0)))))",
+                    "program": "(lambda (_rflatten (_rappend _w (_rrevcdr (_rsplit (_rnot _g) $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -17684,7 +18556,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 85.00594139099121
+            "best_search_time": 28.48263382911682
         },
         "re2_test_408_if_there_is_a_replace_that_with_i_e": {
             "request": {
@@ -17899,8 +18771,34 @@
                 ]
             },
             "task": "re2_test_419_if_the_word_starts_with_any_letter_replace_that_with_i_t ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _i _t) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _i (cons _t (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _i _t) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _i _t) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _i _t) (cdr (_rsplit (_rnot _g) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _rempty _i) (cons _t (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 28.469112634658813
         },
         "re2_test_420_if_the_word_starts_with_any_letter_any_letter_replace_that_with_p": {
             "request": {
@@ -17919,22 +18817,12 @@
             "task": "re2_test_420_if_the_word_starts_with_any_letter_any_letter_replace_that_with_p ((lambda (_rflatten (cons (if (_rmatch (_rconcat _rdot _rdot) (car (_rsplit (_rconcat _rdot _rdot) $0))) _p (car (_rsplit (_rconcat _rdot _rdot) $0))) (cdr (_rsplit (_rconcat _rdot _rdot) $0))))))",
             "programs": [
                 {
-                    "program": "(lambda (_rflatten (cons _p (cdr (cdr (_rsplit _rdot $0))))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
                     "program": "(lambda (_rflatten (cons _p (cdr (cdr (_rsplit _rempty $0))))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (cons _p (cdr (cdr (_rsplit (_rnot _g) $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 203.79248213768005
+            "best_search_time": 668.5702250003815
         },
         "re2_test_421_if_there_is_any_letter_t_replace_that_with_w": {
             "request": {
@@ -18005,8 +18893,34 @@
                 ]
             },
             "task": "re2_test_424_if_the_word_starts_with_consonant_add_s_after_that ((lambda (_rflatten (cons (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0)) _s) (car (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (cdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons (car (_rsplit _rdot $0)) (cons _s (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (car (_rsplit _rdot $0)) (cons _s (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (car (_rsplit _rempty $0)) (cons _s (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat (car (_rsplit _rdot $0)) _s) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat (car (_rsplit _rdot $0)) _s) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 109.03764700889587
         },
         "re2_test_425_if_the_word_starts_with_consonant_replace_that_with_l_n": {
             "request": {
@@ -18041,8 +18955,19 @@
                 ]
             },
             "task": "re2_test_426_if_the_word_ends_with_consonant_replace_that_with_g_e ((lambda (_rflatten (_rappend (if (_rmatch (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rconcat _g _e) (_rtail (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))) (_rrevcdr (_rsplit (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend _e (_rappend _g (_rrevcdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _e (_rappend _g (_rrevcdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 612.4026198387146
         },
         "re2_test_427_if_there_is_s_replace_that_with_t": {
             "request": {
@@ -18123,9 +19048,24 @@
                     "program": "(lambda (_rflatten (_rappend _w (_rrevcdr (_rrevcdr (_rsplit _rempty $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _rempty (_rappend _w (_rrevcdr (_rrevcdr (_rsplit _rdot $0)))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _w (_rappend _rempty (_rrevcdr (_rrevcdr (_rsplit _rdot $0)))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (_rappend _w (_rrevcdr (_rsplit _rdot (_rflatten (_rrevcdr (_rsplit _rdot $0))))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
                 }
             ],
-            "best_search_time": 322.26633071899414
+            "best_search_time": 32.79475235939026
         },
         "re2_test_431_if_the_word_starts_with_any_letter_consonant_replace_that_with_x_u": {
             "request": {
@@ -18206,9 +19146,24 @@
                     "program": "(lambda (_rflatten (cons _j (cons _s (cdr (_rsplit _rempty $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _j _s) (cdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _j _s) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _j (cons _s (cdr (_rsplit (_rnot _g) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
                 }
             ],
-            "best_search_time": 439.7447679042816
+            "best_search_time": 36.70835065841675
         },
         "re2_test_435_if_there_is_y_replace_that_with_c": {
             "request": {
@@ -18551,32 +19506,22 @@
             "task": "re2_test_453_if_the_word_starts_with_any_letter_consonant_add_v_before_that ((lambda (_rflatten (cons (if (_rmatch (_rconcat _rdot (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u))) (car (_rsplit (_rconcat _rdot (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u))) $0))) (_rconcat _v (car (_rsplit (_rconcat _rdot (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u))) $0))) (car (_rsplit (_rconcat _rdot (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u))) $0))) (cdr (_rsplit (_rconcat _rdot (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u))) $0))))))",
             "programs": [
                 {
+                    "program": "(lambda (if (_rmatch (_rtail (_rrevcdr (_rsplit _rdot $0))) _e) $0 (_rflatten (cons _v (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (if (_rmatch (car (cdr (_rsplit _rdot $0))) _e) $0 (_rflatten (cons _v (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (if (_rmatch (_rnot (car (_rsplit _k $0))) _a) $0 (_rflatten (cons _v (_rsplit _rdot $0)))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (if (_rmatch (_rnot (car (_rsplit _l $0))) _a) $0 (_rflatten (cons _v (_rsplit _rdot $0)))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (if (_rmatch (_rnot (car (_rsplit _o $0))) _a) $0 (_rflatten (cons _v (_rsplit _rdot $0)))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
-                    "program": "(lambda (if (_rmatch (_rnot (car (_rsplit _s $0))) _a) $0 (_rflatten (cons _v (_rsplit _rdot $0)))))",
+                    "program": "(lambda (if (_rmatch _e (_rtail (_rrevcdr (_rsplit _rdot $0)))) $0 (_rflatten (cons _v (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 137.49935865402222
+            "best_search_time": 285.51030564308167
         },
         "re2_test_454_if_there_is_vowel_add_a_after_that": {
             "request": {
@@ -18659,22 +19604,22 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _b (cdr (_rsplit _rdot (_rflatten (cons _e (cons _e (cdr (cdr (_rsplit _rdot $0)))))))))))",
+                    "program": "(lambda (_rflatten (cons _b (cons _e (cdr (car (map (lambda (cdr (_rsplit _rdot $1))) (_rsplit _rdot $0))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _b (cons _e (cdr (_rsplit _rdot (_rflatten (cons _e (cdr (cdr (_rsplit _rdot $0)))))))))))",
+                    "program": "(lambda (_rflatten (cons _b (cons _e (cdr (_rsplit _rdot (_rflatten (cons _rempty (cdr (_rsplit _rdot $0))))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _b (cons _e (cdr (cdr (_rsplit _rdot (_rflatten (cons _e (cdr (_rsplit _rdot $0)))))))))))",
+                    "program": "(lambda (_rflatten (cons _b (cons _e (cdr (car (map (lambda (cdr (_rsplit _rdot $1))) (_rrevcdr (_rsplit _rdot $0)))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 23.314297914505005
+            "best_search_time": 36.49431371688843
         },
         "re2_test_458_if_there_is_c_any_letter_replace_that_with_g_w": {
             "request": {
@@ -18721,22 +19666,22 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _o (_rappend _o (_rrevcdr (_rsplit (_rnot _d) $0))))))",
+                    "program": "(lambda (_rflatten (_rappend _o (_rappend _o (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _o (_rrevcdr (_rsplit _rdot $0))))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _o (_rappend _o (_rrevcdr (_rsplit (_rnot _w) $0))))))",
+                    "program": "(lambda (_rflatten (_rappend _o (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _a (_rappend _o (_rrevcdr (_rsplit _rdot $0))))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _o (_rappend _o (_rrevcdr (_rsplit (_rtail (_rsplit _rdot $0)) $0))))))",
+                    "program": "(lambda (_rflatten (_rappend _o (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _o (_rappend _o (_rrevcdr (_rsplit _rdot $0))))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 15.557197093963623
+            "best_search_time": 4.034040212631226
         },
         "re2_test_460_if_the_word_starts_with_any_letter_any_letter_replace_that_with_g": {
             "request": {
@@ -18755,12 +19700,32 @@
             "task": "re2_test_460_if_the_word_starts_with_any_letter_any_letter_replace_that_with_g ((lambda (_rflatten (cons (if (_rmatch (_rconcat _rdot _rdot) (car (_rsplit (_rconcat _rdot _rdot) $0))) _g (car (_rsplit (_rconcat _rdot _rdot) $0))) (cdr (_rsplit (_rconcat _rdot _rdot) $0))))))",
             "programs": [
                 {
+                    "program": "(lambda (_rflatten (cons _g (cdr (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (cons _g (cdr (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _g (cdr (cdr (_rsplit (_rnot _d) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _g (cdr (cdr (_rsplit (_rnot _g) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _g (cdr (cdr (_rsplit (_rnot _x) $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 501.4139759540558
+            "best_search_time": 40.42199373245239
         },
         "re2_test_461_if_the_word_ends_with_any_letter_s_replace_that_with_p_u": {
             "request": {
@@ -18830,17 +19795,17 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _m (cdr (_rsplit (_rnot _u) $0)))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _rempty _m) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _m (cdr (_rsplit (_rnot _x) $0)))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _rempty _m) (cdr (_rsplit _rempty $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 202.79863238334656
+            "best_search_time": 40.4657096862793
         },
         "re2_test_464_if_the_word_starts_with_vowel_replace_that_with_u_l": {
             "request": {
@@ -18929,8 +19894,29 @@
                 ]
             },
             "task": "re2_test_468_if_the_word_starts_with_consonant_any_letter_replace_that_with_o ((lambda (_rflatten (cons (if (_rmatch (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) (car (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) $0))) _o (car (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) $0))) (cdr (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _o (cdr (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _o (cdr (cdr (_rsplit (_rnot _d) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _o (cdr (cdr (_rsplit (_rnot _g) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _o (cdr (cdr (_rsplit (_rnot _x) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 215.1098256111145
         },
         "re2_test_469_if_the_word_starts_with_any_letter_consonant_add_f_before_that": {
             "request": {
@@ -18995,6 +19981,11 @@
                     "origin": null
                 },
                 {
+                    "program": "(lambda (_rflatten (cons _s (cons _s (cdr (_rsplit (_rnot _d) $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (cons _s (cons _s (cdr (_rsplit (_rnot _g) $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
@@ -19003,14 +19994,9 @@
                     "program": "(lambda (_rflatten (cons _s (cons _s (cdr (_rsplit (_rnot _r) $0))))))",
                     "logLikelihood": 0.0,
                     "origin": null
-                },
-                {
-                    "program": "(lambda (_rflatten (cons _s (cons _s (cdr (_rsplit (_rnot _x) $0))))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
                 }
             ],
-            "best_search_time": 38.997366189956665
+            "best_search_time": 20.343781232833862
         },
         "re2_test_472_if_the_word_starts_with_vowel_replace_that_with_y_k": {
             "request": {
@@ -19052,27 +20038,27 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _n (cons _i (cdr (_rsplit _rempty $0))))))",
-                    "logLikelihood": 0.0,
-                    "origin": null
-                },
-                {
                     "program": "(lambda (_rflatten (cons (_rconcat _n _i) (cdr (_rsplit _rdot $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _n (cons (_rconcat _rempty _i) (cdr (_rsplit _rdot $0))))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _n _i) (cdr (_rsplit _rempty $0)))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _n (cons (_rtail (_rappend _i (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
+                    "program": "(lambda (_rflatten (cons (_rconcat _n _i) (cdr (_rsplit (_rnot _g) $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _n (cdr (_rsplit _rdot (_rflatten (cons (_rconcat _w _i) (cdr (_rsplit _rdot $0)))))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 27.369436502456665
+            "best_search_time": 16.239842891693115
         },
         "re2_test_474_if_the_word_ends_with_any_letter_replace_that_with_y_r": {
             "request": {
@@ -19181,12 +20167,32 @@
             "task": "re2_test_479_if_the_word_starts_with_consonant_any_letter_replace_that_with_x ((lambda (_rflatten (cons (if (_rmatch (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) (car (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) $0))) _x (car (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) $0))) (cdr (_rsplit (_rconcat (_rnot (_rconcat (_rconcat (_rconcat (_rconcat _a _e) _i) _o) _u)) _rdot) $0))))))",
             "programs": [
                 {
+                    "program": "(lambda (_rflatten (cons _x (cdr (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
                     "program": "(lambda (_rflatten (cons _x (cdr (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _x (cdr (_rsplit _rdot (_rflatten (cdr (_rsplit _rdot $0))))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _rempty _x) (cdr (cdr (_rsplit _rdot $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons _x (cdr (car (map (lambda (cdr (_rsplit _rdot $1))) (_rsplit _rdot $0)))))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 }
             ],
-            "best_search_time": 567.7542405128479
+            "best_search_time": 32.56815552711487
         },
         "re2_test_480_if_there_is_consonant_any_letter_replace_that_with_w_q": {
             "request": {
@@ -19275,8 +20281,14 @@
                 ]
             },
             "task": "re2_test_484_if_the_word_starts_with_c_replace_that_with_b ((lambda (_rflatten (cons (if (_rmatch _c (car (_rsplit _c $0))) _b (car (_rsplit _c $0))) (cdr (_rsplit _c $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (if (_rmatch (car (_rsplit _rdot $0)) _c) (_rflatten (cons _b (cdr (_rsplit _rdot $0)))) $0))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 348.7688367366791
         },
         "re2_test_485_if_there_is_s_replace_that_with_v_p": {
             "request": {
@@ -19437,8 +20449,14 @@
                 ]
             },
             "task": "re2_test_493_if_the_word_ends_with_any_letter_add_n_before_that ((lambda (_rflatten (_rappend (if (_rmatch _rdot (_rtail (_rsplit _rdot $0))) (_rconcat _n (_rtail (_rsplit _rdot $0))) (_rtail (_rsplit _rdot $0))) (_rrevcdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (_rappend (_rconcat _n (_rtail (_rsplit _rdot $0))) (_rrevcdr (_rsplit _rdot $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 618.2305552959442
         },
         "re2_test_494_if_the_word_starts_with_vowel_replace_that_with_c_u": {
             "request": {
@@ -19508,7 +20526,7 @@
                     "origin": null
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _h (_rsplit _r $0))))",
+                    "program": "(lambda (_rflatten (_rappend _h (_rsplit _o $0))))",
                     "logLikelihood": 0.0,
                     "origin": null
                 },
@@ -19518,7 +20536,7 @@
                     "origin": null
                 }
             ],
-            "best_search_time": 23.357566356658936
+            "best_search_time": 32.64879488945007
         },
         "re2_test_497_if_the_word_starts_with_any_letter_replace_that_with_l_g": {
             "request": {
@@ -19535,8 +20553,19 @@
                 ]
             },
             "task": "re2_test_497_if_the_word_starts_with_any_letter_replace_that_with_l_g ((lambda (_rflatten (cons (if (_rmatch _rdot (car (_rsplit _rdot $0))) (_rconcat _l _g) (car (_rsplit _rdot $0))) (cdr (_rsplit _rdot $0))))))",
-            "programs": [],
-            "best_search_time": null
+            "programs": [
+                {
+                    "program": "(lambda (_rflatten (cons _l (cons _g (cdr (_rsplit _rempty $0))))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                },
+                {
+                    "program": "(lambda (_rflatten (cons (_rconcat _l _g) (cdr (_rsplit _rempty $0)))))",
+                    "logLikelihood": 0.0,
+                    "origin": null
+                }
+            ],
+            "best_search_time": 974.7785890102386
         },
         "re2_test_498_if_there_is_vowel_r_add_u_before_that": {
             "request": {

@@ -5,27 +5,27 @@
             "model_type": "amortized_synthesis",
             "model_fn": "optimize_model_for_frontiers",
             "task_split": "train",
-            "time_start": 1686477719.2389934,
-            "time_end": 1686477979.1303678,
-            "time_elapsed": 259.8913743495941
+            "time_start": 1686501188.3246439,
+            "time_end": 1686501440.55741,
+            "time_elapsed": 252.23276615142822
         },
         {
             "curr_iteration": 3,
             "model_type": "amortized_synthesis",
             "model_fn": "infer_programs_for_tasks",
             "task_split": "train",
-            "time_start": 1686477979.131387,
-            "time_end": 1686478994.31032,
-            "time_elapsed": 1015.1789329051971
+            "time_start": 1686501440.5593472,
+            "time_end": 1686502456.2928195,
+            "time_elapsed": 1015.7334723472595
         },
         {
             "curr_iteration": 3,
             "model_type": "amortized_synthesis",
             "model_fn": "infer_programs_for_tasks",
             "task_split": "test",
-            "time_start": 1686478994.318116,
-            "time_end": 1686483145.557475,
-            "time_elapsed": 4151.239359140396
+            "time_start": 1686502456.3053045,
+            "time_end": 1686506652.6440282,
+            "time_elapsed": 4196.338723659515
         }
     ]
 }

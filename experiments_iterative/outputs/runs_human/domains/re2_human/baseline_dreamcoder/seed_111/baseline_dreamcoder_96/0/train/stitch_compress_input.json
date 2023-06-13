@@ -189,7 +189,7 @@
                     "program": "(lambda (_rflatten (cons (_rconcat _n _a) (cdr (_rsplit _rempty $0)))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _n (cdr (_rsplit _rdot (_rflatten (cons _a (cons _a (cdr (_rsplit _rdot $0))))))))))"
+                    "program": "(lambda (_rflatten (cons _n (cons _rempty (cons _a (cdr (_rsplit _rdot $0)))))))"
                 }
             ]
         },
@@ -209,7 +209,7 @@
                     "program": "(lambda (_rflatten (_rappend _d (_rsplit _e $0))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _d (_rsplit _k $0))))"
+                    "program": "(lambda (_rflatten (_rappend _d (_rsplit _i $0))))"
                 }
             ]
         },
@@ -223,13 +223,13 @@
                     "program": "(lambda (_rflatten (map (lambda (_rconcat $0 _v)) (_rsplit _rempty $0))))"
                 },
                 {
+                    "program": "(lambda (_rflatten (_rappend _rempty (map (lambda (_rconcat $0 _v)) (_rsplit _rdot $0)))))"
+                },
+                {
                     "program": "(lambda (car (map (lambda (_rflatten (map (lambda (_rconcat $0 _v)) (_rsplit _rdot $1)))) (_rsplit _rdot $0))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda (_rtail (map (lambda (_rconcat $1 _v)) (_rsplit _rdot $1)))) (_rsplit _rdot $0))))"
-                },
-                {
-                    "program": "(lambda (car (cdr (map (lambda (_rflatten (map (lambda (_rconcat $0 _v)) (_rsplit _rdot $1)))) (_rsplit _rdot $0)))))"
+                    "program": "(lambda (_rflatten (map (lambda (car (map (lambda (_rconcat $1 _v)) (_rsplit _rdot $1)))) (_rsplit _rdot $0))))"
                 }
             ]
         },
@@ -237,19 +237,7 @@
             "task": "re2_train_50_if_the_word_ends_with_consonant_add_o_after_that",
             "programs": [
                 {
-                    "program": "(lambda (if (_rmatch _e (_rtail (_rsplit _rdot $0))) $0 (_rflatten (_rappend _o (_rsplit _f $0)))))"
-                },
-                {
-                    "program": "(lambda (if (_rmatch _e (_rtail (_rsplit _rdot $0))) $0 (_rflatten (_rappend _o (_rsplit _k $0)))))"
-                },
-                {
-                    "program": "(lambda (if (_rmatch _e (_rtail (_rsplit _rdot $0))) $0 (_rflatten (_rappend _o (_rsplit _o $0)))))"
-                },
-                {
                     "program": "(lambda (if (_rmatch _e (_rtail (_rsplit _rdot $0))) $0 (_rflatten (_rappend _o (_rsplit _rdot $0)))))"
-                },
-                {
-                    "program": "(lambda (if (_rmatch _e (_rtail (_rsplit _rdot $0))) $0 (_rflatten (_rappend _o (_rsplit _s $0)))))"
                 }
             ]
         },
@@ -289,7 +277,7 @@
                     "program": "(lambda (_rflatten (cons (_rconcat _w _i) (cdr (_rsplit _rempty $0)))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (cons (_rconcat _w _i) (cdr (_rsplit (_rnot _r) $0)))))"
+                    "program": "(lambda (_rflatten (cons (_rconcat _w _i) (cdr (_rsplit (_rnot _p) $0)))))"
                 }
             ]
         },
@@ -309,7 +297,7 @@
                     "program": "(lambda (_rflatten (cons (_rconcat _q _a) (cdr (_rsplit _rempty $0)))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _q (cdr (_rsplit _rdot (_rflatten (cons _a (cons _a (cdr (_rsplit _rdot $0))))))))))"
+                    "program": "(lambda (_rflatten (cons _q (cons _a (cons _rempty (cdr (_rsplit _rdot $0)))))))"
                 }
             ]
         },
@@ -323,7 +311,7 @@
                     "program": "(lambda (_rflatten (map (lambda (_rconcat _r _v)) (_rsplit _rempty $0))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _r _v)) (cons _b (cdr (_rsplit _rdot $0))))))"
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _r _v)) (_rappend _j (_rrevcdr (_rsplit _rdot $0))))))"
                 },
                 {
                     "program": "(lambda (_rflatten (map (lambda (_rconcat _r _v)) (cons _q (cdr (_rsplit _rdot $0))))))"
@@ -369,7 +357,7 @@
                     "program": "(lambda (_rflatten (_rappend (_rconcat _a _o) (_rrevcdr (_rsplit _rempty $0)))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _o (_rappend _a (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _o (_rrevcdr (_rsplit _rdot $0))))))))))"
+                    "program": "(lambda (_rflatten (_rappend _o (_rappend _a (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _a (_rrevcdr (_rsplit _rdot $0))))))))))"
                 }
             ]
         },
@@ -383,10 +371,10 @@
                     "program": "(lambda (_rflatten (map (lambda (_rconcat _w _t)) (_rsplit _rempty $0))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w _t)) (_rappend _d (_rrevcdr (_rsplit _rdot $0))))))"
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w _t)) (_rappend _a (_rrevcdr (_rsplit _rdot $0))))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w _t)) (_rappend _f (_rrevcdr (_rsplit _rdot $0))))))"
+                    "program": "(lambda (_rflatten (map (lambda (_rconcat _w _t)) (_rappend _o (_rrevcdr (_rsplit _rdot $0))))))"
                 },
                 {
                     "program": "(lambda (_rflatten (map (lambda (_rconcat _w _t)) (map (lambda (_rconcat _w _t)) (_rsplit _rdot $0)))))"
@@ -406,10 +394,10 @@
                     "program": "(lambda (_rflatten (cons _e (cons _a (cons _rempty (cdr (cdr (_rsplit _rdot $0))))))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _rempty (cons _e (cons _a (cdr (cdr (_rsplit _rdot $0))))))))"
+                    "program": "(lambda (_rflatten (cons _e (cons _rempty (cons _a (cdr (cdr (_rsplit _rdot $0))))))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _e (cons _a (cdr (cdr (map (lambda $0) (_rsplit _rdot $0))))))))"
+                    "program": "(lambda (_rflatten (cons _rempty (cons _e (cons _a (cdr (cdr (_rsplit _rdot $0))))))))"
                 }
             ]
         },
@@ -449,7 +437,7 @@
                     "program": "(lambda (_rflatten (cons (_rconcat _e _s) (cdr (_rsplit _rempty $0)))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _e (cdr (_rsplit _rdot (_rflatten (cons _e (cons _s (cdr (_rsplit _rdot $0))))))))))"
+                    "program": "(lambda (_rflatten (cons _e (cons _rempty (cons _s (cdr (_rsplit _rdot $0)))))))"
                 }
             ]
         },
@@ -463,13 +451,13 @@
                     "program": "(lambda (_rflatten (_rappend _j (_rappend _b (_rrevcdr (_rrevcdr (_rsplit _rempty $0)))))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _j (_rappend _b (_rrevcdr (_rappend _b (_rrevcdr (_rrevcdr (_rsplit _rdot $0)))))))))"
+                    "program": "(lambda (_rflatten (_rappend _j (_rappend _b (_rrevcdr (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _j (_rrevcdr (_rsplit _rdot $0)))))))))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _j (_rappend _b (_rrevcdr (_rrevcdr (_rappend _b (_rrevcdr (_rsplit _rdot $0)))))))))"
+                    "program": "(lambda (_rflatten (_rappend _j (_rappend _b (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _j (_rrevcdr (_rrevcdr (_rsplit _rdot $0)))))))))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (_rappend _j (_rappend _b (_rrevcdr (_rrevcdr (_rappend _j (_rrevcdr (_rsplit _rdot $0)))))))))"
+                    "program": "(lambda (_rflatten (_rappend _j (_rrevcdr (_rsplit _rdot (_rflatten (_rappend _j (_rappend _b (_rrevcdr (_rrevcdr (_rsplit _rdot $0)))))))))))"
                 }
             ]
         },
@@ -489,7 +477,7 @@
                     "program": "(lambda (_rflatten (cons _v (_rsplit _e $0))))"
                 },
                 {
-                    "program": "(lambda (_rflatten (cons _v (_rsplit _f $0))))"
+                    "program": "(lambda (_rflatten (cons _v (_rsplit _g $0))))"
                 }
             ]
         }

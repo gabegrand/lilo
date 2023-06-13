@@ -1,0 +1,22 @@
+{
+    "loop_block_runtimes": [
+        {
+            "curr_iteration": 15,
+            "model_type": "llm_solver",
+            "model_fn": "infer_programs_for_tasks",
+            "task_split": "train",
+            "time_start": 1686617810.3272884,
+            "time_end": 1686618460.9488935,
+            "time_elapsed": 650.6216051578522
+        },
+        {
+            "curr_iteration": 15,
+            "model_type": "llm_solver",
+            "model_fn": "infer_programs_for_tasks",
+            "task_split": "test",
+            "time_start": 1686618460.9499373,
+            "time_end": 1686619168.8758745,
+            "time_elapsed": 707.9259371757507
+        }
+    ]
+}

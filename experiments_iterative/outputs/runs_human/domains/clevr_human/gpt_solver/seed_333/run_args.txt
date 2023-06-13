@@ -1,0 +1,33 @@
+{
+  "experiment_name": "runs_human",
+  "experiment_type": "gpt_solver",
+  "domain": "clevr_human",
+  "task_batcher": "random_shuffle_ordered_task_batcher",
+  "iterations": 16,
+  "enumeration_timeout": null,
+  "recognition_train_steps": null,
+  "encoder": null,
+  "stitch_params": "{}",
+  "gpt_params": "{}",
+  "no_likelihoods": false,
+  "global_batch_sizes": [
+    96
+  ],
+  "global_batch_size_all": false,
+  "random_seeds": [
+    111,
+    222,
+    333
+  ],
+  "init_iteration": 0,
+  "init_frontiers_from_checkpoint": true,
+  "init_frontiers_every_iteration": false,
+  "init_grammar_from_checkpoint": false,
+  "resume_checkpoint_directory": "experiments_iterative/outputs/runs_human/domains/clevr_human/baseline_dreamcoder/{RANDOM_SEED}/baseline_dreamcoder_96",
+  "use_cached": false,
+  "resume_strategy": null,
+  "debug": false,
+  "verbose": false,
+  "overwrite_dir": false,
+  "no_s3_sync": false
+}
