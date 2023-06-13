@@ -1,0 +1,1078 @@
+{
+    "cmd": "python run_iterative_experiment.py --experiment_name runs_human --experiment_type baseline_dreamcoder --domain clevr_human --encoder clevr --iterations 16 --global_batch_sizes 96 --enumeration_timeout 1000 --stitch_params {\"iterations\": 10, \"max_arity\": 3} --random_seeds 111 222 333",
+    "args": {
+        "iterations": 10,
+        "abstraction_prefix": "fn_",
+        "previous_abstractions": 0,
+        "shuffle": false,
+        "truncate": null,
+        "no_opt": false,
+        "silent": true,
+        "verbose_rewrite": false,
+        "step": {
+            "max_arity": 3,
+            "threads": 1,
+            "no_stats": false,
+            "batch": 1,
+            "dynamic_batch": false,
+            "eta_long": true,
+            "inv_candidates": 1,
+            "hole_choice": "DepthFirst",
+            "cost": {
+                "cost_lam": 1,
+                "cost_app": 1,
+                "cost_var": 100,
+                "cost_ivar": 100,
+                "cost_prim_default": 100
+            },
+            "no_mismatch_check": false,
+            "follow": null,
+            "follow_prune": false,
+            "verbose_worklist": false,
+            "verbose_best": false,
+            "print_stats": 0,
+            "show_rewritten": false,
+            "rewritten_dreamcoder": true,
+            "rewritten_intermediates": false,
+            "inv_arg_cap": false,
+            "allow_single_task": false,
+            "no_opt_single_use": false,
+            "no_opt_upper_bound": false,
+            "no_opt_force_multiuse": false,
+            "no_opt_useless_abstract": false,
+            "no_opt_arity_zero": false,
+            "no_other_util": true,
+            "rewrite_check": false,
+            "utility_by_rewrite": true,
+            "dreamcoder_comparison": false,
+            "quiet": true
+        }
+    },
+    "original_cost": 49102,
+    "final_cost": 31829,
+    "compression_ratio": 1.5426812026768042,
+    "num_abstractions": 10,
+    "original": [
+        "(lam (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_green))",
+        "(lam (clevr_eq_color clevr_green (clevr_query_color (clevr_car $0))))",
+        "(lam (clevr_eq_color (clevr_query_color (clevr_transform_material clevr_metal (clevr_car $0))) clevr_green))",
+        "(lam (clevr_eq_color (clevr_query_color (clevr_transform_material clevr_rubber (clevr_car $0))) clevr_green))",
+        "(lam (clevr_eq_color (clevr_query_color (clevr_transform_size clevr_small (clevr_car $0))) clevr_green))",
+        "(lam (clevr_gt? 1 (clevr_count (clevr_relate (clevr_car $0) clevr_left $0))))",
+        "(lam (clevr_gt? 2 (clevr_count (clevr_relate (clevr_car $0) clevr_left $0))))",
+        "(lam (clevr_lt? (clevr_count (clevr_relate (clevr_car $0) clevr_left $0)) 1))",
+        "(lam (clevr_lt? (clevr_count (clevr_relate (clevr_car $0) clevr_left $0)) 2))",
+        "(lam (clevr_lt? (clevr_count (clevr_relate (clevr_transform_material clevr_rubber (clevr_car $0)) clevr_left $0)) 1))",
+        "(lam (clevr_eq_material (clevr_if (clevr_gt? (clevr_count $0) 9) clevr_metal clevr_rubber) clevr_rubber))",
+        "(lam (clevr_eq_size (clevr_if (clevr_gt? (clevr_count $0) 9) clevr_large clevr_small) clevr_small))",
+        "(lam (clevr_eq_size (clevr_if (clevr_gt? (clevr_count $0) 9) clevr_small clevr_large) clevr_large))",
+        "(lam (clevr_eq_size (clevr_if (clevr_lt? 9 (clevr_count $0)) clevr_large clevr_small) clevr_small))",
+        "(lam (clevr_eq_size (clevr_if (clevr_lt? 9 (clevr_count $0)) clevr_small clevr_large) clevr_large))",
+        "(lam (clevr_eq_material (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_blue) clevr_metal clevr_rubber) clevr_rubber))",
+        "(lam (clevr_eq_size (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_blue) clevr_large clevr_small) clevr_small))",
+        "(lam (clevr_eq_size (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_blue) clevr_small clevr_large) clevr_large))",
+        "(lam (clevr_eq_size (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_large clevr_small) clevr_small))",
+        "(lam (clevr_eq_size (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_small clevr_large) clevr_large))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_relate (clevr_car $0) clevr_behind $0))) clevr_metal) 0 1))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_relate (clevr_car $0) clevr_behind $0))) clevr_rubber) 1 0))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_transform_size clevr_large (clevr_car (clevr_relate (clevr_car $0) clevr_behind $0)))) clevr_metal) 0 1))",
+        "(lam (clevr_if (clevr_eq_material (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_relate (clevr_car $0) clevr_behind $0))) clevr_metal) clevr_metal clevr_rubber) clevr_metal) 0 1))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_relate (clevr_car (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_car $0) clevr_behind $0))) clevr_behind $0))) clevr_metal) 0 1))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car (clevr_relate (clevr_car $0) clevr_right $0))) clevr_cylinder) 2 0))",
+        "(lam (clevr_if (clevr_eq_shape clevr_cylinder (clevr_query_shape (clevr_car (clevr_relate (clevr_car $0) clevr_right $0)))) 2 0))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) clevr_cylinder) 2 0))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car (clevr_map (lam $0) (clevr_relate (clevr_car $0) clevr_right $0)))) clevr_cylinder) 2 0))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car (clevr_relate (clevr_car (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_car $0) clevr_right $0))) clevr_right $0))) clevr_cylinder) 2 0))",
+        "(lam (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) 0 (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car (clevr_relate (clevr_car $0) clevr_behind $0))) clevr_cylinder) 3 1)))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape clevr_sphere (clevr_query_shape (clevr_car $0))) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_metal (clevr_car $0))) clevr_sphere) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_rubber (clevr_car $0))) clevr_sphere) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_size clevr_small (clevr_car $0))) clevr_sphere) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_blue) (clevr_query_size (clevr_car $0)) clevr_small))",
+        "(lam (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_yellow) clevr_small (clevr_query_size (clevr_car $0))))",
+        "(lam (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) (clevr_query_size (clevr_car $0)) clevr_small))",
+        "(lam (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color (clevr_car $0))) clevr_small (clevr_query_size (clevr_car $0))))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 3) clevr_large clevr_small))",
+        "(lam (clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_gt? (clevr_count $0) 4) (clevr_gt? (clevr_count $0) 6)) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_lt? 4 (clevr_count $0)) (clevr_gt? (clevr_count $0) 6)) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) (clevr_gt? (clevr_count $0) 6) (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0)))) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) (clevr_gt? (clevr_count $0) 6)) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_lt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 3) (clevr_gt? (clevr_count $0) 6)) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 0) (clevr_query_color (clevr_car $0)) clevr_red))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_car $0) clevr_right $0))) 0) (clevr_query_color (clevr_car $0)) clevr_red))",
+        "(lam (clevr_if (clevr_eq_size (clevr_if (clevr_lt? (clevr_count (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_car $0) clevr_right $0))) 1) clevr_large clevr_small) clevr_small) (clevr_query_color (clevr_car $0)) clevr_red))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_map (lam (clevr_car (clevr_relate (clevr_car $1) clevr_right $1))) (clevr_relate (clevr_car $0) clevr_right $0))) 0) (clevr_query_color (clevr_car $0)) clevr_red))",
+        "(lam (clevr_if (clevr_eq_size (clevr_query_size (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_right $0)) clevr_empty))) clevr_right $0))) clevr_small) (clevr_query_color (clevr_car $0)) clevr_red))",
+        "(lam (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_green) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_color clevr_green (clevr_query_color (clevr_car $0))) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_material clevr_metal (clevr_car $0)))) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_material clevr_rubber (clevr_car $0)))) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_size clevr_small (clevr_car $0)))) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_size (clevr_if (clevr_eq_color clevr_cyan (clevr_query_color (clevr_car $0))) clevr_small clevr_large) (clevr_query_size (clevr_car $0))) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_color clevr_green (clevr_query_color (clevr_car $0))) clevr_metal (clevr_query_material (clevr_car (clevr_relate (clevr_car $0) clevr_left $0)))))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) (clevr_if (clevr_gt? (clevr_count $0) 6) 8 2)) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) (clevr_if (clevr_gt? (clevr_count $0) 6) 9 2)) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) (clevr_if (clevr_gt? (clevr_count $0) 6) (clevr_count $0) 2)) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_size (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) (clevr_query_size (clevr_car $0)) clevr_small) clevr_small) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_size (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) clevr_small clevr_large) (clevr_query_size (clevr_car $0))) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_size (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_small (clevr_query_size (clevr_car $0))) clevr_small) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) (clevr_if (clevr_gt? (clevr_count $0) 9) (clevr_count $0) 5)) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) (clevr_gt? (clevr_count $0) 4)) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 4) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 5) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 6) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 7) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_gt? 7 (clevr_count $0)) clevr_rubber clevr_metal))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_front $0)) 2) clevr_sphere clevr_cylinder))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 0) clevr_sphere clevr_cylinder))",
+        "(lam (clevr_if (clevr_lt? (clevr_count (clevr_relate (clevr_car $0) clevr_front $0)) 3) clevr_cylinder clevr_sphere))",
+        "(lam (clevr_if (clevr_lt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 1) clevr_cylinder clevr_sphere))",
+        "(lam (clevr_if (clevr_lt? 2 (clevr_count (clevr_relate (clevr_car $0) clevr_front $0))) clevr_sphere clevr_cylinder))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_metal) clevr_cylinder clevr_cube))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_rubber) clevr_cube clevr_cylinder))",
+        "(lam (clevr_if (clevr_eq_material clevr_metal (clevr_query_material (clevr_car $0))) clevr_cylinder clevr_cube))",
+        "(lam (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_cube clevr_cylinder))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) clevr_cube clevr_cylinder))",
+        "(lam (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_sphere (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_cube clevr_cylinder)))",
+        "(lam (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_cube (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_sphere clevr_cylinder)))",
+        "(lam (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_transform_size clevr_small (clevr_car $0)))) clevr_cube (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_sphere clevr_cylinder)))",
+        "(lam (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_cube (clevr_if (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 2) clevr_sphere clevr_cylinder)))",
+        "(lam (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_cube (clevr_if (clevr_lt? (clevr_count (clevr_relate (clevr_car $0) clevr_left $0)) 1) clevr_sphere clevr_cylinder)))",
+        "(lam (clevr_if (clevr_eq_size (clevr_query_size (clevr_car (clevr_relate (clevr_car $0) clevr_right $0))) clevr_large) clevr_cube clevr_sphere))",
+        "(lam (clevr_if (clevr_eq_size (clevr_query_size (clevr_car (clevr_relate (clevr_car $0) clevr_right $0))) clevr_small) clevr_sphere clevr_cube))",
+        "(lam (clevr_if (clevr_eq_size clevr_large (clevr_query_size (clevr_car (clevr_relate (clevr_car $0) clevr_right $0)))) clevr_cube clevr_sphere))",
+        "(lam (clevr_if (clevr_eq_size clevr_small (clevr_query_size (clevr_car (clevr_relate (clevr_car $0) clevr_right $0)))) clevr_sphere clevr_cube))",
+        "(lam (clevr_if (clevr_eq_size (clevr_query_size (clevr_car (clevr_relate (clevr_car $0) clevr_right $0))) clevr_small) clevr_sphere (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) clevr_sphere clevr_cube)))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 4) 3 2))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 5) 3 2))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 6) 3 2))",
+        "(lam (clevr_if (clevr_lt? (clevr_count $0) 5) 2 3))",
+        "(lam (clevr_if (clevr_lt? (clevr_count $0) 6) 2 3))",
+        "(lam (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_large) 1 0))",
+        "(lam (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) 0 1))",
+        "(lam (clevr_if (clevr_eq_size clevr_large (clevr_query_size (clevr_car $0))) 1 0))",
+        "(lam (clevr_if (clevr_eq_size clevr_small (clevr_query_size (clevr_car $0))) 0 1))",
+        "(lam (clevr_if (clevr_lt? (clevr_count $0) 7) 1 0))",
+        "(lam (clevr_count (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_car $0) clevr_behind $0))))",
+        "(lam (clevr_count (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_transform_material clevr_metal (clevr_car $0)) clevr_behind $0))))",
+        "(lam (clevr_count (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_transform_material clevr_rubber (clevr_car $0)) clevr_behind $0))))",
+        "(lam (clevr_count (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_transform_size clevr_large (clevr_car $0)) clevr_behind $0))))",
+        "(lam (clevr_count (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_transform_size clevr_small (clevr_car $0)) clevr_behind $0))))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 2) 3 (clevr_if (clevr_gt? (clevr_count $0) 4) 0 2)))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 2) 3 (clevr_if (clevr_gt? (clevr_count $0) 6) 0 2)))",
+        "(lam (clevr_count (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cylinder) $0 (clevr_car $1))) (clevr_relate (clevr_car $0) clevr_behind $0))))",
+        "(lam (clevr_count (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cylinder) (clevr_transform_material clevr_metal $0) (clevr_car $1))) (clevr_relate (clevr_car $0) clevr_behind $0))))",
+        "(lam (clevr_count (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cylinder) (clevr_transform_material clevr_rubber $0) (clevr_car $1))) (clevr_relate (clevr_car $0) clevr_behind $0))))",
+        "(lam (clevr_count (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cylinder) (clevr_transform_size clevr_large $0) (clevr_car $1))) (clevr_relate (clevr_car $0) clevr_behind $0))))",
+        "(lam (clevr_count (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cylinder) (clevr_transform_material (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $1)) clevr_cylinder) clevr_metal clevr_rubber) $0) (clevr_car $1))) (clevr_relate (clevr_car $0) clevr_behind $0))))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) clevr_metal) 2 (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) 0 1)))",
+        "(lam (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))))) (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) 0 1) 2))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) 0 (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) clevr_metal) 2 1)))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) 0 (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))))) 1 2)))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) clevr_metal) 2 (clevr_count (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_car $0) clevr_front $0)))))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cube) 1 2))",
+        "(lam (clevr_if (clevr_eq_shape clevr_cube (clevr_query_shape (clevr_car $0))) 1 2))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_metal (clevr_car $0))) clevr_cube) 1 2))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_rubber (clevr_car $0))) clevr_cube) 1 2))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_size clevr_small (clevr_car $0))) clevr_cube) 1 2))",
+        "(lam (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color (clevr_car $0))) clevr_sphere (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_cube clevr_cylinder)))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_if (clevr_lt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 1) clevr_cube clevr_sphere) clevr_cylinder))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 0) (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_sphere clevr_cylinder) clevr_cube))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 6) clevr_sphere (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_cube clevr_cylinder)))",
+        "(lam (clevr_if (clevr_lt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 1) clevr_cube (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_sphere clevr_cylinder)))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 3) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 4) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 5) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 6) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_gt? 7 (clevr_count $0)) clevr_rubber clevr_metal))",
+        "(lam (clevr_if (clevr_eq_size (clevr_if (clevr_gt? (clevr_count $0) 4) (clevr_query_size (clevr_car $0)) clevr_small) clevr_small) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_size (clevr_if (clevr_eq_color clevr_brown (clevr_query_color (clevr_car $0))) clevr_large clevr_small) (clevr_query_size (clevr_car $0))) clevr_metal clevr_rubber))",
+        "(lam (clevr_query_material (clevr_car (clevr_difference $0 (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_behind $0)))))",
+        "(lam (clevr_if (clevr_eq_size (clevr_if (clevr_eq_color clevr_brown (clevr_query_color (clevr_car $0))) (clevr_query_size (clevr_car $0)) clevr_small) (clevr_query_size (clevr_car $0))) clevr_metal clevr_rubber))",
+        "(lam (clevr_query_material (clevr_if (clevr_eq_color clevr_red (clevr_query_color (clevr_car $0))) (clevr_transform_size clevr_large (clevr_car $0)) (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))))))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 4) (clevr_query_material (clevr_car $0)) clevr_rubber))",
+        "(lam (clevr_if (clevr_gt? 5 (clevr_count $0)) clevr_rubber (clevr_query_material (clevr_car $0))))",
+        "(lam (clevr_if (clevr_lt? (clevr_count $0) 5) clevr_rubber (clevr_query_material (clevr_car $0))))",
+        "(lam (clevr_if (clevr_lt? 4 (clevr_count $0)) (clevr_query_material (clevr_car $0)) clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_gray) (clevr_query_material (clevr_car $0)) clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_metal) clevr_rubber clevr_metal))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_rubber) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_material clevr_metal (clevr_query_material (clevr_car $0))) clevr_rubber clevr_metal))",
+        "(lam (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_metal clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_transform_size clevr_small (clevr_car $0))) clevr_rubber) clevr_metal clevr_rubber))",
+        "(lam (clevr_query_color (clevr_car (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cube) (clevr_transform_material clevr_rubber $0) $2)) $0)))))))",
+        "(lam (clevr_query_color (clevr_car (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cube) (clevr_transform_size clevr_large $0) $2)) $0)))))))",
+        "(lam (clevr_query_color (clevr_car (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $2) clevr_cube) (clevr_transform_material clevr_rubber $2) $0)) $0)))))))",
+        "(lam (clevr_query_color (clevr_car (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $1)) clevr_cube) (clevr_transform_material clevr_rubber $0) $2)) $0)))))))",
+        "(lam (clevr_query_color (clevr_car (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $1)) clevr_cube) (clevr_transform_size clevr_large $0) $2)) $0)))))))",
+        "(lam (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_right $0))))",
+        "(lam (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_transform_material clevr_rubber (clevr_car $0)) clevr_empty))) clevr_right $0))))",
+        "(lam (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 clevr_empty)) clevr_empty))) clevr_right $0))))",
+        "(lam (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_empty))) clevr_empty))) clevr_right $0))))",
+        "(lam (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_empty))) clevr_empty))) clevr_empty))) clevr_empty))) clevr_right $0))))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) clevr_yellow (clevr_query_color (clevr_car $0))))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_query_color (clevr_car $0)) clevr_yellow))",
+        "(lam (clevr_if (clevr_eq_shape clevr_cylinder (clevr_query_shape (clevr_car $0))) clevr_yellow (clevr_query_color (clevr_car $0))))",
+        "(lam (clevr_if (clevr_eq_shape clevr_sphere (clevr_query_shape (clevr_car $0))) (clevr_query_color (clevr_car $0)) clevr_yellow))",
+        "(lam (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_cyan) clevr_yellow (clevr_query_color (clevr_car $0))))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape clevr_cylinder (clevr_query_shape (clevr_car $0))) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_metal (clevr_car $0))) clevr_cylinder) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_rubber (clevr_car $0))) clevr_cylinder) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_size clevr_small (clevr_car $0))) clevr_cylinder) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_metal) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_rubber) clevr_large clevr_small))",
+        "(lam (clevr_if (clevr_eq_material clevr_metal (clevr_query_material (clevr_car $0))) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_large clevr_small))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 9) clevr_large clevr_small))",
+        "(lam (clevr_if (clevr_eq_material (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) clevr_metal clevr_rubber) (clevr_query_material (clevr_car $0))) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_cube clevr_cylinder)) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_sphere clevr_cylinder)) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_eq_size clevr_large clevr_small) (clevr_gt? (clevr_count $0) 6)) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_transform_color clevr_gray (clevr_car $0)))) clevr_cube clevr_cylinder)) clevr_small clevr_large))",
+        "(lam (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $2 $0)) $0)))))",
+        "(lam (clevr_fold $0 $0 (lam (lam (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $1)) (clevr_add $1 clevr_empty) $0)))))",
+        "(lam (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $0)) $0 $2)) $0)))))",
+        "(lam (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $2)) $2 $0)) $0)))))",
+        "(lam (clevr_intersect $0 (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $0)) (clevr_transform_material clevr_rubber $0) $2)) $0))))))",
+        "(lam (clevr_intersect $0 (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $2)) (clevr_transform_material clevr_rubber $2) $0)) $0))))))",
+        "(lam (clevr_count (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $0 $2)) $0))))))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color (clevr_query_color $0) clevr_yellow) (clevr_transform_size clevr_small $0) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small $0) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small (clevr_transform_size clevr_small $0)) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small $0) (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small $0) $0))) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small $0) $0)) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color (clevr_query_color $0) clevr_blue) (clevr_transform_material clevr_rubber $0) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber $0) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber (clevr_transform_material clevr_rubber $0)) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber $0) (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber $0) $0))) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber $0) $0)) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color (clevr_query_color $0) clevr_red) (clevr_transform_size clevr_large $0) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) (clevr_transform_size clevr_large $0) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) (clevr_transform_size clevr_large (clevr_transform_size clevr_large $0)) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) (clevr_transform_size (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) clevr_large clevr_small) $0) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) (clevr_transform_size clevr_large $0) (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) (clevr_transform_size clevr_large $0) $0))) $0))"
+    ],
+    "rewritten": [
+        "(lam (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_green))",
+        "(lam (clevr_eq_color clevr_green (clevr_query_color (clevr_car $0))))",
+        "(lam (clevr_eq_color (clevr_query_color (clevr_transform_material clevr_metal (clevr_car $0))) clevr_green))",
+        "(lam (clevr_eq_color (clevr_query_color (clevr_transform_material clevr_rubber (clevr_car $0))) clevr_green))",
+        "(lam (clevr_eq_color (clevr_query_color (clevr_transform_size clevr_small (clevr_car $0))) clevr_green))",
+        "(lam (clevr_gt? 1 (clevr_count (fn_4 $0 clevr_left))))",
+        "(lam (clevr_gt? 2 (clevr_count (fn_4 $0 clevr_left))))",
+        "(lam (clevr_lt? (clevr_count (fn_4 $0 clevr_left)) 1))",
+        "(lam (clevr_lt? (clevr_count (fn_4 $0 clevr_left)) 2))",
+        "(lam (clevr_lt? (clevr_count (clevr_relate (clevr_transform_material clevr_rubber (clevr_car $0)) clevr_left $0)) 1))",
+        "(lam (clevr_eq_material (fn_2 (clevr_gt? (clevr_count $0) 9)) clevr_rubber))",
+        "(lam (clevr_eq_size (clevr_if (clevr_gt? (clevr_count $0) 9) clevr_large clevr_small) clevr_small))",
+        "(lam (clevr_eq_size (clevr_if (clevr_gt? (clevr_count $0) 9) clevr_small clevr_large) clevr_large))",
+        "(lam (clevr_eq_size (clevr_if (clevr_lt? 9 (clevr_count $0)) clevr_large clevr_small) clevr_small))",
+        "(lam (clevr_eq_size (clevr_if (clevr_lt? 9 (clevr_count $0)) clevr_small clevr_large) clevr_large))",
+        "(lam (clevr_eq_material (fn_2 (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_blue)) clevr_rubber))",
+        "(lam (clevr_eq_size (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_blue) clevr_large clevr_small) clevr_small))",
+        "(lam (clevr_eq_size (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_blue) clevr_small clevr_large) clevr_large))",
+        "(lam (clevr_eq_size (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_large clevr_small) clevr_small))",
+        "(lam (clevr_eq_size (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_small clevr_large) clevr_large))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (fn_4 $0 clevr_behind))) clevr_metal) 0 1))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (fn_4 $0 clevr_behind))) clevr_rubber) 1 0))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_transform_size clevr_large (clevr_car (fn_4 $0 clevr_behind)))) clevr_metal) 0 1))",
+        "(lam (clevr_if (clevr_eq_material (fn_2 (clevr_eq_material (clevr_query_material (clevr_car (fn_4 $0 clevr_behind))) clevr_metal)) clevr_metal) 0 1))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_relate (clevr_car (clevr_map (lam (clevr_car $1)) (fn_4 $0 clevr_behind))) clevr_behind $0))) clevr_metal) 0 1))",
+        "(lam (fn_0 0 2 (fn_4 $0 clevr_right)))",
+        "(lam (clevr_if (clevr_eq_shape clevr_cylinder (clevr_query_shape (clevr_car (fn_4 $0 clevr_right)))) 2 0))",
+        "(lam (fn_0 0 2 (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))))",
+        "(lam (fn_0 0 2 (clevr_map (lam $0) (fn_4 $0 clevr_right))))",
+        "(lam (fn_0 0 2 (clevr_relate (clevr_car (clevr_map (lam (clevr_car $1)) (fn_4 $0 clevr_right))) clevr_right $0)))",
+        "(lam (fn_9 (fn_0 1 3 (fn_4 $0 clevr_behind)) 0 $0))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape clevr_sphere (clevr_query_shape (clevr_car $0))) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_metal (clevr_car $0))) clevr_sphere) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_rubber (clevr_car $0))) clevr_sphere) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_size clevr_small (clevr_car $0))) clevr_sphere) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_blue) (clevr_query_size (clevr_car $0)) clevr_small))",
+        "(lam (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_yellow) clevr_small (clevr_query_size (clevr_car $0))))",
+        "(lam (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) (clevr_query_size (clevr_car $0)) clevr_small))",
+        "(lam (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color (clevr_car $0))) clevr_small (clevr_query_size (clevr_car $0))))",
+        "(lam (clevr_if (fn_1 3 $0) clevr_large clevr_small))",
+        "(lam (fn_6 $0 (fn_7 $0)))",
+        "(lam (fn_6 $0 (clevr_lt? 4 (clevr_count $0))))",
+        "(lam (clevr_if (fn_0 (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) (clevr_gt? (clevr_count $0) 6) $0) clevr_small clevr_large))",
+        "(lam (fn_6 $0 (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0)))))",
+        "(lam (fn_6 $0 (clevr_lt? (clevr_count (fn_4 $0 clevr_right)) 3)))",
+        "(lam (clevr_if (fn_1 0 $0) (clevr_query_color (clevr_car $0)) clevr_red))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_map (lam (clevr_car $1)) (fn_4 $0 clevr_right))) 0) (clevr_query_color (clevr_car $0)) clevr_red))",
+        "(lam (clevr_if (clevr_eq_size (clevr_if (clevr_lt? (clevr_count (clevr_map (lam (clevr_car $1)) (fn_4 $0 clevr_right))) 1) clevr_large clevr_small) clevr_small) (clevr_query_color (clevr_car $0)) clevr_red))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (clevr_map (lam (clevr_car (fn_4 $1 clevr_right))) (fn_4 $0 clevr_right))) 0) (clevr_query_color (clevr_car $0)) clevr_red))",
+        "(lam (fn_9 clevr_red (clevr_query_color (clevr_car $0)) (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_right $0)) clevr_empty))) clevr_right $0)))",
+        "(lam (fn_2 (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_green)))",
+        "(lam (fn_2 (clevr_eq_color clevr_green (clevr_query_color (clevr_car $0)))))",
+        "(lam (fn_2 (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_material clevr_metal (clevr_car $0))))))",
+        "(lam (fn_2 (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_material clevr_rubber (clevr_car $0))))))",
+        "(lam (fn_2 (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_size clevr_small (clevr_car $0))))))",
+        "(lam (fn_2 (clevr_eq_size (clevr_if (clevr_eq_color clevr_cyan (clevr_query_color (clevr_car $0))) clevr_small clevr_large) (clevr_query_size (clevr_car $0)))))",
+        "(lam (clevr_if (clevr_eq_color clevr_green (clevr_query_color (clevr_car $0))) clevr_metal (clevr_query_material (clevr_car (fn_4 $0 clevr_left)))))",
+        "(lam (fn_2 (fn_1 (clevr_if (clevr_gt? (clevr_count $0) 6) 8 2) $0)))",
+        "(lam (fn_2 (fn_1 (clevr_if (clevr_gt? (clevr_count $0) 6) 9 2) $0)))",
+        "(lam (fn_2 (fn_1 (clevr_if (clevr_gt? (clevr_count $0) 6) (clevr_count $0) 2) $0)))",
+        "(lam (fn_2 (clevr_eq_size (fn_0 clevr_small (clevr_query_size (clevr_car $0)) $0) clevr_small)))",
+        "(lam (fn_2 (clevr_eq_size (fn_0 clevr_large clevr_small $0) (clevr_query_size (clevr_car $0)))))",
+        "(lam (fn_2 (clevr_eq_size (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_small (clevr_query_size (clevr_car $0))) clevr_small)))",
+        "(lam (fn_2 (clevr_gt? (clevr_count $0) (clevr_if (clevr_gt? (clevr_count $0) 9) (clevr_count $0) 5))))",
+        "(lam (fn_2 (fn_0 (fn_7 $0) (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) $0)))",
+        "(lam (fn_2 (fn_7 $0)))",
+        "(lam (fn_2 (clevr_gt? (clevr_count $0) 5)))",
+        "(lam (fn_2 (clevr_gt? (clevr_count $0) 6)))",
+        "(lam (fn_2 (clevr_gt? (clevr_count $0) 7)))",
+        "(lam (clevr_if (clevr_gt? 7 (clevr_count $0)) clevr_rubber clevr_metal))",
+        "(lam (clevr_if (clevr_gt? (clevr_count (fn_4 $0 clevr_front)) 2) clevr_sphere clevr_cylinder))",
+        "(lam (clevr_if (fn_1 0 $0) clevr_sphere clevr_cylinder))",
+        "(lam (clevr_if (clevr_lt? (clevr_count (fn_4 $0 clevr_front)) 3) clevr_cylinder clevr_sphere))",
+        "(lam (clevr_if (clevr_lt? (clevr_count (fn_4 $0 clevr_right)) 1) clevr_cylinder clevr_sphere))",
+        "(lam (clevr_if (clevr_lt? 2 (clevr_count (fn_4 $0 clevr_front))) clevr_sphere clevr_cylinder))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_metal) clevr_cylinder clevr_cube))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_rubber) clevr_cube clevr_cylinder))",
+        "(lam (clevr_if (clevr_eq_material clevr_metal (clevr_query_material (clevr_car $0))) clevr_cylinder clevr_cube))",
+        "(lam (fn_5 clevr_cylinder clevr_cube (clevr_car $0)))",
+        "(lam (fn_0 clevr_cylinder clevr_cube $0))",
+        "(lam (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_sphere (fn_5 clevr_cylinder clevr_cube (clevr_car $0))))",
+        "(lam (fn_5 (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_sphere clevr_cylinder) clevr_cube (clevr_car $0)))",
+        "(lam (fn_5 (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_sphere clevr_cylinder) clevr_cube (clevr_transform_size clevr_small (clevr_car $0))))",
+        "(lam (fn_5 (clevr_if (fn_1 2 $0) clevr_sphere clevr_cylinder) clevr_cube (clevr_car $0)))",
+        "(lam (fn_5 (clevr_if (clevr_lt? (clevr_count (fn_4 $0 clevr_left)) 1) clevr_sphere clevr_cylinder) clevr_cube (clevr_car $0)))",
+        "(lam (clevr_if (clevr_eq_size (clevr_query_size (clevr_car (fn_4 $0 clevr_right))) clevr_large) clevr_cube clevr_sphere))",
+        "(lam (fn_9 clevr_cube clevr_sphere (fn_4 $0 clevr_right)))",
+        "(lam (clevr_if (clevr_eq_size clevr_large (clevr_query_size (clevr_car (fn_4 $0 clevr_right)))) clevr_cube clevr_sphere))",
+        "(lam (clevr_if (clevr_eq_size clevr_small (clevr_query_size (clevr_car (fn_4 $0 clevr_right)))) clevr_sphere clevr_cube))",
+        "(lam (fn_9 (fn_9 clevr_cube clevr_sphere $0) clevr_sphere (fn_4 $0 clevr_right)))",
+        "(lam (clevr_if (fn_7 $0) 3 2))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 5) 3 2))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 6) 3 2))",
+        "(lam (clevr_if (clevr_lt? (clevr_count $0) 5) 2 3))",
+        "(lam (clevr_if (clevr_lt? (clevr_count $0) 6) 2 3))",
+        "(lam (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_large) 1 0))",
+        "(lam (fn_9 1 0 $0))",
+        "(lam (clevr_if (clevr_eq_size clevr_large (clevr_query_size (clevr_car $0))) 1 0))",
+        "(lam (clevr_if (clevr_eq_size clevr_small (clevr_query_size (clevr_car $0))) 0 1))",
+        "(lam (clevr_if (clevr_lt? (clevr_count $0) 7) 1 0))",
+        "(lam (clevr_count (clevr_map (lam (clevr_car $1)) (fn_4 $0 clevr_behind))))",
+        "(lam (clevr_count (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_transform_material clevr_metal (clevr_car $0)) clevr_behind $0))))",
+        "(lam (clevr_count (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_transform_material clevr_rubber (clevr_car $0)) clevr_behind $0))))",
+        "(lam (clevr_count (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_transform_size clevr_large (clevr_car $0)) clevr_behind $0))))",
+        "(lam (clevr_count (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_transform_size clevr_small (clevr_car $0)) clevr_behind $0))))",
+        "(lam (clevr_if (fn_1 2 $0) 3 (clevr_if (fn_7 $0) 0 2)))",
+        "(lam (clevr_if (fn_1 2 $0) 3 (clevr_if (clevr_gt? (clevr_count $0) 6) 0 2)))",
+        "(lam (clevr_count (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cylinder) $0 (clevr_car $1))) (fn_4 $0 clevr_behind))))",
+        "(lam (clevr_count (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cylinder) (clevr_transform_material clevr_metal $0) (clevr_car $1))) (fn_4 $0 clevr_behind))))",
+        "(lam (clevr_count (fn_8 (fn_4 $0 clevr_behind) (clevr_car $0) clevr_cylinder)))",
+        "(lam (clevr_count (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cylinder) (clevr_transform_size clevr_large $0) (clevr_car $1))) (fn_4 $0 clevr_behind))))",
+        "(lam (clevr_count (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cylinder) (clevr_transform_material (fn_0 clevr_rubber clevr_metal $1) $0) (clevr_car $1))) (fn_4 $0 clevr_behind))))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) clevr_metal) 2 (fn_0 1 0 $0)))",
+        "(lam (fn_5 2 (fn_0 1 0 $0) (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))))",
+        "(lam (fn_0 (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) clevr_metal) 2 1) 0 $0))",
+        "(lam (fn_0 (fn_5 2 1 (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) 0 $0))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) clevr_metal) 2 (clevr_count (clevr_map (lam (clevr_car $1)) (fn_4 $0 clevr_front)))))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cube) 1 2))",
+        "(lam (clevr_if (clevr_eq_shape clevr_cube (clevr_query_shape (clevr_car $0))) 1 2))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_metal (clevr_car $0))) clevr_cube) 1 2))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_rubber (clevr_car $0))) clevr_cube) 1 2))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_size clevr_small (clevr_car $0))) clevr_cube) 1 2))",
+        "(lam (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color (clevr_car $0))) clevr_sphere (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_cube clevr_cylinder)))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_if (clevr_lt? (clevr_count (fn_4 $0 clevr_right)) 1) clevr_cube clevr_sphere) clevr_cylinder))",
+        "(lam (clevr_if (fn_1 0 $0) (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_sphere clevr_cylinder) clevr_cube))",
+        "(lam (clevr_if (fn_1 6 $0) clevr_sphere (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_cube clevr_cylinder)))",
+        "(lam (clevr_if (clevr_lt? (clevr_count (fn_4 $0 clevr_right)) 1) clevr_cube (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_sphere clevr_cylinder)))",
+        "(lam (fn_2 (clevr_gt? (clevr_count $0) 3)))",
+        "(lam (fn_2 (fn_7 $0)))",
+        "(lam (fn_2 (clevr_gt? (clevr_count $0) 5)))",
+        "(lam (fn_2 (clevr_gt? (clevr_count $0) 6)))",
+        "(lam (clevr_if (clevr_gt? 7 (clevr_count $0)) clevr_rubber clevr_metal))",
+        "(lam (fn_2 (clevr_eq_size (clevr_if (fn_7 $0) (clevr_query_size (clevr_car $0)) clevr_small) clevr_small)))",
+        "(lam (fn_2 (clevr_eq_size (clevr_if (clevr_eq_color clevr_brown (clevr_query_color (clevr_car $0))) clevr_large clevr_small) (clevr_query_size (clevr_car $0)))))",
+        "(lam (clevr_query_material (clevr_car (clevr_difference $0 (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_behind $0)))))",
+        "(lam (fn_2 (clevr_eq_size (clevr_if (clevr_eq_color clevr_brown (clevr_query_color (clevr_car $0))) (clevr_query_size (clevr_car $0)) clevr_small) (clevr_query_size (clevr_car $0)))))",
+        "(lam (clevr_query_material (clevr_if (clevr_eq_color clevr_red (clevr_query_color (clevr_car $0))) (clevr_transform_size clevr_large (clevr_car $0)) (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))))))",
+        "(lam (clevr_if (fn_7 $0) (clevr_query_material (clevr_car $0)) clevr_rubber))",
+        "(lam (clevr_if (clevr_gt? 5 (clevr_count $0)) clevr_rubber (clevr_query_material (clevr_car $0))))",
+        "(lam (clevr_if (clevr_lt? (clevr_count $0) 5) clevr_rubber (clevr_query_material (clevr_car $0))))",
+        "(lam (clevr_if (clevr_lt? 4 (clevr_count $0)) (clevr_query_material (clevr_car $0)) clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_gray) (clevr_query_material (clevr_car $0)) clevr_rubber))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_metal) clevr_rubber clevr_metal))",
+        "(lam (fn_2 (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_rubber)))",
+        "(lam (clevr_if (clevr_eq_material clevr_metal (clevr_query_material (clevr_car $0))) clevr_rubber clevr_metal))",
+        "(lam (fn_2 (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0)))))",
+        "(lam (fn_2 (clevr_eq_material (clevr_query_material (clevr_transform_size clevr_small (clevr_car $0))) clevr_rubber)))",
+        "(lam (clevr_query_color (clevr_car (clevr_fold $0 $0 (lam (lam (fn_8 $0 $1 clevr_cube)))))))",
+        "(lam (clevr_query_color (clevr_car (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cube) (clevr_transform_size clevr_large $0) $2)) $0)))))))",
+        "(lam (clevr_query_color (clevr_car (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $2) clevr_cube) (clevr_transform_material clevr_rubber $2) $0)) $0)))))))",
+        "(lam (clevr_query_color (clevr_car (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $1)) clevr_cube) (clevr_transform_material clevr_rubber $0) $2)) $0)))))))",
+        "(lam (clevr_query_color (clevr_car (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $1)) clevr_cube) (clevr_transform_size clevr_large $0) $2)) $0)))))))",
+        "(lam (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_right $0))))",
+        "(lam (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_transform_material clevr_rubber (clevr_car $0)) clevr_empty))) clevr_right $0))))",
+        "(lam (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 clevr_empty)) clevr_empty))) clevr_right $0))))",
+        "(lam (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_empty))) clevr_empty))) clevr_right $0))))",
+        "(lam (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_empty))) clevr_empty))) clevr_empty))) clevr_empty))) clevr_right $0))))",
+        "(lam (fn_0 (clevr_query_color (clevr_car $0)) clevr_yellow $0))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_query_color (clevr_car $0)) clevr_yellow))",
+        "(lam (clevr_if (clevr_eq_shape clevr_cylinder (clevr_query_shape (clevr_car $0))) clevr_yellow (clevr_query_color (clevr_car $0))))",
+        "(lam (clevr_if (clevr_eq_shape clevr_sphere (clevr_query_shape (clevr_car $0))) (clevr_query_color (clevr_car $0)) clevr_yellow))",
+        "(lam (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_cyan) clevr_yellow (clevr_query_color (clevr_car $0))))",
+        "(lam (fn_0 clevr_large clevr_small $0))",
+        "(lam (clevr_if (clevr_eq_shape clevr_cylinder (clevr_query_shape (clevr_car $0))) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_metal (clevr_car $0))) clevr_cylinder) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_rubber (clevr_car $0))) clevr_cylinder) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_size clevr_small (clevr_car $0))) clevr_cylinder) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_metal) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_rubber) clevr_large clevr_small))",
+        "(lam (clevr_if (clevr_eq_material clevr_metal (clevr_query_material (clevr_car $0))) clevr_small clevr_large))",
+        "(lam (fn_5 clevr_small clevr_large (clevr_car $0)))",
+        "(lam (clevr_if (clevr_gt? (clevr_count $0) 9) clevr_large clevr_small))",
+        "(lam (clevr_if (clevr_eq_material (fn_0 clevr_rubber clevr_metal $0) (clevr_query_material (clevr_car $0))) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) (fn_5 clevr_cylinder clevr_cube (clevr_car $0))) clevr_small clevr_large))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) (fn_5 clevr_cylinder clevr_sphere (clevr_car $0))) clevr_small clevr_large))",
+        "(lam (fn_6 $0 (clevr_eq_size clevr_large clevr_small)))",
+        "(lam (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) (fn_5 clevr_cylinder clevr_cube (clevr_transform_color clevr_gray (clevr_car $0)))) clevr_small clevr_large))",
+        "(lam (clevr_fold $0 $0 (lam (lam (clevr_map (lam (fn_5 $0 $2 $0)) $0)))))",
+        "(lam (clevr_fold $0 $0 (lam (lam (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $1)) (clevr_add $1 clevr_empty) $0)))))",
+        "(lam (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $0)) $0 $2)) $0)))))",
+        "(lam (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $2)) $2 $0)) $0)))))",
+        "(lam (clevr_intersect $0 (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $0)) (clevr_transform_material clevr_rubber $0) $2)) $0))))))",
+        "(lam (clevr_intersect $0 (clevr_fold $0 $0 (lam (lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $2)) (clevr_transform_material clevr_rubber $2) $0)) $0))))))",
+        "(lam (clevr_count (clevr_fold $0 $0 (lam (lam (clevr_map (lam (fn_5 $2 $0 $0)) $0))))))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color (clevr_query_color $0) clevr_yellow) (clevr_transform_size clevr_small $0) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small $0) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small (clevr_transform_size clevr_small $0)) $0)) $0))",
+        "(lam (fn_3 $0 (lam (clevr_transform_size clevr_small $0)) clevr_yellow))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small $0) $0)) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color (clevr_query_color $0) clevr_blue) (clevr_transform_material clevr_rubber $0) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber $0) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber (clevr_transform_material clevr_rubber $0)) $0)) $0))",
+        "(lam (fn_3 $0 (lam (clevr_transform_material clevr_rubber $0)) clevr_blue))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber $0) $0)) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color (clevr_query_color $0) clevr_red) (clevr_transform_size clevr_large $0) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) (clevr_transform_size clevr_large $0) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) (clevr_transform_size clevr_large (clevr_transform_size clevr_large $0)) $0)) $0))",
+        "(lam (clevr_map (lam (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) (clevr_transform_size (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) clevr_large clevr_small) $0) $0)) $0))",
+        "(lam (fn_3 $0 (lam (clevr_transform_size clevr_large $0)) clevr_red))"
+    ],
+    "rewritten_dreamcoder": [
+        "(lambda (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_green))",
+        "(lambda (clevr_eq_color clevr_green (clevr_query_color (clevr_car $0))))",
+        "(lambda (clevr_eq_color (clevr_query_color (clevr_transform_material clevr_metal (clevr_car $0))) clevr_green))",
+        "(lambda (clevr_eq_color (clevr_query_color (clevr_transform_material clevr_rubber (clevr_car $0))) clevr_green))",
+        "(lambda (clevr_eq_color (clevr_query_color (clevr_transform_size clevr_small (clevr_car $0))) clevr_green))",
+        "(lambda (clevr_gt? 1 (clevr_count (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_left))))",
+        "(lambda (clevr_gt? 2 (clevr_count (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_left))))",
+        "(lambda (clevr_lt? (clevr_count (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_left)) 1))",
+        "(lambda (clevr_lt? (clevr_count (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_left)) 2))",
+        "(lambda (clevr_lt? (clevr_count (clevr_relate (clevr_transform_material clevr_rubber (clevr_car $0)) clevr_left $0)) 1))",
+        "(lambda (clevr_eq_material (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_gt? (clevr_count $0) 9)) clevr_rubber))",
+        "(lambda (clevr_eq_size (clevr_if (clevr_gt? (clevr_count $0) 9) clevr_large clevr_small) clevr_small))",
+        "(lambda (clevr_eq_size (clevr_if (clevr_gt? (clevr_count $0) 9) clevr_small clevr_large) clevr_large))",
+        "(lambda (clevr_eq_size (clevr_if (clevr_lt? 9 (clevr_count $0)) clevr_large clevr_small) clevr_small))",
+        "(lambda (clevr_eq_size (clevr_if (clevr_lt? 9 (clevr_count $0)) clevr_small clevr_large) clevr_large))",
+        "(lambda (clevr_eq_material (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_blue)) clevr_rubber))",
+        "(lambda (clevr_eq_size (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_blue) clevr_large clevr_small) clevr_small))",
+        "(lambda (clevr_eq_size (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_blue) clevr_small clevr_large) clevr_large))",
+        "(lambda (clevr_eq_size (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_large clevr_small) clevr_small))",
+        "(lambda (clevr_eq_size (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_small clevr_large) clevr_large))",
+        "(lambda (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_behind))) clevr_metal) 0 1))",
+        "(lambda (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_behind))) clevr_rubber) 1 0))",
+        "(lambda (clevr_if (clevr_eq_material (clevr_query_material (clevr_transform_size clevr_large (clevr_car (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_behind)))) clevr_metal) 0 1))",
+        "(lambda (clevr_if (clevr_eq_material (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_material (clevr_query_material (clevr_car (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_behind))) clevr_metal)) clevr_metal) 0 1))",
+        "(lambda (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_relate (clevr_car (clevr_map (lambda (clevr_car $1)) (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_behind))) clevr_behind $0))) clevr_metal) 0 1))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) 0 2 (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right)))",
+        "(lambda (clevr_if (clevr_eq_shape clevr_cylinder (clevr_query_shape (clevr_car (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right)))) 2 0))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) 0 2 (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) 0 2 (clevr_map (lambda $0) (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right))))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) 0 2 (clevr_relate (clevr_car (clevr_map (lambda (clevr_car $1)) (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right))) clevr_right $0)))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) $1 $2)))) (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) 1 3 (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_behind)) 0 $0))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_small clevr_large))",
+        "(lambda (clevr_if (clevr_eq_shape clevr_sphere (clevr_query_shape (clevr_car $0))) clevr_small clevr_large))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_metal (clevr_car $0))) clevr_sphere) clevr_small clevr_large))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_rubber (clevr_car $0))) clevr_sphere) clevr_small clevr_large))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_size clevr_small (clevr_car $0))) clevr_sphere) clevr_small clevr_large))",
+        "(lambda (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_blue) (clevr_query_size (clevr_car $0)) clevr_small))",
+        "(lambda (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_yellow) clevr_small (clevr_query_size (clevr_car $0))))",
+        "(lambda (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) (clevr_query_size (clevr_car $0)) clevr_small))",
+        "(lambda (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color (clevr_car $0))) clevr_small (clevr_query_size (clevr_car $0))))",
+        "(lambda (clevr_if (#(lambda (lambda (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) $1))) 3 $0) clevr_large clevr_small))",
+        "(lambda (#(lambda (lambda (clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $1)) clevr_sphere) $0 (clevr_gt? (clevr_count $1) 6)) clevr_small clevr_large))) $0 (#(lambda (clevr_gt? (clevr_count $0) 4)) $0)))",
+        "(lambda (#(lambda (lambda (clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $1)) clevr_sphere) $0 (clevr_gt? (clevr_count $1) 6)) clevr_small clevr_large))) $0 (clevr_lt? 4 (clevr_count $0))))",
+        "(lambda (clevr_if (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) (clevr_gt? (clevr_count $0) 6) $0) clevr_small clevr_large))",
+        "(lambda (#(lambda (lambda (clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $1)) clevr_sphere) $0 (clevr_gt? (clevr_count $1) 6)) clevr_small clevr_large))) $0 (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0)))))",
+        "(lambda (#(lambda (lambda (clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $1)) clevr_sphere) $0 (clevr_gt? (clevr_count $1) 6)) clevr_small clevr_large))) $0 (clevr_lt? (clevr_count (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right)) 3)))",
+        "(lambda (clevr_if (#(lambda (lambda (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) $1))) 0 $0) (clevr_query_color (clevr_car $0)) clevr_red))",
+        "(lambda (clevr_if (clevr_gt? (clevr_count (clevr_map (lambda (clevr_car $1)) (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right))) 0) (clevr_query_color (clevr_car $0)) clevr_red))",
+        "(lambda (clevr_if (clevr_eq_size (clevr_if (clevr_lt? (clevr_count (clevr_map (lambda (clevr_car $1)) (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right))) 1) clevr_large clevr_small) clevr_small) (clevr_query_color (clevr_car $0)) clevr_red))",
+        "(lambda (clevr_if (clevr_gt? (clevr_count (clevr_map (lambda (clevr_car (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $1 clevr_right))) (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right))) 0) (clevr_query_color (clevr_car $0)) clevr_red))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) $1 $2)))) clevr_red (clevr_query_color (clevr_car $0)) (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_right $0)) clevr_empty))) clevr_right $0)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_green)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_color clevr_green (clevr_query_color (clevr_car $0)))))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_material clevr_metal (clevr_car $0))))))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_material clevr_rubber (clevr_car $0))))))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_size clevr_small (clevr_car $0))))))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_size (clevr_if (clevr_eq_color clevr_cyan (clevr_query_color (clevr_car $0))) clevr_small clevr_large) (clevr_query_size (clevr_car $0)))))",
+        "(lambda (clevr_if (clevr_eq_color clevr_green (clevr_query_color (clevr_car $0))) clevr_metal (clevr_query_material (clevr_car (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_left)))))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (#(lambda (lambda (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) $1))) (clevr_if (clevr_gt? (clevr_count $0) 6) 8 2) $0)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (#(lambda (lambda (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) $1))) (clevr_if (clevr_gt? (clevr_count $0) 6) 9 2) $0)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (#(lambda (lambda (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) $1))) (clevr_if (clevr_gt? (clevr_count $0) 6) (clevr_count $0) 2) $0)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_size (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) clevr_small (clevr_query_size (clevr_car $0)) $0) clevr_small)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_size (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) clevr_large clevr_small $0) (clevr_query_size (clevr_car $0)))))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_size (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_small (clevr_query_size (clevr_car $0))) clevr_small)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_gt? (clevr_count $0) (clevr_if (clevr_gt? (clevr_count $0) 9) (clevr_count $0) 5))))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) (#(lambda (clevr_gt? (clevr_count $0) 4)) $0) (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) $0)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (#(lambda (clevr_gt? (clevr_count $0) 4)) $0)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_gt? (clevr_count $0) 5)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_gt? (clevr_count $0) 6)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_gt? (clevr_count $0) 7)))",
+        "(lambda (clevr_if (clevr_gt? 7 (clevr_count $0)) clevr_rubber clevr_metal))",
+        "(lambda (clevr_if (clevr_gt? (clevr_count (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_front)) 2) clevr_sphere clevr_cylinder))",
+        "(lambda (clevr_if (#(lambda (lambda (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) $1))) 0 $0) clevr_sphere clevr_cylinder))",
+        "(lambda (clevr_if (clevr_lt? (clevr_count (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_front)) 3) clevr_cylinder clevr_sphere))",
+        "(lambda (clevr_if (clevr_lt? (clevr_count (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right)) 1) clevr_cylinder clevr_sphere))",
+        "(lambda (clevr_if (clevr_lt? 2 (clevr_count (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_front))) clevr_sphere clevr_cylinder))",
+        "(lambda (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_metal) clevr_cylinder clevr_cube))",
+        "(lambda (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_rubber) clevr_cube clevr_cylinder))",
+        "(lambda (clevr_if (clevr_eq_material clevr_metal (clevr_query_material (clevr_car $0))) clevr_cylinder clevr_cube))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2)))) clevr_cylinder clevr_cube (clevr_car $0)))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) clevr_cylinder clevr_cube $0))",
+        "(lambda (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_sphere (#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2)))) clevr_cylinder clevr_cube (clevr_car $0))))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2)))) (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_sphere clevr_cylinder) clevr_cube (clevr_car $0)))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2)))) (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_sphere clevr_cylinder) clevr_cube (clevr_transform_size clevr_small (clevr_car $0))))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2)))) (clevr_if (#(lambda (lambda (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) $1))) 2 $0) clevr_sphere clevr_cylinder) clevr_cube (clevr_car $0)))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2)))) (clevr_if (clevr_lt? (clevr_count (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_left)) 1) clevr_sphere clevr_cylinder) clevr_cube (clevr_car $0)))",
+        "(lambda (clevr_if (clevr_eq_size (clevr_query_size (clevr_car (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right))) clevr_large) clevr_cube clevr_sphere))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) $1 $2)))) clevr_cube clevr_sphere (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right)))",
+        "(lambda (clevr_if (clevr_eq_size clevr_large (clevr_query_size (clevr_car (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right)))) clevr_cube clevr_sphere))",
+        "(lambda (clevr_if (clevr_eq_size clevr_small (clevr_query_size (clevr_car (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right)))) clevr_sphere clevr_cube))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) $1 $2)))) (#(lambda (lambda (lambda (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) $1 $2)))) clevr_cube clevr_sphere $0) clevr_sphere (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right)))",
+        "(lambda (clevr_if (#(lambda (clevr_gt? (clevr_count $0) 4)) $0) 3 2))",
+        "(lambda (clevr_if (clevr_gt? (clevr_count $0) 5) 3 2))",
+        "(lambda (clevr_if (clevr_gt? (clevr_count $0) 6) 3 2))",
+        "(lambda (clevr_if (clevr_lt? (clevr_count $0) 5) 2 3))",
+        "(lambda (clevr_if (clevr_lt? (clevr_count $0) 6) 2 3))",
+        "(lambda (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_large) 1 0))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) $1 $2)))) 1 0 $0))",
+        "(lambda (clevr_if (clevr_eq_size clevr_large (clevr_query_size (clevr_car $0))) 1 0))",
+        "(lambda (clevr_if (clevr_eq_size clevr_small (clevr_query_size (clevr_car $0))) 0 1))",
+        "(lambda (clevr_if (clevr_lt? (clevr_count $0) 7) 1 0))",
+        "(lambda (clevr_count (clevr_map (lambda (clevr_car $1)) (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_behind))))",
+        "(lambda (clevr_count (clevr_map (lambda (clevr_car $1)) (clevr_relate (clevr_transform_material clevr_metal (clevr_car $0)) clevr_behind $0))))",
+        "(lambda (clevr_count (clevr_map (lambda (clevr_car $1)) (clevr_relate (clevr_transform_material clevr_rubber (clevr_car $0)) clevr_behind $0))))",
+        "(lambda (clevr_count (clevr_map (lambda (clevr_car $1)) (clevr_relate (clevr_transform_size clevr_large (clevr_car $0)) clevr_behind $0))))",
+        "(lambda (clevr_count (clevr_map (lambda (clevr_car $1)) (clevr_relate (clevr_transform_size clevr_small (clevr_car $0)) clevr_behind $0))))",
+        "(lambda (clevr_if (#(lambda (lambda (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) $1))) 2 $0) 3 (clevr_if (#(lambda (clevr_gt? (clevr_count $0) 4)) $0) 0 2)))",
+        "(lambda (clevr_if (#(lambda (lambda (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) $1))) 2 $0) 3 (clevr_if (clevr_gt? (clevr_count $0) 6) 0 2)))",
+        "(lambda (clevr_count (clevr_map (lambda (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cylinder) $0 (clevr_car $1))) (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_behind))))",
+        "(lambda (clevr_count (clevr_map (lambda (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cylinder) (clevr_transform_material clevr_metal $0) (clevr_car $1))) (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_behind))))",
+        "(lambda (clevr_count (#(lambda (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_shape (clevr_query_shape $0) $1) (clevr_transform_material clevr_rubber $0) $2)) $2)))) (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_behind) (clevr_car $0) clevr_cylinder)))",
+        "(lambda (clevr_count (clevr_map (lambda (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cylinder) (clevr_transform_size clevr_large $0) (clevr_car $1))) (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_behind))))",
+        "(lambda (clevr_count (clevr_map (lambda (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cylinder) (clevr_transform_material (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) clevr_rubber clevr_metal $1) $0) (clevr_car $1))) (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_behind))))",
+        "(lambda (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) clevr_metal) 2 (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) 1 0 $0)))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2)))) 2 (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) 1 0 $0) (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) clevr_metal) 2 1) 0 $0))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) (#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2)))) 2 1 (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) 0 $0))",
+        "(lambda (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) clevr_metal) 2 (clevr_count (clevr_map (lambda (clevr_car $1)) (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_front)))))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cube) 1 2))",
+        "(lambda (clevr_if (clevr_eq_shape clevr_cube (clevr_query_shape (clevr_car $0))) 1 2))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_metal (clevr_car $0))) clevr_cube) 1 2))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_rubber (clevr_car $0))) clevr_cube) 1 2))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_size clevr_small (clevr_car $0))) clevr_cube) 1 2))",
+        "(lambda (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color (clevr_car $0))) clevr_sphere (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_cube clevr_cylinder)))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_if (clevr_lt? (clevr_count (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right)) 1) clevr_cube clevr_sphere) clevr_cylinder))",
+        "(lambda (clevr_if (#(lambda (lambda (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) $1))) 0 $0) (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_sphere clevr_cylinder) clevr_cube))",
+        "(lambda (clevr_if (#(lambda (lambda (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) $1))) 6 $0) clevr_sphere (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_cube clevr_cylinder)))",
+        "(lambda (clevr_if (clevr_lt? (clevr_count (#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1))) $0 clevr_right)) 1) clevr_cube (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_sphere clevr_cylinder)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_gt? (clevr_count $0) 3)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (#(lambda (clevr_gt? (clevr_count $0) 4)) $0)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_gt? (clevr_count $0) 5)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_gt? (clevr_count $0) 6)))",
+        "(lambda (clevr_if (clevr_gt? 7 (clevr_count $0)) clevr_rubber clevr_metal))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_size (clevr_if (#(lambda (clevr_gt? (clevr_count $0) 4)) $0) (clevr_query_size (clevr_car $0)) clevr_small) clevr_small)))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_size (clevr_if (clevr_eq_color clevr_brown (clevr_query_color (clevr_car $0))) clevr_large clevr_small) (clevr_query_size (clevr_car $0)))))",
+        "(lambda (clevr_query_material (clevr_car (clevr_difference $0 (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_behind $0)))))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_size (clevr_if (clevr_eq_color clevr_brown (clevr_query_color (clevr_car $0))) (clevr_query_size (clevr_car $0)) clevr_small) (clevr_query_size (clevr_car $0)))))",
+        "(lambda (clevr_query_material (clevr_if (clevr_eq_color clevr_red (clevr_query_color (clevr_car $0))) (clevr_transform_size clevr_large (clevr_car $0)) (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))))))",
+        "(lambda (clevr_if (#(lambda (clevr_gt? (clevr_count $0) 4)) $0) (clevr_query_material (clevr_car $0)) clevr_rubber))",
+        "(lambda (clevr_if (clevr_gt? 5 (clevr_count $0)) clevr_rubber (clevr_query_material (clevr_car $0))))",
+        "(lambda (clevr_if (clevr_lt? (clevr_count $0) 5) clevr_rubber (clevr_query_material (clevr_car $0))))",
+        "(lambda (clevr_if (clevr_lt? 4 (clevr_count $0)) (clevr_query_material (clevr_car $0)) clevr_rubber))",
+        "(lambda (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_gray) (clevr_query_material (clevr_car $0)) clevr_rubber))",
+        "(lambda (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_metal) clevr_rubber clevr_metal))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_rubber)))",
+        "(lambda (clevr_if (clevr_eq_material clevr_metal (clevr_query_material (clevr_car $0))) clevr_rubber clevr_metal))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0)))))",
+        "(lambda (#(lambda (clevr_if $0 clevr_metal clevr_rubber)) (clevr_eq_material (clevr_query_material (clevr_transform_size clevr_small (clevr_car $0))) clevr_rubber)))",
+        "(lambda (clevr_query_color (clevr_car (clevr_fold $0 $0 (lambda (lambda (#(lambda (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_shape (clevr_query_shape $0) $1) (clevr_transform_material clevr_rubber $0) $2)) $2)))) $0 $1 clevr_cube)))))))",
+        "(lambda (clevr_query_color (clevr_car (clevr_fold $0 $0 (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cube) (clevr_transform_size clevr_large $0) $2)) $0)))))))",
+        "(lambda (clevr_query_color (clevr_car (clevr_fold $0 $0 (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_shape (clevr_query_shape $2) clevr_cube) (clevr_transform_material clevr_rubber $2) $0)) $0)))))))",
+        "(lambda (clevr_query_color (clevr_car (clevr_fold $0 $0 (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $1)) clevr_cube) (clevr_transform_material clevr_rubber $0) $2)) $0)))))))",
+        "(lambda (clevr_query_color (clevr_car (clevr_fold $0 $0 (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $1)) clevr_cube) (clevr_transform_size clevr_large $0) $2)) $0)))))))",
+        "(lambda (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_right $0))))",
+        "(lambda (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_transform_material clevr_rubber (clevr_car $0)) clevr_empty))) clevr_right $0))))",
+        "(lambda (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 clevr_empty)) clevr_empty))) clevr_right $0))))",
+        "(lambda (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_empty))) clevr_empty))) clevr_right $0))))",
+        "(lambda (clevr_query_color (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_empty))) clevr_empty))) clevr_empty))) clevr_empty))) clevr_right $0))))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) (clevr_query_color (clevr_car $0)) clevr_yellow $0))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_query_color (clevr_car $0)) clevr_yellow))",
+        "(lambda (clevr_if (clevr_eq_shape clevr_cylinder (clevr_query_shape (clevr_car $0))) clevr_yellow (clevr_query_color (clevr_car $0))))",
+        "(lambda (clevr_if (clevr_eq_shape clevr_sphere (clevr_query_shape (clevr_car $0))) (clevr_query_color (clevr_car $0)) clevr_yellow))",
+        "(lambda (clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_cyan) clevr_yellow (clevr_query_color (clevr_car $0))))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) clevr_large clevr_small $0))",
+        "(lambda (clevr_if (clevr_eq_shape clevr_cylinder (clevr_query_shape (clevr_car $0))) clevr_small clevr_large))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_metal (clevr_car $0))) clevr_cylinder) clevr_small clevr_large))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_material clevr_rubber (clevr_car $0))) clevr_cylinder) clevr_small clevr_large))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_transform_size clevr_small (clevr_car $0))) clevr_cylinder) clevr_small clevr_large))",
+        "(lambda (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_metal) clevr_small clevr_large))",
+        "(lambda (clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_rubber) clevr_large clevr_small))",
+        "(lambda (clevr_if (clevr_eq_material clevr_metal (clevr_query_material (clevr_car $0))) clevr_small clevr_large))",
+        "(lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2)))) clevr_small clevr_large (clevr_car $0)))",
+        "(lambda (clevr_if (clevr_gt? (clevr_count $0) 9) clevr_large clevr_small))",
+        "(lambda (clevr_if (clevr_eq_material (#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2)))) clevr_rubber clevr_metal $0) (clevr_query_material (clevr_car $0))) clevr_small clevr_large))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) (#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2)))) clevr_cylinder clevr_cube (clevr_car $0))) clevr_small clevr_large))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) (#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2)))) clevr_cylinder clevr_sphere (clevr_car $0))) clevr_small clevr_large))",
+        "(lambda (#(lambda (lambda (clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $1)) clevr_sphere) $0 (clevr_gt? (clevr_count $1) 6)) clevr_small clevr_large))) $0 (clevr_eq_size clevr_large clevr_small)))",
+        "(lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) (#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2)))) clevr_cylinder clevr_cube (clevr_transform_color clevr_gray (clevr_car $0)))) clevr_small clevr_large))",
+        "(lambda (clevr_fold $0 $0 (lambda (lambda (clevr_map (lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2)))) $0 $2 $0)) $0)))))",
+        "(lambda (clevr_fold $0 $0 (lambda (lambda (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $1)) (clevr_add $1 clevr_empty) $0)))))",
+        "(lambda (clevr_fold $0 $0 (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $0)) $0 $2)) $0)))))",
+        "(lambda (clevr_fold $0 $0 (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $2)) $2 $0)) $0)))))",
+        "(lambda (clevr_intersect $0 (clevr_fold $0 $0 (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $0)) (clevr_transform_material clevr_rubber $0) $2)) $0))))))",
+        "(lambda (clevr_intersect $0 (clevr_fold $0 $0 (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_color clevr_purple (clevr_query_color $2)) (clevr_transform_material clevr_rubber $2) $0)) $0))))))",
+        "(lambda (clevr_count (clevr_fold $0 $0 (lambda (lambda (clevr_map (lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2)))) $2 $0 $0)) $0))))))",
+        "(lambda (clevr_map (lambda (clevr_if (clevr_eq_color (clevr_query_color $0) clevr_yellow) (clevr_transform_size clevr_small $0) $0)) $0))",
+        "(lambda (clevr_map (lambda (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small $0) $0)) $0))",
+        "(lambda (clevr_map (lambda (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small (clevr_transform_size clevr_small $0)) $0)) $0))",
+        "(lambda (#(lambda (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_color $1 (clevr_query_color $0)) ($2 $0) (clevr_if (clevr_eq_color $1 (clevr_query_color $0)) ($2 $0) $0))) $2)))) $0 (lambda (clevr_transform_size clevr_small $0)) clevr_yellow))",
+        "(lambda (clevr_map (lambda (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small $0) $0)) $0)) $0))",
+        "(lambda (clevr_map (lambda (clevr_if (clevr_eq_color (clevr_query_color $0) clevr_blue) (clevr_transform_material clevr_rubber $0) $0)) $0))",
+        "(lambda (clevr_map (lambda (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber $0) $0)) $0))",
+        "(lambda (clevr_map (lambda (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber (clevr_transform_material clevr_rubber $0)) $0)) $0))",
+        "(lambda (#(lambda (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_color $1 (clevr_query_color $0)) ($2 $0) (clevr_if (clevr_eq_color $1 (clevr_query_color $0)) ($2 $0) $0))) $2)))) $0 (lambda (clevr_transform_material clevr_rubber $0)) clevr_blue))",
+        "(lambda (clevr_map (lambda (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber $0) $0)) $0)) $0))",
+        "(lambda (clevr_map (lambda (clevr_if (clevr_eq_color (clevr_query_color $0) clevr_red) (clevr_transform_size clevr_large $0) $0)) $0))",
+        "(lambda (clevr_map (lambda (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) (clevr_transform_size clevr_large $0) $0)) $0))",
+        "(lambda (clevr_map (lambda (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) (clevr_transform_size clevr_large (clevr_transform_size clevr_large $0)) $0)) $0))",
+        "(lambda (clevr_map (lambda (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) (clevr_transform_size (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) clevr_large clevr_small) $0) $0)) $0))",
+        "(lambda (#(lambda (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_color $1 (clevr_query_color $0)) ($2 $0) (clevr_if (clevr_eq_color $1 (clevr_query_color $0)) ($2 $0) $0))) $2)))) $0 (lambda (clevr_transform_size clevr_large $0)) clevr_red))"
+    ],
+    "abstractions": [
+        {
+            "body": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car #2)) clevr_cylinder) #1 #0)",
+            "dreamcoder": "#(lambda (lambda (lambda (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) $1 $2))))",
+            "arity": 3,
+            "name": "fn_0",
+            "utility": 3434,
+            "final_cost": 45668,
+            "compression_ratio": 1.0751948848208812,
+            "cumulative_compression_ratio": 1.0751948848208812,
+            "num_uses": 18,
+            "rewritten": null,
+            "rewritten_dreamcoder": null,
+            "uses": [
+                {
+                    "fn_0 (clevr_gt? (clevr_count $0) 4) (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) $0": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) (clevr_gt? (clevr_count $0) 4))"
+                },
+                {
+                    "fn_0 (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) (clevr_gt? (clevr_count $0) 6) $0": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) (clevr_gt? (clevr_count $0) 6) (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))))"
+                },
+                {
+                    "fn_0 clevr_small (clevr_query_size (clevr_car $0)) $0": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) (clevr_query_size (clevr_car $0)) clevr_small)"
+                },
+                {
+                    "fn_0 (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) clevr_metal) 2 1) 0 $0": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) 0 (clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) clevr_metal) 2 1))"
+                },
+                {
+                    "fn_0 (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))))) 1 2) 0 $0": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) 0 (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))))) 1 2))"
+                },
+                {
+                    "fn_0 1 0 $0": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) 0 1)"
+                },
+                {
+                    "fn_0 clevr_cylinder clevr_cube $0": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) clevr_cube clevr_cylinder)"
+                },
+                {
+                    "fn_0 clevr_rubber clevr_metal $0": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_0 clevr_large clevr_small $0": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) clevr_small clevr_large)"
+                },
+                {
+                    "fn_0 (clevr_query_color (clevr_car $0)) clevr_yellow $0": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_cylinder) clevr_yellow (clevr_query_color (clevr_car $0)))"
+                },
+                {
+                    "fn_0 clevr_rubber clevr_metal $1": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $1)) clevr_cylinder) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_0 0 2 (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))) clevr_cylinder) 2 0)"
+                },
+                {
+                    "fn_0 0 2 (clevr_map (lam $0) (clevr_relate (clevr_car $0) clevr_right $0))": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car (clevr_map (lam $0) (clevr_relate (clevr_car $0) clevr_right $0)))) clevr_cylinder) 2 0)"
+                },
+                {
+                    "fn_0 1 3 (clevr_relate (clevr_car $0) clevr_behind $0)": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car (clevr_relate (clevr_car $0) clevr_behind $0))) clevr_cylinder) 3 1)"
+                },
+                {
+                    "fn_0 0 2 (clevr_relate (clevr_car $0) clevr_right $0)": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car (clevr_relate (clevr_car $0) clevr_right $0))) clevr_cylinder) 2 0)"
+                },
+                {
+                    "fn_0 0 2 (clevr_relate (clevr_car (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_car $0) clevr_right $0))) clevr_right $0)": "(clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car (clevr_relate (clevr_car (clevr_map (lam (clevr_car $1)) (clevr_relate (clevr_car $0) clevr_right $0))) clevr_right $0))) clevr_cylinder) 2 0)"
+                }
+            ],
+            "dc_comparison_millis": null
+        },
+        {
+            "body": "(clevr_gt? (clevr_count (clevr_relate (clevr_car #1) clevr_right #1)) #0)",
+            "dreamcoder": "#(lambda (lambda (clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) $1)))",
+            "arity": 2,
+            "name": "fn_1",
+            "utility": 2525,
+            "final_cost": 43143,
+            "compression_ratio": 1.0585262962705422,
+            "cumulative_compression_ratio": 1.1381220591984795,
+            "num_uses": 11,
+            "rewritten": null,
+            "rewritten_dreamcoder": null,
+            "uses": [
+                {
+                    "fn_1 (clevr_if (clevr_gt? (clevr_count $0) 6) (clevr_count $0) 2) $0": "(clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) (clevr_if (clevr_gt? (clevr_count $0) 6) (clevr_count $0) 2))"
+                },
+                {
+                    "fn_1 (clevr_if (clevr_gt? (clevr_count $0) 6) 8 2) $0": "(clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) (clevr_if (clevr_gt? (clevr_count $0) 6) 8 2))"
+                },
+                {
+                    "fn_1 (clevr_if (clevr_gt? (clevr_count $0) 6) 9 2) $0": "(clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) (clevr_if (clevr_gt? (clevr_count $0) 6) 9 2))"
+                },
+                {
+                    "fn_1 0 $0": "(clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 0)"
+                },
+                {
+                    "fn_1 2 $0": "(clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 2)"
+                },
+                {
+                    "fn_1 3 $0": "(clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 3)"
+                },
+                {
+                    "fn_1 6 $0": "(clevr_gt? (clevr_count (clevr_relate (clevr_car $0) clevr_right $0)) 6)"
+                }
+            ],
+            "dc_comparison_millis": null
+        },
+        {
+            "body": "(clevr_if #0 clevr_metal clevr_rubber)",
+            "dreamcoder": "#(lambda (clevr_if $0 clevr_metal clevr_rubber))",
+            "arity": 1,
+            "name": "fn_2",
+            "utility": 1818,
+            "final_cost": 41325,
+            "compression_ratio": 1.0439927404718694,
+            "cumulative_compression_ratio": 1.1881911675741077,
+            "num_uses": 31,
+            "rewritten": null,
+            "rewritten_dreamcoder": null,
+            "uses": [
+                {
+                    "fn_2 (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_blue)": "(clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_blue) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_green)": "(clevr_if (clevr_eq_color (clevr_query_color (clevr_car $0)) clevr_green) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_color clevr_green (clevr_query_color (clevr_car $0)))": "(clevr_if (clevr_eq_color clevr_green (clevr_query_color (clevr_car $0))) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_material clevr_metal (clevr_car $0))))": "(clevr_if (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_material clevr_metal (clevr_car $0)))) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_material clevr_rubber (clevr_car $0))))": "(clevr_if (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_material clevr_rubber (clevr_car $0)))) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_size clevr_small (clevr_car $0))))": "(clevr_if (clevr_eq_color clevr_green (clevr_query_color (clevr_transform_size clevr_small (clevr_car $0)))) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_rubber)": "(clevr_if (clevr_eq_material (clevr_query_material (clevr_car $0)) clevr_rubber) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_material (clevr_query_material (clevr_car (clevr_relate (clevr_car $0) clevr_behind $0))) clevr_metal)": "(clevr_if (clevr_eq_material (clevr_query_material (clevr_car (clevr_relate (clevr_car $0) clevr_behind $0))) clevr_metal) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_material (clevr_query_material (clevr_transform_size clevr_small (clevr_car $0))) clevr_rubber)": "(clevr_if (clevr_eq_material (clevr_query_material (clevr_transform_size clevr_small (clevr_car $0))) clevr_rubber) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0)))": "(clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_size (clevr_if (clevr_eq_color clevr_brown (clevr_query_color (clevr_car $0))) (clevr_query_size (clevr_car $0)) clevr_small) (clevr_query_size (clevr_car $0)))": "(clevr_if (clevr_eq_size (clevr_if (clevr_eq_color clevr_brown (clevr_query_color (clevr_car $0))) (clevr_query_size (clevr_car $0)) clevr_small) (clevr_query_size (clevr_car $0))) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_size (clevr_if (clevr_eq_color clevr_brown (clevr_query_color (clevr_car $0))) clevr_large clevr_small) (clevr_query_size (clevr_car $0)))": "(clevr_if (clevr_eq_size (clevr_if (clevr_eq_color clevr_brown (clevr_query_color (clevr_car $0))) clevr_large clevr_small) (clevr_query_size (clevr_car $0))) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_size (clevr_if (clevr_eq_color clevr_cyan (clevr_query_color (clevr_car $0))) clevr_small clevr_large) (clevr_query_size (clevr_car $0)))": "(clevr_if (clevr_eq_size (clevr_if (clevr_eq_color clevr_cyan (clevr_query_color (clevr_car $0))) clevr_small clevr_large) (clevr_query_size (clevr_car $0))) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_size (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_small (clevr_query_size (clevr_car $0))) clevr_small)": "(clevr_if (clevr_eq_size (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) clevr_small (clevr_query_size (clevr_car $0))) clevr_small) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_size (clevr_if (clevr_gt? (clevr_count $0) 4) (clevr_query_size (clevr_car $0)) clevr_small) clevr_small)": "(clevr_if (clevr_eq_size (clevr_if (clevr_gt? (clevr_count $0) 4) (clevr_query_size (clevr_car $0)) clevr_small) clevr_small) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_size (fn_0 clevr_large clevr_small $0) (clevr_query_size (clevr_car $0)))": "(clevr_if (clevr_eq_size (fn_0 clevr_large clevr_small $0) (clevr_query_size (clevr_car $0))) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_eq_size (fn_0 clevr_small (clevr_query_size (clevr_car $0)) $0) clevr_small)": "(clevr_if (clevr_eq_size (fn_0 clevr_small (clevr_query_size (clevr_car $0)) $0) clevr_small) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_gt? (clevr_count $0) (clevr_if (clevr_gt? (clevr_count $0) 9) (clevr_count $0) 5))": "(clevr_if (clevr_gt? (clevr_count $0) (clevr_if (clevr_gt? (clevr_count $0) 9) (clevr_count $0) 5)) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_gt? (clevr_count $0) 3)": "(clevr_if (clevr_gt? (clevr_count $0) 3) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_gt? (clevr_count $0) 4)": "(clevr_if (clevr_gt? (clevr_count $0) 4) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_gt? (clevr_count $0) 5)": "(clevr_if (clevr_gt? (clevr_count $0) 5) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_gt? (clevr_count $0) 6)": "(clevr_if (clevr_gt? (clevr_count $0) 6) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_gt? (clevr_count $0) 7)": "(clevr_if (clevr_gt? (clevr_count $0) 7) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (clevr_gt? (clevr_count $0) 9)": "(clevr_if (clevr_gt? (clevr_count $0) 9) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (fn_0 (clevr_gt? (clevr_count $0) 4) (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) $0)": "(clevr_if (fn_0 (clevr_gt? (clevr_count $0) 4) (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) $0) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (fn_1 (clevr_if (clevr_gt? (clevr_count $0) 6) (clevr_count $0) 2) $0)": "(clevr_if (fn_1 (clevr_if (clevr_gt? (clevr_count $0) 6) (clevr_count $0) 2) $0) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (fn_1 (clevr_if (clevr_gt? (clevr_count $0) 6) 8 2) $0)": "(clevr_if (fn_1 (clevr_if (clevr_gt? (clevr_count $0) 6) 8 2) $0) clevr_metal clevr_rubber)"
+                },
+                {
+                    "fn_2 (fn_1 (clevr_if (clevr_gt? (clevr_count $0) 6) 9 2) $0)": "(clevr_if (fn_1 (clevr_if (clevr_gt? (clevr_count $0) 6) 9 2) $0) clevr_metal clevr_rubber)"
+                }
+            ],
+            "dc_comparison_millis": null
+        },
+        {
+            "body": "(clevr_map (lam (clevr_if (clevr_eq_color #2 (clevr_query_color $0)) (#1 $0) (clevr_if (clevr_eq_color #2 (clevr_query_color $0)) (#1 $0) $0))) #0)",
+            "dreamcoder": "#(lambda (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_color $1 (clevr_query_color $0)) ($2 $0) (clevr_if (clevr_eq_color $1 (clevr_query_color $0)) ($2 $0) $0))) $2))))",
+            "arity": 3,
+            "name": "fn_3",
+            "utility": 1515,
+            "final_cost": 39810,
+            "compression_ratio": 1.0380557648831952,
+            "cumulative_compression_ratio": 1.233408691283597,
+            "num_uses": 3,
+            "rewritten": null,
+            "rewritten_dreamcoder": null,
+            "uses": [
+                {
+                    "fn_3 $0 (clevr_transform_material clevr_rubber) clevr_blue": "(clevr_map (lam (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber $0) (clevr_if (clevr_eq_color clevr_blue (clevr_query_color $0)) (clevr_transform_material clevr_rubber $0) $0))) $0)"
+                },
+                {
+                    "fn_3 $0 (clevr_transform_size clevr_large) clevr_red": "(clevr_map (lam (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) (clevr_transform_size clevr_large $0) (clevr_if (clevr_eq_color clevr_red (clevr_query_color $0)) (clevr_transform_size clevr_large $0) $0))) $0)"
+                },
+                {
+                    "fn_3 $0 (clevr_transform_size clevr_small) clevr_yellow": "(clevr_map (lam (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small $0) (clevr_if (clevr_eq_color clevr_yellow (clevr_query_color $0)) (clevr_transform_size clevr_small $0) $0))) $0)"
+                }
+            ],
+            "dc_comparison_millis": null
+        },
+        {
+            "body": "(clevr_relate (clevr_car #0) #1 #0)",
+            "dreamcoder": "#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1)))",
+            "arity": 2,
+            "name": "fn_4",
+            "utility": 1414,
+            "final_cost": 38396,
+            "compression_ratio": 1.0368267527867485,
+            "cumulative_compression_ratio": 1.2788311282425253,
+            "num_uses": 39,
+            "rewritten": null,
+            "rewritten_dreamcoder": null,
+            "uses": [
+                {
+                    "fn_4 $0 clevr_behind": "(clevr_relate (clevr_car $0) clevr_behind $0)"
+                },
+                {
+                    "fn_4 $0 clevr_front": "(clevr_relate (clevr_car $0) clevr_front $0)"
+                },
+                {
+                    "fn_4 $0 clevr_left": "(clevr_relate (clevr_car $0) clevr_left $0)"
+                },
+                {
+                    "fn_4 $0 clevr_right": "(clevr_relate (clevr_car $0) clevr_right $0)"
+                },
+                {
+                    "fn_4 $1 clevr_right": "(clevr_relate (clevr_car $1) clevr_right $1)"
+                }
+            ],
+            "dc_comparison_millis": null
+        },
+        {
+            "body": "(clevr_if (clevr_eq_material clevr_rubber (clevr_query_material #2)) #1 #0)",
+            "dreamcoder": "#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2))))",
+            "arity": 3,
+            "name": "fn_5",
+            "utility": 1414,
+            "final_cost": 36982,
+            "compression_ratio": 1.0382348169379698,
+            "cumulative_compression_ratio": 1.3277270023254557,
+            "num_uses": 14,
+            "rewritten": null,
+            "rewritten_dreamcoder": null,
+            "uses": [
+                {
+                    "fn_5 $2 $0 $0": "(clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $0 $2)"
+                },
+                {
+                    "fn_5 $0 $2 $0": "(clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $2 $0)"
+                },
+                {
+                    "fn_5 (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_sphere clevr_cylinder) clevr_cube (clevr_car $0)": "(clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_cube (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_sphere clevr_cylinder))"
+                },
+                {
+                    "fn_5 (clevr_if (clevr_lt? (clevr_count (fn_4 $0 clevr_left)) 1) clevr_sphere clevr_cylinder) clevr_cube (clevr_car $0)": "(clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_cube (clevr_if (clevr_lt? (clevr_count (fn_4 $0 clevr_left)) 1) clevr_sphere clevr_cylinder))"
+                },
+                {
+                    "fn_5 (clevr_if (fn_1 2 $0) clevr_sphere clevr_cylinder) clevr_cube (clevr_car $0)": "(clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_cube (clevr_if (fn_1 2 $0) clevr_sphere clevr_cylinder))"
+                },
+                {
+                    "fn_5 clevr_cylinder clevr_cube (clevr_car $0)": "(clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_cube clevr_cylinder)"
+                },
+                {
+                    "fn_5 clevr_small clevr_large (clevr_car $0)": "(clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_large clevr_small)"
+                },
+                {
+                    "fn_5 clevr_cylinder clevr_sphere (clevr_car $0)": "(clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car $0))) clevr_sphere clevr_cylinder)"
+                },
+                {
+                    "fn_5 2 (fn_0 1 0 $0) (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))": "(clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))))) (fn_0 1 0 $0) 2)"
+                },
+                {
+                    "fn_5 2 1 (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty)))": "(clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))))) 1 2)"
+                },
+                {
+                    "fn_5 clevr_cylinder clevr_cube (clevr_transform_color clevr_gray (clevr_car $0))": "(clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_transform_color clevr_gray (clevr_car $0)))) clevr_cube clevr_cylinder)"
+                },
+                {
+                    "fn_5 (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_sphere clevr_cylinder) clevr_cube (clevr_transform_size clevr_small (clevr_car $0))": "(clevr_if (clevr_eq_material clevr_rubber (clevr_query_material (clevr_transform_size clevr_small (clevr_car $0)))) clevr_cube (clevr_if (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) clevr_sphere clevr_cylinder))"
+                }
+            ],
+            "dc_comparison_millis": null
+        },
+        {
+            "body": "(clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car #0)) clevr_sphere) #1 (clevr_gt? (clevr_count #0) 6)) clevr_small clevr_large)",
+            "dreamcoder": "#(lambda (lambda (clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $1)) clevr_sphere) $0 (clevr_gt? (clevr_count $1) 6)) clevr_small clevr_large)))",
+            "arity": 2,
+            "name": "fn_6",
+            "utility": 1414,
+            "final_cost": 35568,
+            "compression_ratio": 1.0397548358074673,
+            "cumulative_compression_ratio": 1.380510571300045,
+            "num_uses": 5,
+            "rewritten": null,
+            "rewritten_dreamcoder": null,
+            "uses": [
+                {
+                    "fn_6 $0 (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0)))": "(clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_eq_color clevr_blue (clevr_query_color (clevr_car $0))) (clevr_gt? (clevr_count $0) 6)) clevr_small clevr_large)"
+                },
+                {
+                    "fn_6 $0 (clevr_eq_size clevr_large clevr_small)": "(clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_eq_size clevr_large clevr_small) (clevr_gt? (clevr_count $0) 6)) clevr_small clevr_large)"
+                },
+                {
+                    "fn_6 $0 (clevr_gt? (clevr_count $0) 4)": "(clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_gt? (clevr_count $0) 4) (clevr_gt? (clevr_count $0) 6)) clevr_small clevr_large)"
+                },
+                {
+                    "fn_6 $0 (clevr_lt? (clevr_count (fn_4 $0 clevr_right)) 3)": "(clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_lt? (clevr_count (fn_4 $0 clevr_right)) 3) (clevr_gt? (clevr_count $0) 6)) clevr_small clevr_large)"
+                },
+                {
+                    "fn_6 $0 (clevr_lt? 4 (clevr_count $0))": "(clevr_if (clevr_if (clevr_eq_shape (clevr_query_shape (clevr_car $0)) clevr_sphere) (clevr_lt? 4 (clevr_count $0)) (clevr_gt? (clevr_count $0) 6)) clevr_small clevr_large)"
+                }
+            ],
+            "dc_comparison_millis": null
+        },
+        {
+            "body": "(clevr_gt? (clevr_count #0) 4)",
+            "dreamcoder": "#(lambda (clevr_gt? (clevr_count $0) 4))",
+            "arity": 1,
+            "name": "fn_7",
+            "utility": 1414,
+            "final_cost": 34154,
+            "compression_ratio": 1.0414007144111963,
+            "cumulative_compression_ratio": 1.4376646952040757,
+            "num_uses": 8,
+            "rewritten": null,
+            "rewritten_dreamcoder": null,
+            "uses": [
+                {
+                    "fn_7 $0": "(clevr_gt? (clevr_count $0) 4)"
+                }
+            ],
+            "dc_comparison_millis": null
+        },
+        {
+            "body": "(clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) #2) (clevr_transform_material clevr_rubber $0) #1)) #0)",
+            "dreamcoder": "#(lambda (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_shape (clevr_query_shape $0) $1) (clevr_transform_material clevr_rubber $0) $2)) $2))))",
+            "arity": 3,
+            "name": "fn_8",
+            "utility": 1214,
+            "final_cost": 32940,
+            "compression_ratio": 1.0368548876745598,
+            "cumulative_compression_ratio": 1.490649666059502,
+            "num_uses": 2,
+            "rewritten": null,
+            "rewritten_dreamcoder": null,
+            "uses": [
+                {
+                    "fn_8 $0 $1 clevr_cube": "(clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cube) (clevr_transform_material clevr_rubber $0) $2)) $0)"
+                },
+                {
+                    "fn_8 (fn_4 $0 clevr_behind) (clevr_car $0) clevr_cylinder": "(clevr_map (lam (clevr_if (clevr_eq_shape (clevr_query_shape $0) clevr_cylinder) (clevr_transform_material clevr_rubber $0) (clevr_car $1))) (fn_4 $0 clevr_behind))"
+                }
+            ],
+            "dc_comparison_millis": null
+        },
+        {
+            "body": "(clevr_if (clevr_eq_size (clevr_query_size (clevr_car #2)) clevr_small) #1 #0)",
+            "dreamcoder": "#(lambda (lambda (lambda (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) $1 $2))))",
+            "arity": 3,
+            "name": "fn_9",
+            "utility": 1111,
+            "final_cost": 31829,
+            "compression_ratio": 1.0349052750636212,
+            "cumulative_compression_ratio": 1.5426812026768042,
+            "num_uses": 6,
+            "rewritten": null,
+            "rewritten_dreamcoder": null,
+            "uses": [
+                {
+                    "fn_9 (fn_0 1 3 (fn_4 $0 clevr_behind)) 0 $0": "(clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) 0 (fn_0 1 3 (fn_4 $0 clevr_behind)))"
+                },
+                {
+                    "fn_9 1 0 $0": "(clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) 0 1)"
+                },
+                {
+                    "fn_9 clevr_cube clevr_sphere $0": "(clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) clevr_sphere clevr_cube)"
+                },
+                {
+                    "fn_9 clevr_red (clevr_query_color (clevr_car $0)) (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_right $0)) clevr_empty))) clevr_right $0)": "(clevr_if (clevr_eq_size (clevr_query_size (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car (clevr_relate (clevr_car (clevr_difference $0 (clevr_add (clevr_car $0) clevr_empty))) clevr_right $0)) clevr_empty))) clevr_right $0))) clevr_small) (clevr_query_color (clevr_car $0)) clevr_red)"
+                },
+                {
+                    "fn_9 (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) clevr_sphere clevr_cube) clevr_sphere (fn_4 $0 clevr_right)": "(clevr_if (clevr_eq_size (clevr_query_size (clevr_car (fn_4 $0 clevr_right))) clevr_small) clevr_sphere (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) clevr_sphere clevr_cube))"
+                },
+                {
+                    "fn_9 clevr_cube clevr_sphere (fn_4 $0 clevr_right)": "(clevr_if (clevr_eq_size (clevr_query_size (clevr_car (fn_4 $0 clevr_right))) clevr_small) clevr_sphere clevr_cube)"
+                }
+            ],
+            "dc_comparison_millis": null
+        }
+    ]
+}

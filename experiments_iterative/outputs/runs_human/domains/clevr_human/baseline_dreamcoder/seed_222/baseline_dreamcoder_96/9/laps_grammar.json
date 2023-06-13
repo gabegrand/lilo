@@ -1,0 +1,261 @@
+{
+    "logVariable": -0.5835849780484184,
+    "productions": [
+        {
+            "expression": "clevr_relate",
+            "logProbability": -3.679026441245915
+        },
+        {
+            "expression": "clevr_query_color",
+            "logProbability": -1.6294267382805385
+        },
+        {
+            "expression": "clevr_query_size",
+            "logProbability": -1.7937214082525141
+        },
+        {
+            "expression": "clevr_query_material",
+            "logProbability": -1.8012533802094826
+        },
+        {
+            "expression": "clevr_query_shape",
+            "logProbability": -1.6019055368830264
+        },
+        {
+            "expression": "clevr_eq_color",
+            "logProbability": -1.5496194172231892
+        },
+        {
+            "expression": "clevr_eq_size",
+            "logProbability": -2.230094046529368
+        },
+        {
+            "expression": "clevr_eq_material",
+            "logProbability": -2.039167642541895
+        },
+        {
+            "expression": "clevr_eq_shape",
+            "logProbability": -1.4402907909417433
+        },
+        {
+            "expression": "clevr_union",
+            "logProbability": -5.3293265483972565
+        },
+        {
+            "expression": "clevr_intersect",
+            "logProbability": -4.581186893708746
+        },
+        {
+            "expression": "clevr_difference",
+            "logProbability": -2.9443050166148623
+        },
+        {
+            "expression": "clevr_count",
+            "logProbability": -0.6895330430568158
+        },
+        {
+            "expression": "clevr_gt?",
+            "logProbability": -1.4772813095737263
+        },
+        {
+            "expression": "clevr_lt?",
+            "logProbability": -2.927695577438694
+        },
+        {
+            "expression": "clevr_car",
+            "logProbability": -1.0861542644343025
+        },
+        {
+            "expression": "clevr_if",
+            "logProbability": -3.5155873886156233
+        },
+        {
+            "expression": "clevr_empty",
+            "logProbability": -4.6089162170789475
+        },
+        {
+            "expression": "clevr_fold",
+            "logProbability": -3.760396609441421
+        },
+        {
+            "expression": "clevr_add",
+            "logProbability": -4.039222150962984
+        },
+        {
+            "expression": "clevr_gray",
+            "logProbability": -1.8981778696751093
+        },
+        {
+            "expression": "clevr_red",
+            "logProbability": -2.4737977101999977
+        },
+        {
+            "expression": "clevr_blue",
+            "logProbability": -2.293114155410282
+        },
+        {
+            "expression": "clevr_green",
+            "logProbability": -2.162061926269704
+        },
+        {
+            "expression": "clevr_brown",
+            "logProbability": -2.576252830678036
+        },
+        {
+            "expression": "clevr_purple",
+            "logProbability": -2.623593456633883
+        },
+        {
+            "expression": "clevr_cyan",
+            "logProbability": -3.1081511535792643
+        },
+        {
+            "expression": "clevr_yellow",
+            "logProbability": -2.111817714031573
+        },
+        {
+            "expression": "clevr_small",
+            "logProbability": -1.227283472289713
+        },
+        {
+            "expression": "clevr_large",
+            "logProbability": -0.9252158469014429
+        },
+        {
+            "expression": "clevr_rubber",
+            "logProbability": -0.8766372720383089
+        },
+        {
+            "expression": "clevr_metal",
+            "logProbability": -1.1341663063194023
+        },
+        {
+            "expression": "clevr_cube",
+            "logProbability": -1.6512260210926275
+        },
+        {
+            "expression": "clevr_sphere",
+            "logProbability": -1.2002541081451081
+        },
+        {
+            "expression": "clevr_cylinder",
+            "logProbability": -1.586125318676948
+        },
+        {
+            "expression": "clevr_left",
+            "logProbability": -1.5867346304572827
+        },
+        {
+            "expression": "clevr_right",
+            "logProbability": -1.3631567057198968
+        },
+        {
+            "expression": "clevr_behind",
+            "logProbability": -0.9944524935868015
+        },
+        {
+            "expression": "clevr_front",
+            "logProbability": -1.8799837026428934
+        },
+        {
+            "expression": "0",
+            "logProbability": -3.122103037513197
+        },
+        {
+            "expression": "1",
+            "logProbability": -2.662202722850015
+        },
+        {
+            "expression": "2",
+            "logProbability": -2.3988201283556236
+        },
+        {
+            "expression": "3",
+            "logProbability": -2.8618927857256145
+        },
+        {
+            "expression": "4",
+            "logProbability": -3.252641909201266
+        },
+        {
+            "expression": "5",
+            "logProbability": -4.0685646470207155
+        },
+        {
+            "expression": "6",
+            "logProbability": -4.234800066063046
+        },
+        {
+            "expression": "7",
+            "logProbability": -4.642928291590693
+        },
+        {
+            "expression": "8",
+            "logProbability": -5.167176935688825
+        },
+        {
+            "expression": "9",
+            "logProbability": -3.7282388410835123
+        },
+        {
+            "expression": "clevr_map",
+            "logProbability": -2.9214311922643024
+        },
+        {
+            "expression": "clevr_transform_color",
+            "logProbability": -5.204154179702431
+        },
+        {
+            "expression": "clevr_transform_material",
+            "logProbability": -3.0433801068760324
+        },
+        {
+            "expression": "clevr_transform_size",
+            "logProbability": -3.200499871696037
+        },
+        {
+            "expression": "clevr_transform_shape",
+            "logProbability": -6.2378085720957674
+        },
+        {
+            "expression": "#(lambda (lambda (clevr_fold $0 $0 (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_color $4 (clevr_query_color $0)) $0 $2)) $0))))))",
+            "logProbability": -2.9958009525142177
+        },
+        {
+            "expression": "#(lambda (lambda (lambda (clevr_count (clevr_fold $2 $2 (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_shape (clevr_query_shape $0) $3) (clevr_transform_material clevr_rubber $0) $2)) (clevr_intersect $0 (clevr_map (lambda (clevr_if (clevr_eq_color $4 (clevr_query_color $0)) $2 (clevr_if (clevr_eq_color $4 (clevr_query_color $0)) $2 $0))) $4))))))))))",
+            "logProbability": -2.339954982002477
+        },
+        {
+            "expression": "#(lambda (clevr_fold $0 $0 (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $0 $2)) $0)))))",
+            "logProbability": -3.4351370949463824
+        },
+        {
+            "expression": "#(lambda (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_shape (clevr_query_shape $0) $1) (clevr_transform_material clevr_rubber $0) $2)) $2))))",
+            "logProbability": -3.1028142795696176
+        },
+        {
+            "expression": "#(lambda (lambda (lambda (clevr_if (clevr_eq_color $0 (clevr_query_color $2)) $1 (clevr_if (clevr_eq_color $0 (clevr_query_color $2)) $1 $2)))))",
+            "logProbability": -2.788510503436604
+        },
+        {
+            "expression": "#(lambda (lambda (lambda (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) $1 $2))))",
+            "logProbability": -4.14864734920452
+        },
+        {
+            "expression": "#(lambda (lambda (lambda (clevr_if (clevr_eq_material clevr_rubber (clevr_query_material $0)) $1 $2))))",
+            "logProbability": -3.8478466895058716
+        },
+        {
+            "expression": "#(lambda (lambda (clevr_relate (clevr_car $1) $0 $1)))",
+            "logProbability": -2.9956536952965536
+        },
+        {
+            "expression": "#(lambda (lambda (clevr_fold $0 $0 $1)))",
+            "logProbability": -2.6296524731718316
+        },
+        {
+            "expression": "#(lambda (lambda (lambda (#(lambda (lambda (lambda (clevr_if (clevr_eq_size (clevr_query_size (clevr_car $0)) clevr_small) $1 $2)))) $0 $1 (clevr_add $2 clevr_empty)))))",
+            "logProbability": -4.340638356656982
+        }
+    ]
+}
