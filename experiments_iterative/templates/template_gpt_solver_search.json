@@ -1,0 +1,160 @@
+{
+    "metadata": {},
+    "model_initializers": [
+        {
+            "model_type": "grammar",
+            "model_loader": null,
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "llm_solver",
+            "model_loader": "gpt_solver",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "examples_encoder",
+            "model_loader": null,
+            "model_initializer_fn": "load_model_initializer",
+            "params": {}
+        },
+        {
+            "model_type": "amortized_synthesis",
+            "model_loader": "dreamcoder_recognition",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        }
+    ],
+    "experiment_iterator": {
+        "max_iterations": null,
+        "task_batcher": {
+            "model_type": "random_shuffle_ordered_task_batcher",
+            "params": {
+                "global_batch_size": null,
+                "verbose": true
+            }
+        },
+        "loop_blocks": [
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_metadata",
+                "params": {
+                    "verbosity": 3
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "reset_task_frontiers",
+                "params": {
+                    "task_split": "test",
+                    "task_ids": "all"
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_frontiers",
+                "params": {
+                  "verbosity": 3
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "llm_solver",
+                "model_fn": "infer_programs_for_tasks",
+                "task_split": "train",
+                "task_batch_size": "global_batch_size",
+                "params": {
+                    "n_samples_per_query": 4,
+                    "n_queries_per_task": 4,
+                    "temperature": 0.9,
+                    "max_tokens_completion_beta": 4.0,
+                    "body_task_types": ["language", "programs"],
+                    "final_task_types": ["language"],
+                    "prepend_dsl_description": true,
+                    "verbose": false
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "amortized_synthesis",
+                "model_fn": "optimize_model_for_frontiers",
+                "task_split": "train",
+                "task_batch_size": "all",
+                "params": {
+                  "recognition_train_steps": 10000
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "amortized_synthesis",
+                "model_fn": "infer_programs_for_tasks",
+                "task_split": "train",
+                "task_batch_size": "global_batch_size",
+                "params": {
+                    "enumeration_timeout": 10
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "llm_solver",
+                "model_fn": "infer_programs_for_tasks",
+                "task_split": "test",
+                "task_batch_size": "all",
+                "params": {
+                    "n_samples_per_query": 4,
+                    "n_queries_per_task": 4,
+                    "temperature": 0.9,
+                    "max_tokens_completion_beta": 4.0,
+                    "body_task_types": ["language", "programs"],
+                    "final_task_types": ["language"],
+                    "prepend_dsl_description": true,
+                    "verbose": false
+                },
+                "run_every_n_iterations": 3
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_frontiers",
+                "params": {
+                  "verbosity": 3
+                },
+                "run_every_n_iterations": 3
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "amortized_synthesis",
+                "model_fn": "infer_programs_for_tasks",
+                "task_split": "test",
+                "task_batch_size": "all",
+                "params": {
+                    "enumeration_timeout": 10
+                },
+                "run_every_n_iterations": 3
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_frontiers",
+                "params": {
+                  "verbosity": 3
+                },
+                "run_every_n_iterations": 3
+            },
+            {
+                "experiment_block_type": "checkpoint",
+                "state_to_checkpoint": [
+                    "frontiers"
+                ],
+                "models_to_checkpoint": [
+                    "grammar"
+                ]
+            },
+            {
+                "experiment_block_type": "checkpoint",
+                "state_to_checkpoint": [],
+                "models_to_checkpoint": [],
+                "aws_s3_sync_base_path": "s3://grandg-lilo-experiments"
+            }
+        ]
+    }
+}
