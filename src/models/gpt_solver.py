@@ -18,6 +18,8 @@ from src.models.laps_grammar import LAPSGrammar
 from src.models.sample_generator import GPTSampleGenerator
 from src.task_loaders import LANGUAGE, PROGRAMS, TRAIN
 
+# from precompute_embeddings import precompute_embeddings
+
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.LLM_SOLVER]
 
 
@@ -33,6 +35,8 @@ class GPTSolver(GPTSampleGenerator):
 
     def __init__(self, experiment_state=None, engine=None):
         super().__init__(self, engine=engine)
+        # TODO run the initial embedding, save to a pickle file
+        # calculate a n*n similarity things or use non-empty-id for similarity
 
     def infer_programs_for_tasks(
         self,
@@ -47,6 +51,8 @@ class GPTSolver(GPTSampleGenerator):
         max_retries: int = None,
         add_samples: bool = False,
         # Prompt construction
+        # TODO body task selection para take strings, default: random
+        body_task_selection: str = "random",
         body_task_types: list = [LANGUAGE, PROGRAMS],
         final_task_types: list = [LANGUAGE],
         function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
@@ -118,6 +124,8 @@ class GPTSolver(GPTSampleGenerator):
                     experiment_state=experiment_state,
                     task_split=task_split,
                     task_id=task_id,
+                    # TODO pass selection
+                    body_task_selection=body_task_selection,
                     body_task_types=body_task_types,
                     final_task_types=final_task_types,
                     function_name_classes=function_name_classes,
@@ -322,6 +330,7 @@ class GPTSolver(GPTSampleGenerator):
         line_separator,
         max_tokens_completion_beta,
         verbose,
+        body_task_selection,
     ):
         rng = experiment_state.metadata[RANDOM_GENERATOR]
 
@@ -330,8 +339,20 @@ class GPTSolver(GPTSampleGenerator):
             for f in experiment_state.get_non_empty_frontiers_for_split(TRAIN)
         ]
 
-        # Random ordering of the body tasks
-        body_task_ids = list(rng.permutation(non_empty_task_ids))
+        # TODO if else:
+        if body_task_selection == "embedding":
+            # TODO
+            domain = experiment_state.config["metadata"]["tasks_loader"]
+            embedding_directory = "data/embeddings/" + domain + "_embeddings.json"
+            if not os.path.isfile(embedding_directory):
+                precompute_embeddings(experiment_state)
+            with open(embedding_directory, "r") as f:
+                json.load(f)
+
+        elif body_task_selection == "random":
+            # Random ordering of the body tasks
+            # to get language:  experiment_state.get_language_for_ids(task_split, [task_id])[0]
+            body_task_ids = list(rng.permutation(non_empty_task_ids))
         if len(body_task_ids) < 2:
             raise ValueError(
                 "At least 2 tasks must have non-empty frontiers to construct a prompt."
