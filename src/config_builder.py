@@ -414,9 +414,7 @@ def build_config_body(
             _stitch_params.update(block["params"])
             _stitch_params.update(stitch_params)
             block["params"] = _stitch_params
-        if block.get("model_type") == LLM_SOLVER:
-            _gpt_params = block["params"]
-            _gpt_params.update(gpt_params)
+
         loop_blocks.append(block)
         if (
             block.get("model_type")
