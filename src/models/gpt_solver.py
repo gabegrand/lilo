@@ -8,17 +8,17 @@ import json
 import os
 from collections import defaultdict
 
+from openai.embeddings_utils import cosine_similarity
 from openai.error import InvalidRequestError
 from openai.openai_object import OpenAIObject
 
 import src.models.model_loaders as model_loaders
+from precompute_embeddings import precompute_embeddings
 from src.experiment_iterator import RANDOM_GENERATOR, SKIPPED_MODEL_FN
 from src.models.gpt_base import DEFAULT_LINE_SEPARATOR, Prompt
 from src.models.laps_grammar import LAPSGrammar
 from src.models.sample_generator import GPTSampleGenerator
 from src.task_loaders import LANGUAGE, PROGRAMS, TRAIN
-
-# from precompute_embeddings import precompute_embeddings
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.LLM_SOLVER]
 
@@ -35,8 +35,6 @@ class GPTSolver(GPTSampleGenerator):
 
     def __init__(self, experiment_state=None, engine=None):
         super().__init__(self, engine=engine)
-        # TODO run the initial embedding, save to a pickle file
-        # calculate a n*n similarity things or use non-empty-id for similarity
 
     def infer_programs_for_tasks(
         self,
@@ -347,7 +345,20 @@ class GPTSolver(GPTSampleGenerator):
             if not os.path.isfile(embedding_directory):
                 precompute_embeddings(experiment_state)
             with open(embedding_directory, "r") as f:
-                json.load(f)
+                embedding_dictionary = json.load(f)
+
+            non_empty_embedding_dictionary = {
+                name: embedding_dictionary[name] for name in non_empty_task_ids
+            }
+            non_empty_similarity = {
+                name: cosine_similarity(non_empty_embedding_dictionary[name], task_id)
+                for name in non_empty_task_ids
+            }
+            body_task_ids = sorted(
+                non_empty_task_ids,
+                key=lambda task_id: non_empty_similarity[task_id],
+                reverse=True,
+            )
 
         elif body_task_selection == "random":
             # Random ordering of the body tasks

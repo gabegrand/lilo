@@ -203,13 +203,6 @@ parser.add_argument(
     help="Disable AWS S3 upload.",
 )
 
-parser.add_argument(
-    "--embedding",
-    default=False,
-    action="store_true",
-    help="using embedding to select examples",
-)
-
 
 def main(args):
 
