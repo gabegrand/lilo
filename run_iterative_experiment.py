@@ -203,6 +203,13 @@ parser.add_argument(
     help="Disable AWS S3 upload.",
 )
 
+parser.add_argument(
+    "--embedding",
+    default=False,
+    action="store_true",
+    help="using embedding to select examples",
+)
+
 
 def main(args):
 
@@ -216,6 +223,8 @@ def main(args):
         gpt_params["debug"] = True
     if args.verbose:
         gpt_params["verbose"] = True
+    if args.embedding:
+        gpt_params["embedding"] = True
 
     for random_seed in args.random_seeds:
         config_base = build_config(
@@ -239,7 +248,6 @@ def main(args):
             init_grammar_from_checkpoint=args.init_grammar_from_checkpoint,
             resume_checkpoint_directory=args.resume_checkpoint_directory,
             s3_sync=(not args.no_s3_sync),
-            embedding=args.embedding,
         )
 
         if args.global_batch_size_all:
@@ -301,7 +309,6 @@ def main(args):
                 init_grammar_from_checkpoint=args.init_grammar_from_checkpoint,
                 resume_checkpoint_directory=args.resume_checkpoint_directory,
                 s3_sync=(not args.no_s3_sync),
-                embedding=args.embedding,
             )
 
             experiment_state, experiment_iterator = init_experiment_state_and_iterator(
