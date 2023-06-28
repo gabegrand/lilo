@@ -199,15 +199,16 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
             "params": {
                 "best_of": best_of,
                 "n_samples_per_abstraction": n_samples_per_abstraction,
-                "n_usage_examples": n_usage_examples,
+                "n_task_examples": n_task_examples,
                 "top_p": top_p,
                 "max_tokens": max_tokens,
+                "n_function_generated": n_function_generated,
             },
             "summary": {
-                "n_abstractions_named": n_abstractions_named,
-                "n_abstractions_total": len(abstraction_definitions),
+                "n_abstractions_generated": n_abstractions_generated,
+                "n_abstractions_total": len(gpt_abstraction_library),
             },
-            "abstractions": abstraction_to_readable,
+            "abstractions": gpt_abstraction_library,
         }
 
         # Save results to file
@@ -223,6 +224,7 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
         if verbose:
             print(f"Wrote results: {results_filepath}")
 
+    # Question1: not sure if need to override this method
     def _maybe_load_from_checkpoint(
         self, experiment_state, task_split, resume_strategy
     ):
@@ -274,15 +276,10 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
                 #     raise ValueError("Unable to resume first iteration.")
                 return False
 
-    def _get_numeric_name(self, experiment_state, abstraction):
-        grammar = experiment_state.models[model_loaders.GRAMMAR]
-        return grammar.get_name(
-            str(abstraction), name_classes=[LAPSGrammar.NUMERIC_FUNCTION_NAMES]
-        )
-
+    # Question2: how to make sure all new functions go to abstraction?
     def _get_abstraction_definitions(self, experiment_state):
         grammar = experiment_state.models[model_loaders.GRAMMAR]
-        abstractions = [p for p in grammar.primitives if p.isInvented]
+        abstractions = [p for p in grammar.primitives if not p.isInvented]
 
         abstraction_definitions = {}
         # for abstraction in sorted(abstractions, key=lambda p: str(p)):
@@ -293,6 +290,8 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
 
         return abstraction_definitions
 
+    # Question3: I want to delete this part because I think there is no need to override
+    # but if I change is to not isInvented, will it affect any methods inside this function
     def _get_abstraction_definition(self, experiment_state, abstraction):
         grammar = experiment_state.models[model_loaders.GRAMMAR]
         fn_name = grammar.get_name(
@@ -321,43 +320,40 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
             "fn_description": fn_description,
         }
 
-    def _get_usage_examples(self, experiment_state, n_usage_examples):
+    def _get_task_examples(self, experiment_state, n_task_examples):
         rng = experiment_state.metadata[RANDOM_GENERATOR]
-        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        experiment_state.models[model_loaders.GRAMMAR]
 
         tasks = list(experiment_state.task_frontiers[TRAIN].keys())
         rng.shuffle(tasks)
 
-        usage_examples = []
+        task_examples = []
 
         for task in tasks:
-            frontier = experiment_state.task_frontiers[TRAIN][task]
+            experiment_state.task_frontiers[TRAIN][task]
             task_language = rng.choice(
                 experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
             )
-            for e in frontier.entries:
-                usage_examples += [
-                    {
-                        "task_name": task.name,
-                        "program": grammar.show_program(
-                            e.program,
-                            name_classes=[
-                                LAPSGrammar.HUMAN_READABLE,
-                                LAPSGrammar.NUMERIC_FUNCTION_NAMES,
-                            ],
-                            debug=True,
-                        ),
-                        "language": task_language,
-                    }
-                ]
+            task_examples.append(task_language)
+            # Question4: What is this for? Can I delete it?
+            # for e in frontier.entries:
+            #     usage_examples += [
+            #         {
+            #             "task_name": task.name,
+            #             "program": grammar.show_program(
+            #                 e.program,
+            #                 name_classes=[
+            #                     LAPSGrammar.HUMAN_READABLE,
+            #                     LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+            #                 ],
+            #                 debug=True,
+            #             ),
+            #             "language": task_language,
+            #         }
+            #     ]
 
-                if len(usage_examples) == n_usage_examples:
-                    return usage_examples
-
-                # Go to next task
-                break
-
-        return usage_examples
+        if len(task_examples) == n_task_examples:
+            return task_examples
 
     def _parse_completion(self, completion):
         parse_results = []
@@ -376,27 +372,27 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
                 continue
 
             if not (
-                ("anonymous_name" in data)
-                and ("readable_name" in data)
-                and ("description" in data)
+                ("function_name" in data)
+                and ("function_expression" in data)
+                and ("function_description" in data)
             ):
                 parse_results.append(
                     {
                         "index": choice["index"],
                         "text": choice["text"],
                         "valid": False,
-                        "error": GPTLibraryNamer.ERROR_MISSING_FIELD,
+                        "error": GPTLibraryAbstraction.ERROR_MISSING_FIELD,
                     }
                 )
                 continue
 
-            if not data["readable_name"]:
+            if not data["function_name"]:
                 parse_results.append(
                     {
                         "index": choice["index"],
                         "text": choice["text"],
                         "valid": False,
-                        "error": GPTLibraryNamer.ERROR_NULL_NAME,
+                        "error": GPTLibraryAbstraction.ERROR_NULL_NAME,
                     }
                 )
                 continue
@@ -410,12 +406,3 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
                 }
             )
         return parse_results
-
-    def _select_result(self, parse_results):
-        for result in parse_results:
-            # For now, just return the first valid result
-            if result["valid"]:
-                return result
-
-
-DEFAULT_HEADER = ""
