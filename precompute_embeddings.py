@@ -4,27 +4,12 @@ import os
 import openai
 from openai.embeddings_utils import get_embedding
 
-from data.clevr.make_tasks import *
-from data.compositional_graphics.make_tasks import *
-from data.re2.make_tasks import *
 from src.experiment_iterator import ExperimentState
 
 # from src.models.gpt_solver import *
-from src.models.model_loaders import *
-from src.models.seq2seq import *
 from src.task_loaders import TEST, TRAIN
-from src.utils import *
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
-
-# def precompute_embeddings(domain):
-#     config_embedding = build_config(
-#                 experiment_name = "embedding",
-#                 experiment_type = "gpt_solver",
-#                 domain = domain,
-#             )
-
-#     experiment_state = ExperimentState(config_embedding)
 
 
 def precompute_embeddings(experiment_state):
@@ -35,7 +20,7 @@ def precompute_embeddings(experiment_state):
         all_language += experiment_state.get_language_for_ids(
             task_split=split, task_ids=ExperimentState.ALL
         )
-        all_task += experiment_state.get_tasks_for_ids(
+        all_task_id += experiment_state.get_tasks_for_ids(
             task_split=split, task_ids=ExperimentState.ALL
         )
     all_language = [x[0] for x in all_language]

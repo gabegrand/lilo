@@ -224,7 +224,7 @@ def main(args):
     if args.verbose:
         gpt_params["verbose"] = True
     if args.embedding:
-        gpt_params["embedding"] = True
+        gpt_params["body_task_selection"] = "embedding"
 
     for random_seed in args.random_seeds:
         config_base = build_config(

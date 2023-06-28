@@ -351,7 +351,9 @@ class GPTSolver(GPTSampleGenerator):
                 name: embedding_dictionary[name] for name in non_empty_task_ids
             }
             non_empty_similarity = {
-                name: cosine_similarity(non_empty_embedding_dictionary[name], task_id)
+                name: cosine_similarity(
+                    non_empty_embedding_dictionary[name], embedding_dictionary[task_id]
+                )
                 for name in non_empty_task_ids
             }
             body_task_ids = sorted(
