@@ -124,6 +124,8 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
         abstraction_definitions = self._get_abstraction_definitions(experiment_state)
         gpt_abstraction_library = {}
 
+        # reset grammar here
+
         for i in range(n_function_generated):
             # Update to have latest names
             abstraction_definitions = self._get_abstraction_definitions(
@@ -247,6 +249,17 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
 
                 for abstraction, data in results_json["abstractions"].items():
                     if data is not None:
+                        grammar._add_base_primitive(function_expression)
+                        grammar.set_function_name(
+                            str(function_expression),
+                            name_class=LAPSGrammar.HUMAN_READABLE,
+                            name=data["function_name"],
+                        )
+                        grammar.set_function_description(
+                            name=str(function_expression),
+                            description=data["function_description"],
+                        )
+
                         grammar.set_function_name(
                             str(abstraction),
                             name_class=LAPSGrammar.HUMAN_READABLE,
@@ -277,9 +290,10 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
                 return False
 
     # Question2: how to make sure all new functions go to abstraction?
+    # go to stitch_proposer update_grammar and copy it, put it first
     def _get_abstraction_definitions(self, experiment_state):
         grammar = experiment_state.models[model_loaders.GRAMMAR]
-        abstractions = [p for p in grammar.primitives if not p.isInvented]
+        abstractions = [p for p in grammar.primitives]
 
         abstraction_definitions = {}
         # for abstraction in sorted(abstractions, key=lambda p: str(p)):
@@ -289,36 +303,6 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
             )
 
         return abstraction_definitions
-
-    # Question3: I want to delete this part because I think there is no need to override
-    # but if I change is to not isInvented, will it affect any methods inside this function
-    def _get_abstraction_definition(self, experiment_state, abstraction):
-        grammar = experiment_state.models[model_loaders.GRAMMAR]
-        fn_name = grammar.get_name(
-            str(abstraction),
-            name_classes=[
-                LAPSGrammar.HUMAN_READABLE,
-                LAPSGrammar.NUMERIC_FUNCTION_NAMES,
-            ],
-        )
-        fn_body = str(
-            grammar.show_program(
-                str(abstraction)[
-                    1:
-                ],  # Remove leading `#` so that any inlined abstractions are replaced with their fn_name
-                name_classes=[
-                    LAPSGrammar.HUMAN_READABLE,
-                    LAPSGrammar.NUMERIC_FUNCTION_NAMES,
-                ],
-            )
-        )
-        fn_description = grammar.get_function_description(abstraction)
-        return {
-            "fn_name": fn_name,
-            "fn_body": fn_body,
-            "fn_type": abstraction.infer(),
-            "fn_description": fn_description,
-        }
 
     def _get_task_examples(self, experiment_state, n_task_examples):
         rng = experiment_state.metadata[RANDOM_GENERATOR]
@@ -330,6 +314,7 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
         task_examples = []
 
         for task in tasks:
+            # now its getting all tasks. I want only unsolved tasks
             experiment_state.task_frontiers[TRAIN][task]
             task_language = rng.choice(
                 experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
