@@ -1,0 +1,23 @@
+{
+    "metadata": {},
+    "model_initializers": [
+        {
+            "model_type": "grammar",
+            "model_loader": null,
+            "model_initializer_fn": "load_model",
+            "params": {}
+        }
+    ],
+    "experiment_iterator": {
+        "max_iterations": null,
+        "task_batcher": {
+            "model_type": "random_shuffle_ordered_task_batcher",
+            "params": {
+                "global_batch_size": null,
+                "verbose": true
+            }
+        },
+        "loop_blocks": [
+        ]
+    }
+}

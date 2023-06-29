@@ -13,7 +13,6 @@ from openai.error import InvalidRequestError
 from openai.openai_object import OpenAIObject
 
 import src.models.model_loaders as model_loaders
-from precompute_embeddings import precompute_embeddings
 from src.experiment_iterator import RANDOM_GENERATOR, SKIPPED_MODEL_FN
 from src.models.gpt_base import DEFAULT_LINE_SEPARATOR, Prompt
 from src.models.laps_grammar import LAPSGrammar
@@ -49,7 +48,6 @@ class GPTSolver(GPTSampleGenerator):
         max_retries: int = None,
         add_samples: bool = False,
         # Prompt construction
-        # TODO body task selection para take strings, default: random
         body_task_selection: str = "random",
         body_task_types: list = [LANGUAGE, PROGRAMS],
         final_task_types: list = [LANGUAGE],
@@ -122,7 +120,6 @@ class GPTSolver(GPTSampleGenerator):
                     experiment_state=experiment_state,
                     task_split=task_split,
                     task_id=task_id,
-                    # TODO pass selection
                     body_task_selection=body_task_selection,
                     body_task_types=body_task_types,
                     final_task_types=final_task_types,
@@ -337,34 +334,32 @@ class GPTSolver(GPTSampleGenerator):
             for f in experiment_state.get_non_empty_frontiers_for_split(TRAIN)
         ]
 
-        # TODO if else:
         if body_task_selection == "embedding":
-            # TODO
             domain = experiment_state.config["metadata"]["tasks_loader"]
-            embedding_directory = "data/embeddings/" + domain + "_embeddings.json"
-            if not os.path.isfile(embedding_directory):
-                precompute_embeddings(experiment_state)
-            with open(embedding_directory, "r") as f:
-                embedding_dictionary = json.load(f)
+            embedding_filepath = os.path.join(
+                "data", "embeddings", domain + "_embeddings.json"
+            )
+            try:
+                with open(embedding_filepath, "r") as f:
+                    embedding_dictionary = json.load(f)
+            except FileNotFoundError:
+                raise FileNotFoundError(
+                    f"The file '{embedding_filepath}' could not be found."
+                )
 
-            non_empty_embedding_dictionary = {
-                name: embedding_dictionary[name] for name in non_empty_task_ids
-            }
-            non_empty_similarity = {
+            similarity = {
                 name: cosine_similarity(
-                    non_empty_embedding_dictionary[name], embedding_dictionary[task_id]
+                    embedding_dictionary[name], embedding_dictionary[task_id]
                 )
                 for name in non_empty_task_ids
             }
             body_task_ids = sorted(
                 non_empty_task_ids,
-                key=lambda task_id: non_empty_similarity[task_id],
+                key=lambda task_id: similarity[task_id],
                 reverse=True,
             )
 
         elif body_task_selection == "random":
-            # Random ordering of the body tasks
-            # to get language:  experiment_state.get_language_for_ids(task_split, [task_id])[0]
             body_task_ids = list(rng.permutation(non_empty_task_ids))
         if len(body_task_ids) < 2:
             raise ValueError(

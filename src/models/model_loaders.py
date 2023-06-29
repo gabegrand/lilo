@@ -32,7 +32,6 @@ ModelLoaderRegistries = {
     JOINT_LANGUAGE_EXAMPLES_ENCODER: ClassRegistry("name", unique=True),
     PROGRAM_DECODER: ClassRegistry("name", unique=True),
     AMORTIZED_SYNTHESIS: ClassRegistry("name", unique=True),
-    LIBRARY_ABSTRACTION: ClassRegistry("name", unique=True),
 }
 
 
