@@ -66,6 +66,3 @@ def precompute_embeddings(domain):
     embedding_filepath = os.path.join("data", "embeddings", domain + "_embeddings.json")
     with open(embedding_filepath, "w") as file:
         json.dump(embedding_dict, file)
-
-
-precompute_embeddings("re2")
