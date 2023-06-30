@@ -203,7 +203,6 @@ def build_config(
     init_grammar_from_checkpoint: bool = False,
     resume_checkpoint_directory: bool = False,
     s3_sync: bool = True,
-    embedding: bool = False,
 ):
     config = {}
     config.update(
@@ -222,7 +221,6 @@ def build_config(
             compute_description_lengths=compute_description_lengths,
             increment_task_batcher=increment_task_batcher,
             s3_sync=s3_sync,
-            embedding=embedding,
         )
     )
     config.update(
@@ -326,7 +324,6 @@ def build_config_body(
     compute_description_lengths: bool = True,
     increment_task_batcher: bool = True,
     s3_sync: bool = True,
-    embedding: bool = False,
 ):
     template_path = os.path.join(
         DEFAULT_TEMPLATE_DIR, f"template_{experiment_type}.json"
@@ -415,8 +412,6 @@ def build_config_body(
             _stitch_params.update(block["params"])
             _stitch_params.update(stitch_params)
             block["params"] = _stitch_params
-
-        loop_blocks.append(block)
         if (
             block.get("model_type")
             in [
@@ -464,6 +459,7 @@ def build_config_body(
                 # Disable S3 upload
                 block[AWS_S3_SYNC_BASE_PATH] = None
 
+        loop_blocks.append(block)
     config["experiment_iterator"]["loop_blocks"] = loop_blocks
 
     return config

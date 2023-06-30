@@ -447,7 +447,3 @@ class GPTBase(object):
         # TODO(gg): Consider preprocessing to collapse whitespace, which could
         # bring the behavior more in line with the Codex tokenizer.
         return len(self.tokenizer(text, truncation=False)["input_ids"])
-
-    # def load_embeddings(self, experiment_state):
-
-    # return loaded data
