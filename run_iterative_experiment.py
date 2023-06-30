@@ -203,6 +203,13 @@ parser.add_argument(
     help="Disable AWS S3 upload.",
 )
 
+parser.add_argument(
+    "--body_task_selection",
+    default="random",
+    choices=["random", "cosine_similarity"],
+    help="Strategy for selecting body tasks in the LLM solver prompt. `random`: Samples randomly. `cosine_similarity`: Computes similarity between language descriptions of body tasks and target task.",
+)
+
 
 def main(args):
 
@@ -216,6 +223,8 @@ def main(args):
         gpt_params["debug"] = True
     if args.verbose:
         gpt_params["verbose"] = True
+    if args.body_task_selection:
+        gpt_params["body_task_selection"] = args.body_task_selection
 
     for random_seed in args.random_seeds:
         config_base = build_config(
