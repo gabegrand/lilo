@@ -126,6 +126,31 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
 
         # reset grammar here
 
+        # if update_grammar:
+        #     grammar = experiment_state.models[model_loaders.GRAMMAR]
+        #     new_productions = [(0.0, p.infer(), p) for p in abstractions]
+        #     new_grammar = LAPSGrammar(
+        #         logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
+        #         productions=grammar.productions + new_productions,
+        #         continuationType=grammar.continuationType,
+        #         initialize_parameters_from_grammar=grammar,
+        #     )
+
+        #     # Recompute production probabilities in grammar
+        #     # TODO(GG): Recompute w/r/t sample frontiers as well?
+        #     new_grammar = new_grammar.insideOutside(
+        #         frontiers_rewritten, pseudoCounts=30, iterations=1
+        #     )
+        #     new_grammar = LAPSGrammar.fromGrammar(new_grammar)  # Wrap in LAPSGrammar
+
+        #     experiment_state.models[model_loaders.GRAMMAR] = new_grammar
+
+        #     print(
+        #         f"Updated grammar (productions={len(grammar.productions)}) with {len(new_productions)} new abstractions."
+        #     )
+
+        grammar = [p for p in grammar.primitives if p.isPrimitive]
+
         for i in range(n_function_generated):
             # Update to have latest names
             abstraction_definitions = self._get_abstraction_definitions(
