@@ -18,6 +18,8 @@ from src.task_loaders import TEST, TRAIN
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
+import argparse
+
 from data.clevr.encoder import *
 from data.clevr.grammar import *
 from data.clevr.make_tasks import *
@@ -34,10 +36,21 @@ from src.models.seq2seq import *
 from src.task_loaders import TEST, TRAIN
 from src.utils import *
 
+parser = argparse.ArgumentParser()
+
 ENGINE_GPT_EMBEDDING = "text-embedding-ada-002"
 
+parser.add_argument("--domain", required=True, help="[logo, clevr, re2]")
 
-def precompute_embeddings(domain):
+
+def get_embedding_directory_for_domain(domain):
+    embedding_filepath = os.path.join("data", "embeddings", f"{domain}_embeddings.json")
+    return embedding_filepath
+
+
+def main(args):
+    domain = args.domain
+
     config_embedding = build_config(
         experiment_name="embedding",
         experiment_type="embedding",
@@ -61,8 +74,12 @@ def precompute_embeddings(domain):
         task_id: get_embedding(language, engine=ENGINE_GPT_EMBEDDING)
         for task_id, language in zip(all_task_id, all_language)
     }
-
-    domain = experiment_state.config["metadata"]["tasks_loader"]
-    embedding_filepath = os.path.join("data", "embeddings", domain + "_embeddings.json")
+    embedding_filepath = get_embedding_directory_for_domain(domain)
     with open(embedding_filepath, "w") as file:
         json.dump(embedding_dict, file)
+    print(f"{embedding_filepath} is written")
+
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    main(args)

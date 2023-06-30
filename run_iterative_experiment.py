@@ -204,10 +204,10 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--embedding",
-    default=False,
-    action="store_true",
-    help="using embedding to select examples",
+    "--body_task_selection",
+    default="random",
+    choices=["random", "cosine_similarity"],
+    help="Strategy for selecting body tasks in the LLM solver prompt. `random`: Samples randomly. `cosine_similarity`: Computes similarity between language descriptions of body tasks and target task.",
 )
 
 
@@ -223,8 +223,8 @@ def main(args):
         gpt_params["debug"] = True
     if args.verbose:
         gpt_params["verbose"] = True
-    if args.embedding:
-        gpt_params["body_task_selection"] = "embedding"
+    if args.body_task_selection:
+        gpt_params["body_task_selection"] = args.body_task_selection
 
     for random_seed in args.random_seeds:
         config_base = build_config(

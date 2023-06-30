@@ -13,6 +13,7 @@ from openai.error import InvalidRequestError
 from openai.openai_object import OpenAIObject
 
 import src.models.model_loaders as model_loaders
+from precompute_embeddings import get_embedding_directory_for_domain
 from src.experiment_iterator import RANDOM_GENERATOR, SKIPPED_MODEL_FN
 from src.models.gpt_base import DEFAULT_LINE_SEPARATOR, Prompt
 from src.models.laps_grammar import LAPSGrammar
@@ -317,6 +318,7 @@ class GPTSolver(GPTSampleGenerator):
         experiment_state,
         task_split,
         task_id,
+        body_task_selection,
         body_task_types,
         final_task_types,
         function_name_classes,
@@ -325,7 +327,6 @@ class GPTSolver(GPTSampleGenerator):
         line_separator,
         max_tokens_completion_beta,
         verbose,
-        body_task_selection,
     ):
         rng = experiment_state.metadata[RANDOM_GENERATOR]
 
@@ -334,11 +335,9 @@ class GPTSolver(GPTSampleGenerator):
             for f in experiment_state.get_non_empty_frontiers_for_split(TRAIN)
         ]
 
-        if body_task_selection == "embedding":
+        if body_task_selection == "cosine_similarity":
             domain = experiment_state.config["metadata"]["tasks_loader"]
-            embedding_filepath = os.path.join(
-                "data", "embeddings", domain + "_embeddings.json"
-            )
+            embedding_filepath = get_embedding_directory_for_domain(domain)
             try:
                 with open(embedding_filepath, "r") as f:
                     embedding_dictionary = json.load(f)

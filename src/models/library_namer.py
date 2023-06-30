@@ -26,8 +26,8 @@ class LibraryNamerPrompt(BasePrompt):
     def __init__(
         self,
         abstraction_definitions: Dict,
-        usage_examples: List[Dict],
         abstraction_target: str,
+        usage_examples: List[Dict],
         line_separator: str = DEFAULT_LINE_SEPARATOR,
     ):
         self.abstraction_definitions = abstraction_definitions

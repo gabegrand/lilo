@@ -203,7 +203,6 @@ def build_config(
     init_grammar_from_checkpoint: bool = False,
     resume_checkpoint_directory: bool = False,
     s3_sync: bool = True,
-    embedding: bool = False,
 ):
     config = {}
     config.update(
@@ -222,7 +221,6 @@ def build_config(
             compute_description_lengths=compute_description_lengths,
             increment_task_batcher=increment_task_batcher,
             s3_sync=s3_sync,
-            embedding=embedding,
         )
     )
     config.update(
