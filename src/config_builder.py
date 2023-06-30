@@ -80,6 +80,7 @@ class ExperimentType(str, Enum):
     BASE_DSL = "base_dsl"
     DREAMCODER = "baseline_dreamcoder"
     GPT_SOLVER = "gpt_solver"
+    GPT_SOLVER_SEARCH = "gpt_solver_search"
     GPT_SOLVER_STITCH = "gpt_solver_stitch"
     GPT_SOLVER_STITCH_NAMER = "gpt_solver_stitch_namer"
     GPT_SOLVER_STITCH_NAMER_HYBRID_DSL = "gpt_solver_stitch_namer_hybrid_dsl"

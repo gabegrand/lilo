@@ -674,6 +674,7 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         ExperimentType.BASE_DSL: "Base DSL",
         ExperimentType.DREAMCODER: "DreamCoder",
         ExperimentType.GPT_SOLVER: "LLM Solver",
+        ExperimentType.GPT_SOLVER_SEARCH: "LLM Solver (+ Search)",
         ExperimentType.GPT_SOLVER_STITCH: "LLM Solver (+ Stitch)",
         ExperimentType.GPT_SOLVER_STITCH_NAMER: "LILO",
         ExperimentType.GPT_SOLVER_STITCH_NAMER_HYBRID_DSL: "LILO (+ Hybrid DSL)",
@@ -683,6 +684,7 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         EXPERIMENT_TYPES_CAMERA[ExperimentType.BASE_DSL]: "#306BAC",
         EXPERIMENT_TYPES_CAMERA[ExperimentType.DREAMCODER]: "#1E8531",
         EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER]: "#306BAC",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_SEARCH]: "#306BAC",
         EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_STITCH]: "#8999D2",
         EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_STITCH_NAMER]: "#B56576",
         EXPERIMENT_TYPES_CAMERA[
