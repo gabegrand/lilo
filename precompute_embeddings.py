@@ -63,6 +63,6 @@ def precompute_embeddings(domain):
     }
 
     domain = experiment_state.config["metadata"]["tasks_loader"]
-    embedding_filepath = os.path.join("data", "embeddings", domain + "_embeddings.json")
+    embedding_filepath = os.path.join("data", "embeddings", f"{domain}_embeddings.json")
     with open(embedding_filepath, "w") as file:
         json.dump(embedding_dict, file)
