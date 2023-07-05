@@ -347,6 +347,7 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 LAPSGrammar.NUMERIC_FUNCTION_NAMES,
             ],
         )
+        print(abstraction)
         fn_body = str(
             grammar.show_program(
                 str(abstraction)[

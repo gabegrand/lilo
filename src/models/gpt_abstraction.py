@@ -13,7 +13,7 @@ from src.models.laps_grammar import LAPSGrammar
 from src.models.library_namer import GPTLibraryNamer, LibraryNamerPrompt
 from src.task_loaders import TRAIN
 
-ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.LIBRARY_ABSTRACTION]
+ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.LIBRARY_LEARNER]
 
 
 class LibraryAbstractionPrompt(LibraryNamerPrompt):
@@ -80,14 +80,14 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
 
 
 @ModelRegistry.register
-class GPTLibraryAbstraction(GPTLibraryNamer):
-    name = "gpt_library_abstraction"
+class GPTLibraryLearner(GPTLibraryNamer):
+    name = "gpt_library_learner"
 
     results_file = "gpt_library_abstraction_results.json"
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
-        return GPTLibraryAbstraction(experiment_state=experiment_state, **kwargs)
+        return GPTLibraryLearner(experiment_state=experiment_state, **kwargs)
 
     def __init__(self, experiment_state=None, engine=None):
         super().__init__(experiment_state=experiment_state, engine=engine)
@@ -110,6 +110,7 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
         # Utilities
         verbose: bool = True,
     ):
+        print("👌🏻👌🏻👌🏻")
         assert task_split == TRAIN
         grammar = experiment_state.models[model_loaders.GRAMMAR]
 
@@ -120,8 +121,11 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
             return {
                 SKIPPED_MODEL_FN: True,
             }
-
         abstraction_definitions = self._get_abstraction_definitions(experiment_state)
+        # except:
+        #     import pdb
+        #     pdb.set_trace()
+
         gpt_abstraction_library = {}
 
         # reset grammar here
@@ -149,7 +153,7 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
         #         f"Updated grammar (productions={len(grammar.productions)}) with {len(new_productions)} new abstractions."
         #     )
 
-        grammar = [p for p in grammar.primitives if p.isPrimitive]
+        grammar = [p for p in grammar.primitives]
 
         for i in range(n_function_generated):
             # Update to have latest names
@@ -251,7 +255,6 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
         if verbose:
             print(f"Wrote results: {results_filepath}")
 
-    # Question1: not sure if need to override this method
     def _maybe_load_from_checkpoint(
         self, experiment_state, task_split, resume_strategy
     ):
@@ -274,25 +277,15 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
 
                 for abstraction, data in results_json["abstractions"].items():
                     if data is not None:
-                        grammar._add_base_primitive(function_expression)
+                        grammar._add_base_primitive(abstraction)
                         grammar.set_function_name(
-                            str(function_expression),
+                            str(abstraction),
                             name_class=LAPSGrammar.HUMAN_READABLE,
                             name=data["function_name"],
                         )
                         grammar.set_function_description(
-                            name=str(function_expression),
-                            description=data["function_description"],
-                        )
-
-                        grammar.set_function_name(
-                            str(abstraction),
-                            name_class=LAPSGrammar.HUMAN_READABLE,
-                            name=data["readable_name"],
-                        )
-                        grammar.set_function_description(
                             name=str(abstraction),
-                            description=data["description"],
+                            description=data["function_description"],
                         )
 
                 # Copy external results file to checkpoint directory
@@ -314,8 +307,6 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
                 #     raise ValueError("Unable to resume first iteration.")
                 return False
 
-    # Question2: how to make sure all new functions go to abstraction?
-    # go to stitch_proposer update_grammar and copy it, put it first
     def _get_abstraction_definitions(self, experiment_state):
         grammar = experiment_state.models[model_loaders.GRAMMAR]
         abstractions = [p for p in grammar.primitives]
@@ -340,30 +331,14 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
 
         for task in tasks:
             # now its getting all tasks. I want only unsolved tasks
-            experiment_state.task_frontiers[TRAIN][task]
-            task_language = rng.choice(
-                experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
-            )
-            task_examples.append(task_language)
-            # Question4: What is this for? Can I delete it?
-            # for e in frontier.entries:
-            #     usage_examples += [
-            #         {
-            #             "task_name": task.name,
-            #             "program": grammar.show_program(
-            #                 e.program,
-            #                 name_classes=[
-            #                     LAPSGrammar.HUMAN_READABLE,
-            #                     LAPSGrammar.NUMERIC_FUNCTION_NAMES,
-            #                 ],
-            #                 debug=True,
-            #             ),
-            #             "language": task_language,
-            #         }
-            #     ]
-
-        if len(task_examples) == n_task_examples:
-            return task_examples
+            frontier = experiment_state.task_frontiers[TRAIN][task]
+            if frontier.empty():
+                task_language = rng.choice(
+                    experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
+                )
+                task_examples.append(task_language)
+                if len(task_examples) == n_task_examples:
+                    return task_examples
 
     def _parse_completion(self, completion):
         parse_results = []
@@ -376,7 +351,7 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
                         "index": choice["index"],
                         "text": choice["text"],
                         "valid": False,
-                        "error": GPTLibraryAbstraction.ERROR_JSON,
+                        "error": GPTLibraryLearner.ERROR_JSON,
                     }
                 )
                 continue
@@ -391,7 +366,7 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
                         "index": choice["index"],
                         "text": choice["text"],
                         "valid": False,
-                        "error": GPTLibraryAbstraction.ERROR_MISSING_FIELD,
+                        "error": GPTLibraryLearner.ERROR_MISSING_FIELD,
                     }
                 )
                 continue
@@ -402,7 +377,7 @@ class GPTLibraryAbstraction(GPTLibraryNamer):
                         "index": choice["index"],
                         "text": choice["text"],
                         "valid": False,
-                        "error": GPTLibraryAbstraction.ERROR_NULL_NAME,
+                        "error": GPTLibraryLearner.ERROR_NULL_NAME,
                     }
                 )
                 continue
