@@ -28,6 +28,7 @@ from src.models.model_loaders import (
     PROGRAM_REWRITER,
     SAMPLE_GENERATOR,
 )
+from src.models.stitch_proposer import StitchProposerLibraryLearner
 from src.task_loaders import ALL, RandomShuffleOrderedTaskBatcher
 
 # @zyzzyva (April 19): Temporarily disable the drawings domain, which is causing Primitive import conflicts.
@@ -84,6 +85,7 @@ class ExperimentType(str, Enum):
     GPT_SOLVER_STITCH_NAMER = "gpt_solver_stitch_namer"
     GPT_SOLVER_STITCH_NAMER_HYBRID_DSL = "gpt_solver_stitch_namer_hybrid_dsl"
     GPT_SOLVER_STITCH_NAMER_SEARCH = "gpt_solver_stitch_namer_search"
+    GPT_SOLVER_LEARNER = "gpt_solver_learner"
 
 
 def get_domain_metadata(domain: str):
@@ -410,8 +412,12 @@ def build_config_body(
         if block.get("model_type") == LIBRARY_LEARNER:
             _stitch_params = DEFAULT_STITCH_PARAMS
             _stitch_params.update(block["params"])
-            _stitch_params.update(stitch_params)
-            block["params"] = _stitch_params
+            if (
+                block.get("model_fn")
+                == StitchProposerLibraryLearner.get_compressed_grammar_mdl_prior_rank.__name__
+            ):
+                _stitch_params.update(stitch_params)
+                block["params"] = _stitch_params
         if (
             block.get("model_type")
             in [
