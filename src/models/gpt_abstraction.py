@@ -50,10 +50,9 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
 
     def _build_task_prompt(self):
         text_list = [self.TEXT_TASKS_HEADER + self.line_separator]
+
         for task in self.task_examples:
-            text_list += [
-                self.DEFAULT_PREFIX_LANGUAGE + task["language"] + self.line_separator
-            ]
+            text_list += [self.DEFAULT_PREFIX_LANGUAGE + task + self.line_separator]
         text_list += [self.make_abstraction_footer()]
         return self.line_separator.join(text_list)
 
@@ -153,7 +152,13 @@ class GPTLibraryLearner(GPTLibraryNamer):
         #         f"Updated grammar (productions={len(grammar.productions)}) with {len(new_productions)} new abstractions."
         #     )
 
-        grammar = [p for p in grammar.primitives]
+        # grammar = [p for p in grammar.primitives]
+        grammar = LAPSGrammar(
+            logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
+            productions=grammar.productions,
+            continuationType=grammar.continuationType,
+            initialize_parameters_from_grammar=grammar,
+        )
 
         for i in range(n_function_generated):
             # Update to have latest names
@@ -212,7 +217,6 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 print(json.dumps(selected_result, indent=4))
 
             else:
-                gpt_abstraction_library[str(function_expression)] = None
                 print(f"❌ Failed to create a function")
 
         n_abstractions_generated = len(
@@ -222,7 +226,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
         # TODO: Log/save outputs
         print("-" * 12)
         print(
-            f"Completed library abstraction learning: {n_abstractions_generated} / {len(gpt_abstraction_library)} abstractions successfully generated."
+            f"Completed library abstraction learning: {n_abstractions_generated} / {n_function_generated} abstractions successfully generated."
         )
         print(json.dumps(gpt_abstraction_library, indent=4))
 
@@ -320,6 +324,40 @@ class GPTLibraryLearner(GPTLibraryNamer):
 
         return abstraction_definitions
 
+    def _get_abstraction_definition(self, experiment_state, abstraction):
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        fn_name = grammar.get_name(
+            str(abstraction),
+            name_classes=[
+                LAPSGrammar.HUMAN_READABLE,
+                LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+            ],
+        )
+
+        abstraction_str = str(abstraction)
+        if abstraction.isInvented:
+            # Remove leading `#` so that any inlined abstractions are replaced with their fn_name
+            abstraction_str = abstraction_str[1:]
+
+            fn_body = str(
+                grammar.show_program(
+                    abstraction_str,
+                    name_classes=[
+                        LAPSGrammar.HUMAN_READABLE,
+                        LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                    ],
+                )
+            )
+        else:
+            fn_body = str(abstraction)
+        fn_description = grammar.get_function_description(abstraction)
+        return {
+            "fn_name": fn_name,
+            "fn_body": fn_body,
+            "fn_type": abstraction.infer(),
+            "fn_description": fn_description,
+        }
+
     def _get_task_examples(self, experiment_state, n_task_examples):
         rng = experiment_state.metadata[RANDOM_GENERATOR]
         experiment_state.models[model_loaders.GRAMMAR]
@@ -332,7 +370,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
         for task in tasks:
             # now its getting all tasks. I want only unsolved tasks
             frontier = experiment_state.task_frontiers[TRAIN][task]
-            if frontier.empty():
+            if frontier.empty:
                 task_language = rng.choice(
                     experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
                 )
