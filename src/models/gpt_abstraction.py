@@ -6,6 +6,7 @@ Queries Codex to generate abstraction for functions.
 from typing import Dict, List
 
 import src.models.model_loaders as model_loaders
+from dreamcoder.program import Program
 from dreamcoder.type import *
 from src.experiment_iterator import SKIPPED_MODEL_FN
 from src.models.gpt_base import *
@@ -22,12 +23,20 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
     TEXT_FUNCTION_HEADER = (
         "To get started, consider the functions provided in the library:"
     )
+
+    TEXT_PROGRAM_HEADER = (
+        "Here are some examples of how to use the functions to solve tasks"
+    )
     TEXT_TASKS_HEADER = "Now, here are the tasks that need to be tackled:"
+
+    # provide some program examples
+    # before providing tasks, provide some solved programs
 
     def __init__(
         self,
         abstraction_definitions: Dict,
         task_examples: List[Dict],
+        program_examples: List[Dict],
         line_separator: str = DEFAULT_LINE_SEPARATOR,
     ):
         super().__init__(
@@ -37,6 +46,7 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
             line_separator=line_separator,
         )
         self.task_examples = task_examples
+        self.program_examples = program_examples
 
     def _build_abstraction_header(self):
         text_list = [
@@ -46,6 +56,17 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         ]
         for abstraction in self.abstraction_definitions.keys():
             text_list += [self._fn_docstring(abstraction) + self.line_separator]
+
+        for program_example in self.program_examples:
+            text_list += [
+                self.DEFAULT_PREFIX_LANGUAGE
+                + program_example["language"]
+                + self.line_separator
+                + self.DEFAULT_PREFIX_PROGRAM
+                + program_example["program"]
+                + self.line_separator
+            ]
+
         return self.line_separator.join(text_list)
 
     def _build_task_prompt(self):
@@ -75,14 +96,15 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         return message_list
 
 
-###TODO
-
-
 @ModelRegistry.register
 class GPTLibraryLearner(GPTLibraryNamer):
     name = "gpt_library_learner"
 
     results_file = "gpt_library_abstraction_results.json"
+    prompt_file = "gpt_library_learner_prompts.json"
+
+    ERROR_PARSE = "parse"
+    ERROR_INFER = "infer"
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
@@ -104,12 +126,12 @@ class GPTLibraryLearner(GPTLibraryNamer):
         n_function_generated: int = 10,
         # Prompt construction
         n_task_examples: int = 10,
+        n_program_examples: int = 10,
         # Resume from prior runs
         resume_strategy: str = None,
         # Utilities
         verbose: bool = True,
     ):
-        print("👌🏻👌🏻👌🏻")
         assert task_split == TRAIN
         grammar = experiment_state.models[model_loaders.GRAMMAR]
 
@@ -121,43 +143,21 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 SKIPPED_MODEL_FN: True,
             }
         abstraction_definitions = self._get_abstraction_definitions(experiment_state)
-        # except:
-        #     import pdb
-        #     pdb.set_trace()
 
         gpt_abstraction_library = {}
 
-        # reset grammar here
-
-        # if update_grammar:
-        #     grammar = experiment_state.models[model_loaders.GRAMMAR]
-        #     new_productions = [(0.0, p.infer(), p) for p in abstractions]
-        #     new_grammar = LAPSGrammar(
-        #         logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
-        #         productions=grammar.productions + new_productions,
-        #         continuationType=grammar.continuationType,
-        #         initialize_parameters_from_grammar=grammar,
-        #     )
-
-        #     # Recompute production probabilities in grammar
-        #     # TODO(GG): Recompute w/r/t sample frontiers as well?
-        #     new_grammar = new_grammar.insideOutside(
-        #         frontiers_rewritten, pseudoCounts=30, iterations=1
-        #     )
-        #     new_grammar = LAPSGrammar.fromGrammar(new_grammar)  # Wrap in LAPSGrammar
-
-        #     experiment_state.models[model_loaders.GRAMMAR] = new_grammar
-
-        #     print(
-        #         f"Updated grammar (productions={len(grammar.productions)}) with {len(new_productions)} new abstractions."
-        #     )
-
-        # grammar = [p for p in grammar.primitives]
         grammar = LAPSGrammar(
             logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
             productions=grammar.productions,
             continuationType=grammar.continuationType,
             initialize_parameters_from_grammar=grammar,
+        )
+
+        prompt_filepath = os.path.join(
+            os.getcwd(),
+            experiment_state.get_checkpoint_directory(),
+            task_split,
+            self.prompt_file,
         )
 
         for i in range(n_function_generated):
@@ -166,12 +166,20 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 experiment_state
             )
             task_examples = self._get_task_examples(experiment_state, n_task_examples)
+
+            program_examples = self._get_program_examples(
+                experiment_state, n_program_examples
+            )
+
             prompt = LibraryAbstractionPrompt(
                 abstraction_definitions=abstraction_definitions,
                 task_examples=task_examples,
+                program_examples=program_examples,
             )
 
             if verbose:
+                with open(prompt_filepath, "w") as f:
+                    json.dump(str(prompt), f)
                 print(prompt)
 
             # Query
@@ -184,7 +192,9 @@ class GPTLibraryLearner(GPTLibraryNamer):
             )
 
             # Parse response
-            parse_results = self._parse_completion(completion)
+            parse_results = self._parse_completion(
+                completion, experiment_state, verbose
+            )
             selected_result = self._select_result(parse_results)
 
             if verbose:
@@ -378,7 +388,50 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 if len(task_examples) == n_task_examples:
                     return task_examples
 
-    def _parse_completion(self, completion):
+    def _get_program_examples(self, experiment_state, n_program_examples):
+        rng = experiment_state.metadata[RANDOM_GENERATOR]
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+
+        tasks = list(experiment_state.task_frontiers[TRAIN].keys())
+        rng.shuffle(tasks)
+
+        program_examples = []
+
+        for task in tasks:
+            frontier = experiment_state.task_frontiers[TRAIN][task]
+            task_language = rng.choice(
+                experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
+            )
+            for e in frontier.entries:
+                program_examples += [
+                    {
+                        "task_name": task.name,
+                        "program": grammar.show_program(
+                            e.program,
+                            name_classes=[
+                                LAPSGrammar.HUMAN_READABLE,
+                                LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                            ],
+                            debug=True,
+                        ),
+                        "language": task_language,
+                    }
+                ]
+                if len(program_examples) == n_program_examples:
+                    return program_examples
+
+                    # Go to next task
+                    break
+
+        return program_examples
+
+    def _parse_completion(
+        self,
+        completion,
+        experiment_state,
+        verbose,
+        function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+    ):
         parse_results = []
         for choice in completion["choices"]:
             try:
@@ -416,6 +469,44 @@ class GPTLibraryLearner(GPTLibraryNamer):
                         "text": choice["text"],
                         "valid": False,
                         "error": GPTLibraryLearner.ERROR_NULL_NAME,
+                    }
+                )
+                continue
+
+            # add filter
+            program_str_gpt = data["function_expression"]
+            grammar = experiment_state.models[model_loaders.GRAMMAR]
+            # CHECK 1: Does the program parse?
+            try:
+                # Write the program back into the DreamCoder form from whatever it was initially in.
+                program_str = grammar.show_program(
+                    program_str_gpt, input_name_class=function_name_classes
+                )
+                p = Program.parse(program_str)
+            except Exception as e:
+                if verbose:
+                    print(f"Failed to parse ({type(e)}): {program_str_gpt}")
+                parse_results.append(
+                    {
+                        "index": choice["index"],
+                        "text": choice["text"],
+                        "valid": False,
+                        "error": GPTLibraryLearner.ERROR_PARSE,
+                    }
+                )
+                continue
+            # CHECK 2: Does the program typecheck?
+            try:
+                p.infer()
+            except Exception:
+                if verbose:
+                    print(f"Type inference failure for: {str(p)}")
+                parse_results.append(
+                    {
+                        "index": choice["index"],
+                        "text": choice["text"],
+                        "valid": False,
+                        "error": GPTLibraryLearner.ERROR_INFER,
                     }
                 )
                 continue
