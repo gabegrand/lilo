@@ -153,12 +153,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
             initialize_parameters_from_grammar=grammar,
         )
 
-        prompt_filepath = os.path.join(
-            os.getcwd(),
-            experiment_state.get_checkpoint_directory(),
-            task_split,
-            self.prompt_file,
-        )
+        prompt_dict = {}
 
         for i in range(n_function_generated):
             # Update to have latest names
@@ -178,8 +173,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
             )
 
             if verbose:
-                with open(prompt_filepath, "w") as f:
-                    json.dump(str(prompt), f)
+                prompt_dict[f"prompt{i}"] = str(prompt)
                 print(prompt)
 
             # Query
@@ -268,6 +262,15 @@ class GPTLibraryLearner(GPTLibraryNamer):
             json.dump(results, f, indent=4)
         if verbose:
             print(f"Wrote results: {results_filepath}")
+
+        prompt_filepath = os.path.join(
+            os.getcwd(),
+            experiment_state.get_checkpoint_directory(),
+            task_split,
+            self.prompt_file,
+        )
+        with open(prompt_filepath, "w") as f:
+            json.dump(prompt_dict, f, ensure_ascii=False, indent=4)
 
     def _maybe_load_from_checkpoint(
         self, experiment_state, task_split, resume_strategy
