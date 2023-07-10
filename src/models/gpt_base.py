@@ -16,6 +16,7 @@ from openai.error import (
     APIError,
     InvalidRequestError,
     RateLimitError,
+    ServiceUnavailableError,
 )
 from transformers import GPT2TokenizerFast
 
@@ -384,7 +385,12 @@ class GPTBase(object):
             except InvalidRequestError as e:
                 print(e)
                 return e
-            except (RateLimitError, APIConnectionError, APIError) as e:
+            except (
+                RateLimitError,
+                APIConnectionError,
+                APIError,
+                ServiceUnavailableError,
+            ) as e:
                 print(e)
                 pause_for_rate_limit = True
                 completion = e
