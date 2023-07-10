@@ -5,9 +5,13 @@ Queries Codex to generate abstraction for functions.
 """
 from typing import Dict, List
 
+import numpy as np
+from sklearn.cluster import KMeans
+
 import src.models.model_loaders as model_loaders
 from dreamcoder.program import Program
 from dreamcoder.type import *
+from precompute_embeddings import get_embedding_directory_for_domain
 from src.experiment_iterator import SKIPPED_MODEL_FN
 from src.models.gpt_base import *
 from src.models.laps_grammar import LAPSGrammar
@@ -29,6 +33,8 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
     )
     TEXT_TASKS_HEADER = "Now, here are the tasks that need to be tackled:"
 
+    TEXT_ABSTRACTION_EXAMPLE_HEADER = "Here are some good examples of abstraction. You should come up with something similar to those, but more related to the given tasks."
+
     # provide some program examples
     # before providing tasks, provide some solved programs
 
@@ -37,6 +43,7 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         abstraction_definitions: Dict,
         task_examples: List[Dict],
         program_examples: List[Dict],
+        abstraction_examples: List[Dict],
         line_separator: str = DEFAULT_LINE_SEPARATOR,
     ):
         super().__init__(
@@ -47,6 +54,7 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         )
         self.task_examples = task_examples
         self.program_examples = program_examples
+        self.abstraction_examples = abstraction_examples
 
     def _build_abstraction_header(self):
         text_list = [
@@ -56,6 +64,8 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         ]
         for abstraction in self.abstraction_definitions.keys():
             text_list += [self._fn_docstring(abstraction) + self.line_separator]
+
+        text_list += [self.TEXT_PROGRAM_HEADER]
 
         for program_example in self.program_examples:
             text_list += [
@@ -78,16 +88,21 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         return self.line_separator.join(text_list)
 
     def make_abstraction_footer(self):
+        abstraction_examples = json.dumps(self.abstraction_examples)
+        abstraction_examples = (
+            self.TEXT_ABSTRACTION_EXAMPLE_HEADER + "\n" + abstraction_examples
+        )
+
         return (
-            f"Your challenge is to author a compact, reusable function based on the functions in the library. This function should be encoded in the following JSON format."
+            f"Your challenge is to author a compact, reusable function based on the functions in the library. Make sure the new function you write can be parsed, meaning it has balanced parentheses. Also make sure you only use the functions in the library."
             + "\n"
+            f"This function should be encoded in the following JSON format." + "\n"
             f"It should be unique (not existing in the function library above)." + "\n"
             f"If you cannot come up with a good function, return nothing." + "\n\n"
             "{" + "\n"
             f'    "function_name": TODO,' + "\n"
             f'    "function_expression": TODO,' + "\n"
-            f'    "function_description": TODO' + "\n"
-            "}"
+            f'    "function_description": TODO' + "\n" + abstraction_examples + "}"
         )
 
     def to_message_list(self):
@@ -126,7 +141,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
         n_function_generated: int = 10,
         # Prompt construction
         n_task_examples: int = 10,
-        n_program_examples: int = 10,
+        n_program_examples: int = 20,
         # Resume from prior runs
         resume_strategy: str = None,
         # Utilities
@@ -155,12 +170,16 @@ class GPTLibraryLearner(GPTLibraryNamer):
 
         prompt_dict = {}
 
-        for i in range(n_function_generated):
+        for function_num in range(n_function_generated):
             # Update to have latest names
             abstraction_definitions = self._get_abstraction_definitions(
                 experiment_state
             )
-            task_examples = self._get_task_examples(experiment_state, n_task_examples)
+            task_examples = self._get_task_examples(
+                experiment_state, n_task_examples, n_function_generated, function_num
+            )
+
+            abstraction_examples = self._get_abstraction_examples(experiment_state)
 
             program_examples = self._get_program_examples(
                 experiment_state, n_program_examples
@@ -170,10 +189,11 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 abstraction_definitions=abstraction_definitions,
                 task_examples=task_examples,
                 program_examples=program_examples,
+                abstraction_examples=abstraction_examples,
             )
 
             if verbose:
-                prompt_dict[f"prompt{i}"] = str(prompt)
+                prompt_dict[f"prompt{function_num}"] = str(prompt)
                 print(prompt)
 
             # Query
@@ -371,25 +391,77 @@ class GPTLibraryLearner(GPTLibraryNamer):
             "fn_description": fn_description,
         }
 
-    def _get_task_examples(self, experiment_state, n_task_examples):
-        rng = experiment_state.metadata[RANDOM_GENERATOR]
-        experiment_state.models[model_loaders.GRAMMAR]
+    def _get_task_examples(
+        self, experiment_state, n_task_examples, n_function_generated, function_num
+    ):
 
+        # random task
+        # rng = experiment_state.metadata[RANDOM_GENERATOR]
+        # grammar = experiment_state.models[model_loaders.GRAMMAR]
+
+        # tasks = list(experiment_state.task_frontiers[TRAIN].keys())
+        # rng.shuffle(tasks)
+
+        # task_examples = []
+
+        # for task in tasks:
+        #     frontier = experiment_state.task_frontiers[TRAIN][task]
+        #     if frontier.empty:
+        #         task_language = rng.choice(
+        #             experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
+        #         )
+        #         task_examples.append(task_language)
+        #         if len(task_examples) == n_task_examples:
+        #             return task_examples
+
+        # cluster task
+
+        # get id of all unsolved tasks
+        task_ids = []
         tasks = list(experiment_state.task_frontiers[TRAIN].keys())
-        rng.shuffle(tasks)
-
-        task_examples = []
-
         for task in tasks:
-            # now its getting all tasks. I want only unsolved tasks
             frontier = experiment_state.task_frontiers[TRAIN][task]
             if frontier.empty:
-                task_language = rng.choice(
-                    experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
-                )
-                task_examples.append(task_language)
-                if len(task_examples) == n_task_examples:
-                    return task_examples
+                task_ids.append(task.name)
+
+        # get a dict with all task_id:task_embedding
+        task_language_loader = experiment_state.config["metadata"][
+            "task_language_loader"
+        ]
+        embedding_filepath = get_embedding_directory_for_domain(task_language_loader)
+        try:
+            with open(embedding_filepath, "r") as f:
+                embedding_dict = json.load(f)
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"The file '{embedding_filepath}' could not be found."
+            )
+
+        # get a dict with all unsolved task_id:task_embedding
+        embedding_dict = {
+            task_id: embedding_dict[task_id]
+            for task_id in embedding_dict
+            if task_id in task_ids
+        }
+
+        embeddings = np.array(list(embedding_dict.values()))
+        kmeans = KMeans(n_clusters=n_function_generated, random_state=0)
+        kmeans.fit(embeddings)
+        clusters = kmeans.labels_
+        dict_cluster = dict(zip(task_ids, clusters))
+        task_examples_id = [
+            task_id
+            for task_id, cluster in dict_cluster.items()
+            if cluster == function_num
+        ][:10]
+        # print(task_examples_id)
+        task_examples = [
+            task_example[0]
+            for task_example in experiment_state.get_language_for_ids(
+                TRAIN, task_examples_id
+            )
+        ]
+        return task_examples
 
     def _get_program_examples(self, experiment_state, n_program_examples):
         rng = experiment_state.metadata[RANDOM_GENERATOR]
@@ -427,6 +499,12 @@ class GPTLibraryLearner(GPTLibraryNamer):
                     break
 
         return program_examples
+
+    def _get_abstraction_examples(self, experiment_state):
+        # write filepath later
+        with open("re2_abstraction_example.json") as f:
+            abstraction_examples = json.load(f)
+        return abstraction_examples
 
     def _parse_completion(
         self,
