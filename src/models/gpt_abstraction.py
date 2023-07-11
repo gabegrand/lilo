@@ -3,6 +3,7 @@ gpt_abstraction.py | Author : Maxine Liu.
 
 Queries Codex to generate abstraction for functions.
 """
+import sys
 from typing import Dict, List
 
 import numpy as np
@@ -88,10 +89,10 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         return self.line_separator.join(text_list)
 
     def make_abstraction_footer(self):
-        abstraction_examples = json.dumps(self.abstraction_examples)
-        abstraction_examples = (
-            self.TEXT_ABSTRACTION_EXAMPLE_HEADER + "\n" + abstraction_examples
-        )
+        # abstraction_examples = json.dumps(self.abstraction_examples)
+        # abstraction_examples = (
+        #     self.TEXT_ABSTRACTION_EXAMPLE_HEADER + "\n" + abstraction_examples
+        # )
 
         return (
             f"Your challenge is to author a compact, reusable function based on the functions in the library. Make sure the new function you write can be parsed, meaning it has balanced parentheses. Also make sure you only use the functions in the library."
@@ -102,7 +103,7 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
             "{" + "\n"
             f'    "function_name": TODO,' + "\n"
             f'    "function_expression": TODO,' + "\n"
-            f'    "function_description": TODO' + "\n" + abstraction_examples + "}"
+            f'    "function_description": TODO' + "\n" + "}"
         )
 
     def to_message_list(self):
@@ -175,6 +176,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
             abstraction_definitions = self._get_abstraction_definitions(
                 experiment_state
             )
+            print("❗️" + str(len(grammar.primitives)))
             task_examples = self._get_task_examples(
                 experiment_state, n_task_examples, n_function_generated, function_num
             )
@@ -220,6 +222,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 readable_name = selected_result["data"]["function_name"]
                 function_expression = selected_result["data"]["function_expression"]
                 grammar._add_base_primitive(function_expression)
+
                 grammar.set_function_name(
                     str(function_expression),
                     name_class=LAPSGrammar.HUMAN_READABLE,
@@ -229,7 +232,9 @@ class GPTLibraryLearner(GPTLibraryNamer):
                     name=str(function_expression),
                     description=selected_result["data"]["function_description"],
                 )
-
+                experiment_state.models[model_loaders.GRAMMAR] = grammar
+                print("❗️❗️" + str(len(grammar.primitives)))
+                sys.exit()
                 gpt_abstraction_library[str(function_expression)] = selected_result[
                     "data"
                 ]
@@ -511,7 +516,10 @@ class GPTLibraryLearner(GPTLibraryNamer):
         completion,
         experiment_state,
         verbose,
-        function_name_classes: list = [LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+        function_name_classes: list = [
+            LAPSGrammar.HUMAN_READABLE,
+            LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+        ],
     ):
         parse_results = []
         for choice in completion["choices"]:
@@ -561,7 +569,9 @@ class GPTLibraryLearner(GPTLibraryNamer):
             try:
                 # Write the program back into the DreamCoder form from whatever it was initially in.
                 program_str = grammar.show_program(
-                    program_str_gpt, input_name_class=function_name_classes
+                    program_str_gpt,
+                    input_name_class=function_name_classes,
+                    name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
                 )
                 p = Program.parse(program_str)
             except Exception as e:
