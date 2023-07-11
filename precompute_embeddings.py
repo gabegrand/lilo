@@ -74,7 +74,8 @@ def main(args):
         task_id: get_embedding(language, engine=ENGINE_GPT_EMBEDDING)
         for task_id, language in zip(all_task_id, all_language)
     }
-    embedding_filepath = get_embedding_directory_for_domain(domain)
+    task_language_loader = experiment_state.config["metadata"]["task_langauge_loader"]
+    embedding_filepath = get_embedding_directory_for_domain(task_language_loader)
     with open(embedding_filepath, "w") as file:
         json.dump(embedding_dict, file)
     print(f"{embedding_filepath} is written")
