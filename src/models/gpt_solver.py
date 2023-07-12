@@ -336,8 +336,12 @@ class GPTSolver(GPTSampleGenerator):
         ]
 
         if body_task_selection == "cosine_similarity":
-            domain = experiment_state.config["metadata"]["tasks_loader"]
-            embedding_filepath = get_embedding_directory_for_domain(domain)
+            task_language_loader = experiment_state.config["metadata"][
+                "task_language_loader"
+            ]
+            embedding_filepath = get_embedding_directory_for_domain(
+                task_language_loader
+            )
             try:
                 with open(embedding_filepath, "r") as f:
                     embedding_dictionary = json.load(f)
