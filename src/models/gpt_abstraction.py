@@ -3,14 +3,13 @@ gpt_abstraction.py | Author : Maxine Liu.
 
 Queries Codex to generate abstraction for functions.
 """
-import sys
 from typing import Dict, List
 
 import numpy as np
 from sklearn.cluster import KMeans
 
 import src.models.model_loaders as model_loaders
-from dreamcoder.program import Program
+from dreamcoder.program import Invented, Program
 from dreamcoder.type import *
 from precompute_embeddings import get_embedding_directory_for_domain
 from src.experiment_iterator import SKIPPED_MODEL_FN
@@ -56,6 +55,15 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         self.task_examples = task_examples
         self.program_examples = program_examples
         self.abstraction_examples = abstraction_examples
+
+    def _fn_docstring(self, abstraction):
+        definitions = self.abstraction_definitions[abstraction]
+        docstring = f"{definitions['fn_name']} :: {definitions['fn_type']}\n"
+        if definitions["fn_body"] is not None:
+            docstring += f"\n {definitions['fn_body']}"
+        if definitions["fn_description"] is not None:
+            docstring += f"\ndescription: {definitions['fn_description']}"
+        return docstring
 
     def _build_abstraction_header(self):
         text_list = [
@@ -176,7 +184,6 @@ class GPTLibraryLearner(GPTLibraryNamer):
             abstraction_definitions = self._get_abstraction_definitions(
                 experiment_state
             )
-            print("❗️" + str(len(grammar.primitives)))
             task_examples = self._get_task_examples(
                 experiment_state, n_task_examples, n_function_generated, function_num
             )
@@ -221,20 +228,41 @@ class GPTLibraryLearner(GPTLibraryNamer):
             if selected_result is not None:
                 readable_name = selected_result["data"]["function_name"]
                 function_expression = selected_result["data"]["function_expression"]
-                grammar._add_base_primitive(function_expression)
+                # grammar._add_base_primitive(function_expression)
 
-                grammar.set_function_name(
-                    str(function_expression),
+                # last line should be replace by ----
+                grammar = experiment_state.models[model_loaders.GRAMMAR]
+                function_name_classes = [
+                    LAPSGrammar.HUMAN_READABLE,
+                    LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                ]
+                program_str = "#" + grammar.show_program(
+                    function_expression,
+                    input_name_class=function_name_classes,
+                    name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+                )
+                p = Invented.parse(program_str)
+                new_productions = (0.0, p.infer(), p)
+                new_grammar = LAPSGrammar(
+                    logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
+                    productions=grammar.productions + [new_productions],
+                    continuationType=grammar.continuationType,
+                    initialize_parameters_from_grammar=grammar,
+                )
+
+                # ---- end here
+
+                new_grammar.set_function_name(
+                    program_str,
                     name_class=LAPSGrammar.HUMAN_READABLE,
                     name=readable_name,
                 )
-                grammar.set_function_description(
-                    name=str(function_expression),
+                new_grammar.set_function_description(
+                    name=program_str,
                     description=selected_result["data"]["function_description"],
                 )
-                experiment_state.models[model_loaders.GRAMMAR] = grammar
-                print("❗️❗️" + str(len(grammar.primitives)))
-                sys.exit()
+                experiment_state.models[model_loaders.GRAMMAR] = new_grammar
+
                 gpt_abstraction_library[str(function_expression)] = selected_result[
                     "data"
                 ]
@@ -387,7 +415,8 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 )
             )
         else:
-            fn_body = str(abstraction)
+            # fn_body = str(abstraction)
+            fn_body = None
         fn_description = grammar.get_function_description(abstraction)
         return {
             "fn_name": fn_name,
@@ -499,9 +528,8 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 ]
                 if len(program_examples) == n_program_examples:
                     return program_examples
-
                     # Go to next task
-                    break
+                break
 
         return program_examples
 
@@ -568,7 +596,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
             # CHECK 1: Does the program parse?
             try:
                 # Write the program back into the DreamCoder form from whatever it was initially in.
-                program_str = grammar.show_program(
+                program_str = "#" + grammar.show_program(
                     program_str_gpt,
                     input_name_class=function_name_classes,
                     name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
