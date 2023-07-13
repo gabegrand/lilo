@@ -60,7 +60,7 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         definitions = self.abstraction_definitions[abstraction]
         docstring = f"{definitions['fn_name']} :: {definitions['fn_type']}\n"
         if definitions["fn_body"] is not None:
-            docstring += f"\n {definitions['fn_body']}"
+            docstring += f"\n{definitions['fn_body']}"
         if definitions["fn_description"] is not None:
             docstring += f"\ndescription: {definitions['fn_description']}"
         return docstring
@@ -176,6 +176,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
             continuationType=grammar.continuationType,
             initialize_parameters_from_grammar=grammar,
         )
+        experiment_state.models[model_loaders.GRAMMAR] = grammar
 
         prompt_dict = {}
 
@@ -414,10 +415,11 @@ class GPTLibraryLearner(GPTLibraryNamer):
                     ],
                 )
             )
+            fn_description = grammar.get_function_description(abstraction)
         else:
             # fn_body = str(abstraction)
             fn_body = None
-        fn_description = grammar.get_function_description(abstraction)
+            fn_description = None
         return {
             "fn_name": fn_name,
             "fn_body": fn_body,

@@ -933,3 +933,48 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         df_token_usage = pd.DataFrame(token_usage_list)
 
         return df_token_usage
+
+    def get_gpt_abstractions_for_domain(
+        self,
+        domain,
+        experiment_types: List[ExperimentType] = None,
+    ):
+        if experiment_types is None:
+            experiment_types = self.get_available_experiment_types(domain)
+
+        df_list = []
+        for experiment_type in experiment_types:
+            split = self.get_default_split(experiment_type)
+
+            for seed in self.get_available_seeds(domain, experiment_type):
+                config_base = self.get_config(domain, experiment_type, seed)
+                global_batch_sizes = config_base["metadata"]["global_batch_sizes"]
+                for iteration in self.get_available_iterations(
+                    domain, experiment_type, seed
+                ):
+
+                    for batch_size in global_batch_sizes:
+                        path = os.path.join(
+                            self.dir_domains,
+                            domain,
+                            experiment_type,
+                            f"seed_{seed}",
+                            f"{experiment_type}_{batch_size}",
+                            str(iteration),
+                            split,
+                            "gpt_library_abstraction_results.json",
+                        )
+
+                        with open(path, "r") as f:
+                            gpt_abstraction_output_data = json.load(f)
+
+                        abstractions = gpt_abstraction_output_data["abstractions"]
+                        df = pd.DataFrame.from_dict(abstractions, orient="index")
+                        df = df.drop(columns=["task_examples"])
+                        df["experiment_type"] = experiment_type
+                        df["random_seed"] = seed
+                        df["iteration"] = iteration
+                        df["batch_size"] = batch_size
+                        df_list.append(df)
+
+        return pd.concat(df_list, axis=0).reset_index(drop=True)
