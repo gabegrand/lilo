@@ -185,7 +185,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
             abstraction_definitions = self._get_abstraction_definitions(
                 experiment_state
             )
-            task_examples = self._get_task_examples(
+            task_examples, task_examples_id = self._get_task_examples(
                 experiment_state, n_task_examples, n_function_generated, function_num
             )
 
@@ -497,7 +497,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 TRAIN, task_examples_id
             )
         ]
-        return task_examples
+        return task_examples, task_examples_id
 
     def _get_program_examples(self, experiment_state, n_program_examples):
         rng = experiment_state.metadata[RANDOM_GENERATOR]
