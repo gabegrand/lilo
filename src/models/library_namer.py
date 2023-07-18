@@ -136,6 +136,7 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
     def generate_library_names(
         self,
         experiment_state,
+        body_task_selection,
         task_split: str,
         task_batch_ids: list,
         # Querying
