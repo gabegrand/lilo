@@ -666,9 +666,9 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         "re2": "REGEX",
         "clevr": "CLEVR",
         "logo": "LOGO",
-        "re2_human": "REGEX (human language)",
-        "clevr_human": "CLEVR (human language)",
-        "logo_human": "LOGO (human language)",
+        "re2_human": "REGEX (human)",
+        "clevr_human": "CLEVR (human)",
+        "logo_human": "LOGO (human)",
     }
     EXPERIMENT_TYPES_CAMERA = {
         ExperimentType.BASE_DSL: "Base DSL",
