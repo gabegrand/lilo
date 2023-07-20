@@ -347,15 +347,11 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 LAPSGrammar.NUMERIC_FUNCTION_NAMES,
             ],
         )
-
-        abstraction_str = str(abstraction)
-        if abstraction.isInvented:
-            # Remove leading `#` so that any inlined abstractions are replaced with their fn_name
-            abstraction_str = abstraction_str[1:]
-
         fn_body = str(
             grammar.show_program(
-                abstraction_str,
+                str(abstraction)[
+                    1:
+                ],  # Remove leading `#` so that any inlined abstractions are replaced with their fn_name
                 name_classes=[
                     LAPSGrammar.HUMAN_READABLE,
                     LAPSGrammar.NUMERIC_FUNCTION_NAMES,
