@@ -291,7 +291,6 @@ class GPTLibraryLearner(GPTLibraryNamer):
                         abstraction_definitions=abstraction_definitions,
                         task_examples=task_examples,
                         program_examples=program_examples,
-                        abstraction_examples=abstraction_examples,
                         abstraction_target=abstraction_target,
                         update=True,
                         nth_task=i,
