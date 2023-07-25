@@ -1,8 +1,10 @@
 """
 gpt_abstraction.py | Author : Maxine Liu.
 
-Queries GPT to generate abstraction.
+Queries GPT to generate new abstraction.
 """
+import json
+import os
 from typing import Dict, List
 
 import numpy as np
@@ -10,10 +12,9 @@ from sklearn.cluster import KMeans
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.program import Invented, Program
-from dreamcoder.type import *
 from precompute_embeddings import get_embedding_directory_for_domain
 from src.experiment_iterator import SKIPPED_MODEL_FN
-from src.models.gpt_base import *
+from src.models.gpt_base import DEFAULT_LINE_SEPARATOR
 from src.models.laps_grammar import LAPSGrammar
 from src.models.library_namer import GPTLibraryNamer, LibraryNamerPrompt
 from src.task_loaders import TRAIN
@@ -41,9 +42,9 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         task_examples: List[Dict],
         program_examples: List[Dict],
         line_separator: str = DEFAULT_LINE_SEPARATOR,
-        update: bool = False,  # True if it is the second prompt after the abstraction generated
+        include_solver_prompt: bool = False,  # True if it is the second prompt after the abstraction generated
         abstraction_target: Dict = None,
-        nth_task: int = None,
+        task_i: int = None,
     ):
         super().__init__(
             abstraction_definitions=abstraction_definitions,
@@ -53,17 +54,6 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         )
         self.task_examples = task_examples
         self.program_examples = program_examples
-        self.update = update
-        self.nth_task = nth_task
-
-    def _fn_docstring(self, abstraction):
-        definitions = self.abstraction_definitions[abstraction]
-        docstring = f"{definitions['fn_name']} :: {definitions['fn_type']}\n"
-        if definitions["fn_body"] is not None:
-            docstring += f"\n{definitions['fn_body']}"
-        if definitions["fn_description"] is not None:
-            docstring += f"\ndescription: {definitions['fn_description']}"
-        return docstring
 
     # all the dsl primitives and program examples
     def _build_abstraction_header(self):
@@ -103,35 +93,32 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
             + "\n"
             f"This function should be encoded in the following JSON format." + "\n"
             f"It should be unique (not existing in the function library above)." + "\n"
-            f"If you cannot come up with a good function, return nothing." + "\n\n"
             "{" + "\n"
-            f'    "function_name": TODO,' + "\n"
+            f'    "readable_name": TODO,' + "\n"
             f'    "function_expression": TODO,' + "\n"
-            f'    "function_description": TODO' + "\n" + "}"
+            f'    "description": TODO' + "\n" + "}"
         )
 
     # footer if abstraction is successfully generated
-    def _build_updated_abstraction_footer(self):
+    def _build_updated_abstraction_footer(self, task_i):
         return (
-            f"Based on the tasks, you came up with the abstraction:\n"
             f"{self.abstraction_target}\n"
             f"Now please come up with a program, using this abstraction, to solve the following task:\n"
-            f"{self.task_examples[self.nth_task]}\n"
+            f"{self.task_examples[task_i]}\n"
             f"It should be encoded in the following JSON format:\n"
             f"{{\n"
             f'    "program": TODO\n'
             f"}}\n"
-            f"If you cannot come up with a good program, return nothing"
         )
 
-    def to_message_list(self):
+    def to_message_list(self, include_solver_prompt, task_i):
         message_list = [self.chat_message(self._build_abstraction_header())]
         message_list += [self.chat_message(self._build_task_prompt())]
-        if not self.update:
+        if not include_solver_prompt:
             message_list += [self.chat_message(self._build_abstraction_footer())]
         else:
             message_list += [
-                self.chat_message(self._build_updated_abstraction_footer())
+                self.chat_message(self._build_updated_abstraction_footer(task_i))
             ]
         return message_list
 
@@ -145,7 +132,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
 
     ERROR_PARSE = "parse"
     ERROR_INFER = "infer"
-    ERROR_SOLVE = "can't solve the task"
+    ERROR_SOLVE = "solve"
 
     @staticmethod
     def load_model(experiment_state, **kwargs):
@@ -161,7 +148,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
         task_batch_ids: list,
         # Querying
         best_of: int = 1,
-        n_samples_per_abstraction: int = 5,
+        n_samples_per_abstraction: int = 1,
         top_p: float = 0.1,
         max_tokens: int = 256,
         n_function_generated: int = 10,
@@ -178,12 +165,14 @@ class GPTLibraryLearner(GPTLibraryNamer):
 
         # Optional load from results JSON
         if self._maybe_load_from_checkpoint(
-            experiment_state, task_split, resume_strategy
+            experiment_state, task_split, resume_strategy, add_primitive=True
         ):
             return {
                 SKIPPED_MODEL_FN: True,
             }
-        abstraction_definitions = self._get_abstraction_definitions(experiment_state)
+        abstraction_definitions = self._get_abstraction_definitions(
+            experiment_state, all=True
+        )
 
         gpt_abstraction_library = {}
 
@@ -200,14 +189,16 @@ class GPTLibraryLearner(GPTLibraryNamer):
         for function_num in range(n_function_generated):
             # Update to have latest names
             abstraction_definitions = self._get_abstraction_definitions(
-                experiment_state
+                experiment_state, all=True
             )
             task_examples, task_examples_id = self._get_task_examples(
                 experiment_state, n_task_examples, n_function_generated, function_num
             )
 
-            program_examples = self._get_program_examples(
-                experiment_state, n_program_examples
+            program_examples = self._get_usage_examples(
+                experiment_state=experiment_state,
+                n_usage_examples=n_program_examples,
+                abstraction=None,
             )
 
             prompt = LibraryAbstractionPrompt(
@@ -220,28 +211,32 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 prompt_dict[f"prompt{function_num}"] = str(prompt)
                 print(prompt)
 
-            # Query
-            completion = self.query_completion(
-                prompt,
-                n_samples=n_samples_per_abstraction,
-                top_p=top_p,
-                max_tokens=max_tokens,
-                stop=None,
-            )
+            for attempts_num in range(5):
+                # Query
+                completion = self.query_completion(
+                    prompt,
+                    n_samples=n_samples_per_abstraction,
+                    top_p=top_p,
+                    max_tokens=max_tokens,
+                    stop=None,
+                )
 
-            # Parse response
-            parse_results = self._parse_completion(
-                completion, experiment_state, verbose
-            )
-            selected_result = self._select_result(parse_results)
+                # Parse response
+                parse_results = self._parse_completion(
+                    completion, experiment_state, verbose
+                )
+                selected_result = self._select_result(parse_results)
 
-            if verbose:
-                print(f"GPT ({self.ENGINE}) completion:")
-                print(json.dumps(parse_results, indent=4))
+                if verbose:
+                    print(f"GPT ({self.ENGINE}) completion:")
+                    print(json.dumps(parse_results, indent=4))
+
+                if selected_result is not None:
+                    break
 
             # add the function to the grammar
             if selected_result is not None:
-                readable_name = selected_result["data"]["function_name"]
+                readable_name = selected_result["data"]["readable_name"]
                 function_expression = selected_result["data"]["function_expression"]
                 grammar = experiment_state.models[model_loaders.GRAMMAR]
                 function_name_classes = [
@@ -270,7 +265,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 )
                 new_grammar.set_function_description(
                     name=program_str,
-                    description=selected_result["data"]["function_description"],
+                    description=selected_result["data"]["description"],
                 )
                 experiment_state.models[model_loaders.GRAMMAR] = new_grammar
 
@@ -284,16 +279,17 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 print(f"✅ Successfully created {readable_name}:{function_expression}")
                 print(json.dumps(selected_result, indent=4))
 
-                # ask program for each task
-                abstraction_target = selected_result["data"]
-                for i in range(n_task_examples):
+                # Query for program solutions for each task
+                abstraction_target = selected_result
+                for task_i in range(n_task_examples):
+                    # for i in range(3):
                     prompt = LibraryAbstractionPrompt(
                         abstraction_definitions=abstraction_definitions,
                         task_examples=task_examples,
                         program_examples=program_examples,
                         abstraction_target=abstraction_target,
-                        update=True,
-                        nth_task=i,
+                        include_solver_prompte=True,
+                        task_i=task_i,
                     )
 
                     if verbose:
@@ -385,105 +381,6 @@ class GPTLibraryLearner(GPTLibraryNamer):
         with open(prompt_filepath, "w") as f:
             json.dump(prompt_dict, f, ensure_ascii=False, indent=4)
 
-    def _maybe_load_from_checkpoint(
-        self, experiment_state, task_split, resume_strategy
-    ):
-        if (resume_strategy == "first" and experiment_state.is_first_iteration()) or (
-            resume_strategy == "every"
-        ):
-            # If RESUME_CHECKPOINT_DIRECTORY not defined, default to self checkpoint directory
-            results_filepath_ext = os.path.join(
-                os.getcwd(),
-                experiment_state.get_checkpoint_directory_maybe_resume(),
-                task_split,
-                self.results_file,
-            )
-            if os.path.exists(results_filepath_ext):
-                with open(results_filepath_ext, "r") as f:
-                    results_json = json.load(f)
-
-                # Update experiment state from file
-                grammar = experiment_state.models[model_loaders.GRAMMAR]
-
-                for abstraction, data in results_json["abstractions"].items():
-                    if data is not None:
-                        grammar._add_base_primitive(abstraction)
-                        grammar.set_function_name(
-                            str(abstraction),
-                            name_class=LAPSGrammar.HUMAN_READABLE,
-                            name=data["function_name"],
-                        )
-                        grammar.set_function_description(
-                            name=str(abstraction),
-                            description=data["function_description"],
-                        )
-
-                # Copy external results file to checkpoint directory
-                results_filepath = os.path.join(
-                    os.getcwd(),
-                    experiment_state.get_checkpoint_directory(),
-                    task_split,
-                    self.results_file,
-                )
-                os.makedirs(os.path.dirname(results_filepath), exist_ok=True)
-                with open(results_filepath, "w") as f:
-                    json.dump(results_json, f, indent=4)
-
-                print(f"{self.name}: Loaded results from {results_filepath_ext}")
-                return True
-            else:
-                print(f"{self.name}: Results not found at {results_filepath_ext}")
-                # if experiment_state.is_first_iteration():
-                #     raise ValueError("Unable to resume first iteration.")
-                return False
-
-    def _get_abstraction_definitions(self, experiment_state):
-        grammar = experiment_state.models[model_loaders.GRAMMAR]
-        abstractions = [p for p in grammar.primitives]
-
-        abstraction_definitions = {}
-        for abstraction in abstractions:
-            abstraction_definitions[abstraction] = self._get_abstraction_definition(
-                experiment_state, abstraction
-            )
-
-        return abstraction_definitions
-
-    def _get_abstraction_definition(self, experiment_state, abstraction):
-        grammar = experiment_state.models[model_loaders.GRAMMAR]
-        fn_name = grammar.get_name(
-            str(abstraction),
-            name_classes=[
-                LAPSGrammar.HUMAN_READABLE,
-                LAPSGrammar.NUMERIC_FUNCTION_NAMES,
-            ],
-        )
-
-        abstraction_str = str(abstraction)
-        if abstraction.isInvented:
-            # Remove leading `#` so that any inlined abstractions are replaced with their fn_name
-            abstraction_str = abstraction_str[1:]
-
-            fn_body = str(
-                grammar.show_program(
-                    abstraction_str,
-                    name_classes=[
-                        LAPSGrammar.HUMAN_READABLE,
-                        LAPSGrammar.NUMERIC_FUNCTION_NAMES,
-                    ],
-                )
-            )
-            fn_description = grammar.get_function_description(abstraction)
-        else:
-            fn_body = None
-            fn_description = None
-        return {
-            "fn_name": fn_name,
-            "fn_body": fn_body,
-            "fn_type": abstraction.infer(),
-            "fn_description": fn_description,
-        }
-
     def _get_task_examples(
         self, experiment_state, n_task_examples, n_function_generated, function_num
     ):
@@ -517,14 +414,13 @@ class GPTLibraryLearner(GPTLibraryNamer):
         # cluster tasks
         embeddings = np.array(list(embedding_dict.values()))
         kmeans = KMeans(n_clusters=n_function_generated, random_state=0)
-        kmeans.fit(embeddings)
-        clusters = kmeans.labels_
+        clusters = kmeans.fit_predict(embeddings)
         dict_cluster = dict(zip(task_ids, clusters))
         task_examples_id = [
             task_id
             for task_id, cluster in dict_cluster.items()
             if cluster == function_num
-        ][:10]
+        ][:n_task_examples]
         task_examples = [
             task_example[0]
             for task_example in experiment_state.get_language_for_ids(
@@ -532,42 +428,6 @@ class GPTLibraryLearner(GPTLibraryNamer):
             )
         ]
         return task_examples, task_examples_id
-
-    def _get_program_examples(self, experiment_state, n_program_examples):
-        rng = experiment_state.metadata[RANDOM_GENERATOR]
-        grammar = experiment_state.models[model_loaders.GRAMMAR]
-
-        tasks = list(experiment_state.task_frontiers[TRAIN].keys())
-        rng.shuffle(tasks)
-
-        program_examples = []
-
-        for task in tasks:
-            frontier = experiment_state.task_frontiers[TRAIN][task]
-            task_language = rng.choice(
-                experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
-            )
-            for e in frontier.entries:
-                program_examples += [
-                    {
-                        "task_name": task.name,
-                        "program": grammar.show_program(
-                            e.program,
-                            name_classes=[
-                                LAPSGrammar.HUMAN_READABLE,
-                                LAPSGrammar.NUMERIC_FUNCTION_NAMES,
-                            ],
-                            debug=True,
-                        ),
-                        "language": task_language,
-                    }
-                ]
-                if len(program_examples) == n_program_examples:
-                    return program_examples
-                    # Go to next task
-                break
-
-        return program_examples
 
     # parse a new grammar
     def _parse_completion(
@@ -596,9 +456,9 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 continue
 
             if not (
-                ("function_name" in data)
+                ("readable_name" in data)
                 and ("function_expression" in data)
-                and ("function_description" in data)
+                and ("description" in data)
             ):
                 parse_results.append(
                     {
@@ -610,7 +470,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 )
                 continue
 
-            if not data["function_name"]:
+            if not data["readable_name"]:
                 parse_results.append(
                     {
                         "index": choice["index"],
