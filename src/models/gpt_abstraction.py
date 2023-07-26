@@ -100,25 +100,27 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         )
 
     # footer if abstraction is successfully generated
-    def _build_updated_abstraction_footer(self, task_i):
-        return (
-            f"{self.abstraction_target}\n"
-            f"Now please come up with a program, using this abstraction, to solve the following task:\n"
-            f"{self.task_examples[task_i]}\n"
-            f"It should be encoded in the following JSON format:\n"
-            f"{{\n"
-            f'    "program": TODO\n'
-            f"}}\n"
-        )
+    def _build_updated_abstraction_footer(self, include_solver_prompt, task_i):
+        if not include_solver_prompt:
+            return None
+        else:
+            return (
+                f"{self.abstraction_target}\n"
+                f"Now please come up with a program, using this abstraction, to solve the following task:\n"
+                f"{self.task_examples[task_i]}\n"
+                f"It should be encoded in the following JSON format:\n"
+                f"{{\n"
+                f'    "program": TODO\n'
+                f"}}\n"
+            )
 
-    def to_message_list(self, include_solver_prompt, task_i):
+    def to_message_list(self):
         message_list = [self.chat_message(self._build_abstraction_header())]
         message_list += [self.chat_message(self._build_task_prompt())]
-        if not include_solver_prompt:
-            message_list += [self.chat_message(self._build_abstraction_footer())]
-        else:
+        message_list += [self.chat_message(self._build_abstraction_footer())]
+        if self.chat_message(self._build_updated_abstraction_footer()):
             message_list += [
-                self.chat_message(self._build_updated_abstraction_footer(task_i))
+                self.chat_message(self._build_updated_abstraction_footer())
             ]
         return message_list
 
@@ -155,6 +157,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
         # Prompt construction
         n_task_examples: int = 10,
         n_program_examples: int = 20,
+        n_attempts: int = 5,
         # Resume from prior runs
         resume_strategy: str = None,
         # Utilities
@@ -171,7 +174,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 SKIPPED_MODEL_FN: True,
             }
         abstraction_definitions = self._get_abstraction_definitions(
-            experiment_state, all=True
+            experiment_state, abstractions_only=False
         )
 
         gpt_abstraction_library = {}
@@ -189,7 +192,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
         for function_num in range(n_function_generated):
             # Update to have latest names
             abstraction_definitions = self._get_abstraction_definitions(
-                experiment_state, all=True
+                experiment_state, abstractions_only=False
             )
             task_examples, task_examples_id = self._get_task_examples(
                 experiment_state, n_task_examples, n_function_generated, function_num
@@ -211,7 +214,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 prompt_dict[f"prompt{function_num}"] = str(prompt)
                 print(prompt)
 
-            for attempts_num in range(5):
+            for attempts_num in range(n_attempts):
                 # Query
                 completion = self.query_completion(
                     prompt,

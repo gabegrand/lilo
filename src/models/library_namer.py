@@ -335,9 +335,11 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
             str(abstraction), name_classes=[LAPSGrammar.NUMERIC_FUNCTION_NAMES]
         )
 
-    def _get_abstraction_definitions(self, experiment_state, all=False):
+    def _get_abstraction_definitions(
+        self, experiment_state, abstractions_only: bool = True
+    ):
         grammar = experiment_state.models[model_loaders.GRAMMAR]
-        if all:
+        if not abstractions_only:
             abstractions = [p for p in grammar.primitives]
         else:
             abstractions = [p for p in grammar.primitives if p.isInvented]
@@ -398,6 +400,8 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
             )
             for e in frontier.entries:
+                if abstraction is None:
+                    continue
                 if abstraction and str(abstraction) not in e.tokens:
                     continue
                 usage_examples += [
