@@ -3,7 +3,7 @@ library_namer.py | Author : Catherine Wong and Gabe Grand.
 
 Queries Codex to generate names for library functions.
 """
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -35,11 +35,13 @@ class LibraryNamerPrompt(BasePrompt):
         self.abstraction_target = abstraction_target
         self.usage_examples = usage_examples
         self.line_separator = line_separator
+        self.message_list = []
 
     def __str__(self):
+        self.to_message_list()
         return (
             self.DEFAULT_MESSAGE_SEPARATOR.join(
-                [x["content"] for x in self.to_message_list()]
+                [x["content"] for x in self.message_list]
             )
             + "\n"
         )
@@ -110,10 +112,11 @@ class LibraryNamerPrompt(BasePrompt):
     def to_message_list(self):
         message_list = [self.chat_message(self._build_library_header())]
         message_list += [self.chat_message(self._build_target_prompt())]
-        return message_list
+        self.message_list = message_list
 
     def to_chat_format(self):
-        return self.to_message_list()
+        self.to_message_list()
+        return self.message_list
 
 
 @ModelRegistry.register
@@ -385,7 +388,10 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
             "fn_description": fn_description,
         }
 
-    def _get_usage_examples(self, experiment_state, abstraction, n_usage_examples):
+    # add documentation
+    def _get_usage_examples(
+        self, experiment_state, abstraction: Optional[Invented], n_usage_examples: int
+    ):
         rng = experiment_state.metadata[RANDOM_GENERATOR]
         grammar = experiment_state.models[model_loaders.GRAMMAR]
 
@@ -400,24 +406,21 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
             )
             for e in frontier.entries:
-                if abstraction is None:
-                    continue
-                if abstraction and str(abstraction) not in e.tokens:
-                    continue
-                usage_examples += [
-                    {
-                        "task_name": task.name,
-                        "program": grammar.show_program(
-                            e.program,
-                            name_classes=[
-                                LAPSGrammar.HUMAN_READABLE,
-                                LAPSGrammar.NUMERIC_FUNCTION_NAMES,
-                            ],
-                            debug=True,
-                        ),
-                        "language": task_language,
-                    }
-                ]
+                if (abstraction is None) or (str(abstraction) in e.tokens):
+                    usage_examples += [
+                        {
+                            "task_name": task.name,
+                            "program": grammar.show_program(
+                                e.program,
+                                name_classes=[
+                                    LAPSGrammar.HUMAN_READABLE,
+                                    LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                                ],
+                                debug=True,
+                            ),
+                            "language": task_language,
+                        }
+                    ]
                 if len(usage_examples) == n_usage_examples:
                     return usage_examples
 

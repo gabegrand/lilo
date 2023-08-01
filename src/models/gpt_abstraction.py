@@ -55,6 +55,9 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         self.task_examples = task_examples
         self.program_examples = program_examples
 
+        self.message_list = []
+        self._build_updated_abstraction_footer(task_i, include_solver_prompt)
+
     # all the dsl primitives and program examples
     def _build_abstraction_header(self):
         text_list = [
@@ -100,29 +103,25 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         )
 
     # footer if abstraction is successfully generated
-    def _build_updated_abstraction_footer(self, include_solver_prompt, task_i):
-        if not include_solver_prompt:
-            return None
-        else:
-            return (
+    def _build_updated_abstraction_footer(self, task_i, include_solver_prompt):
+        if include_solver_prompt:
+            new_footer = new_footer = (
                 f"{self.abstraction_target}\n"
-                f"Now please come up with a program, using this abstraction, to solve the following task:\n"
+                "Now please come up with a program, using this abstraction, to solve the following task:\n"
                 f"{self.task_examples[task_i]}\n"
-                f"It should be encoded in the following JSON format:\n"
-                f"{{\n"
-                f'    "program": TODO\n'
-                f"}}\n"
+                "It should be encoded in the following JSON format:\n"
+                "{\n"
+                '    "program": TODO\n'
+                "}\n"
             )
+
+            self.message_list += [self.chat_message(new_footer)]
 
     def to_message_list(self):
         message_list = [self.chat_message(self._build_abstraction_header())]
         message_list += [self.chat_message(self._build_task_prompt())]
         message_list += [self.chat_message(self._build_abstraction_footer())]
-        if self.chat_message(self._build_updated_abstraction_footer()):
-            message_list += [
-                self.chat_message(self._build_updated_abstraction_footer())
-            ]
-        return message_list
+        self.message_list = message_list + self.message_list
 
 
 @ModelRegistry.register
@@ -150,14 +149,14 @@ class GPTLibraryLearner(GPTLibraryNamer):
         task_batch_ids: list,
         # Querying
         best_of: int = 1,
-        n_samples_per_abstraction: int = 1,
+        n_samples_per_abstraction: int = 5,
         top_p: float = 0.1,
         max_tokens: int = 256,
         n_function_generated: int = 10,
         # Prompt construction
         n_task_examples: int = 10,
         n_program_examples: int = 20,
-        n_attempts: int = 5,
+        n_attempts: int = 1,
         # Resume from prior runs
         resume_strategy: str = None,
         # Utilities
@@ -285,13 +284,12 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 # Query for program solutions for each task
                 abstraction_target = selected_result
                 for task_i in range(n_task_examples):
-                    # for i in range(3):
                     prompt = LibraryAbstractionPrompt(
                         abstraction_definitions=abstraction_definitions,
                         task_examples=task_examples,
                         program_examples=program_examples,
                         abstraction_target=abstraction_target,
-                        include_solver_prompte=True,
+                        include_solver_prompt=True,
                         task_i=task_i,
                     )
 
@@ -432,6 +430,54 @@ class GPTLibraryLearner(GPTLibraryNamer):
         ]
         return task_examples, task_examples_id
 
+    def check_valid(
+        self,
+        program_str_gpt,
+        experiment_state,
+        verbose,
+        parse_results,
+        function_name_classes,
+        choice,
+    ):
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        # CHECK 1: Does the program parse?
+        try:
+            # Write the program back into the DreamCoder form from whatever it was initially in.
+            program_str = "#" + grammar.show_program(
+                program_str_gpt,
+                input_name_class=function_name_classes,
+                name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+            )
+            p = Program.parse(program_str)
+        except Exception as e:
+            if verbose:
+                print(f"Failed to parse ({type(e)}): {program_str_gpt}")
+            parse_results.append(
+                {
+                    "index": choice["index"],
+                    "text": choice["text"],
+                    "valid": False,
+                    "error": GPTLibraryLearner.ERROR_PARSE,
+                }
+            )
+            return False
+        # CHECK 2: Does the program typecheck?
+        try:
+            p.infer()
+        except Exception:
+            if verbose:
+                print(f"Type inference failure for: {str(p)}")
+            parse_results.append(
+                {
+                    "index": choice["index"],
+                    "text": choice["text"],
+                    "valid": False,
+                    "error": GPTLibraryLearner.ERROR_INFER,
+                }
+            )
+            return False
+        return p
+
     # parse a new grammar
     def _parse_completion(
         self,
@@ -486,52 +532,22 @@ class GPTLibraryLearner(GPTLibraryNamer):
 
             # add filter
             program_str_gpt = data["function_expression"]
-            grammar = experiment_state.models[model_loaders.GRAMMAR]
-            # CHECK 1: Does the program parse?
-            try:
-                # Write the program back into the DreamCoder form from whatever it was initially in.
-                program_str = "#" + grammar.show_program(
-                    program_str_gpt,
-                    input_name_class=function_name_classes,
-                    name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
-                )
-                p = Program.parse(program_str)
-            except Exception as e:
-                if verbose:
-                    print(f"Failed to parse ({type(e)}): {program_str_gpt}")
+            if self.check_valid(
+                program_str_gpt,
+                experiment_state,
+                verbose,
+                parse_results,
+                function_name_classes,
+                choice,
+            ):
                 parse_results.append(
                     {
                         "index": choice["index"],
                         "text": choice["text"],
-                        "valid": False,
-                        "error": GPTLibraryLearner.ERROR_PARSE,
+                        "valid": True,
+                        "data": data,
                     }
                 )
-                continue
-            # CHECK 2: Does the program typecheck?
-            try:
-                p.infer()
-            except Exception:
-                if verbose:
-                    print(f"Type inference failure for: {str(p)}")
-                parse_results.append(
-                    {
-                        "index": choice["index"],
-                        "text": choice["text"],
-                        "valid": False,
-                        "error": GPTLibraryLearner.ERROR_INFER,
-                    }
-                )
-                continue
-
-            parse_results.append(
-                {
-                    "index": choice["index"],
-                    "text": choice["text"],
-                    "valid": True,
-                    "data": data,
-                }
-            )
         return parse_results
 
     # parse a new program
@@ -575,69 +591,41 @@ class GPTLibraryLearner(GPTLibraryNamer):
 
             # add filter
             program_str_gpt = data["program"]
-            grammar = experiment_state.models[model_loaders.GRAMMAR]
-            # CHECK 1: Does the program parse?
-            try:
-                # Write the program back into the DreamCoder form from whatever it was initially in.
-                program_str = grammar.show_program(
-                    program_str_gpt,
-                    input_name_class=function_name_classes,
-                    name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
-                )
-                p = Program.parse(program_str)
-            except Exception as e:
-                if verbose:
-                    print(f"Failed to parse ({type(e)}): {program_str_gpt}")
-                parse_results.append(
-                    {
-                        "index": choice["index"],
-                        "text": choice["text"],
-                        "valid": False,
-                        "error": GPTLibraryLearner.ERROR_PARSE,
-                    }
-                )
-                continue
-            # CHECK 2: Does the program typecheck?
-            try:
-                p.infer()
-            except Exception:
-                if verbose:
-                    print(f"Type inference failure for: {str(p)}")
-                parse_results.append(
-                    {
-                        "index": choice["index"],
-                        "text": choice["text"],
-                        "valid": False,
-                        "error": GPTLibraryLearner.ERROR_INFER,
-                    }
-                )
-                continue
+            p = self.check_valid(
+                program_str_gpt,
+                experiment_state,
+                verbose,
+                parse_results,
+                function_name_classes,
+                choice,
+            )
+            if p:
+                grammar = experiment_state.models[model_loaders.GRAMMAR]
+                # Check 3: Can the program solve tasks?
+                tasks_solved = None
+                for task in experiment_state.get_tasks_for_ids(
+                    task_split, task_examples_id
+                ):
+                    if task.check(p, timeout=grammar.DEFAULT_EVALUATION_TIMEOUT):
+                        tasks_solved = task.name
 
-            # Check 3: Can the program solve tasks?
-            tasks_solved = None
-            for task in experiment_state.get_tasks_for_ids(
-                task_split, task_examples_id
-            ):
-                if task.check(p, timeout=grammar.DEFAULT_EVALUATION_TIMEOUT):
-                    tasks_solved = task.name
-
-            if not tasks_solved:
-                parse_results.append(
-                    {
-                        "index": choice["index"],
-                        "text": choice["text"],
-                        "valid": False,
-                        "error": GPTLibraryLearner.ERROR_SOLVE,
-                    }
-                )
-            else:
-                parse_results.append(
-                    {
-                        "index": choice["index"],
-                        "text": choice["text"],
-                        "valid": True,
-                        "data": data,
-                        "tasks_solved": tasks_solved,
-                    }
-                )
+                if not tasks_solved:
+                    parse_results.append(
+                        {
+                            "index": choice["index"],
+                            "text": choice["text"],
+                            "valid": False,
+                            "error": GPTLibraryLearner.ERROR_SOLVE,
+                        }
+                    )
+                else:
+                    parse_results.append(
+                        {
+                            "index": choice["index"],
+                            "text": choice["text"],
+                            "valid": True,
+                            "data": data,
+                            "tasks_solved": tasks_solved,
+                        }
+                    )
         return parse_results
