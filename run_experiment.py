@@ -41,6 +41,7 @@ from data.structures.make_tasks import *
 from data.structures.grammar import *
 """
 
+from src.models.gpt_abstraction import *
 from src.models.gpt_solver import *
 from src.models.laps_dreamcoder_recognition import *
 from src.models.sample_generator import *
