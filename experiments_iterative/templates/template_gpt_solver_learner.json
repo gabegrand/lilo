@@ -1,0 +1,84 @@
+{
+    "metadata": {},
+    "model_initializers": [
+        {
+            "model_type": "grammar",
+            "model_loader": null,
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "llm_solver",
+            "model_loader": "gpt_solver",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "library_learner",
+            "model_loader": "gpt_library_learner",
+            "model_initializer_fn": "load_model",
+            "params": {
+                "engine": "gpt-3.5-turbo-0301"
+            }
+        }
+    ],
+    "experiment_iterator": {
+        "max_iterations": null,
+        "task_batcher": {
+            "model_type": "random_shuffle_ordered_task_batcher",
+            "params": {
+                "global_batch_size": null,
+                "verbose": true
+            }
+        },
+        "loop_blocks": [
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_metadata",
+                "params": {
+                    "verbosity": 3
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "reset_task_frontiers",
+                "params": {
+                    "task_split": "test",
+                    "task_ids": "all"
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_frontiers",
+                "params": {
+                  "verbosity": 3
+                }
+            },
+            
+            
+            {
+                "experiment_block_type": "checkpoint",
+                "state_to_checkpoint": [
+                    "frontiers"
+                ],
+                "models_to_checkpoint": [
+                    "grammar"
+                ]
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "library_learner",
+                "model_fn": "generate_abstraction",
+                "task_split": "train",
+                "task_batch_size": "all",
+                "params": {}
+            },
+            {
+                "experiment_block_type": "checkpoint",
+                "state_to_checkpoint": [],
+                "models_to_checkpoint": [],
+                "aws_s3_sync_base_path": "s3://grandg-lilo-experiments"
+            }
+        ]
+    }
+}

@@ -3,11 +3,12 @@ library_namer.py | Author : Catherine Wong and Gabe Grand.
 
 Queries Codex to generate names for library functions.
 """
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import numpy as np
 
 import src.models.model_loaders as model_loaders
+from dreamcoder.program import Invented
 from dreamcoder.type import *
 from src.experiment_iterator import SKIPPED_MODEL_FN
 from src.models.gpt_base import *
@@ -34,11 +35,13 @@ class LibraryNamerPrompt(BasePrompt):
         self.abstraction_target = abstraction_target
         self.usage_examples = usage_examples
         self.line_separator = line_separator
+        self.message_list = []
 
     def __str__(self):
+        self.to_message_list()
         return (
             self.DEFAULT_MESSAGE_SEPARATOR.join(
-                [x["content"] for x in self.to_message_list()]
+                [x["content"] for x in self.message_list]
             )
             + "\n"
         )
@@ -56,10 +59,9 @@ class LibraryNamerPrompt(BasePrompt):
 
     def _fn_docstring(self, abstraction):
         definitions = self.abstraction_definitions[abstraction]
-        docstring = (
-            f"{definitions['fn_name']} :: {definitions['fn_type']}\n"
-            + f"{definitions['fn_body']}"
-        )
+        docstring = f"{definitions['fn_name']} :: {definitions['fn_type']}\n"
+        if definitions["fn_body"] is not None:
+            docstring += f"\n{definitions['fn_body']}"
         if definitions["fn_description"] is not None:
             docstring += f"\ndescription: {definitions['fn_description']}"
         return docstring
@@ -110,10 +112,11 @@ class LibraryNamerPrompt(BasePrompt):
     def to_message_list(self):
         message_list = [self.chat_message(self._build_library_header())]
         message_list += [self.chat_message(self._build_target_prompt())]
-        return message_list
+        self.message_list = message_list
 
     def to_chat_format(self):
-        return self.to_message_list()
+        self.to_message_list()
+        return self.message_list
 
 
 @ModelRegistry.register
@@ -269,7 +272,7 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
             print(f"Wrote results: {results_filepath}")
 
     def _maybe_load_from_checkpoint(
-        self, experiment_state, task_split, resume_strategy
+        self, experiment_state, task_split, resume_strategy, add_primitive=False
     ):
         if (resume_strategy == "first" and experiment_state.is_first_iteration()) or (
             resume_strategy == "every"
@@ -290,6 +293,16 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
 
                 for abstraction, data in results_json["abstractions"].items():
                     if data is not None:
+                        if add_primitive:
+                            p = Invented.parse(str(abstraction))
+                            new_productions = (0.0, p.infer(), p)
+                            new_grammar = LAPSGrammar(
+                                logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
+                                productions=grammar.productions + [new_productions],
+                                continuationType=grammar.continuationType,
+                                initialize_parameters_from_grammar=grammar,
+                            )
+                            grammar = new_grammar
                         grammar.set_function_name(
                             str(abstraction),
                             name_class=LAPSGrammar.HUMAN_READABLE,
@@ -325,9 +338,14 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
             str(abstraction), name_classes=[LAPSGrammar.NUMERIC_FUNCTION_NAMES]
         )
 
-    def _get_abstraction_definitions(self, experiment_state):
+    def _get_abstraction_definitions(
+        self, experiment_state, abstractions_only: bool = True
+    ):
         grammar = experiment_state.models[model_loaders.GRAMMAR]
-        abstractions = [p for p in grammar.primitives if p.isInvented]
+        if not abstractions_only:
+            abstractions = [p for p in grammar.primitives]
+        else:
+            abstractions = [p for p in grammar.primitives if p.isInvented]
 
         abstraction_definitions = {}
         # for abstraction in sorted(abstractions, key=lambda p: str(p)):
@@ -347,18 +365,22 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 LAPSGrammar.NUMERIC_FUNCTION_NAMES,
             ],
         )
-        fn_body = str(
-            grammar.show_program(
-                str(abstraction)[
-                    1:
-                ],  # Remove leading `#` so that any inlined abstractions are replaced with their fn_name
-                name_classes=[
-                    LAPSGrammar.HUMAN_READABLE,
-                    LAPSGrammar.NUMERIC_FUNCTION_NAMES,
-                ],
+        if abstraction.isInvented:
+            fn_body = str(
+                grammar.show_program(
+                    str(abstraction)[
+                        1:
+                    ],  # Remove leading `#` so that any inlined abstractions are replaced with their fn_name
+                    name_classes=[
+                        LAPSGrammar.HUMAN_READABLE,
+                        LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                    ],
+                )
             )
-        )
-        fn_description = grammar.get_function_description(abstraction)
+            fn_description = grammar.get_function_description(abstraction)
+        else:
+            fn_body = None
+            fn_description = None
         return {
             "fn_name": fn_name,
             "fn_body": fn_body,
@@ -366,7 +388,10 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
             "fn_description": fn_description,
         }
 
-    def _get_usage_examples(self, experiment_state, abstraction, n_usage_examples):
+    # add documentation
+    def _get_usage_examples(
+        self, experiment_state, abstraction: Optional[Invented], n_usage_examples: int
+    ):
         rng = experiment_state.metadata[RANDOM_GENERATOR]
         grammar = experiment_state.models[model_loaders.GRAMMAR]
 
@@ -381,7 +406,7 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                 experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
             )
             for e in frontier.entries:
-                if str(abstraction) in e.tokens:
+                if (abstraction is None) or (str(abstraction) in e.tokens):
                     usage_examples += [
                         {
                             "task_name": task.name,
@@ -396,12 +421,11 @@ class GPTLibraryNamer(GPTBase, model_loaders.ModelLoader):
                             "language": task_language,
                         }
                     ]
+                if len(usage_examples) == n_usage_examples:
+                    return usage_examples
 
-                    if len(usage_examples) == n_usage_examples:
-                        return usage_examples
-
-                    # Go to next task
-                    break
+                # Go to next task
+                break
 
         return usage_examples
 
