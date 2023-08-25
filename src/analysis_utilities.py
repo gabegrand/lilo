@@ -681,6 +681,8 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         ExperimentType.GPT_SOLVER_STITCH_NAMER: "LILO (No Search)",
         # ExperimentType.GPT_SOLVER_STITCH_NAMER_HYBRID_DSL: "LILO (+ Hybrid DSL)",
         ExperimentType.GPT_SOLVER_STITCH_NAMER_SEARCH: "LILO",
+        ExperimentType.RANDOM: "Random",
+        ExperimentType.COS_SIMILAR: "Cosine Similarity",
     }
     EXPERIMENT_TYPES_PALETTE = {
         EXPERIMENT_TYPES_CAMERA[ExperimentType.BASE_DSL]: "#EAAC8B",
