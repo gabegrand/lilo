@@ -37,6 +37,8 @@ class IterativeExperimentAnalyzer:
         "batch_size": "Number of training tasks",
         "description_length": "Test program description length",
         "experiment_type": "Model",
+        "iteration": "Iteration",
+        "split": "Split",
         "n_frontiers": "Number of training programs (including samples)",
         "percent_solved": "Tasks solved (%)",
     }
@@ -589,7 +591,7 @@ class IterativeExperimentAnalyzer:
                 (col_name, ascending)
                 for col_name, ascending in [
                     ("domain", True),
-                    ("experiment_type", True),
+                    ("experiment_type", False),
                     ("seed", True),
                     ("split", True),
                     ("iteration", True),
@@ -681,10 +683,10 @@ class SynthesisExperimentAnalyzer(IterativeExperimentAnalyzer):
         ExperimentType.GPT_SOLVER_STITCH_NAMER_SEARCH: "LILO",
     }
     EXPERIMENT_TYPES_PALETTE = {
-        EXPERIMENT_TYPES_CAMERA[ExperimentType.BASE_DSL]: "#306BAC",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.BASE_DSL]: "#EAAC8B",
         EXPERIMENT_TYPES_CAMERA[ExperimentType.DREAMCODER]: "#028090",
-        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER]: "#F2CEBA",
-        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_SEARCH]: "#EAAC8B",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER]: "#EAAC8B",
+        EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_SEARCH]: "#E39064",
         EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_STITCH]: "#F9DCDD",
         EXPERIMENT_TYPES_CAMERA[ExperimentType.GPT_SOLVER_STITCH_NAMER]: "#F0A8AB",
         # EXPERIMENT_TYPES_CAMERA[
