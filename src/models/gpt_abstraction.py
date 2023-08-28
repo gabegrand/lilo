@@ -6,6 +6,7 @@ Queries GPT to generate new abstraction.
 import json
 import os
 from typing import Dict, List
+import sys
 
 import numpy as np
 from sklearn.cluster import KMeans
@@ -122,6 +123,7 @@ class LibraryAbstractionPrompt(LibraryNamerPrompt):
         message_list += [self.chat_message(self._build_task_prompt())]
         message_list += [self.chat_message(self._build_abstraction_footer())]
         self.message_list = message_list + self.message_list
+        
 
 
 @ModelRegistry.register
@@ -210,8 +212,9 @@ class GPTLibraryLearner(GPTLibraryNamer):
             )
 
             if verbose:
-                prompt_dict[f"prompt{function_num}"] = str(prompt)
-                print(prompt)
+                prompt_str = str(prompt)
+                prompt_dict[f"prompt{function_num}"] = prompt_str
+                print(prompt_str)
 
             for attempts_num in range(n_attempts):
                 # Query
@@ -281,7 +284,7 @@ class GPTLibraryLearner(GPTLibraryNamer):
                 print(f"✅ Successfully created {readable_name}:{function_expression}")
                 print(json.dumps(selected_result, indent=4))
 
-                # Query for program solutions for each task
+                Query for program solutions for each task
                 abstraction_target = selected_result
                 for task_i in range(n_task_examples):
                     prompt = LibraryAbstractionPrompt(

@@ -87,6 +87,7 @@ class ExperimentType(str, Enum):
     GPT_SOLVER_STITCH_NAMER_HYBRID_DSL = "gpt_solver_stitch_namer_hybrid_dsl"
     GPT_SOLVER_STITCH_NAMER_SEARCH = "gpt_solver_stitch_namer_search"
     GPT_SOLVER_LEARNER = "gpt_solver_learner"
+    GPT_SOLVER_LEARNER2 = "gpt_solver_learner_2"
 
 
 def get_domain_metadata(domain: str):
