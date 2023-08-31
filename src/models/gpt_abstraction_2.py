@@ -5,7 +5,6 @@ Queries GPT to generate new abstraction.
 """
 import json
 import os
-import sys
 from typing import Dict, List
 
 import numpy as np
@@ -13,7 +12,7 @@ import stitch_core as stitch
 from sklearn.cluster import KMeans
 
 import src.models.model_loaders as model_loaders
-from dreamcoder.program import Abstraction, Invented, Program
+from dreamcoder.program import Invented, Program
 from precompute_embeddings import get_embedding_directory_for_domain
 from src.experiment_iterator import SKIPPED_MODEL_FN
 from src.models.gpt_base import DEFAULT_LINE_SEPARATOR
@@ -199,6 +198,7 @@ class GPTLibraryLearner2(GPTLibraryNamer):
                     name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
                 )
                 p = Invented.parse(program_str)
+
                 new_productions = (0.0, p.infer(), p)
                 new_grammar = LAPSGrammar(
                     logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
@@ -227,13 +227,20 @@ class GPTLibraryLearner2(GPTLibraryNamer):
                 ] = task_examples
 
                 # rewrite
-                p = Abstraction.parse(program_str)
+
+                arity = len(p.infer().arguments) - 1
+                p = stitch.Abstraction(
+                    name=readable_name, body=program_str[1:], arity=arity
+                )
 
                 programs_rewritten = stitch.rewrite(
                     programs=self._get_program(experiment_state),
                     abstractions=[p],
                 )
-                sys.exit()
+
+                import pdb
+
+                pdb.set_trace()
 
                 frontiers_rewritten = []
                 for task_id, program in zip(tasks, programs_rewritten):
@@ -414,10 +421,7 @@ class GPTLibraryLearner2(GPTLibraryNamer):
                 programs += [
                     grammar.show_program(
                         e.program,
-                        name_classes=[
-                            LAPSGrammar.HUMAN_READABLE,
-                            LAPSGrammar.NUMERIC_FUNCTION_NAMES,
-                        ],
+                        name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
                         debug=True,
                     )
                     # {
