@@ -111,8 +111,8 @@ class GPTLibraryLearner2(GPTLibraryNamer):
     def generate_abstraction(
         self,
         experiment_state,
-        task_split: str,
-        task_batch_ids: list,
+        task_splits: list,
+        task_ids_in_splits: dict,
         # Querying
         best_of: int = 1,
         n_samples_per_abstraction: int = 5,
@@ -126,6 +126,7 @@ class GPTLibraryLearner2(GPTLibraryNamer):
         # Utilities
         verbose: bool = True,
     ):
+        task_split = task_splits[0]
         assert task_split == TRAIN
         grammar = experiment_state.models[model_loaders.GRAMMAR]
 
@@ -229,12 +230,22 @@ class GPTLibraryLearner2(GPTLibraryNamer):
                 # rewrite
 
                 arity = len(p.infer().arguments) - 1
-                p = stitch.Abstraction(
-                    name=readable_name, body=program_str[1:], arity=arity
+                p = stitch.Abstraction(name="name", body=program_str[1:], arity=arity)
+
+                rewriter = experiment_state.models[model_loaders.PROGRAM_REWRITER]
+                frontiers_dict = rewriter.write_frontiers_to_file(
+                    experiment_state, task_splits, task_ids_in_splits
                 )
 
+                # programs = self._get_program(experiment_state)
+                # programs_filepath = "experiments_iterative/outputs/runs_multi/domains/re2/baseline_dreamcoder/seed_111/baseline_dreamcoder_96/0/train/stitch_compress_input.json"
+                # with open(programs_filepath, "r") as f:
+                #     frontiers_dict = json.load(f)
+                #     stitch_kwargs = stitch.from_dreamcoder(frontiers_dict)
+
+                stitch_kwargs = stitch.from_dreamcoder(frontiers_dict)
                 programs_rewritten = stitch.rewrite(
-                    programs=self._get_program(experiment_state),
+                    programs=stitch_kwargs["programs"],
                     abstractions=[p],
                 )
 
@@ -367,6 +378,42 @@ class GPTLibraryLearner2(GPTLibraryNamer):
                 break
 
         return list(solved_task.values()), None
+
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        solved_task = []
+        tasks = list(experiment_state.task_frontiers[TRAIN].keys())
+        # get all solved tasks
+        for task in tasks:
+            frontier = experiment_state.task_frontiers[TRAIN][task]
+            rng = experiment_state.metadata[RANDOM_GENERATOR]
+            task_language = rng.choice(
+                experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
+            )
+            for e in frontier:
+                # program = grammar.show_program(
+                #     e.program,
+                #     name_classes=[
+                #         LAPSGrammar.HUMAN_READABLE,
+                #         LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                #     ],
+                #     debug=True,
+                # )
+                # solved_task[task.name] = program
+                solved_task += {
+                    "task_name": task.name,
+                    "program": grammar.show_program(
+                        e.program,
+                        name_classes=[
+                            LAPSGrammar.HUMAN_READABLE,
+                            LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                        ],
+                        debug=True,
+                    ),
+                    "language": task_language,
+                }
+                break
+
+        return solved_task
         # get a dict with all task_id:task_embedding
         task_language_loader = experiment_state.config["metadata"][
             "task_language_loader"
@@ -410,33 +457,30 @@ class GPTLibraryLearner2(GPTLibraryNamer):
         grammar = experiment_state.models[model_loaders.GRAMMAR]
         tasks = list(experiment_state.task_frontiers[TRAIN].keys())
 
-        programs = []
+        programs = {}
 
         for task in tasks:
             frontier = experiment_state.task_frontiers[TRAIN][task]
             experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
 
             for e in frontier.entries:
-                e.program
-                programs += [
-                    grammar.show_program(
-                        e.program,
-                        name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
-                        debug=True,
-                    )
-                    # {
-                    #     "task_name": task.name,
-                    #     "program": grammar.show_program(
-                    #         e.program,
-                    #         name_classes=[
-                    #             LAPSGrammar.HUMAN_READABLE,
-                    #             LAPSGrammar.NUMERIC_FUNCTION_NAMES,
-                    #         ],
-                    #         debug=True,
-                    #     ),
-                    #     "language": task_language,
-                    # }
-                ]
+                programs[task.name] = grammar.show_program(
+                    e.program,
+                    name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+                    debug=True,
+                )
+                # {
+                #     "task_name": task.name,
+                #     "program": grammar.show_program(
+                #         e.program,
+                #         name_classes=[
+                #             LAPSGrammar.HUMAN_READABLE,
+                #             LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                #         ],
+                #         debug=True,
+                #     ),
+                #     "language": task_language,
+                # }
         return programs
 
     # parse a new grammar

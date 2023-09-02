@@ -18,7 +18,7 @@ class StitchBase(object):
         experiment_state,
         task_splits,
         task_ids_in_splits,
-        frontiers_filepath: str,
+        frontiers_filepath: str = None,
         use_mdl_program: bool = False,
         beta_reduce_programs: bool = False,
         include_samples: bool = True,
@@ -59,18 +59,23 @@ class StitchBase(object):
                             "programs": [{"program": str(p)} for p in programs],
                         }
                     )
-
-        # Write out the programs.
-        os.makedirs(os.path.dirname(frontiers_filepath), exist_ok=True)
-        with open(frontiers_filepath, "w") as f:
-            json.dump(
-                {
-                    "DSL": experiment_state.models[GRAMMAR].json(),
-                    "frontiers": frontiers_list,
-                },
-                f,
-                indent=4,
-            )
+        if frontiers_filepath:
+            # Write out the programs.
+            os.makedirs(os.path.dirname(frontiers_filepath), exist_ok=True)
+            with open(frontiers_filepath, "w") as f:
+                json.dump(
+                    {
+                        "DSL": experiment_state.models[GRAMMAR].json(),
+                        "frontiers": frontiers_list,
+                    },
+                    f,
+                    indent=4,
+                )
+        else:
+            return {
+                "DSL": experiment_state.models[GRAMMAR].json(),
+                "frontiers": frontiers_list,
+            }
 
     def _get_filepath_for_current_iteration(
         self,
