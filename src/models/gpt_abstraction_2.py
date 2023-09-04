@@ -4,6 +4,7 @@ gpt_abstraction.py | Author : Maxine Liu.
 Queries GPT to generate new abstraction.
 """
 import json
+import logging
 import os
 from typing import Dict, List
 
@@ -12,13 +13,14 @@ import stitch_core as stitch
 from sklearn.cluster import KMeans
 
 import src.models.model_loaders as model_loaders
+from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.program import Invented, Program
 from precompute_embeddings import get_embedding_directory_for_domain
-from src.experiment_iterator import SKIPPED_MODEL_FN
+from src.experiment_iterator import RANDOM_GENERATOR, SKIPPED_MODEL_FN
 from src.models.gpt_base import DEFAULT_LINE_SEPARATOR
 from src.models.laps_grammar import LAPSGrammar
 from src.models.library_namer import GPTLibraryNamer, LibraryNamerPrompt
-from src.task_loaders import TRAIN
+from src.task_loaders import ALL, TRAIN
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.LIBRARY_LEARNER]
 
@@ -237,23 +239,21 @@ class GPTLibraryLearner2(GPTLibraryNamer):
                     experiment_state, task_splits, task_ids_in_splits
                 )
 
-                # programs = self._get_program(experiment_state)
-                # programs_filepath = "experiments_iterative/outputs/runs_multi/domains/re2/baseline_dreamcoder/seed_111/baseline_dreamcoder_96/0/train/stitch_compress_input.json"
-                # with open(programs_filepath, "r") as f:
-                #     frontiers_dict = json.load(f)
-                #     stitch_kwargs = stitch.from_dreamcoder(frontiers_dict)
-
                 stitch_kwargs = stitch.from_dreamcoder(frontiers_dict)
-                programs_rewritten = stitch.rewrite(
+                rewrite_result = stitch.rewrite(
                     programs=stitch_kwargs["programs"],
                     abstractions=[p],
                 )
+                print(list(rewrite_result.json.keys()))
 
                 import pdb
 
                 pdb.set_trace()
 
+                programs_rewritten = rewrite_result.json["rewritten_dreamcoder"]
+
                 frontiers_rewritten = []
+                tasks = stitch_kwargs["tasks"]
                 for task_id, program in zip(tasks, programs_rewritten):
                     matching_tasks = experiment_state.get_tasks_for_ids(
                         task_splits[0],
@@ -281,6 +281,7 @@ class GPTLibraryLearner2(GPTLibraryNamer):
                         task=task,
                     )
                     frontiers_rewritten.append(frontier)
+
                 # Rescore frontiers under grammar
                 grammar = experiment_state.models[model_loaders.GRAMMAR]
                 frontiers_rewritten = [
@@ -288,14 +289,19 @@ class GPTLibraryLearner2(GPTLibraryNamer):
                 ]
 
                 # Clear old frontiers and replace with rewritten
-                experiment_state.reset_task_frontiers(task_split=split, task_ids=ALL)
+                experiment_state.reset_task_frontiers(
+                    task_split=task_split, task_ids=ALL
+                )
                 assert all(
-                    [t.empty for t in experiment_state.task_frontiers[split].values()]
+                    [
+                        t.empty
+                        for t in experiment_state.task_frontiers[task_split].values()
+                    ]
                 )
                 experiment_state.update_frontiers(
                     new_frontiers=frontiers_rewritten,
                     maximum_frontier=grammar.maximum_frontier,
-                    task_split=split,
+                    task_split=task_split,
                     is_sample=False,
                 )
 
