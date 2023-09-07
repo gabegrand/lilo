@@ -4,7 +4,6 @@ gpt_abstraction.py | Author : Maxine Liu.
 Queries GPT to generate new abstraction.
 """
 import json
-import logging
 import os
 from typing import Dict, List
 
@@ -20,6 +19,7 @@ from src.experiment_iterator import RANDOM_GENERATOR, SKIPPED_MODEL_FN
 from src.models.gpt_base import DEFAULT_LINE_SEPARATOR
 from src.models.laps_grammar import LAPSGrammar
 from src.models.library_namer import GPTLibraryNamer, LibraryNamerPrompt
+from src.models.stitch_base import StitchBase
 from src.task_loaders import ALL, TRAIN
 
 ModelRegistry = model_loaders.ModelLoaderRegistries[model_loaders.LIBRARY_LEARNER]
@@ -93,7 +93,7 @@ class LibraryAbstractionPrompt2(LibraryNamerPrompt):
 
 
 @ModelRegistry.register
-class GPTLibraryLearner2(GPTLibraryNamer):
+class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
     name = "gpt_library_learner_2"
 
     results_file = "gpt_library_abstraction_results.json"
@@ -210,18 +210,6 @@ class GPTLibraryLearner2(GPTLibraryNamer):
                     initialize_parameters_from_grammar=grammar,
                 )
 
-                # update name and description
-                new_grammar.set_function_name(
-                    program_str,
-                    name_class=LAPSGrammar.HUMAN_READABLE,
-                    name=readable_name,
-                )
-                new_grammar.set_function_description(
-                    name=program_str,
-                    description=selected_result["data"]["description"],
-                )
-                experiment_state.models[model_loaders.GRAMMAR] = new_grammar
-
                 gpt_abstraction_library[str(function_expression)] = selected_result[
                     "data"
                 ]
@@ -231,45 +219,38 @@ class GPTLibraryLearner2(GPTLibraryNamer):
 
                 # rewrite
 
-                arity = len(p.infer().arguments) - 1
-                p = stitch.Abstraction(name="name", body=program_str[1:], arity=arity)
+                len(p.infer().arguments) - 1
 
-                rewriter = experiment_state.models[model_loaders.PROGRAM_REWRITER]
-                frontiers_dict = rewriter.write_frontiers_to_file(
+                # rewriter = experiment_state.models[model_loaders.PROGRAM_REWRITER]
+                frontiers_dict = self.write_frontiers_to_file(
                     experiment_state, task_splits, task_ids_in_splits
                 )
 
                 stitch_kwargs = stitch.from_dreamcoder(frontiers_dict)
+
+                p = stitch.Abstraction.from_dreamcoder(
+                    name="name",
+                    dreamcoder_abstraction=program_str,
+                    name_mapping=stitch_kwargs["name_mapping"],
+                )
+                import pdb
+
+                pdb.set_trace()
                 rewrite_result = stitch.rewrite(
                     programs=stitch_kwargs["programs"],
                     abstractions=[p],
                 )
-                print(list(rewrite_result.json.keys()))
 
-                import pdb
-
-                pdb.set_trace()
-
-                programs_rewritten = rewrite_result.json["rewritten_dreamcoder"]
+                # name_mapping double check
+                programs_rewritten = stitch.stitch_to_dreamcoder(
+                    rewrite_result.rewritten,
+                    stitch_kwargs["name_mapping"]
+                    + stitch.name_mapping_stitch(rewrite_result.json),
+                )
 
                 frontiers_rewritten = []
                 tasks = stitch_kwargs["tasks"]
                 for task_id, program in zip(tasks, programs_rewritten):
-                    matching_tasks = experiment_state.get_tasks_for_ids(
-                        task_splits[0],
-                        [task_id],
-                        include_samples=False,
-                        include_ground_truth_tasks=True,
-                    )
-                    if len(matching_tasks) > 1:
-                        logging.warning(
-                            f"Found multiple ({len(matching_tasks)}) tasks associated with task_id {task_id}"
-                        )
-                        rng = experiment_state.metadata[RANDOM_GENERATOR]
-                        task = rng.choice(matching_tasks)
-                    else:
-                        task = matching_tasks[0]
-
                     frontier = Frontier(
                         frontier=[
                             FrontierEntry(
@@ -278,7 +259,7 @@ class GPTLibraryLearner2(GPTLibraryNamer):
                                 logLikelihood=0.0,
                             )
                         ],
-                        task=task,
+                        task=task_id,
                     )
                     frontiers_rewritten.append(frontier)
 
@@ -304,6 +285,24 @@ class GPTLibraryLearner2(GPTLibraryNamer):
                     task_split=task_split,
                     is_sample=False,
                 )
+
+                # update name and description
+                new_grammar.set_function_name(
+                    program_str,
+                    name_class=LAPSGrammar.HUMAN_READABLE,
+                    name=readable_name,
+                )
+                new_grammar.set_function_description(
+                    name=program_str,
+                    description=selected_result["data"]["description"],
+                )
+
+                new_grammar = new_grammar.insideOutside(
+                    frontiers_rewritten, pseudoCounts=30, iterations=1
+                )
+                new_grammar = LAPSGrammar.fromGrammar(new_grammar)
+
+                experiment_state.models[model_loaders.GRAMMAR] = new_grammar
 
                 print(f"✅ Successfully created {readable_name}:{function_expression}")
                 print(json.dumps(selected_result, indent=4))

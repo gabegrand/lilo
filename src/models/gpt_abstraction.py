@@ -251,6 +251,11 @@ class GPTLibraryLearner(GPTLibraryNamer):
                     input_name_class=function_name_classes,
                     name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
                 )
+
+                print(program_str)
+                import pdb
+
+                pdb.set_trace()
                 p = Invented.parse(program_str)
                 new_productions = (0.0, p.infer(), p)
                 new_grammar = LAPSGrammar(
