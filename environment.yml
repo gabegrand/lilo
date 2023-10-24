@@ -1,4 +1,4 @@
-name: laps
+name: lilo
 channels:
   - conda-forge
   - pytorch
@@ -35,7 +35,6 @@ dependencies:
   - seaborn
   - sexpdata
   - toml
-  - torchvision
   - tqdm
   - transformers
   - tokenizers=0.10.3
