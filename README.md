@@ -69,8 +69,6 @@ python
 'xy'
 ```
 
-# Running experiments
-
 ## OpenAI API key
 
 To run experiments with the OpenAI API, you'll need to set the `OPENAI_API_KEY` environment variable to your API key. You can find your API key at https://platform.openai.com/account/api-keys.
@@ -79,14 +77,71 @@ To run experiments with the OpenAI API, you'll need to set the `OPENAI_API_KEY` 
 export OPENAI_API_KEY=<sk-...a123>
 ```
 
-## Experiments overview
+# Running experiments
 
+The general entry point for running experiments is `run_iterative_experiment.py`.
 
-### LILO
+## Models
+
+Each model type is specified in a template file. For example, the template for the `lilo` model is `experiments_iterative/templates/template_lilo.json`. The `run_iterative_experiment.py` script takes a `--experiment_type` argument that specifies which template to use.
 
 ### DreamCoder
 
+[experiments_iterative/templates/template_dreamcoder.json](experiments_iterative/templates/template_dreamcoder.json)
+
+```
+python run_iterative_experiment.py \
+  --experiment_name test_runs \
+  --experiment_type dreamcoder \
+  --domain re2 \
+  --encoder re2 \
+  --iterations 16 \
+  --global_batch_sizes 96 \
+  --enumeration_timeout 5 \
+  --recognition_train_steps 100 \
+  --random_seeds 111 \
+```
+
 ### LLM Solver
+
+[experiments_iterative/templates/llm_solver.json](experiments_iterative/templates/llm_solver.json)
+
+```
+python run_iterative_experiment.py \
+  --experiment_name test_runs \
+  --experiment_type llm_solver \
+  --domain re2 \
+  --iterations 16 \
+  --global_batch_sizes 96 \
+  --random_seeds 111 \
+  --init_frontiers_from_checkpoint \
+  --resume_checkpoint_directory experiments_iterative/outputs/test_runs/domains/re2/dreamcoder/seed_111/dreamcoder_96 \
+```
+
+### LILO
+
+[experiments_iterative/templates/lilo.json](experiments_iterative/templates/lilo.json)
+
+```
+python run_iterative_experiment.py \
+  --experiment_name test_runs \
+  --experiment_type lilo \
+  --domain re2 \
+  --encoder re2 \
+  --iterations 16 \
+  --global_batch_sizes 96 \
+  --random_seeds 111 \
+  --init_frontiers_from_checkpoint \
+  --resume_checkpoint_directory experiments_iterative/outputs/test_runs/domains/re2/dreamcoder/seed_111/dreamcoder_96 \
+```
+
+## Domains
+
+### REGEX
+
+### CLEVR
+
+### LOGO
 
 # Data release
 
