@@ -27,3 +27,5 @@ jobs:
         with:
           push: true
           tags: gabegrand/lilo:latest
+          secrets: |
+            GIT_AUTH_TOKEN=${{ secrets.MYTOKEN }}
