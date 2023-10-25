@@ -11,7 +11,9 @@
             "model_type": "llm_solver",
             "model_loader": "gpt_solver",
             "model_initializer_fn": "load_model",
-            "params": {}
+            "params": {
+                "engine": "gpt-3.5-turbo"
+            }
         },
         {
             "model_type": "library_learner",
@@ -81,7 +83,7 @@
                 "params": {
                     "n_samples_per_query": 4,
                     "n_queries_per_task": 4,
-                    "temperature": 0.9,
+                    "temperature": 0.7,
                     "max_tokens_completion_beta": 4.0,
                     "body_task_types": ["language", "programs"],
                     "final_task_types": ["language"],
@@ -118,7 +120,7 @@
                 "params": {
                     "n_samples_per_query": 4,
                     "n_queries_per_task": 4,
-                    "temperature": 0.9,
+                    "temperature": 0.7,
                     "max_tokens_completion_beta": 4.0,
                     "body_task_types": ["language", "programs"],
                     "final_task_types": ["language"],
