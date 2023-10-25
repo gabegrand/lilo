@@ -44,7 +44,10 @@ git clone --recurse-submodules https://github.com/gabegrand/lilo
 cd lilo
 ```
 
-Create the conda environment. Note that you may wish to install the [libmamba](https://conda.github.io/conda-libmamba-solver/getting-started/) solver, which significantly speeds up environment resolution.
+Next, install the `lilo` conda environment.
+
+> [!NOTE]
+> If this step is taking a long time, you may wish to install the [libmamba](https://conda.github.io/conda-libmamba-solver/getting-started/) solver, which significantly speeds up environment resolution.
 ```
 conda env create -f environment.yml
 ```
@@ -59,27 +62,31 @@ make
 
 ## Testing the environment
 
-As a quick test to confirm that the environment is installed correctly, run:
+If the environment is installed correctly, you should be able to activate it:
 ```
 conda activate lilo
-python
+```
+Next, from a Python shell, try constructing a simple `Program` object and performing type inference with `.infer()` and evaluation via `.evaluate()`:
+```
 >>> from run_experiment import *
 >>> p = Program.parse("(_rconcat _x _y)")
+>>> p.infer()
+tsubstr
 >>> p.evaluate([])
 'xy'
 ```
 
-## OpenAI API key
 
-To run experiments with the OpenAI API, you'll need to set the `OPENAI_API_KEY` environment variable to your API key. You can find your API key at https://platform.openai.com/account/api-keys.
-
-```
-export OPENAI_API_KEY=<sk-...a123>
-```
 
 # Running experiments
 
 The general entry point for running experiments is `run_iterative_experiment.py`.
+
+> [!NOTE]
+> To run experiments with the OpenAI API, you'll need to set the `OPENAI_API_KEY` environment variable to your API key. You can find your API key at https://platform.openai.com/account/api-keys.
+> ```
+> export OPENAI_API_KEY=<sk-...a123>
+> ```
 
 ## Models
 
@@ -121,7 +128,7 @@ python run_iterative_experiment.py \
   --verbose \
 ```
 > [!IMPORTANT]
-> NOTE: Requires running `python run_iterative_experiment.py` with `--experiment_type dreamcoder` for at least one iteration to generate an initial `frontiers.json` file.
+> Requires running `python run_iterative_experiment.py` with `--experiment_type dreamcoder` for at least one iteration to generate an initial `frontiers.json` file.
 
 ### LILO
 
@@ -143,7 +150,7 @@ python run_iterative_experiment.py \
   --verbose \
 ```
 > [!IMPORTANT]
-> NOTE: Requires running `python run_iterative_experiment.py` with `--experiment_type dreamcoder` for at least one iteration to generate an initial `frontiers.json` file.
+> Requires running `python run_iterative_experiment.py` with `--experiment_type dreamcoder` for at least one iteration to generate an initial `frontiers.json` file.
 
 ## Resuming from checkpoints
 
