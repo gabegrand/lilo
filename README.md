@@ -1,5 +1,9 @@
 # LILO
 
+LILO: Learning Interpretable Libraries by Compressing and Documenting Code ([arxiv/xxx.xxxx](https://arxiv.org/abs/xxxx.xxxxx))
+
+![LILO Splash Figure](_assets/lilo_splash.png)
+
 # Installation
 
 To run LILO, you'll need an environment with:
@@ -38,19 +42,17 @@ LILO is compatible with both Linux (tested on Debian 12 "bookworm" and Ubuntu 20
 ### Building the Python environment
 
 To build a local environment, first clone the repo:
-
 ```
 git clone --recurse-submodules https://github.com/gabegrand/lilo
 cd lilo
 ```
 
 Next, install the `lilo` conda environment.
-
-> [!NOTE]
-> If this step is taking a long time, you may wish to install the [libmamba](https://conda.github.io/conda-libmamba-solver/getting-started/) solver, which significantly speeds up environment resolution.
 ```
 conda env create -f environment.yml
 ```
+> [!NOTE]
+> If this step is taking a long time, you may wish to install the [libmamba](https://conda.github.io/conda-libmamba-solver/getting-started/) solver, which significantly speeds up environment resolution.
 
 ### Building the OCaml binaries
 
@@ -92,7 +94,7 @@ The general entry point for running experiments is `run_iterative_experiment.py`
 
 Each model type is specified in a template file. For example, the template for the `lilo` model is `experiments_iterative/templates/template_lilo.json`. The `run_iterative_experiment.py` script takes an `--experiment_type` argument that specifies which template to use.
 
-Below, we include commands for running experiments with each model type on the REGEX domain. Note that these commands are designed to be runnable on a consumer-scale machine (e.g. a laptop). See the section below on full-scale experiments for replicating our experiments on a high-performance computing cluster.
+Below, we provide demo commands for running experiments with each model type on the REGEX domain. Note that these commands are designed to be runnable on a consumer-scale machine (e.g. a laptop). See the section below on full-scale experiments for replicating our experiments on a high-performance computing cluster.
 
 ### DreamCoder
 
