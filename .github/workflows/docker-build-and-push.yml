@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       -
+        name: Checkout
+        uses: actions/checkout@v3
+      -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       -
@@ -25,7 +28,6 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v5
         with:
+          context: .
           push: true
-          tags: gabegrand/lilo:latest
-          secrets: |
-            GIT_AUTH_TOKEN=${{ secrets.MYTOKEN }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/lilo:latest
