@@ -114,7 +114,8 @@
                 "params": {
                     "enumeration_timeout": 10
                 },
-                "run_every_n_iterations": 3
+                "run_every_n_iterations": 3,
+                "first_iteration": 3
             },
             {
                 "experiment_block_type": "state_fn",
