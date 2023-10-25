@@ -120,11 +120,8 @@ python run_iterative_experiment.py \
   --resume_checkpoint_directory experiments_iterative/outputs/test_runs/domains/re2/dreamcoder/seed_111/dreamcoder_32 \
   --verbose \
 ```
-{% note %}
-
-NOTE: Requires running `python run_iterative_experiment.py` with `--experiment_type dreamcoder` for at least one iteration to generate an initial `frontiers.json` file.
-
-{% endnote %}
+> [!IMPORTANT]
+> NOTE: Requires running `python run_iterative_experiment.py` with `--experiment_type dreamcoder` for at least one iteration to generate an initial `frontiers.json` file.
 
 ### LILO
 
@@ -145,11 +142,8 @@ python run_iterative_experiment.py \
   --resume_checkpoint_directory experiments_iterative/outputs/test_runs/domains/re2/dreamcoder/seed_111/dreamcoder_32 \
   --verbose \
 ```
-{% note %}
-
-NOTE: Requires running `python run_iterative_experiment.py` with `--experiment_type dreamcoder` for at least one iteration to generate an initial `frontiers.json` file.
-
-{% endnote %}
+> [!IMPORTANT]
+> NOTE: Requires running `python run_iterative_experiment.py` with `--experiment_type dreamcoder` for at least one iteration to generate an initial `frontiers.json` file.
 
 ## Resuming from checkpoints
 
