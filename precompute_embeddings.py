@@ -16,8 +16,6 @@ from openai.embeddings_utils import get_embedding
 from src.experiment_iterator import ExperimentState
 from src.task_loaders import TEST, TRAIN
 
-openai.api_key = os.environ["OPENAI_API_KEY"]
-
 import argparse
 
 from data.clevr.encoder import *
@@ -49,6 +47,8 @@ def get_embedding_directory_for_domain(domain):
 
 
 def main(args):
+    openai.api_key = os.environ["OPENAI_API_KEY"]
+
     domain = args.domain
 
     config_embedding = build_config(

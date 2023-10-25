@@ -1,0 +1,174 @@
+{
+    "metadata": {},
+    "model_initializers": [
+        {
+            "model_type": "grammar",
+            "model_loader": null,
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "library_learner",
+            "model_loader": "stitch_proposer",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        },
+        {
+            "model_type": "examples_encoder",
+            "model_loader": null,
+            "model_initializer_fn": "load_model_initializer",
+            "params": {}
+        },
+        {
+            "model_type": "amortized_synthesis",
+            "model_loader": "dreamcoder_recognition",
+            "model_initializer_fn": "load_model",
+            "params": {}
+        }
+    ],
+    "experiment_iterator": {
+        "max_iterations": null,
+        "task_batcher": {
+            "model_type": "random_shuffle_ordered_task_batcher",
+            "params": {
+                "global_batch_size": null,
+                "verbose": true
+            }
+        },
+        "loop_blocks": [
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_metadata",
+                "params": {
+                    "verbosity": 3
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_frontiers",
+                "params": {
+                  "verbosity": 3
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "grammar",
+                "model_fn": "infer_programs_for_tasks",
+                "task_split": "train",
+                "task_batch_size": "global_batch_size",
+                "params": {
+                  "enumeration_timeout": 10
+                },
+                "run_every_n_iterations": 1000
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_frontiers",
+                "params": {
+                  "verbosity": 3
+                },
+                "run_every_n_iterations": 1000
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "amortized_synthesis",
+                "model_fn": "optimize_model_for_frontiers",
+                "task_split": "train",
+                "task_batch_size": "all",
+                "params": {
+                  "recognition_train_steps": 10000
+                }
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "amortized_synthesis",
+                "model_fn": "infer_programs_for_tasks",
+                "task_split": "train",
+                "task_batch_size": "global_batch_size",
+                "params": {
+                    "enumeration_timeout": 10
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_frontiers",
+                "params": {
+                  "verbosity": 3
+                }
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "reset_task_frontiers",
+                "params": {
+                    "task_split": "test",
+                    "task_ids": "all"
+                },
+                "run_every_n_iterations": 3
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "amortized_synthesis",
+                "model_fn": "infer_programs_for_tasks",
+                "task_split": "test",
+                "task_batch_size": "all",
+                "params": {
+                    "enumeration_timeout": 10
+                },
+                "run_every_n_iterations": 3,
+                "first_iteration": 3
+            },
+            {
+                "experiment_block_type": "state_fn",
+                "state_fn": "log_frontiers",
+                "params": {
+                  "verbosity": 3
+                },
+                "run_every_n_iterations": 3
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "grammar",
+                "model_fn": "evaluate_frontiers",
+                "task_splits": [
+                    "test"
+                ],
+                "task_batch_sizes": [
+                    "all"
+                ],
+                "params": {
+                    "compute_likelihoods": true,
+                    "compute_description_lengths": true,
+                    "save_filename": "test_likelihoods.json"
+                },
+                "run_every_n_iterations": 3
+            },
+            {
+                "experiment_block_type": "checkpoint",
+                "state_to_checkpoint": [
+                    "frontiers"
+                ],
+                "models_to_checkpoint": [
+                    "grammar"
+                ]
+            },
+            {
+                "experiment_block_type": "model_fn",
+                "model_type": "library_learner",
+                "model_fn": "get_compressed_grammar_mdl_prior_rank",
+                "task_splits": [
+                    "train"
+                ],
+                "task_batch_sizes": [
+                    "all"
+                ],
+                "params": {
+                    "include_samples": false,
+                    "use_mdl_program": false,
+                    "beta_reduce_programs": true,
+                    "update_grammar": true,
+                    "replace_existing_abstractions": true
+                }
+            }
+        ]
+    }
+}
