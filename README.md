@@ -83,7 +83,7 @@ The general entry point for running experiments is `run_iterative_experiment.py`
 
 ## Models
 
-Each model type is specified in a template file. For example, the template for the `lilo` model is `experiments_iterative/templates/template_lilo.json`. The `run_iterative_experiment.py` script takes a `--experiment_type` argument that specifies which template to use.
+Each model type is specified in a template file. For example, the template for the `lilo` model is `experiments_iterative/templates/template_lilo.json`. The `run_iterative_experiment.py` script takes an `--experiment_type` argument that specifies which template to use.
 
 ### DreamCoder
 
@@ -97,9 +97,10 @@ python run_iterative_experiment.py \
   --encoder re2 \
   --iterations 16 \
   --global_batch_sizes 96 \
-  --enumeration_timeout 5 \
-  --recognition_train_steps 100 \
+  --enumeration_timeout 1000 \
+  --recognition_train_steps 10000 \
   --random_seeds 111 \
+  --verbose \
 ```
 
 ### LLM Solver
@@ -116,6 +117,7 @@ python run_iterative_experiment.py \
   --random_seeds 111 \
   --init_frontiers_from_checkpoint \
   --resume_checkpoint_directory experiments_iterative/outputs/test_runs/domains/re2/dreamcoder/seed_111/dreamcoder_96 \
+  --verbose \
 ```
 
 ### LILO
@@ -133,15 +135,37 @@ python run_iterative_experiment.py \
   --random_seeds 111 \
   --init_frontiers_from_checkpoint \
   --resume_checkpoint_directory experiments_iterative/outputs/test_runs/domains/re2/dreamcoder/seed_111/dreamcoder_96 \
+  --verbose \
 ```
 
 ## Domains
 
 ### REGEX
 
+```
+--domain re2 \
+--encoder re2 \
+--enumeration_timeout 1000 \
+--iterations 16 \
+```
+
 ### CLEVR
 
+```
+--domain clevr \
+--encoder clevr \
+--enumeration_timeout 600 \
+--iterations 10 \
+```
+
 ### LOGO
+
+```
+--domain logo \
+--encoder LOGO \
+--enumeration_timeout 1800 \
+--iterations 10 \
+```
 
 # Data release
 
