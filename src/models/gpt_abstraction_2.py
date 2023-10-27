@@ -7,11 +7,14 @@ import json
 import os
 from typing import Dict, List
 
+import numpy as np
 import stitch_core as stitch
+from sklearn.cluster import KMeans
 
 import src.models.model_loaders as model_loaders
 from dreamcoder.frontier import Frontier, FrontierEntry
 from dreamcoder.program import Invented, Program
+from precompute_embeddings import get_embedding_directory_for_domain
 from src.experiment_iterator import RANDOM_GENERATOR
 from src.models.gpt_base import DEFAULT_LINE_SEPARATOR
 from src.models.laps_grammar import LAPSGrammar
@@ -64,8 +67,7 @@ class LibraryAbstractionPrompt2(LibraryNamerPrompt):
             "{\n"
             '    "readable_name": "multiply_and_add_three",\n'
             '    "function_expression": "(lambda (lambda (+ 3 (* $0 $1))))",\n'
-            '    "description": "Multiplies the two arguments and adds three to the result.",\n'
-            '    "explanation": "..."\n'
+            '    "description": "Multiplies the two arguments and adds three to the result."\n'
             "}"
         )
 
@@ -110,16 +112,18 @@ class LibraryAbstractionPrompt2(LibraryNamerPrompt):
             + "\n"
             f"- Only propose one function." + "\n"
             f"- Only use the functions available to you (they are in the library provided)."
+            + "\n"
             f"- Make sure the abstraction has balanced parentheses." + "\n"
             f"- Variables are named $0, $1, ..." + "\n"
             f"- Make sure to have the same number of (lambda ... ) expressions as the number of variables."
             + "\n"
+            f"- Be careful to the type inference of functions" + "\n"
             f"- The function should be encoded in the following JSON format. Description should be short (less than 15 words). Don't return anything other than this JSON."
             + "\n"
             "{" + "\n"
             f'    "readable_name": TODO,' + "\n"
             f'    "function_expression": TODO,' + "\n"
-            f'    "description": TODO' + "\n" + "}"
+            f'    "description": TODO,' + "\n}"
         )
 
     def to_message_list(self):
@@ -163,22 +167,26 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
         max_tokens: int = 256,
         n_function_generated: int = 10,
         # Prompt construction
-        n_program_examples: int = 20,
+        n_program_examples: int = 30,
+        body_task_selection: str = "random",
         # Resume from prior runs
         resume_strategy: str = None,
         # Utilities
         verbose: bool = True,
     ):
+
+        abstraction_name_description = []
         task_split = task_splits[0]
         assert task_split == TRAIN
         grammar = experiment_state.models[model_loaders.GRAMMAR]
 
+        # self.check_parse(experiment_state)
         # Optional load from results JSON
         # if self._maybe_load_from_checkpoint(
         #     experiment_state, task_split, resume_strategy, add_primitive=True
         # ):
         #     return {
-        #         SKIPPED_MODEL_FN: True,
+        #         SKIPPED_MODEL_FN: False,
         #     }
 
         gpt_abstraction_library = {}
@@ -200,14 +208,25 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
         )
         os.makedirs(os.path.dirname(results_filepath), exist_ok=True)
 
+        # TODO need to get number of tasks
+        n_solved_task = self._num_solved_task(experiment_state)
+        if body_task_selection == "cosine_similarity":
+            n_function_generated = min(n_function_generated, n_solved_task // 10)
+        # self.check_parse(experiment_state)
+
         for function_num in range(n_function_generated):
             abstraction_definitions = self._get_abstraction_definitions(
                 experiment_state, abstractions_only=False
             )
-            task_examples, task_examples_id = self._get_task_examples(
-                experiment_state, n_program_examples, n_function_generated, function_num
+            task_examples = self._get_task_examples(
+                experiment_state,
+                n_program_examples,
+                n_function_generated,
+                function_num,
+                body_task_selection,
             )
-
+            # rng = experiment_state.metadata[RANDOM_GENERATOR]
+            # task_examples = rng.choice(task_examples, n_program_examples, replace=False)
             prompt = LibraryAbstractionPrompt2(
                 abstraction_definitions=abstraction_definitions,
                 task_examples=task_examples,
@@ -252,34 +271,35 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
                     LAPSGrammar.HUMAN_READABLE,
                     LAPSGrammar.NUMERIC_FUNCTION_NAMES,
                 ]
-                program_str = "#" + grammar.show_program(
-                    function_expression,
-                    input_name_class=function_name_classes,
-                    name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
-                )
-                p = Invented.parse(program_str)
-
-                new_productions = (0.0, p.infer(), p)
-                new_grammar = LAPSGrammar(
-                    logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
-                    productions=grammar.productions + [new_productions],
-                    continuationType=grammar.continuationType,
-                    initialize_parameters_from_grammar=grammar,
-                )
-
-                p = stitch.Abstraction.from_dreamcoder(
-                    name=readable_name,
-                    dreamcoder_abstraction=program_str,
-                    name_mapping=name_mapping,
-                )
 
                 rewrite_exception_occurred = False
+
                 try:
+                    program_str = "#" + grammar.show_program(
+                        function_expression,
+                        input_name_class=function_name_classes,
+                        name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+                    )
+                    p = Invented.parse(program_str)
+
+                    new_productions = (0.0, p.infer(), p)
+                    new_grammar = LAPSGrammar(
+                        logVariable=grammar.logVariable,  # TODO: Renormalize logVariable
+                        productions=grammar.productions + [new_productions],
+                        continuationType=grammar.continuationType,
+                        initialize_parameters_from_grammar=grammar,
+                    )
+
+                    p = stitch.Abstraction.from_dreamcoder(
+                        name=readable_name,
+                        dreamcoder_abstraction=program_str,
+                        name_mapping=name_mapping,
+                    )
                     rewrite_result = stitch.rewrite(
                         programs=stitch_kwargs["programs"],
                         abstractions=[p],
                     )
-                except stitch.StitchException as e:
+                except Exception as e:
                     print(f"❌ Failed to create a function")
                     error_filepath = os.path.join(
                         os.getcwd(),
@@ -317,6 +337,14 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
                         gpt_abstraction_library[str(function_expression)][
                             "num_uses"
                         ] = rewrite_result.json["abstractions"][-1]["num_uses"]
+                        gpt_abstraction_library[str(function_expression)][
+                            "cumulative_compression_ratio"
+                        ] = rewrite_result.json["abstractions"][-1][
+                            "cumulative_compression_ratio"
+                        ]
+                        gpt_abstraction_library[str(function_expression)][
+                            "arity"
+                        ] = rewrite_result.json["abstractions"][-1]["arity"]
                     # name_mapping double check
                     programs_rewritten = stitch.stitch_to_dreamcoder(
                         rewrite_result.rewritten,
@@ -357,20 +385,29 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
                     grammar = experiment_state.models[model_loaders.GRAMMAR]
 
                     # update name and description
-                    new_grammar.set_function_name(
-                        program_str,
-                        name_class=LAPSGrammar.HUMAN_READABLE,
-                        name=readable_name,
-                    )
-                    new_grammar.set_function_description(
-                        name=program_str,
-                        description=selected_result["data"]["description"],
-                    )
-
                     new_grammar = new_grammar.insideOutside(
                         frontiers_rewritten, pseudoCounts=30, iterations=1
                     )
                     new_grammar = LAPSGrammar.fromGrammar(new_grammar)
+
+                    abstraction_name_description.append(
+                        (
+                            program_str,
+                            readable_name,
+                            selected_result["data"]["description"],
+                        )
+                    )
+                    for abstraction in abstraction_name_description:
+                        program_str, readable_name, description = abstraction
+                        new_grammar.set_function_name(
+                            program_str,
+                            name_class=LAPSGrammar.HUMAN_READABLE,
+                            name=readable_name,
+                        )
+                        new_grammar.set_function_description(
+                            name=program_str,
+                            description=description,
+                        )
 
                     experiment_state.models[model_loaders.GRAMMAR] = new_grammar
                     grammar = experiment_state.models[model_loaders.GRAMMAR]
@@ -451,85 +488,128 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
         with open(prompt_filepath, "w") as f:
             json.dump(prompt_dict, f, ensure_ascii=False, indent=4)
 
+    def _num_solved_task(self, experiment_state):
+        n_solved_task = 0
+        tasks = list(experiment_state.task_frontiers[TRAIN].keys())
+        for task in tasks:
+            frontier = experiment_state.task_frontiers[TRAIN][task]
+            if not frontier.empty:
+                n_solved_task += 1
+        return n_solved_task
+
     def _get_task_examples(
-        self, experiment_state, n_task_examples, n_function_generated, function_num
+        self,
+        experiment_state,
+        n_task_examples,
+        n_function_generated,
+        function_num,
+        body_task_selection,
     ):
 
         grammar = experiment_state.models[model_loaders.GRAMMAR]
-        solved_task = []
         tasks = list(experiment_state.task_frontiers[TRAIN].keys())
-        # get all solved tasks
-        for task in tasks:
-            frontier = experiment_state.task_frontiers[TRAIN][task]
-            rng = experiment_state.metadata[RANDOM_GENERATOR]
-            task_language = rng.choice(
-                experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
+        if body_task_selection == "random":
+            solved_task = []
+            # get all solved tasks
+            for task in tasks:
+                frontier = experiment_state.task_frontiers[TRAIN][task]
+
+                rng = experiment_state.metadata[RANDOM_GENERATOR]
+                task_language = rng.choice(
+                    experiment_state.get_language_for_ids(TRAIN, [task.name])[0]
+                )
+                for e in frontier:
+                    solved_task += [
+                        {
+                            "task_name": task.name,
+                            "program": grammar.show_program(
+                                e.program,
+                                name_classes=[
+                                    LAPSGrammar.HUMAN_READABLE,
+                                    LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                                ],
+                                debug=True,
+                            ),
+                            "language": task_language,
+                        }
+                    ]
+                    break
+            if len(solved_task) > n_task_examples:
+                solved_task = solved_task[:n_task_examples]
+            return solved_task
+
+        else:
+            solved_task = {}
+            tasks = list(experiment_state.task_frontiers[TRAIN].keys())
+            for task in tasks:
+                frontier = experiment_state.task_frontiers[TRAIN][task]
+                if not frontier.empty:
+                    solved_task[task.name] = frontier
+
+            task_language_loader = experiment_state.config["metadata"][
+                "task_language_loader"
+            ]
+            embedding_filepath = get_embedding_directory_for_domain(
+                task_language_loader
             )
+            try:
+                with open(embedding_filepath, "r") as f:
+                    embedding_dict = json.load(f)
+            except FileNotFoundError:
+                raise FileNotFoundError(
+                    f"The file '{embedding_filepath}' could not be found."
+                )
+
+            # get a dict with all solved task_id:task_embedding
+            embedding_dict = {
+                task_id: embedding_dict[task_id] for task_id in solved_task
+            }
+
+            # cluster tasks
+            embeddings = np.array(list(embedding_dict.values()))
+            task_ids = np.array(list(embedding_dict.keys()))
+            kmeans = KMeans(n_clusters=n_function_generated, random_state=0)
+            clusters = kmeans.fit_predict(embeddings)
+            dict_cluster = dict(zip(task_ids, clusters))
+
+            task_examples_id = [
+                task_id
+                for task_id, cluster in dict_cluster.items()
+                if cluster == function_num
+            ]
+            if len(task_examples_id) > n_task_examples:
+                task_examples_id = task_examples_id[:n_task_examples]
+
+            task_languages = [
+                task_example[0]
+                for task_example in experiment_state.get_language_for_ids(
+                    TRAIN, task_examples_id
+                )
+            ]
+
+        def get_program_from_frontier(task_id):
+            frontier = solved_task[task_id]
             for e in frontier:
-                # program = grammar.show_program(
-                #     e.program,
-                #     name_classes=[
-                #         LAPSGrammar.HUMAN_READABLE,
-                #         LAPSGrammar.NUMERIC_FUNCTION_NAMES,
-                #     ],
-                #     debug=True,
-                # )
-                # solved_task[task.name] = program
-                solved_task += [
-                    {
-                        "task_name": task.name,
-                        "program": grammar.show_program(
-                            e.program,
-                            name_classes=[
-                                LAPSGrammar.HUMAN_READABLE,
-                                LAPSGrammar.NUMERIC_FUNCTION_NAMES,
-                            ],
-                            debug=True,
-                        ),
-                        "language": task_language,
-                    }
-                ]
-                break
+                return grammar.show_program(
+                    e.program,
+                    name_classes=[
+                        LAPSGrammar.HUMAN_READABLE,
+                        LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+                    ],
+                    debug=True,
+                )
 
-        return solved_task, None
-        # # get a dict with all task_id:task_embedding
-        # task_language_loader = experiment_state.config["metadata"][
-        #     "task_language_loader"
-        # ]
-        # embedding_filepath = get_embedding_directory_for_domain(task_language_loader)
-        # try:
-        #     with open(embedding_filepath, "r") as f:
-        #         embedding_dict = json.load(f)
-        # except FileNotFoundError:
-        #     raise FileNotFoundError(
-        #         f"The file '{embedding_filepath}' could not be found."
-        #     )
-
-        # # get a dict with all solved task_id:task_embedding
-        # embedding_dict = {task_id: embedding_dict[task_id] for task_id in solved_task}
-
-        # # cluster tasks
-        # embeddings = np.array(list(embedding_dict.values()))
-        # task_ids = np.array(list(embedding_dict.keys()))
-        # kmeans = KMeans(n_clusters=n_function_generated, random_state=0)
-        # clusters = kmeans.fit_predict(embeddings)
-        # dict_cluster = dict(zip(task_ids, clusters))
-
-        # task_examples_id = [
-        #     task_id
-        #     for task_id, cluster in dict_cluster.items()
-        #     if cluster == function_num
-        # ][:n_task_examples]
-
-        # task_languages = [
-        #     task_example[0]
-        #     for task_example in experiment_state.get_language_for_ids(
-        #         TRAIN, task_examples_id
-        #     )
-        # ]
         # task_programs = [solved_task[task_id] for task_id in task_examples_id]
-        # task_programs = [{k: v} for k, v in zip(task_languages, task_programs)]
-        # return task_programs, task_examples_id
+        task_programs = [
+            get_program_from_frontier(task_id) for task_id in task_examples_id
+        ]
+        output = [
+            {"task_name": name, "program": program, "language": language}
+            for name, program, language in zip(
+                task_examples_id, task_programs, task_languages
+            )
+        ]
+        return output
 
     def _get_program(self, experiment_state):
         grammar = experiment_state.models[model_loaders.GRAMMAR]
@@ -609,9 +689,12 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
             # add filter
             program_str_gpt = data["function_expression"]
             grammar = experiment_state.models[model_loaders.GRAMMAR]
+
+            # self.check_parse(experiment_state)
             # CHECK 1: Does the program parse?
             try:
                 # Write the program back into the DreamCoder form from whatever it was initially in.
+                # temporalily delete "#"+
                 program_str = "#" + grammar.show_program(
                     program_str_gpt,
                     input_name_class=function_name_classes,
@@ -657,41 +740,42 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
                 )
             except Exception:
                 # add lambda to program_str
-                import re
+                # import re
 
-                numbers = re.findall(r"\$(\d+)", program_str_gpt)
-                num_variable = max(map(int, numbers))
-                num_lambda = program_str_gpt.count("lambda")
-                lambda_need = num_variable - num_lambda
-                for i in range(lambda_need):
-                    program_str_gpt = f"(lambda{program_str_gpt})"
-                    program_str = "#" + grammar.show_program(
-                        program_str_gpt,
-                        input_name_class=function_name_classes,
-                        name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
-                    )
-                    try:
-                        p.parse()
-                        p.infer()
-                        stitch.Abstraction.from_dreamcoder(
-                            name="name",
-                            dreamcoder_abstraction=program_str,
-                            name_mapping=name_mapping,
-                        )
-                    except Exception:
-                        if verbose:
-                            print(f"Free variable in: {str(p)}")
-                        parse_results.append(
-                            {
-                                "index": choice["index"],
-                                "text": choice["text"],
-                                "valid": False,
-                                "error": GPTLibraryLearner2.ERROR_FREE_VARIABLE,
-                            }
-                        )
-                        self.error_dict["freevariable"] += 1
-                        continue
-                    choice["text"]["function_expression"] = program_str_gpt
+                # numbers = re.findall(r"\$(\d+)", program_str_gpt)
+                # num_variable = max(map(int, numbers))+1
+                # num_lambda = program_str_gpt.count("lambda")
+                # lambda_need = num_variable - num_lambda
+                # for i in range(lambda_need):
+                #     program_str_gpt = f"(lambda {program_str_gpt})"
+                #     program_str = "#" + grammar.show_program(
+                #         program_str_gpt,
+                #         input_name_class=function_name_classes,
+                #         name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+                #     )
+                # choice["text"]["function_expression"] = program_str_gpt
+                # try:
+                #     p = Program.parse(program_str)
+                #     p.infer()
+                #     stitch.Abstraction.from_dreamcoder(
+                #         name="name",
+                #         dreamcoder_abstraction=program_str,
+                #         name_mapping=name_mapping,
+                #     )
+
+                # except Exception:
+                if verbose:
+                    print(f"Free variable in: {str(p)}")
+                parse_results.append(
+                    {
+                        "index": choice["index"],
+                        "text": choice["text"],
+                        "valid": False,
+                        "error": GPTLibraryLearner2.ERROR_FREE_VARIABLE,
+                    }
+                )
+                self.error_dict["freevariable"] += 1
+                continue
 
             parse_results.append(
                 {
@@ -702,3 +786,26 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
                 }
             )
         return parse_results
+
+    def check_parse(self, experiment_state):
+        grammar = experiment_state.models[model_loaders.GRAMMAR]
+        program = "(lambda (clevr_count (clevr_fold $0 clevr_empty (lambda (lambda (clevr_if $1 (clevr_add $2 $0) $0))))))"
+        # program = "(lambda (lambda (clevr_fold $0 $0 (lambda (lambda (clevr_map (lambda (clevr_if (clevr_eq_size (clevr_query_size $0) $4) $0 $2)) $0))))))"
+        function_name_classes = [
+            LAPSGrammar.HUMAN_READABLE,
+            LAPSGrammar.NUMERIC_FUNCTION_NAMES,
+        ]
+
+        program_str = "#" + grammar.show_program(
+            program,
+            input_name_class=function_name_classes,
+            name_classes=[LAPSGrammar.DEFAULT_FUNCTION_NAMES],
+        )
+        print(program_str)
+        try:
+            Program.parse(program_str)
+        except:
+            raise ValueError()
+            import sys
+
+            sys.exit()
