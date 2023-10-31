@@ -231,7 +231,7 @@ To view this data in your browser, you can use the AWS CLI (requires AWS account
 
 # Acknowledgements
 
-LILO inherits from the LAPS codebase (https://github.com/CatherineWong/laps). We gratefully acknowledge Lionel Wong for the use of their codebase as a foundation and for technical support.
+LILO inherits from the LAPS codebase (github.com/CatherineWong/laps). We gratefully acknowledge Lionel Wong for the use of their codebase as a foundation and for technical support.
 
 # License
 
