@@ -1,6 +1,6 @@
 # LILO
 
-LILO: Learning Interpretable Libraries by Compressing and Documenting Code ([arxiv/xxx.xxxx](https://arxiv.org/abs/xxxx.xxxxx))
+LILO: Learning Interpretable Libraries by Compressing and Documenting Code ([arxiv/2310.19791](https://arxiv.org/abs/2310.19791))
 
 ![LILO Splash Figure](_assets/lilo_splash.png)
 
