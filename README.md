@@ -222,9 +222,9 @@ To view this data in your browser, you can use the AWS CLI (requires AWS account
 
 ```
 @article{grand2023lilo,
-  title={LILO: Learning Interpretable Libraries by Compressing and Documenting Code},
-  author={Grand, Gabriel and Wong, Lionel and Bowers, Matthew and Olausson, Theo X. and Liu, Muxin and Tenenbaum, Joshua B. and Andreas, Jacob},
-  journal={arXiv preprint arXiv:xxxx.xxxxx},
+  title={{LILO}: Learning Interpretable Libraries by Compressing and Documenting Code},
+  author={Gabriel Grand and Lionel Wong and Matthew Bowers and Theo X. Olausson and Muxin Liu and Joshua B. Tenenbaum and Jacob Andreas},
+  journal={arXiv preprint arXiv:2310.19791},
   year={2023}
 }
 ```
