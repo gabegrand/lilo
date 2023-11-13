@@ -36,6 +36,7 @@ from src.task_loaders import ALL, RandomShuffleOrderedTaskBatcher
 
 DEFAULT_EXPERIMENT_DIR = "experiments_iterative"
 DEFAULT_TEMPLATE_DIR = os.path.join(DEFAULT_EXPERIMENT_DIR, "templates")
+LEGACY_TEMPLATE_DIR = os.path.join(DEFAULT_EXPERIMENT_DIR, "templates", ".templates")
 
 
 DEFAULT_STITCH_PARAMS = {
@@ -330,9 +331,19 @@ def build_config_body(
     increment_task_batcher: bool = True,
     s3_sync: bool = True,
 ):
-    template_path = os.path.join(
-        DEFAULT_TEMPLATE_DIR, f"template_{experiment_type}.json"
-    )
+    template_paths = [
+        os.path.join(template_dir, f"template_{experiment_type}.json")
+        for template_dir in (DEFAULT_TEMPLATE_DIR, LEGACY_TEMPLATE_DIR)
+    ]
+    template_path = None
+    for path in template_paths:
+        if os.path.exists(path):
+            template_path = path
+            break
+    if not template_path:
+        raise FileNotFoundError(
+            f"Unable to locate template for `{experiment_type}`. Searched in: {template_paths}."
+        )
     with open(template_path, "r") as f:
         config = json.load(f)
 

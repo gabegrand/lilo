@@ -329,6 +329,7 @@ class LAPSGrammar(Grammar):
         max_mem_per_enumeration_thread=DEFAULT_MAX_MEM_PER_ENUMERATION_THREAD,
         solver_directory=DEFAULT_BINARY_DIRECTORY,
         compute_likelihoods=True,
+        allow_resume=True,
     ):
         """
         Infers programs for tasks via top-down enumerative search from the grammar.
@@ -340,7 +341,7 @@ class LAPSGrammar(Grammar):
 
         self.maximum_frontier = maximum_frontier
 
-        if experiment_state.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
+        if allow_resume and experiment_state.metadata[INIT_FRONTIERS_FROM_CHECKPOINT]:
             if experiment_state.maybe_resume_from_checkpoint():
                 print(
                     f"infer_programs_for_tasks: Restored frontiers from checkpoint and skipped enumeration."

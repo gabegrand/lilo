@@ -22,6 +22,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--domain", required=True, help="[logo, clevr, re2]")
 
 parser.add_argument(
+    "--prior_experiment_dir",
+    default="experiments_iterative",
+    help="Prior experiment_dir to load.",
+)
+
+parser.add_argument(
     "--prior_experiment_name", required=True, help="Prior experiment_name to load."
 )
 
@@ -45,6 +51,13 @@ parser.add_argument(
     required=True,
     type=int,
     help="Initialize from a later iteration; e.g., init_iteration=3 starts the experiment at iteration 3.",
+)
+
+parser.add_argument(
+    "--compress",
+    default=False,
+    action="store_true",
+    help="Run Stitch compression to produce a new library *before* running library evaluation.",
 )
 
 parser.add_argument(
@@ -76,43 +89,47 @@ parser.add_argument(
     help="Disable AWS S3 upload.",
 )
 
-EXPERIMENT_TYPE_LIBRARY_EVALUATION = "library_evaluation"
-
 
 def main(args):
+
+    if args.compress:
+        main_experiment_type = "library_evaluation_compression"
+    else:
+        main_experiment_type = "library_evaluation"
 
     experiment_name = f"library_evaluation_{args.prior_experiment_name}"
 
     for random_seed in args.random_seeds:
-        for experiment_type in args.prior_experiment_types:
+        for prior_experiment_type in args.prior_experiment_types:
 
             resume_checkpoint_directory = os.path.join(
-                "experiments_iterative",
+                args.prior_experiment_dir,
                 "outputs",
                 args.prior_experiment_name,
                 "domains",
                 args.domain,
-                experiment_type,
+                prior_experiment_type,
                 f"seed_{random_seed}",
-                f"{experiment_type}_{args.prior_batch_size}",
+                f"{prior_experiment_type}_{args.prior_batch_size}",
             )
             if not os.path.exists(resume_checkpoint_directory):
                 raise ValueError(resume_checkpoint_directory)
 
             export_directory = os.path.join(
-                "experiments_iterative",
+                args.prior_experiment_dir,
                 "outputs",
                 experiment_name,
                 "domains",
                 args.domain,
-                experiment_type,
+                prior_experiment_type,
                 f"seed_{random_seed}",
             )
 
             config_base = build_config(
+                output_directory=args.prior_experiment_dir,
                 experiment_name=experiment_name,
-                experiment_type=EXPERIMENT_TYPE_LIBRARY_EVALUATION,
-                custom_experiment_type=experiment_type,
+                experiment_type=main_experiment_type,
+                custom_experiment_type=prior_experiment_type,
                 domain=args.domain,
                 random_seed=random_seed,
                 iterations=args.final_iteration + 1,
@@ -123,6 +140,7 @@ def main(args):
                 compute_likelihoods=True,
                 compute_description_lengths=True,
                 increment_task_batcher=True,
+                init_frontiers_from_checkpoint=args.compress,
                 init_grammar_from_checkpoint=True,
                 resume_checkpoint_directory=resume_checkpoint_directory,
                 s3_sync=(not args.no_s3_sync),

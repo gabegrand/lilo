@@ -47,7 +47,8 @@
                 "task_split": "test",
                 "task_batch_size": "all",
                 "params": {
-                  "enumeration_timeout": 10
+                  "enumeration_timeout": 10,
+                  "allow_resume": false
                 }
             },
             {
