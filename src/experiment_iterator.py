@@ -240,7 +240,28 @@ class ExperimentState:
         if not grammar:
             raise ValueError(f"Failed to load grammar from checkpoint.")
         self.models[model_loaders.GRAMMAR] = grammar
-        print(f"Loaded grammar from: {self.get_checkpoint_directory_maybe_resume()}")
+
+        # update human readable names and descriptions
+        name_path = os.path.join(
+            self.get_checkpoint_directory_maybe_resume(),
+            "train",
+            "gpt_library_namer_results.json",
+        )
+        if os.path.exists(name_path):
+            with open(name_path, "r") as file:
+                readable_data = json.load(file)
+            for expression, abstraction in readable_data["abstractions"].items():
+                name = abstraction["readable_name"]
+                description = abstraction["description"]
+                grammar.set_function_name(
+                    expression,
+                    name_class="human_readable",
+                    name=name,
+                )
+                grammar.set_function_description(
+                    name=expression,
+                    description=description,
+                )
 
     def get_checkpoint_directory(self):
         checkpoint_directory = os.path.join(
