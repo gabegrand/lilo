@@ -182,12 +182,12 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
 
         # self.check_parse(experiment_state)
         # Optional load from results JSON
-        # if self._maybe_load_from_checkpoint(
-        #     experiment_state, task_split, resume_strategy, add_primitive=True
-        # ):
-        #     return {
-        #         SKIPPED_MODEL_FN: False,
-        #     }
+        if self._maybe_load_from_checkpoint(
+            experiment_state, task_split, resume_strategy, add_primitive=True
+        ):
+            return {
+                SKIPPED_MODEL_FN: False,
+            }
 
         gpt_abstraction_library = {}
         grammar = LAPSGrammar(
@@ -210,6 +210,7 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
 
         # TODO need to get number of tasks
         n_solved_task = self._num_solved_task(experiment_state)
+
         if body_task_selection == "cosine_similarity":
             n_function_generated = min(n_function_generated, n_solved_task // 10)
         # self.check_parse(experiment_state)
@@ -290,14 +291,14 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
                         initialize_parameters_from_grammar=grammar,
                     )
 
-                    p = stitch.Abstraction.from_dreamcoder(
+                    p_dreamcoder = stitch.Abstraction.from_dreamcoder(
                         name=readable_name,
                         dreamcoder_abstraction=program_str,
                         name_mapping=name_mapping,
                     )
                     rewrite_result = stitch.rewrite(
                         programs=stitch_kwargs["programs"],
-                        abstractions=[p],
+                        abstractions=[p_dreamcoder],
                     )
                 except Exception as e:
                     print(f"❌ Failed to create a function")
@@ -329,6 +330,16 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
                         rewrite_result.json["original_cost"]
                         - rewrite_result.json["final_cost"]
                     )
+                    new_p = Invented.parse(program_str[1:])
+                    gpt_abstraction_library[str(function_expression)]["arity"] = len(
+                        new_p.infer().functionArguments()
+                    )
+                    gpt_abstraction_library[str(function_expression)]["length"] = len(
+                        new_p.left_order_tokens(show_vars=True)
+                    )
+                    gpt_abstraction_library[str(function_expression)][
+                        "dreamcoder"
+                    ] = program_str
 
                     if rewrite_result.json["compression_ratio"] != 1:
                         gpt_abstraction_library[str(function_expression)][
@@ -342,9 +353,6 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
                         ] = rewrite_result.json["abstractions"][-1][
                             "cumulative_compression_ratio"
                         ]
-                        gpt_abstraction_library[str(function_expression)][
-                            "arity"
-                        ] = rewrite_result.json["abstractions"][-1]["arity"]
                     # name_mapping double check
                     programs_rewritten = stitch.stitch_to_dreamcoder(
                         rewrite_result.rewritten,
@@ -362,9 +370,6 @@ class GPTLibraryLearner2(GPTLibraryNamer, StitchBase):
                         )
                         if matching_tasks:
                             if len(matching_tasks) > 1:
-                                logging.warning(
-                                    f"Found multiple ({len(matching_tasks)}) tasks associated with task_id {task_id}"
-                                )
                                 rng = experiment_state.metadata[RANDOM_GENERATOR]
                                 task = rng.choice(matching_tasks)
                             else:
