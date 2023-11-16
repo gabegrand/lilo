@@ -312,23 +312,28 @@ class Prompt(BasePrompt):
 class GPTBase(object):
     # https://platform.openai.com/docs/models
     ENGINE_CODEX = "code-davinci-002"
-    ENGINE_GPT_3_5_TURBO = "gpt-3.5-turbo-0301"
-    ENGINE_GPT_4 = "gpt-4-0314"
+    ENGINE_GPT_3_5_TURBO = "gpt-3.5-turbo"
+    ENGINE_GPT_3_5_TURBO_0301 = "gpt-3.5-turbo-0301"
+    ENGINE_GPT_4 = "gpt-4"
+    ENGINE_GPT_4_0314 = "gpt-4-0314"
     ENGINE_DEFAULT = ENGINE_CODEX
 
     # Max tokens for BOTH the prompt and the completion.
     MAX_TOKENS_PER_ENGINE = {
         ENGINE_CODEX: 4096,  # 8001
         ENGINE_GPT_3_5_TURBO: 4096,
+        ENGINE_GPT_3_5_TURBO_0301: 4096,
         ENGINE_GPT_4: 8192,
+        ENGINE_GPT_4_0314: 8192,
     }
 
     # Models that use chat completion format
-    CHAT_ENGINES = [ENGINE_GPT_3_5_TURBO, ENGINE_GPT_4]
-
-    # OpenAI organization IDs
-    ORG_MIT_CODE = "org-8jXkUFeFDJqIpWtgvtpuPjwm"  # Use for all other models
-    ORG_PERSONAL = "org-fYb48minYCuDB6m3hu9SJVW8"  # Use for Codex
+    CHAT_ENGINES = [
+        ENGINE_GPT_3_5_TURBO,
+        ENGINE_GPT_3_5_TURBO_0301,
+        ENGINE_GPT_4,
+        ENGINE_GPT_4_0314,
+    ]
 
     def __init__(self, experiment_state=None, engine=None):
         super().__init__()
@@ -351,7 +356,7 @@ class GPTBase(object):
         prompt: Union[Prompt, str],
         n_samples: int,
         best_of: int = 1,
-        temperature: float = 0.75,
+        temperature: float = None,
         max_tokens: int = 256,  # Max tokens for completion only.
         stop: str = DEFAULT_LINE_SEPARATOR,
         line_separator: str = DEFAULT_LINE_SEPARATOR,
@@ -372,8 +377,8 @@ class GPTBase(object):
             try:
                 completion = self._create_completion(
                     prompt=prompt,
-                    temperature=temperature if top_p is None else 1.0,
-                    top_p=top_p if temperature is None else 1.0,
+                    temperature=temperature,
+                    top_p=top_p,
                     n_samples=n_samples,
                     stop=stop,
                     best_of=best_of,
@@ -420,12 +425,11 @@ class GPTBase(object):
             else:
                 messages = [{"role": "user", "content": str(prompt)}]
 
-            openai.organization = self.ORG_MIT_CODE
             completion = openai.ChatCompletion.create(
                 model=self.ENGINE,
                 messages=messages,
-                temperature=temperature if top_p is None else 1.0,
-                top_p=top_p if temperature is None else 1.0,
+                temperature=temperature,
+                top_p=top_p,
                 n=n_samples,
                 stop=stop,
                 max_tokens=max_tokens,
@@ -435,12 +439,11 @@ class GPTBase(object):
             for choice in completion["choices"]:
                 choice["text"] = choice["message"]["content"]
         else:
-            openai.organization = self.ORG_PERSONAL
             completion = openai.Completion.create(
                 model=self.ENGINE,
                 prompt=str(prompt),
-                temperature=temperature if top_p is None else 1.0,
-                top_p=top_p if temperature is None else 1.0,
+                temperature=temperature,
+                top_p=top_p,
                 n=n_samples,
                 stop=stop,
                 max_tokens=max_tokens,
