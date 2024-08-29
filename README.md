@@ -220,12 +220,16 @@ To view this data in your browser, you can use the AWS CLI (requires AWS account
 
 # Citations
 
+Thanks for citing this work! Please use the following archival citation from ICLR 2024.
+
 ```
-@article{grand2023lilo,
+@inproceedings{
+  grand2024lilo,
   title={{LILO}: Learning Interpretable Libraries by Compressing and Documenting Code},
-  author={Gabriel Grand and Lionel Wong and Matthew Bowers and Theo X. Olausson and Muxin Liu and Joshua B. Tenenbaum and Jacob Andreas},
-  journal={arXiv preprint arXiv:2310.19791},
-  year={2023}
+  author={Gabriel Grand and Lionel Wong and Maddy Bowers and Theo X. Olausson and Muxin Liu and Joshua B. Tenenbaum and Jacob Andreas},
+  booktitle={The Twelfth International Conference on Learning Representations},
+  year={2024},
+  url={https://openreview.net/forum?id=TqYbAWKMIe}
 }
 ```
 
